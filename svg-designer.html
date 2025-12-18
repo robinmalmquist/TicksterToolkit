@@ -1,0 +1,2565 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8">
+  <title>SVG Designer</title>
+  <style>
+    :root {
+      /* Tickster palette */
+      --tick-blue-100: #7cd0ff;
+      --tick-blue-500: #14a0f4;
+      --tick-blue-700: #0c6ba5;
+
+      --tick-turq-100: #6ee0db;
+      --tick-turq-500: #19bab5;
+      --tick-turq-700: #117c79;
+
+      --tick-yellow-100: #ffe479;
+      --tick-yellow-500: #e6c229;
+      --tick-yellow-700: #99811c;
+
+      --tick-grey-100: #f3f5f7;
+      --tick-grey-150: #e6eaee;
+      --tick-grey-200: #dbe0e4;
+      --tick-grey-400: #849099;
+      --tick-grey-700: #4f5d68;
+
+      --tick-red-300: #e57c8c;
+      --tick-red-600: #c12e44;
+
+      --tick-green-300: #5cae8f;
+      --tick-green-600: #007347;
+
+      --tick-radius-lg: 10px;
+      --tick-radius-sm: 999px;
+      --tick-shadow-soft: 0 2px 8px rgba(15, 23, 42, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%);
+      color: var(--tick-grey-700);
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Header */
+
+    header {
+      padding: 10px 18px;
+      background: white;
+      border-bottom: 1px solid var(--tick-grey-200);
+      box-shadow: 0 1px 4px rgba(15, 23, 42, 0.04);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--tick-blue-700);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    header h1::before {
+      content: "";
+      width: 22px;
+      height: 22px;
+      border-radius: 6px;
+      background: linear-gradient(135deg, var(--tick-blue-500), var(--tick-turq-500));
+      display: inline-block;
+    }
+
+    header small {
+      font-size: 12px;
+      color: var(--tick-grey-400);
+    }
+
+    /* Layout */
+
+    .app {
+      flex: 1;
+      padding: 16px 18px 18px;
+      display: grid;
+      grid-template-columns: 260px minmax(0, 1fr) 300px;
+      gap: 16px;
+      min-height: 0;
+    }
+
+    .sidebar-left {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      min-height: 0;
+    }
+
+    .sidebar-right {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      min-height: 0;
+    }
+
+    .tools-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 6px;
+    }
+
+    .tools-inputs {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 6px;
+      margin-top: 6px;
+      align-items: center;
+    }
+
+    /* Cards */
+
+    .c-card {
+      background: white;
+      border-radius: var(--tick-radius-lg);
+      box-shadow: var(--tick-shadow-soft);
+      border: 1px solid var(--tick-grey-200);
+      padding: 12px 14px 14px;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+
+    .c-card__header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      gap: 8px;
+    }
+
+    .c-card__title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--tick-grey-700);
+    }
+
+    .c-card__subtitle {
+      font-size: 11px;
+      color: var(--tick-grey-400);
+    }
+
+    .c-card__body {
+      flex: 1;
+      font-size: 13px;
+      overflow-y: auto;
+      padding-top: 4px;
+    }
+
+    .c-card__section {
+      padding: 8px 0;
+      border-top: 1px solid var(--tick-grey-150);
+    }
+    .c-card__section:first-of-type {
+      border-top: none;
+      padding-top: 0;
+    }
+
+    /* Buttons */
+
+    .c-button {
+      border-radius: var(--tick-radius-sm);
+      border: 1px solid transparent;
+      padding: 6px 10px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      background: white;
+      color: var(--tick-grey-700);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.08s ease;
+      text-align: center;
+    }
+
+    .c-button--block {
+      width: 100%;
+    }
+
+    .c-button--primary {
+      background: var(--tick-blue-500);
+      border-color: var(--tick-blue-500);
+      color: white;
+    }
+
+    .c-button--primary:hover {
+      background: var(--tick-blue-700);
+      border-color: var(--tick-blue-700);
+      box-shadow: 0 2px 6px rgba(20, 160, 244, 0.25);
+    }
+
+    .c-button--secondary {
+      background: var(--tick-turq-500);
+      border-color: var(--tick-turq-500);
+      color: white;
+    }
+
+    .c-button--secondary:hover {
+      background: var(--tick-turq-700);
+      border-color: var(--tick-turq-700);
+      box-shadow: 0 2px 6px rgba(25, 186, 181, 0.25);
+    }
+
+    .c-button--ghost {
+      background: white;
+      border-color: var(--tick-grey-200);
+      color: var(--tick-grey-700);
+    }
+
+    .c-button--danger {
+      background: var(--tick-red-600);
+      border-color: var(--tick-red-600);
+      color: white;
+    }
+
+    .c-button--danger:hover {
+      background: #a62639;
+      border-color: #a62639;
+      box-shadow: 0 2px 6px rgba(193, 46, 68, 0.25);
+    }
+
+    .c-button--ghost:hover {
+      border-color: var(--tick-blue-100);
+      background: #f4faff;
+    }
+
+    .c-button--small {
+      padding: 4px 8px;
+      font-size: 11px;
+    }
+
+    .c-toolbar {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    /* Toggle-style buttons for alignment */
+    .c-button.is-active {
+      background: var(--tick-blue-500);
+      border-color: var(--tick-blue-500);
+      color: #fff;
+    }
+
+    /* Typography utils */
+
+    .u-font--small {
+      font-size: 12px;
+    }
+
+    .u-font--smaller {
+      font-size: 11px;
+    }
+
+    .u-font--mono {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
+
+    /* Pills */
+
+    .c-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 2px 8px;
+      border-radius: var(--tick-radius-sm);
+      background: var(--tick-grey-100);
+      border: 1px solid var(--tick-grey-200);
+      font-size: 11px;
+      color: var(--tick-grey-700);
+    }
+
+    .c-pill__code {
+      padding: 2px 6px;
+      border-radius: 6px;
+      background: #f0f9ff;
+      color: var(--tick-blue-700);
+      font-weight: 600;
+      font-size: 11px;
+      font-family: ui-monospace, SFMono-Regular, "Menlo", monospace;
+    }
+
+    /* Left card: size controls */
+
+    .size-option-group label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 0;
+      cursor: pointer;
+      font-size: 12px;
+    }
+
+    .size-option-group input[type="radio"] {
+      accent-color: var(--tick-blue-500);
+    }
+
+    .size-custom-grid {
+      margin-top: 4px;
+      padding-left: 18px;
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 4px 6px;
+      align-items: center;
+    }
+
+    .size-custom-grid input[type="number"] {
+      width: 80px;
+      padding: 3px 6px;
+      border-radius: 6px;
+      border: 1px solid var(--tick-grey-200);
+      font-size: 12px;
+    }
+
+    .size-custom-grid input[type="number"]:focus {
+      outline: none;
+      border-color: var(--tick-blue-500);
+      box-shadow: 0 0 0 1px rgba(20, 160, 244, 0.25);
+    }
+
+    /* Canvas card */
+
+    .canvas-shell {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+
+    .canvas-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      font-size: 11px;
+      color: var(--tick-grey-400);
+      padding-bottom: 4px;
+      border-bottom: 1px dashed var(--tick-grey-150);
+      margin-bottom: 6px;
+    }
+
+    #svgContainer {
+      flex: 1;
+      margin-top: 4px;
+      position: relative;
+      border-radius: 10px;
+      background-image:
+        linear-gradient(90deg, rgba(148, 163, 184, 0.07) 1px, transparent 1px),
+        linear-gradient(180deg, rgba(148, 163, 184, 0.07) 1px, transparent 1px);
+      background-size: 16px 16px;
+      padding: 6px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border: 1px solid var(--tick-grey-150);
+      background-color: #fdfdfd;
+      overflow: auto;
+    }
+
+    /* Hindra att text markeras när man drar på canvasen */
+    #svgContainer,
+    #svgContainer * {
+      -webkit-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+    }
+
+    .canvas-toolbar {
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .canvas-toolbar__buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .c-button--medium {
+      padding: 16px;
+      width: 88px;
+      height: 88px;
+      border-radius: 14px;
+      font-size: 13px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #svgCanvas {
+      background: #fffaf5;
+      border-radius: 6px;
+      box-shadow: 0 0 6px rgba(15, 23, 42, 0.35);
+    }
+
+    /* Right card: elements */
+
+    .element-buttons {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 6px;
+      margin-bottom: 4px;
+    }
+
+    .element-buttons .c-button {
+      padding-inline: 8px;
+    }
+
+    .file-input {
+      width: 100%;
+      font-size: 11px;
+      margin-top: 4px;
+    }
+
+    .info-list {
+      font-size: 11px;
+      color: var(--tick-grey-400);
+      list-style: none;
+      padding-left: 0;
+      margin: 6px 0 0;
+    }
+
+    .info-list li {
+      margin-bottom: 3px;
+    }
+
+    /* Modal */
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+    }
+
+    .modal.hidden {
+      display: none;
+    }
+
+    .modal-backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.35);
+    }
+
+    .modal-content {
+      position: relative;
+      background: white;
+      border-radius: var(--tick-radius-lg);
+      padding: 14px 16px 12px;
+      min-width: 360px;
+      max-width: 560px;
+      max-height: 80vh;
+      overflow-y: auto;
+      box-shadow: 0 16px 40px rgba(15, 23, 42, 0.35);
+      z-index: 1000;
+      font-size: 13px;
+      border: 1px solid var(--tick-blue-100);
+    }
+
+    .modal-header {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      margin-bottom: 8px;
+    }
+
+    .modal-header h3 {
+      margin: 0;
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--tick-grey-700);
+    }
+
+    .modal-header p {
+      margin: 0;
+      font-size: 12px;
+      color: var(--tick-grey-400);
+    }
+
+    .placeholder-list {
+      margin: 8px 0 10px;
+    }
+
+    .placeholder-group {
+      margin-bottom: 8px;
+      padding: 6px 8px 6px;
+      border-radius: 8px;
+      background: #f7fafc;
+      border: 1px solid var(--tick-grey-150);
+    }
+
+    .placeholder-group h4 {
+      margin: 0 0 4px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--tick-grey-700);
+    }
+
+    .placeholder-group label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 2px;
+      cursor: pointer;
+      font-size: 12px;
+      color: var(--tick-grey-700);
+    }
+
+    .placeholder-group input[type="checkbox"] {
+      accent-color: var(--tick-blue-500);
+    }
+
+    .placeholder-group label span {
+      flex: 1;
+    }
+
+    .modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      padding-top: 8px;
+      border-top: 1px solid var(--tick-grey-150);
+    }
+
+    /* Hidden file input for image */
+    #imageFileInput {
+      display: none;
+    }
+
+    /* Inputs in text-inspektorn */
+    .input-text {
+      width: 100%;
+      border-radius: 6px;
+      border: 1px solid var(--tick-grey-200);
+      padding: 4px 6px;
+      font-size: 12px;
+    }
+
+    .input-text:focus {
+      outline: none;
+      border-color: var(--tick-blue-500);
+      box-shadow: 0 0 0 1px rgba(20, 160, 244, 0.25);
+    }
+
+    .input-number {
+      width: 80px;
+      border-radius: 6px;
+      border: 1px solid var(--tick-grey-200);
+      padding: 3px 6px;
+      font-size: 12px;
+    }
+
+    .input-number:focus {
+      outline: none;
+      border-color: var(--tick-blue-500);
+      box-shadow: 0 0 0 1px rgba(20, 160, 244, 0.25);
+    }
+  </style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>SVG Designer</h1>
+    <small>Skapa och justera biljetter, säsongskort och värdebevis som SVG-mallar</small>
+  </div>
+</header>
+
+<div class="app">
+  <!-- Vänster: fil + storlek -->
+  <div class="sidebar-left">
+    <aside class="c-card">
+      <div class="c-card__header">
+        <div>
+          <div class="c-card__title">Filhantering</div>
+          <div class="c-card__subtitle">Öppna, spara och exportera din mall</div>
+        </div>
+      </div>
+      <div class="c-card__body">
+        <div class="c-card__section">
+          <div class="u-font--smaller" style="margin-bottom:4px;">Öppna befintlig SVG</div>
+          <input type="file" id="openFile" accept=".svg,image/svg+xml" class="file-input">
+          <div style="margin-top:8px; display:flex; flex-direction:column; gap:6px;">
+            <button class="c-button c-button--ghost c-button--block" id="newTemplateBtn">
+              Skapa ny mall
+            </button>
+            <button class="c-button c-button--primary c-button--block" id="saveBtn">
+              Spara SVG-mall
+            </button>
+            <button class="c-button c-button--secondary c-button--block" id="savePngBtn">
+              Exportera som PNG
+            </button>
+          </div>
+        <ul class="info-list">
+          <li>Exporten rensar bort editor-hjälpelement (bakgrundsram, markeringar).</li>
+          <li>Platshållare sparas som ren text, t.ex. <span class="u-font--mono">%EventName%</span>.</li>
+        </ul>
+        </div>
+      </div>
+    </aside>
+
+    <aside class="c-card">
+      <div class="c-card__header">
+        <div>
+          <div class="c-card__title">Format &amp; storlek</div>
+          <div class="c-card__subtitle">Välj etikett- eller biljettstorlek i mm</div>
+        </div>
+      </div>
+      <div class="c-card__body">
+        <div class="c-card__section">
+          <div class="size-option-group u-font--small">
+            <label>
+              <input type="radio" name="sizePreset" value="152x76" data-w="152" data-h="76" checked>
+              <span>152 × 76 mm (liggande)</span>
+            </label>
+            <label>
+              <input type="radio" name="sizePreset" value="76x152" data-w="76" data-h="152">
+              <span>76 × 152 mm (stående)</span>
+            </label>
+            <label>
+              <input type="radio" name="sizePreset" value="54x86" data-w="54" data-h="86">
+              <span>54 × 86 mm (stående)</span>
+            </label>
+            <label>
+              <input type="radio" name="sizePreset" value="86x54" data-w="86" data-h="54">
+              <span>86 × 54 mm (liggande)</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="c-card__section u-font--small">
+          <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+            <input type="radio" name="sizePreset" value="custom" id="sizeCustom">
+            <span>Valfri storlek</span>
+          </label>
+          <div class="size-custom-grid u-font--smaller">
+            <span>Bredd</span>
+            <input type="number" id="customWidth" min="1" value="100">
+            <span>Höjd</span>
+            <input type="number" id="customHeight" min="1" value="50">
+          </div>
+          <div class="u-font--smaller" style="margin-top:6px; color:var(--tick-grey-400);">
+            När du ändrar egna mått aktiveras automatiskt “Valfri storlek”.
+          </div>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <!-- Mitten: canvas -->
+  <main class="c-card">
+    <div class="c-card__header canvas-toolbar">
+      <div class="canvas-toolbar__buttons">
+        <button class="c-button c-button--ghost c-button--medium" id="addSquareBtn">QR-kod</button>
+        <button class="c-button c-button--ghost c-button--medium" id="addLineBtn">Linje</button>
+        <button class="c-button c-button--ghost c-button--medium" id="addTextBtn">Text</button>
+        <button class="c-button c-button--ghost c-button--medium" id="addImageBtn">Bild</button>
+        <button class="c-button c-button--secondary c-button--medium" id="addPlaceholderBtn">
+          Fördefinierade platshållare
+        </button>
+      </div>
+      <div class="u-font--smaller" id="sizeInfo"></div>
+    </div>
+    <div class="c-card__body canvas-shell">
+      <div id="svgContainer">
+        <svg id="svgCanvas"
+             xmlns="http://www.w3.org/2000/svg"
+             xmlns:xlink="http://www.w3.org/1999/xlink"
+             version="1.1">
+        </svg>
+      </div>
+    </div>
+  </main>
+
+  <!-- Höger: element och text-egenskaper -->
+  <div class="sidebar-right">
+    <aside class="c-card">
+
+      <div class="c-card__body">
+        <!-- Text-egenskaper: visas för både text och platshållare -->
+        <div class="c-card__section" id="textInspector" style="display:none;">
+          <div class="u-font--small" style="margin-bottom:4px; font-weight:600;">Text-egenskaper</div>
+          <div class="u-font--smaller" style="margin-bottom:6px; color:var(--tick-grey-400);" id="textInspectorLabel">
+            Redigerar markerat textelement.
+          </div>
+
+          <div class="u-font--smaller" style="margin-bottom:4px;">Textinnehåll</div>
+          <input type="text" id="textContentInput" class="input-text" placeholder="Text eller %Placeholder%">
+
+          <div class="u-font--smaller" style="margin:8px 0 4px;">Platshållare (title)</div>
+          <input type="text" id="textPlaceholderInput" class="input-text" placeholder="t.ex. %EventName%">
+
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; margin-top:8px;">
+            <div>
+              <div class="u-font--smaller" style="margin-bottom:2px;">Storlek (pt)</div>
+              <input type="number" id="textSizeInput" class="input-number" min="1" step="0.5" value="4">
+            </div>
+            <div style="flex:1;">
+              <div class="u-font--smaller" style="margin-bottom:2px;">Justering</div>
+              <div class="c-toolbar">
+                <button class="c-button c-button--ghost c-button--small" data-align="start" id="alignLeftBtn">⬅️</button>
+                <button class="c-button c-button--ghost c-button--small" data-align="middle" id="alignCenterBtn">|</button>
+                <button class="c-button c-button--ghost c-button--small" data-align="end" id="alignRightBtn">➡️</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="c-card__section" id="lineInspector" style="display:none;">
+          <div class="u-font--small" style="margin-bottom:6px; font-weight:600;">Linje-egenskaper</div>
+          <div class="u-font--smaller" style="margin-bottom:6px; color:var(--tick-grey-400);" id="lineInspectorLabel">
+            Välj orientering och tjocklek för markerad linje.
+          </div>
+          <div class="c-toolbar" style="margin-bottom:8px;">
+            <button class="c-button c-button--ghost c-button--small" id="lineOrientationBtn">Byt orientering (horis./vert.)</button>
+          </div>
+          <div class="u-font--smaller" style="margin-bottom:4px;">Stroke-width (mm)</div>
+          <input type="number" id="lineStrokeInput" class="input-number" min="0.1" step="0.1" value="0.3">
+        </div>
+
+        <div class="c-card__section">
+          <div class="u-font--small" style="margin-bottom:6px; font-weight:600;">Redigering</div>
+          <div class="tools-grid" style="margin-bottom:6px;">
+            <button class="c-button c-button--ghost c-button--small" id="rotateCcwBtn" disabled>
+              ↺ Rotera -90°
+            </button>
+            <button class="c-button c-button--ghost c-button--small" id="rotateCwBtn" disabled>
+              ↻ Rotera +90°
+            </button>
+          </div>
+      <button class="c-button c-button--ghost c-button--small c-button--block" id="deleteElementBtn" disabled>
+        Radera markerat
+      </button>
+      <button class="c-button c-button--ghost c-button--small c-button--block" id="clearHelpersBtn" style="margin-top:6px;">
+        Rensa markeringar/stödlinjer
+      </button>
+          <div class="u-font--small" style="margin:10px 0 4px; font-weight:600;">Justering</div>
+          
+          <div class="c-card__subtitle">Markera ett element, håll inne CTRL och markera ytterligare ett eller flera element. Använd sedan något av följande alternativ för att linjera elementens placering. Utgångspunkten är alltid det element som väljs först i ordningen.<br /><br /></div>
+          <div class="tools-grid" style="margin-bottom:6px;">
+            <button class="c-button c-button--ghost c-button--small" id="alignLeftBtnTools" disabled>Vänster</button>
+            <button class="c-button c-button--ghost c-button--small" id="alignRightBtnTools" disabled>Höger</button>
+            <button class="c-button c-button--ghost c-button--small" id="alignTopBtnTools" disabled>Topp</button>
+            <button class="c-button c-button--ghost c-button--small" id="alignBottomBtnTools" disabled>Botten</button>
+            <button class="c-button c-button--ghost c-button--small" id="alignCenterHBtnTools" disabled>Centrera horisontellt</button>
+            <button class="c-button c-button--ghost c-button--small" id="alignCenterVBtnTools" disabled>Centrera vertikalt</button>
+          </div>
+          <div class="u-font--small" style="margin:10px 0 4px; font-weight:600;">Flytt-läge</div>
+          <div class="u-font--smaller" style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+            <label style="display:flex; align-items:center; gap:4px; cursor:pointer;">
+              <input type="radio" name="moveMode" id="moveModeFree" value="free" checked>
+              <span>Flytta fritt</span>
+            </label>
+            <label style="display:flex; align-items:center; gap:4px; cursor:pointer;">
+              <input type="radio" name="moveMode" id="moveModeSnap" value="snap">
+              <span>Stegvis (snappa)</span>
+            </label>
+          </div>
+          <div class="tools-inputs u-font--smaller">
+            <label for="moveStepX">Steg X</label>
+            <input type="number" id="moveStepX" class="input-number" min="0.1" step="0.1" value="1">
+            <label for="moveStepY">Steg Y</label>
+            <input type="number" id="moveStepY" class="input-number" min="0.1" step="0.1" value="1">
+          </div>
+          <div class="u-font--smaller" style="margin-top:6px; color:var(--tick-grey-400);">
+            Välj ett element på ytan för att aktivera verktygen. Använd steg för att matcha rutnätet.
+          </div>
+        </div>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<!-- Fil-input för bild -->
+<input type="file" id="imageFileInput" accept="image/*">
+
+<!-- Modal för platshållare -->
+<div id="placeholderModal" class="modal hidden">
+  <div class="modal-backdrop"></div>
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>Välj platshållare</h3>
+      <p>Markera en eller flera platshållare. I SVG-texten läggs de in som t.ex. <span class="u-font--mono">%EventName%</span>.</p>
+    </div>
+    <div class="placeholder-list">
+
+      <div class="placeholder-group">
+        <h4>Onumrerade biljetter</h4>
+        <label><input type="checkbox" value="%TicketDesignation%"><span>TicketDesignation – Biljettens namn</span></label>
+        <label><input type="checkbox" value="%AuthCode%"><span>AuthCode – Biljettkod</span></label>
+        <label><input type="checkbox" value="%Price%"><span>Price – Pris inkl. moms</span></label>
+        <label><input type="checkbox" value="%PriceVat%"><span>PriceVat – Moms</span></label>
+        <label><input type="checkbox" value="%ServiceFee%"><span>ServiceFee – Serviceavgift inkl. moms</span></label>
+        <label><input type="checkbox" value="%ServiceFeeVat%"><span>ServiceFeeVat – Moms på serviceavgift</span></label>
+        <label><input type="checkbox" value="%EventName%"><span>EventName – Evenemangets namn</span></label>
+        <label><input type="checkbox" value="%Supertitle%"><span>Supertitle – Överrubrik för produktion</span></label>
+        <label><input type="checkbox" value="%Subtitle%"><span>Subtitle – Underrubrik för produktion</span></label>
+        <label><input type="checkbox" value="%EventDate%"><span>EventDate – Datum (fredag 30 mars 2020)</span></label>
+        <label><input type="checkbox" value="%EventDateShort%"><span>EventDateShort – Datum (YYYY-MM-DD)</span></label>
+        <label><input type="checkbox" value="%EventStartTime%"><span>EventStartTime – Starttid (HH:MM)</span></label>
+        <label><input type="checkbox" value="%EntryPermittedFrom%"><span>EntryPermittedFrom – Insläppstid (HH:MM)</span></label>
+        <label><input type="checkbox" value="%OrganizerName%"><span>OrganizerName – Arrangörens namn</span></label>
+        <label><input type="checkbox" value="%VenueName%"><span>VenueName – Arenans namn</span></label>
+        <label><input type="checkbox" value="%CityName%"><span>CityName – Stad</span></label>
+        <label><input type="checkbox" value="%AdmittedName%"><span>AdmittedName – Köparens namn</span></label>
+        <label><input type="checkbox" value="%TicketInformation%"><span>TicketInformation – Fritextinformation på biljett</span></label>
+        <label><input type="checkbox" value="%OrganizationName%"><span>OrganizationName – Köparens organisationsnamn</span></label>
+        <label><input type="checkbox" value="%PurchaseRefNo%"><span>PurchaseRefNo – Köpets referensnummer</span></label>
+      </div>
+
+      <div class="placeholder-group">
+        <h4>Numrerade biljetter</h4>
+        <label><input type="checkbox" value="%Section%"><span>Section – Sektion</span></label>
+        <label><input type="checkbox" value="%Row%"><span>Row – Radnummer</span></label>
+        <label><input type="checkbox" value="%Seat%"><span>Seat – Platsnummer</span></label>
+        <label><input type="checkbox" value="%EntryVia%"><span>EntryVia – Ingång</span></label>
+      </div>
+
+      <div class="placeholder-group">
+        <h4>Onumrerade säsongskort</h4>
+        <label><input type="checkbox" value="%Name%"><span>Name – Säsongskortets namn</span></label>
+        <label><input type="checkbox" value="%PriceCategory%"><span>PriceCategory – Prisgrupp</span></label>
+        <label><input type="checkbox" value="%TicketType%"><span>TicketType – Biljettyp</span></label>
+        <label><input type="checkbox" value="%AuthCode%"><span>AuthCode – Säsongskortskod</span></label>
+        <label><input type="checkbox" value="%Price%"><span>Price – Pris inkl. moms</span></label>
+        <label><input type="checkbox" value="%PriceVat%"><span>PriceVat – Moms</span></label>
+        <label><input type="checkbox" value="%ServiceFee%"><span>ServiceFee – Serviceavgift inkl. moms</span></label>
+        <label><input type="checkbox" value="%ServiceFeeVat%"><span>ServiceFeeVat – Moms på serviceavgift</span></label>
+        <label><input type="checkbox" value="%OrganizerName%"><span>OrganizerName – Arrangörens namn</span></label>
+        <label><input type="checkbox" value="%AdmittedName%"><span>AdmittedName – Köparens namn</span></label>
+        <label><input type="checkbox" value="%OrganizationName%"><span>OrganizationName – Köparens organisationsnamn</span></label>
+        <label><input type="checkbox" value="%SeasonOfferInformation%"><span>SeasonOfferInformation – Fritextinfo på säsongskort</span></label>
+        <label><input type="checkbox" value="%ReceiptText%"><span>ReceiptText – Benämning för säsongskort på kvitto</span></label>
+      </div>
+
+      <div class="placeholder-group">
+        <h4>Numrerade säsongskort</h4>
+        <label><input type="checkbox" value="%EntryVia%"><span>EntryVia – Ingång</span></label>
+        <label><input type="checkbox" value="%Row%"><span>Row – Rad</span></label>
+        <label><input type="checkbox" value="%Seat%"><span>Seat – Plats</span></label>
+        <label><input type="checkbox" value="%Section%"><span>Section – Sektion</span></label>
+      </div>
+
+      <div class="placeholder-group">
+        <h4>Värdebevis</h4>
+        <label><input type="checkbox" value="%AuthCode%"><span>AuthCode – Värdebeviskod</span></label>
+        <label><input type="checkbox" value="%Price%"><span>Price – Pris inkl. moms</span></label>
+        <label><input type="checkbox" value="%PriceVat%"><span>PriceVat – Moms</span></label>
+        <label><input type="checkbox" value="%PurchaseRefNo%"><span>PurchaseRefNo – Köpets referensnummer</span></label>
+        <label><input type="checkbox" value="%ServiceFee%"><span>ServiceFee – Serviceavgift inkl. moms</span></label>
+        <label><input type="checkbox" value="%ServiceFeeVat%"><span>ServiceFeeVat – Moms på serviceavgift</span></label>
+        <label><input type="checkbox" value="%VoucherDesignation%"><span>VoucherDesignation – Värdebevisets namn</span></label>
+        <label><input type="checkbox" value="%VoucherInformation%"><span>VoucherInformation – Fritextinformation på värdebevis</span></label>
+        <label><input type="checkbox" value="%EventName%"><span>EventName – Evenemangets namn</span></label>
+        <label><input type="checkbox" value="%EventDate%"><span>EventDate – Datum (fredag 30 mars 2020)</span></label>
+        <label><input type="checkbox" value="%EventDateShort%"><span>EventDateShort – Datum (YYYY-MM-DD)</span></label>
+        <label><input type="checkbox" value="%EventStartTime%"><span>EventStartTime – Starttid (HH:MM)</span></label>
+      </div>
+
+      <div class="placeholder-group">
+        <h4>Presentkort</h4>
+        <label><input type="checkbox" value="%GiftCertificateDesignation%"><span>GiftCertificateDesignation – Presentkortets namn</span></label>
+        <label><input type="checkbox" value="%RedemptionCode%"><span>RedemptionCode – Presentkortskod</span></label>
+        <label><input type="checkbox" value="%Expiry%"><span>Expiry – Sista giltighetsdatum (YYYY-MM-DD)</span></label>
+        <label><input type="checkbox" value="%PurchaseRefNo%"><span>PurchaseRefNo – Köpets referensnummer</span></label>
+        <label><input type="checkbox" value="%Price%"><span>Price – Pris inkl. moms</span></label>
+        <label><input type="checkbox" value="%PriceVat%"><span>PriceVat – Moms</span></label>
+        <label><input type="checkbox" value="%GiftCertificateInformation%"><span>GiftCertificateInformation – Fritextinformation på presentkort</span></label>
+      </div>
+
+    </div>
+    <div class="modal-footer">
+      <button class="c-button c-button--ghost c-button--small" id="placeholderCancelBtn">Avbryt</button>
+      <button class="c-button c-button--primary c-button--small" id="placeholderAddBtn">Lägg till i mall</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal för att välja QR-typ (biljett/presentkort) -->
+<div id="giftCardConfirm" class="modal hidden">
+  <div class="modal-backdrop"></div>
+  <div class="modal-content" style="max-width:400px;">
+    <div class="modal-header">
+      <h3>Vilken typ av QR-kod?</h3>
+      <p>Välj om koden gäller presentkort eller vanlig biljett.</p>
+    </div>
+    <div class="modal-footer" style="justify-content:flex-start;">
+      <button class="c-button c-button--secondary c-button--small" id="giftCardYesBtn">Ja, presentkort</button>
+      <button class="c-button c-button--primary c-button--small" id="giftCardNoBtn">Nej, biljett</button>
+      <button class="c-button c-button--ghost c-button--small" id="giftCardCancelBtn" style="margin-left:auto;">Avbryt</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const svgNS = 'http://www.w3.org/2000/svg';
+  const xlinkNS = 'http://www.w3.org/1999/xlink';
+
+  let svg = document.getElementById('svgCanvas');
+  const sizeInfo = document.getElementById('sizeInfo');
+
+  // Text inspector refs
+  const textInspector = document.getElementById('textInspector');
+  const textContentInput = document.getElementById('textContentInput');
+  const textPlaceholderInput = document.getElementById('textPlaceholderInput');
+  const textSizeInput = document.getElementById('textSizeInput');
+  const alignButtons = [
+    document.getElementById('alignLeftBtn'),
+    document.getElementById('alignCenterBtn'),
+    document.getElementById('alignRightBtn')
+  ];
+  const rotateCwBtn = document.getElementById('rotateCwBtn');
+  const rotateCcwBtn = document.getElementById('rotateCcwBtn');
+  const deleteElementBtn = document.getElementById('deleteElementBtn');
+  const moveModeFree = document.getElementById('moveModeFree');
+  const moveModeSnap = document.getElementById('moveModeSnap');
+  const moveStepXInput = document.getElementById('moveStepX');
+  const moveStepYInput = document.getElementById('moveStepY');
+  const alignLeftBtn = document.getElementById('alignLeftBtnTools');
+  const alignRightBtn = document.getElementById('alignRightBtnTools');
+  const alignTopBtn = document.getElementById('alignTopBtnTools');
+  const alignBottomBtn = document.getElementById('alignBottomBtnTools');
+  const alignCenterHBtn = document.getElementById('alignCenterHBtnTools');
+  const alignCenterVBtn = document.getElementById('alignCenterVBtnTools');
+  const savePngBtn = document.getElementById('savePngBtn');
+  const lineInspector = document.getElementById('lineInspector');
+  const lineOrientationBtn = document.getElementById('lineOrientationBtn');
+  const lineStrokeInput = document.getElementById('lineStrokeInput');
+  const mmToPx = 3.7795275591;
+  const clearHelpersBtn = document.getElementById('clearHelpersBtn');
+
+  let selectedElement = null;
+  let selectedElements = [];
+  let selectionRect = null;
+  let resizeHandle = null;
+  let multiSelectionRects = [];
+  let lassoRect = null;
+  let isLasso = false;
+  let lassoStartPoint = null;
+  let isDragging = false;
+  let isResizing = false;
+  let interactionChanged = false;
+  let dragStartPoint = null;
+  let startAttrs = null;
+  let moveMode = 'free';
+  let moveStepX = 1;
+  let moveStepY = 1;
+  const DRAFT_KEY = 'svgBuilderDraft';
+  const SIZE_KEY = 'svgBuilderSize';
+  let persistTimer = null;
+  let hasDraft = false;
+  let restoredDraft = false;
+  let sizeRestored = false;
+
+  function ensureEditorBackgroundRect() {
+    let bg = svg.querySelector('rect[data-editor-background="1"]');
+    if (!bg) {
+      bg = document.createElementNS(svgNS, 'rect');
+      bg.setAttribute('x', 0);
+      bg.setAttribute('y', 0);
+      bg.setAttribute('width', '100%');
+      bg.setAttribute('height', '100%');
+      bg.setAttribute('fill', '#fffaf5');
+      bg.setAttribute('stroke', '#e2e8f0');
+      bg.setAttribute('stroke-width', '0.3');
+      bg.setAttribute('pointer-events', 'none');
+      bg.dataset.editorHelper = '1';
+      bg.dataset.editorBackground = '1';
+      svg.insertBefore(bg, svg.firstChild);
+    }
+  }
+
+  function fitCanvasToContainer() {
+    if (!svg) return;
+    const container = document.getElementById('svgContainer');
+    if (!container) return;
+    const rect = container.getBoundingClientRect();
+    const { width, height } = getViewBoxSize();
+    if (!width || !height) return;
+    const padding = 16; // lämna lite luft runt
+    const availableW = Math.max(0, rect.width - padding);
+    const availableH = Math.max(0, rect.height - padding);
+    const widthPx = width * mmToPx;
+    const heightPx = height * mmToPx;
+    const rawScale = Math.min(availableW / widthPx, availableH / heightPx);
+    const scale = Math.max(0.1, rawScale);
+    svg.style.transformOrigin = 'center center';
+    svg.style.transform = `scale(${scale})`;
+  }
+
+  function updateCanvasSize(widthMm, heightMm) {
+    svg.setAttribute('width', widthMm + 'mm');
+    svg.setAttribute('height', heightMm + 'mm');
+    svg.setAttribute('viewBox', '0 0 ' + widthMm + ' ' + heightMm);
+    ensureEditorBackgroundRect();
+    fitCanvasToContainer();
+    const checkedPreset = document.querySelector('input[name="sizePreset"]:checked');
+    const presetValue = checkedPreset ? checkedPreset.value : 'custom';
+    const sizeState = { w: widthMm, h: heightMm, preset: presetValue };
+    localStorage.setItem(SIZE_KEY, JSON.stringify(sizeState));
+  }
+
+  function initSizeControls() {
+    const radios = document.querySelectorAll('input[name="sizePreset"]');
+    const customWidth = document.getElementById('customWidth');
+    const customHeight = document.getElementById('customHeight');
+    const customRadio = document.getElementById('sizeCustom');
+
+    radios.forEach(radio => {
+      radio.addEventListener('change', () => {
+        if (!radio.checked) return;
+        if (radio.value === 'custom') {
+          const w = parseFloat(customWidth.value) || 100;
+          const h = parseFloat(customHeight.value) || 50;
+          updateCanvasSize(w, h);
+        } else {
+          const w = parseFloat(radio.dataset.w);
+          const h = parseFloat(radio.dataset.h);
+          updateCanvasSize(w, h);
+          customWidth.value = w;
+          customHeight.value = h;
+        }
+      });
+    });
+
+    function useCustomSize() {
+      const w = parseFloat(customWidth.value) || 100;
+      const h = parseFloat(customHeight.value) || 50;
+      customRadio.checked = true;
+      updateCanvasSize(w, h);
+    }
+
+    customWidth.addEventListener('input', useCustomSize);
+    customHeight.addEventListener('input', useCustomSize);
+  }
+
+  function getViewBoxSize() {
+    const vb = (svg.getAttribute('viewBox') || '0 0 100 50').split(' ');
+    return {
+      width: parseFloat(vb[2]) || 100,
+      height: parseFloat(vb[3]) || 50
+    };
+  }
+
+  function createExportClone() {
+    const clonedSvg = svg.cloneNode(true);
+    clonedSvg.querySelectorAll('[data-editor-helper="1"]').forEach(el => {
+      el.parentNode.removeChild(el);
+    });
+    clonedSvg.querySelectorAll('g[data-type="placeholder"]').forEach(g => {
+      g.querySelectorAll('rect').forEach(r => r.parentNode.removeChild(r));
+    });
+    return clonedSvg;
+  }
+
+  function restoreSizeState() {
+    const raw = localStorage.getItem(SIZE_KEY);
+    if (!raw) return;
+    try {
+      const state = JSON.parse(raw);
+      const w = parseFloat(state.w);
+      const h = parseFloat(state.h);
+      if (w && h) {
+        updateCanvasSize(w, h);
+        document.getElementById('customWidth').value = w;
+        document.getElementById('customHeight').value = h;
+        const preset = state.preset || 'custom';
+        const presetRadio = document.querySelector(`input[name="sizePreset"][value="${preset}"]`);
+        if (presetRadio) {
+          presetRadio.checked = true;
+        } else {
+          document.getElementById('sizeCustom').checked = true;
+        }
+        sizeRestored = true;
+      }
+    } catch (e) {
+      console.warn('Kunde inte läsa sparad storlek', e);
+    }
+  } 
+
+  async function askGiftCardChoice() {
+    const modal = document.getElementById('giftCardConfirm');
+    const yesBtn = document.getElementById('giftCardYesBtn');
+    const noBtn = document.getElementById('giftCardNoBtn');
+    const cancelBtn = document.getElementById('giftCardCancelBtn');
+    const backdrop = modal ? modal.querySelector('.modal-backdrop') : null;
+    if (!modal || !yesBtn || !noBtn || !cancelBtn) {
+      return null;
+    }
+    return new Promise(resolve => {
+      const cleanup = () => {
+        modal.classList.add('hidden');
+        yesBtn.removeEventListener('click', onYes);
+        noBtn.removeEventListener('click', onNo);
+        cancelBtn.removeEventListener('click', onCancel);
+        if (backdrop) backdrop.removeEventListener('click', onCancel);
+      };
+      const onYes = () => { cleanup(); resolve(true); };
+      const onNo = () => { cleanup(); resolve(false); };
+      const onCancel = () => { cleanup(); resolve(null); };
+      yesBtn.addEventListener('click', onYes);
+      noBtn.addEventListener('click', onNo);
+      cancelBtn.addEventListener('click', onCancel);
+      if (backdrop) backdrop.addEventListener('click', onCancel);
+      modal.classList.remove('hidden');
+    });
+  }
+
+  async function addSquare() {
+    const { width, height } = getViewBoxSize();
+    const size = Math.min(width, height) * 0.2;
+    const x = width * 0.1;
+    const y = height * 0.1;
+
+    const choice = await askGiftCardChoice();
+    if (choice === null) return;
+    const qrTitle = choice ? 'QR:RedemptionCode' : 'QR:AuthCode';
+
+    const rect = document.createElementNS(svgNS, 'rect');
+    rect.setAttribute('x', x);
+    rect.setAttribute('y', y);
+    rect.setAttribute('width', size);
+    rect.setAttribute('height', size);
+    rect.setAttribute('fill', '#333');
+    rect.setAttribute('stroke', '#000');
+    rect.setAttribute('stroke-width', '0.3');
+    const titleEl = document.createElementNS(svgNS, 'title');
+    titleEl.textContent = qrTitle;
+    rect.appendChild(titleEl);
+    rect.dataset.editable = '1';
+
+    svg.appendChild(rect);
+    selectElement(rect);
+    markDirty();
+  }
+
+  function addLine() {
+    const { width, height } = getViewBoxSize();
+    const x1 = width * 0.15;
+    const y1 = height * 0.5;
+    const x2 = width * 0.85;
+    const y2 = height * 0.5;
+
+    const line = document.createElementNS(svgNS, 'line');
+    line.setAttribute('x1', x1);
+    line.setAttribute('y1', y1);
+    line.setAttribute('x2', x2);
+    line.setAttribute('y2', y2);
+    line.setAttribute('stroke', '#000');
+    line.setAttribute('stroke-width', '1.0');
+    line.dataset.editable = '1';
+
+    svg.appendChild(line);
+    selectElement(line);
+    markDirty();
+  }
+
+  function addText() {
+    const { width, height } = getViewBoxSize();
+    const text = document.createElementNS(svgNS, 'text');
+    text.setAttribute('x', width * 0.1);
+    text.setAttribute('y', height * 0.9);
+    text.setAttribute('font-size', '4');
+    text.setAttribute('font-family', 'sans-serif');
+    text.setAttribute('text-anchor', 'start');
+    text.textContent = 'Text';
+    text.dataset.editable = '1';
+
+    svg.appendChild(text);
+    selectElement(text);
+    markDirty();
+  }
+
+  function addImageFromFile(file) {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const dataUrl = e.target.result;
+      const { width, height } = getViewBoxSize();
+
+      const htmlImg = new Image();
+      htmlImg.onload = () => {
+        const naturalW = htmlImg.naturalWidth || 1;
+        const naturalH = htmlImg.naturalHeight || 1;
+        const aspect = naturalW / naturalH;
+
+        const targetWidth = width * 0.3;
+        const targetHeight = targetWidth / aspect;
+
+        const img = document.createElementNS(svgNS, 'image');
+        img.setAttribute('x', width * 0.5 - targetWidth / 2);
+        img.setAttribute('y', height * 0.5 - targetHeight / 2);
+        img.setAttribute('width', targetWidth);
+        img.setAttribute('height', targetHeight);
+        img.setAttributeNS(xlinkNS, 'xlink:href', dataUrl);
+        img.dataset.editable = '1';
+        img.dataset.aspect = String(aspect);
+
+        svg.appendChild(img);
+        selectElement(img);
+        markDirty();
+      };
+      htmlImg.src = dataUrl;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function addPlaceholders(values) {
+    const { width, height } = getViewBoxSize();
+    const startX = width * 0.1;
+    let currentY = height * 0.2;
+    const gap = 7;
+
+    values.forEach(val => {
+      const g = document.createElementNS(svgNS, 'g');
+      g.dataset.editable = '1';
+      g.dataset.type = 'placeholder';
+
+      const rect = document.createElementNS(svgNS, 'rect');
+      rect.setAttribute('x', startX);
+      rect.setAttribute('y', currentY);
+      rect.setAttribute('width', 60);
+      rect.setAttribute('height', 8);
+      rect.setAttribute('fill', 'none');
+      rect.setAttribute('stroke', '#7cd0ff');
+      rect.setAttribute('stroke-dasharray', '1.4,1.4');
+      rect.setAttribute('stroke-width', '0.35');
+      rect.dataset.editorHelper = '1';
+
+      const text = document.createElementNS(svgNS, 'text');
+      text.setAttribute('x', startX + 1);
+      text.setAttribute('y', currentY + 5.5);
+      text.setAttribute('font-size', '3.5');
+      text.setAttribute('font-family', 'monospace');
+      text.setAttribute('text-anchor', 'start');
+      text.textContent = val;
+
+      g.appendChild(rect);
+      g.appendChild(text);
+
+      svg.appendChild(g);
+      updatePlaceholderFrame(g);
+      selectElement(g);
+      markDirty();
+
+      currentY += gap;
+    });
+  }
+
+    function updatePlaceholderFrame(groupEl) {
+    if (!groupEl || groupEl.dataset.type !== 'placeholder') return;
+    const rect = groupEl.querySelector('rect');
+    const text = groupEl.querySelector('text');
+    if (!rect || !text) return;
+
+    // Se till att elementet finns i DOM så getBBox fungerar
+    const bbox = text.getBBox();
+    const paddingX = 1.5; // mm sidomarginal
+    const paddingY = 1.0; // mm topp/botten
+
+    rect.setAttribute('x', bbox.x - paddingX);
+    rect.setAttribute('y', bbox.y - paddingY);
+    rect.setAttribute('width', bbox.width + paddingX * 2);
+    rect.setAttribute('height', bbox.height + paddingY * 2);
+  }
+
+
+  function removeSelectionGraphics(targetSvg) {
+    if (!targetSvg) return;
+    targetSvg.querySelectorAll('[data-selection-helper="1"]').forEach(el => {
+      if (el.parentNode) {
+        el.parentNode.removeChild(el);
+      }
+    });
+    // Rensa äldre sparade hjälplinjer som saknar data-selection-helper
+    targetSvg.querySelectorAll('rect[data-editor-helper="1"][stroke="#14a0f4"], rect[data-editor-helper="1"][stroke="#94a3b8"], rect[data-editor-helper="1"][fill="#14a0f4"][width="4"][height="4"]').forEach(el => {
+      if (el.parentNode) {
+        el.parentNode.removeChild(el);
+      }
+    });
+  }
+
+  function initSelectionGraphics() {
+    removeSelectionGraphics(svg);
+    selectionRect = document.createElementNS(svgNS, 'rect');
+    selectionRect.setAttribute('fill', 'none');
+    selectionRect.setAttribute('stroke', '#14a0f4');
+    selectionRect.setAttribute('stroke-width', '0.4');
+    selectionRect.setAttribute('stroke-dasharray', '1.5,1.5');
+    selectionRect.setAttribute('pointer-events', 'none');
+    selectionRect.style.display = 'none';
+    selectionRect.dataset.editorHelper = '1';
+    selectionRect.dataset.selectionHelper = '1';
+
+    resizeHandle = document.createElementNS(svgNS, 'rect');
+    resizeHandle.setAttribute('width', 4);
+    resizeHandle.setAttribute('height', 4);
+    resizeHandle.setAttribute('fill', '#14a0f4');
+    resizeHandle.setAttribute('stroke', '#0c6ba5');
+    resizeHandle.setAttribute('stroke-width', '0.3');
+    resizeHandle.style.cursor = 'se-resize';
+    resizeHandle.style.display = 'none';
+    resizeHandle.dataset.editorHelper = '1';
+    resizeHandle.dataset.selectionHelper = '1';
+
+    lassoRect = document.createElementNS(svgNS, 'rect');
+    lassoRect.setAttribute('fill', 'rgba(20,160,244,0.08)');
+    lassoRect.setAttribute('stroke', '#14a0f4');
+    lassoRect.setAttribute('stroke-width', '0.4');
+    lassoRect.setAttribute('stroke-dasharray', '2,2');
+    lassoRect.style.display = 'none';
+    lassoRect.dataset.editorHelper = '1';
+    lassoRect.dataset.selectionHelper = '1';
+
+    svg.appendChild(selectionRect);
+    svg.appendChild(resizeHandle);
+    svg.appendChild(lassoRect);
+  }
+
+  function getRootSelectable(node) {
+    while (node && node !== svg) {
+      if (node.dataset && node.dataset.editable === '1') {
+        return node;
+      }
+      node = node.parentNode;
+    }
+    return null;
+  }
+
+  // Hitta "aktiv" textnod för inspector:
+  // - om vi har en <text> direkt: använd den
+  // - om vi har en <g data-type="placeholder">: ta dess <text>-barn
+  function getActiveTextTarget() {
+    if (!selectedElement) return null;
+    const tag = selectedElement.tagName?.toLowerCase?.();
+    if (tag === 'text') {
+      // vanlig text, eller placeholder-text som råkat bli root
+      return selectedElement;
+    }
+    if (tag === 'g' && selectedElement.dataset.type === 'placeholder') {
+      return selectedElement.querySelector('text') || null;
+    }
+    // Om man skulle lyckas klicka på recten i en placeholder-grupp
+    if (tag === 'rect' && selectedElement.parentNode && selectedElement.parentNode.dataset?.type === 'placeholder') {
+      return selectedElement.parentNode.querySelector('text') || null;
+    }
+    return null;
+  }
+
+  function isLineElement(el) {
+    return el && el.tagName && el.tagName.toLowerCase() === 'line';
+  }
+
+  function rotatePoint(x, y, angleDeg, cx, cy) {
+    const rad = angleDeg * Math.PI / 180;
+    const cos = Math.cos(rad);
+    const sin = Math.sin(rad);
+    const dx = x - cx;
+    const dy = y - cy;
+    return {
+      x: cx + dx * cos - dy * sin,
+      y: cy + dx * sin + dy * cos
+    };
+  }
+
+  function bakeLineRotation(line) {
+    if (!isLineElement(line)) return;
+    const tf = line.getAttribute('transform') || '';
+    const rot = parseRotate(tf);
+    if (!rot) return;
+    const x1 = parseFloat(line.getAttribute('x1') || 0);
+    const y1 = parseFloat(line.getAttribute('y1') || 0);
+    const x2 = parseFloat(line.getAttribute('x2') || 0);
+    const y2 = parseFloat(line.getAttribute('y2') || 0);
+    const cx = rot.cx !== null && rot.cx !== undefined ? rot.cx : 0;
+    const cy = rot.cy !== null && rot.cy !== undefined ? rot.cy : 0;
+    const p1 = rotatePoint(x1, y1, rot.angle, cx, cy);
+    const p2 = rotatePoint(x2, y2, rot.angle, cx, cy);
+    line.setAttribute('x1', p1.x);
+    line.setAttribute('y1', p1.y);
+    line.setAttribute('x2', p2.x);
+    line.setAttribute('y2', p2.y);
+    const rest = tf.replace(rot.raw, '').trim();
+    if (rest) {
+      line.setAttribute('transform', rest);
+    } else {
+      line.removeAttribute('transform');
+    }
+  }
+
+  function bakeAllLineRotations(rootSvg) {
+    if (!rootSvg) return;
+    rootSvg.querySelectorAll('line').forEach(bakeLineRotation);
+  }
+
+  function updateDeleteButtonState() {
+    const hasSelection = !!selectedElement;
+    const isLineSel = isLineElement(selectedElement);
+    if (deleteElementBtn) {
+      deleteElementBtn.disabled = !hasSelection;
+      deleteElementBtn.classList.toggle('c-button--danger', hasSelection);
+      deleteElementBtn.classList.toggle('c-button--ghost', !hasSelection);
+    }
+    if (rotateCwBtn && rotateCcwBtn) {
+      const hideRotate = isLineSel;
+      rotateCwBtn.disabled = !hasSelection || hideRotate;
+      rotateCcwBtn.disabled = !hasSelection || hideRotate;
+      rotateCwBtn.style.display = hideRotate ? 'none' : '';
+      rotateCcwBtn.style.display = hideRotate ? 'none' : '';
+    }
+    const multi = selectedElements.length >= 2;
+    [alignLeftBtn, alignRightBtn, alignTopBtn, alignBottomBtn, alignCenterHBtn, alignCenterVBtn].forEach(btn => {
+      if (!btn) return;
+      btn.disabled = !multi;
+    });
+    if (clearHelpersBtn) {
+      clearHelpersBtn.disabled = false;
+    }
+  }
+
+  function updateSelectionVisuals() {
+    // Rensa tidigare multi-ramar
+    if (multiSelectionRects.length) {
+      multiSelectionRects.forEach(r => r.parentNode && r.parentNode.removeChild(r));
+      multiSelectionRects = [];
+    }
+    if (lassoRect) {
+      lassoRect.style.display = 'none';
+    }
+
+    if (!selectedElement) {
+      selectionRect.style.display = 'none';
+      resizeHandle.style.display = 'none';
+      updateDeleteButtonState();
+      updateTextInspector();
+      updateLineInspector();
+      return;
+    }
+    const selData = getSelectionBoxData(selectedElement);
+    const bbox = selData.bbox;
+    selectionRect.setAttribute('x', bbox.x);
+    selectionRect.setAttribute('y', bbox.y);
+    selectionRect.setAttribute('width', bbox.width);
+    selectionRect.setAttribute('height', bbox.height);
+    if (selData.transform) {
+      selectionRect.setAttribute('transform', selData.transform);
+    } else {
+      selectionRect.removeAttribute('transform');
+    }
+    selectionRect.style.display = 'block';
+
+    const handleSize = 4;
+    resizeHandle.setAttribute('x', bbox.x + bbox.width - handleSize / 2);
+    resizeHandle.setAttribute('y', bbox.y + bbox.height - handleSize / 2);
+    if (selData.transform) {
+      resizeHandle.setAttribute('transform', selData.transform);
+    } else {
+      resizeHandle.removeAttribute('transform');
+    }
+    resizeHandle.style.display = 'block';
+
+    // Visa diskreta ramar runt övriga valda element
+    if (selectedElements.length > 1) {
+      selectedElements.forEach(el => {
+        if (el === selectedElement) return;
+        const data = getSelectionBoxData(el);
+        const r = document.createElementNS(svgNS, 'rect');
+        r.setAttribute('x', data.bbox.x);
+        r.setAttribute('y', data.bbox.y);
+        r.setAttribute('width', data.bbox.width);
+        r.setAttribute('height', data.bbox.height);
+        r.setAttribute('fill', 'none');
+        r.setAttribute('stroke', '#94a3b8');
+        r.setAttribute('stroke-width', '0.3');
+        r.setAttribute('stroke-dasharray', '1.2,1.2');
+        r.dataset.editorHelper = '1';
+        r.dataset.selectionHelper = '1';
+        if (data.transform) {
+          r.setAttribute('transform', data.transform);
+        }
+        svg.appendChild(r);
+        multiSelectionRects.push(r);
+      });
+    }
+
+    updateDeleteButtonState();
+    updateTextInspector();
+    updateLineInspector();
+  }
+
+  function deleteSelectedElement() {
+    if (!selectedElement && (!selectedElements || selectedElements.length === 0)) return;
+    const targets = selectedElements && selectedElements.length ? [...selectedElements] : [selectedElement];
+    clearSelection();
+    targets.forEach(el => {
+      if (el && el.parentNode) {
+        el.parentNode.removeChild(el);
+      }
+    });
+    markDirty();
+  }
+
+  function parseRotate(transformStr) {
+    const match = (transformStr || '').match(/rotate\(\s*([-\d.]+)(?:\s+([-\d.]+)\s+([-\d.]+))?\s*\)/);
+    if (!match) return null;
+    return {
+      angle: parseFloat(match[1]) || 0,
+      cx: match[2] !== undefined ? parseFloat(match[2]) || 0 : null,
+      cy: match[3] !== undefined ? parseFloat(match[3]) || 0 : null,
+      raw: match[0]
+    };
+  }
+
+  function syncRotationCenter(el) {
+    const tf = el.getAttribute('transform') || '';
+    const rot = parseRotate(tf);
+    if (!rot) return;
+    const rest = tf.replace(rot.raw, '').trim();
+    const bbox = el.getBBox();
+    const cx = bbox.x + bbox.width / 2;
+    const cy = bbox.y + bbox.height / 2;
+    const rotation = `rotate(${rot.angle} ${cx} ${cy})`;
+    const newTransform = `${rotation}${rest ? ' ' + rest : ''}`.trim();
+    el.setAttribute('transform', newTransform);
+  }
+
+  function rotateSelected(deltaDeg) {
+    if (!selectedElement) return;
+    if (isLineElement(selectedElement)) {
+      toggleLineOrientation(selectedElement);
+      updateSelectionVisuals();
+      markDirty();
+      return;
+    }
+    const bbox = selectedElement.getBBox();
+    const cx = bbox.x + bbox.width / 2;
+    const cy = bbox.y + bbox.height / 2;
+
+    const current = selectedElement.getAttribute('transform') || '';
+    const rot = parseRotate(current);
+    const currentAngle = rot ? rot.angle : 0;
+    const rest = rot ? current.replace(rot.raw, '').trim() : current.trim();
+
+    const newAngle = ((currentAngle + deltaDeg) % 360 + 360) % 360;
+    const rotation = `rotate(${newAngle} ${cx} ${cy})`;
+    const newTransform = `${rotation}${rest ? ' ' + rest : ''}`.trim();
+    selectedElement.setAttribute('transform', newTransform);
+    updateSelectionVisuals();
+    markDirty();
+  }
+
+  function getRotationAngle(el) {
+    const tf = el.getAttribute('transform') || '';
+    const rot = parseRotate(tf);
+    return rot ? rot.angle : 0;
+  }
+
+  function toLocalDeltas(dx, dy, el) {
+    const angleDeg = getRotationAngle(el);
+    if (!angleDeg) return { dx, dy };
+    const rad = angleDeg * Math.PI / 180;
+    const cos = Math.cos(rad);
+    const sin = Math.sin(rad);
+    return {
+      dx: dx * cos + dy * sin,
+      dy: -dx * sin + dy * cos
+    };
+  }
+
+  function markEditableRecursive(node) {
+    if (!node || node.nodeType !== 1) return;
+    const tag = node.tagName.toLowerCase();
+    const supported = ['rect', 'line', 'text', 'image', 'g'];
+    if (supported.includes(tag) && node.dataset.editorHelper !== '1') {
+      node.dataset.editable = '1';
+    }
+    Array.from(node.children || []).forEach(child => markEditableRecursive(child));
+  }
+
+  function schedulePersist() {
+    if (persistTimer) {
+      clearTimeout(persistTimer);
+    }
+    persistTimer = setTimeout(() => {
+      const clone = svg.cloneNode(true);
+      removeSelectionGraphics(clone);
+      const serializer = new XMLSerializer();
+      const source = serializer.serializeToString(clone);
+      localStorage.setItem(DRAFT_KEY, source);
+      hasDraft = true;
+    }, 200);
+  }
+
+  function markDirty() {
+    schedulePersist();
+  }
+
+  function tryRestoreDraft() {
+    const stored = localStorage.getItem(DRAFT_KEY);
+    if (!stored) return;
+    const ok = confirm('Återställ osparat arbete från senaste sessionen?');
+    if (!ok) return;
+
+    try {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(stored, 'image/svg+xml');
+      const loadedSvg = doc.querySelector('svg');
+      if (!loadedSvg) return;
+      const container = document.getElementById('svgContainer');
+      const importedSvg = document.importNode(loadedSvg, true);
+      importedSvg.id = 'svgCanvas';
+      if (!importedSvg.getAttribute('xmlns:xlink')) {
+        importedSvg.setAttribute('xmlns:xlink', xlinkNS);
+      }
+      markEditableRecursive(importedSvg);
+      removeSelectionGraphics(importedSvg);
+      bakeAllLineRotations(importedSvg);
+      container.innerHTML = '';
+      container.appendChild(importedSvg);
+      svg = importedSvg;
+      initSelectionGraphics();
+      attachSvgInteraction();
+      ensureEditorBackgroundRect();
+
+      const vb = svg.getAttribute('viewBox');
+      let w, h;
+      if (vb) {
+        const parts = vb.split(' ');
+        w = parseFloat(parts[2]) || 100;
+        h = parseFloat(parts[3]) || 50;
+      } else {
+        const widthAttr = svg.getAttribute('width');
+        const heightAttr = svg.getAttribute('height');
+        w = parseFloat(widthAttr) || 100;
+        h = parseFloat(heightAttr) || 50;
+      }
+      updateCanvasSize(w, h);
+      document.getElementById('customWidth').value = w;
+      document.getElementById('customHeight').value = h;
+      document.getElementById('sizeCustom').checked = true;
+      localStorage.setItem(SIZE_KEY, JSON.stringify({ w, h, preset: 'custom' }));
+      restoredDraft = true;
+    } catch (err) {
+      console.error('Misslyckades att återställa utkast', err);
+    }
+  }
+
+  function moveElement(el, dx, dy) {
+    const tag = el.tagName.toLowerCase();
+    if (tag === 'rect' || tag === 'image') {
+      const x = parseFloat(el.getAttribute('x') || 0) + dx;
+      const y = parseFloat(el.getAttribute('y') || 0) + dy;
+      el.setAttribute('x', x);
+      el.setAttribute('y', y);
+      syncRotationCenter(el);
+      markDirty();
+    } else if (tag === 'line') {
+      const x1 = parseFloat(el.getAttribute('x1') || 0) + dx;
+      const y1 = parseFloat(el.getAttribute('y1') || 0) + dy;
+      const x2 = parseFloat(el.getAttribute('x2') || 0) + dx;
+      const y2 = parseFloat(el.getAttribute('y2') || 0) + dy;
+      el.setAttribute('x1', x1);
+      el.setAttribute('y1', y1);
+      el.setAttribute('x2', x2);
+      el.setAttribute('y2', y2);
+      syncRotationCenter(el);
+      markDirty();
+    } else if (tag === 'text') {
+      const x = parseFloat(el.getAttribute('x') || 0) + dx;
+      const y = parseFloat(el.getAttribute('y') || 0) + dy;
+      el.setAttribute('x', x);
+      el.setAttribute('y', y);
+      syncRotationCenter(el);
+      markDirty();
+    } else if (tag === 'g' && el.dataset.type === 'placeholder') {
+      const rect = el.querySelector('rect');
+      const text = el.querySelector('text');
+      if (!rect || !text) return;
+      const rx = parseFloat(rect.getAttribute('x') || 0) + dx;
+      const ry = parseFloat(rect.getAttribute('y') || 0) + dy;
+      rect.setAttribute('x', rx);
+      rect.setAttribute('y', ry);
+      text.setAttribute('x', parseFloat(text.getAttribute('x') || 0) + dx);
+      text.setAttribute('y', parseFloat(text.getAttribute('y') || 0) + dy);
+      syncRotationCenter(el);
+      markDirty();
+    }
+  }
+
+  function alignSelected(mode) {
+    if (!selectedElements || selectedElements.length < 2) return;
+    const anchor = selectedElements[0];
+    if (!anchor) return;
+    const anchorBox = anchor.getBBox();
+
+    selectedElements.slice(1).forEach(el => {
+      const box = el.getBBox();
+      let dx = 0;
+      let dy = 0;
+      switch (mode) {
+        case 'left':
+          dx = anchorBox.x - box.x;
+          break;
+        case 'right':
+          dx = (anchorBox.x + anchorBox.width) - (box.x + box.width);
+          break;
+        case 'top':
+          dy = anchorBox.y - box.y;
+          break;
+        case 'bottom':
+          dy = (anchorBox.y + anchorBox.height) - (box.y + box.height);
+          break;
+        case 'centerH':
+          dx = (anchorBox.x + anchorBox.width / 2) - (box.x + box.width / 2);
+          break;
+        case 'centerV':
+          dy = (anchorBox.y + anchorBox.height / 2) - (box.y + box.height / 2);
+          break;
+      }
+      moveElement(el, dx, dy);
+    });
+    updateSelectionVisuals();
+    markDirty();
+  }
+
+  function initMoveControls() {
+    if (moveModeFree) {
+      moveModeFree.addEventListener('change', () => {
+        if (moveModeFree.checked) {
+          moveMode = 'free';
+          moveStepXInput.disabled = true;
+          moveStepYInput.disabled = true;
+        }
+      });
+    }
+    if (moveModeSnap) {
+      moveModeSnap.addEventListener('change', () => {
+        if (moveModeSnap.checked) {
+          moveMode = 'snap';
+          moveStepXInput.disabled = false;
+          moveStepYInput.disabled = false;
+        }
+      });
+    }
+    const updateSteps = () => {
+      const sx = parseFloat(moveStepXInput.value);
+      const sy = parseFloat(moveStepYInput.value);
+      moveStepX = !isNaN(sx) && sx > 0 ? sx : moveStepX;
+      moveStepY = !isNaN(sy) && sy > 0 ? sy : moveStepY;
+    };
+    moveStepXInput.addEventListener('input', updateSteps);
+    moveStepYInput.addEventListener('input', updateSteps);
+    moveStepXInput.disabled = moveMode !== 'snap';
+    moveStepYInput.disabled = moveMode !== 'snap';
+  }
+
+  function initAlignButtons() {
+    if (alignLeftBtn) alignLeftBtn.addEventListener('click', () => alignSelected('left'));
+    if (alignRightBtn) alignRightBtn.addEventListener('click', () => alignSelected('right'));
+    if (alignTopBtn) alignTopBtn.addEventListener('click', () => alignSelected('top'));
+    if (alignBottomBtn) alignBottomBtn.addEventListener('click', () => alignSelected('bottom'));
+    if (alignCenterHBtn) alignCenterHBtn.addEventListener('click', () => alignSelected('centerH'));
+    if (alignCenterVBtn) alignCenterVBtn.addEventListener('click', () => alignSelected('centerV'));
+    updateDeleteButtonState();
+  }
+
+  function getSelectionBoxData(el) {
+    const tf = el.getAttribute('transform') || '';
+    const rot = parseRotate(tf);
+    if (!rot) {
+      return { bbox: el.getBBox(), transform: null };
+    }
+
+    const rest = tf.replace(rot.raw, '').trim();
+    const original = tf;
+
+    if (rest) {
+      el.setAttribute('transform', rest);
+    } else {
+      el.removeAttribute('transform');
+    }
+    const bbox = el.getBBox();
+    el.setAttribute('transform', original);
+
+    return { bbox, transform: original.trim() || null };
+  }
+
+  function selectElement(el) {
+    if (isLineElement(el)) {
+      bakeLineRotation(el);
+    }
+    selectedElements = [el];
+    selectedElement = el;
+    updateSelectionVisuals();
+  }
+
+  function clearSelection() {
+    selectedElement = null;
+    selectedElements = [];
+    updateSelectionVisuals();
+  }
+
+  function clearAllHelpers() {
+    clearSelection();
+    removeSelectionGraphics(svg);
+    multiSelectionRects = [];
+    initSelectionGraphics(); // återskapa markeringsgrafik efter rensning
+    updateSelectionVisuals();
+  }
+
+  function svgPointFromEvent(evt) {
+    const pt = svg.createSVGPoint();
+    pt.x = evt.clientX;
+    pt.y = evt.clientY;
+    const ctm = svg.getScreenCTM();
+    if (!ctm) return { x: evt.clientX, y: evt.clientY };
+    return pt.matrixTransform(ctm.inverse());
+  }
+
+  function captureStartAttrs(el) {
+    startAttrs = {};
+    const tag = el.tagName.toLowerCase();
+
+    if (tag === 'rect' || tag === 'image') {
+      startAttrs.x = parseFloat(el.getAttribute('x') || 0);
+      startAttrs.y = parseFloat(el.getAttribute('y') || 0);
+      startAttrs.width = parseFloat(el.getAttribute('width') || 0);
+      startAttrs.height = parseFloat(el.getAttribute('height') || 0);
+
+      if (tag === 'image') {
+        const storedAspect = parseFloat(el.dataset.aspect || '0');
+        const computedAspect = startAttrs.width && startAttrs.height
+          ? startAttrs.width / startAttrs.height
+          : 1;
+        startAttrs.aspect = storedAspect || computedAspect || 1;
+      }
+    } else if (tag === 'line') {
+      startAttrs.x1 = parseFloat(el.getAttribute('x1') || 0);
+      startAttrs.y1 = parseFloat(el.getAttribute('y1') || 0);
+      startAttrs.x2 = parseFloat(el.getAttribute('x2') || 0);
+      startAttrs.y2 = parseFloat(el.getAttribute('y2') || 0);
+      startAttrs.isVertical = Math.abs(startAttrs.y2 - startAttrs.y1) > Math.abs(startAttrs.x2 - startAttrs.x1);
+    } else if (tag === 'text') {
+      startAttrs.x = parseFloat(el.getAttribute('x') || 0);
+      startAttrs.y = parseFloat(el.getAttribute('y') || 0);
+      startAttrs.fontSize = parseFloat(el.getAttribute('font-size') || 3.5);
+    } else if (tag === 'g' && el.dataset.type === 'placeholder') {
+      const rect = el.querySelector('rect');
+      const text = el.querySelector('text');
+      startAttrs.rectX = parseFloat(rect.getAttribute('x') || 0);
+      startAttrs.rectY = parseFloat(rect.getAttribute('y') || 0);
+      startAttrs.rectW = parseFloat(rect.getAttribute('width') || 0);
+      startAttrs.rectH = parseFloat(rect.getAttribute('height') || 0);
+      startAttrs.textX = parseFloat(text.getAttribute('x') || 0);
+      startAttrs.textY = parseFloat(text.getAttribute('y') || 0);
+      startAttrs.textFontSize = parseFloat(text.getAttribute('font-size') || 3.5);
+    }
+  }
+
+  function applyDrag(el, dx, dy) {
+    const tag = el.tagName.toLowerCase();
+    const snap = moveMode === 'snap';
+    const stepX = moveStepX > 0 ? moveStepX : 1;
+    const stepY = moveStepY > 0 ? moveStepY : 1;
+    const applyDelta = (startVal, delta, step) => snap ? Math.round((startVal + delta) / step) * step : startVal + delta;
+
+    if (tag === 'rect' || tag === 'image') {
+      el.setAttribute('x', applyDelta(startAttrs.x, dx, stepX));
+      el.setAttribute('y', applyDelta(startAttrs.y, dy, stepY));
+      syncRotationCenter(el);
+      interactionChanged = true;
+    } else if (tag === 'line') {
+      el.setAttribute('x1', applyDelta(startAttrs.x1, dx, stepX));
+      el.setAttribute('y1', applyDelta(startAttrs.y1, dy, stepY));
+      el.setAttribute('x2', applyDelta(startAttrs.x2, dx, stepX));
+      el.setAttribute('y2', applyDelta(startAttrs.y2, dy, stepY));
+      syncRotationCenter(el);
+      interactionChanged = true;
+    } else if (tag === 'text') {
+      el.setAttribute('x', applyDelta(startAttrs.x, dx, stepX));
+      el.setAttribute('y', applyDelta(startAttrs.y, dy, stepY));
+      syncRotationCenter(el);
+      interactionChanged = true;
+    } else if (tag === 'g' && el.dataset.type === 'placeholder') {
+      const rect = el.querySelector('rect');
+      const text = el.querySelector('text');
+
+      const newX = applyDelta(startAttrs.rectX, dx, stepX);
+      const newY = applyDelta(startAttrs.rectY, dy, stepY);
+      rect.setAttribute('x', newX);
+      rect.setAttribute('y', newY);
+      text.setAttribute('x', newX + (startAttrs.textX - startAttrs.rectX));
+      text.setAttribute('y', newY + (startAttrs.textY - startAttrs.rectY));
+      syncRotationCenter(el);
+      interactionChanged = true;
+    }
+  }
+
+  function applyResize(el, dx, dy) {
+    const tag = el.tagName.toLowerCase();
+    const { dx: localDx, dy: localDy } = toLocalDeltas(dx, dy, el);
+
+    if (tag === 'rect') {
+      let newW = Math.max(1, startAttrs.width + localDx);
+      let newH = Math.max(1, startAttrs.height + localDy);
+      if (Math.abs(startAttrs.width - startAttrs.height) < 0.01) {
+        const side = Math.max(1, Math.min(startAttrs.width + localDx, startAttrs.height + localDy));
+        newW = side;
+        newH = side;
+      }
+      el.setAttribute('width', newW);
+      el.setAttribute('height', newH);
+      interactionChanged = true;
+    } else if (tag === 'image') {
+      const aspect = startAttrs.aspect || (startAttrs.width / startAttrs.height) || 1;
+      const delta = Math.abs(localDx) > Math.abs(localDy) ? localDx : localDy;
+      let newW = Math.max(1, startAttrs.width + delta);
+      let newH = newW / aspect;
+      el.setAttribute('width', newW);
+      el.setAttribute('height', newH);
+      interactionChanged = true;
+    } else if (tag === 'line') {
+      const minLen = 0.5;
+      if (startAttrs.isVertical) {
+        let newY2 = startAttrs.y2 + localDy;
+        const len = newY2 - startAttrs.y1;
+        if (Math.abs(len) < minLen) {
+          newY2 = startAttrs.y1 + (len >= 0 ? minLen : -minLen);
+        }
+        el.setAttribute('y2', newY2);
+        el.setAttribute('x2', startAttrs.x2); // lås linjen vertikalt vid storleksändring
+      } else {
+        let newX2 = startAttrs.x2 + localDx;
+        const len = newX2 - startAttrs.x1;
+        if (Math.abs(len) < minLen) {
+          newX2 = startAttrs.x1 + (len >= 0 ? minLen : -minLen);
+        }
+        el.setAttribute('x2', newX2);
+        el.setAttribute('y2', startAttrs.y2); // lås linjen horisontellt vid storleksändring
+      }
+      interactionChanged = true;
+    } else if (tag === 'text') {
+      const avgDelta = (localDx + localDy) / 2;
+      const newSize = Math.max(1, startAttrs.fontSize + avgDelta * 0.1);
+      el.setAttribute('font-size', newSize);
+      interactionChanged = true;
+    } else if (tag === 'g' && el.dataset.type === 'placeholder') {
+      const rect = el.querySelector('rect');
+      const text = el.querySelector('text');
+      let newW = Math.max(5, startAttrs.rectW + localDx);
+      let newH = Math.max(4, startAttrs.rectH + localDy);
+      rect.setAttribute('width', newW);
+      rect.setAttribute('height', newH);
+
+      const scaleY = newH / startAttrs.rectH;
+      const newFont = Math.max(2, startAttrs.textFontSize * scaleY);
+      text.setAttribute('font-size', newFont);
+      text.setAttribute('y', startAttrs.rectY + newH - 2.5);
+      interactionChanged = true;
+    }
+    syncRotationCenter(el);
+  }
+
+  function onSvgMouseDown(evt) {
+    if (evt.target === resizeHandle) {
+      if (!selectedElement) return;
+      isResizing = true;
+      isDragging = false;
+      dragStartPoint = svgPointFromEvent(evt);
+      captureStartAttrs(selectedElement);
+      evt.stopPropagation();
+      return;
+    }
+
+    const root = getRootSelectable(evt.target);
+    if (!root) {
+      clearSelection();
+      isLasso = true;
+      lassoStartPoint = svgPointFromEvent(evt);
+      if (lassoRect) {
+        lassoRect.style.display = 'block';
+        lassoRect.setAttribute('x', lassoStartPoint.x);
+        lassoRect.setAttribute('y', lassoStartPoint.y);
+        lassoRect.setAttribute('width', 0);
+        lassoRect.setAttribute('height', 0);
+      }
+      return;
+    }
+
+    if (evt.ctrlKey) {
+      // lägg till i multival, behåll första som anchor
+      if (isLineElement(root)) {
+        bakeLineRotation(root);
+      }
+      if (!selectedElements.includes(root)) {
+        selectedElements.push(root);
+      }
+      selectedElement = root;
+      updateSelectionVisuals();
+    } else {
+      selectElement(root);
+    }
+    isDragging = true;
+    isResizing = false;
+    dragStartPoint = svgPointFromEvent(evt);
+    captureStartAttrs(root);
+    evt.stopPropagation();
+  }
+
+  function onMouseMove(evt) {
+    if (isLasso) {
+      if (!lassoRect || !lassoStartPoint) return;
+      const pt = svgPointFromEvent(evt);
+      const x = Math.min(lassoStartPoint.x, pt.x);
+      const y = Math.min(lassoStartPoint.y, pt.y);
+      const w = Math.abs(pt.x - lassoStartPoint.x);
+      const h = Math.abs(pt.y - lassoStartPoint.y);
+      lassoRect.setAttribute('x', x);
+      lassoRect.setAttribute('y', y);
+      lassoRect.setAttribute('width', w);
+      lassoRect.setAttribute('height', h);
+      return;
+    }
+    if (!selectedElement || (!isDragging && !isResizing)) return;
+    const pt = svgPointFromEvent(evt);
+    const dx = pt.x - dragStartPoint.x;
+    const dy = pt.y - dragStartPoint.y;
+
+    if (isDragging) {
+      applyDrag(selectedElement, dx, dy);
+    } else if (isResizing) {
+      applyResize(selectedElement, dx, dy);
+    }
+    updateSelectionVisuals();
+  }
+
+  function rectsIntersect(a, b) {
+    return !(a.x > b.x + b.width ||
+             a.x + a.width < b.x ||
+             a.y > b.y + b.height ||
+             a.y + a.height < b.y);
+  }
+
+  function onMouseUp() {
+    if (isLasso) {
+      isLasso = false;
+      const box = lassoRect ? {
+        x: parseFloat(lassoRect.getAttribute('x') || 0),
+        y: parseFloat(lassoRect.getAttribute('y') || 0),
+        width: parseFloat(lassoRect.getAttribute('width') || 0),
+        height: parseFloat(lassoRect.getAttribute('height') || 0),
+      } : null;
+      lassoRect && (lassoRect.style.display = 'none');
+      if (box && box.width > 0 && box.height > 0) {
+        const candidates = Array.from(svg.querySelectorAll('[data-editable="1"]'))
+          .filter(el => el.dataset.editorHelper !== '1');
+        const hits = candidates.filter(el => rectsIntersect(el.getBBox(), box));
+        selectedElements = hits;
+        selectedElement = hits.length ? hits[0] : null;
+        updateSelectionVisuals();
+      }
+      return;
+    }
+
+    isDragging = false;
+    isResizing = false;
+    if (interactionChanged) {
+      markDirty();
+      interactionChanged = false;
+    }
+  }
+
+  // ==== Text inspector logic (vanlig text + platshållare) ====
+  function updateTextInspector() {
+    const textEl = getActiveTextTarget();
+    if (!textEl) {
+      textInspector.style.display = 'none';
+      return;
+    }
+
+    textInspector.style.display = 'block';
+    textContentInput.value = textEl.textContent || '';
+    const titleNode = textEl.querySelector('title');
+    textPlaceholderInput.value = titleNode ? (titleNode.textContent || '') : '';
+
+    const size = parseFloat(textEl.getAttribute('font-size') || '4');
+    textSizeInput.value = size;
+
+    const anchor = textEl.getAttribute('text-anchor') || 'start';
+    alignButtons.forEach(btn => {
+      if (btn.dataset.align === anchor) {
+        btn.classList.add('is-active');
+      } else {
+        btn.classList.remove('is-active');
+      }
+    });
+  }
+
+  if (textContentInput) {
+    textContentInput.addEventListener('input', () => {
+      const textEl = getActiveTextTarget();
+      if (!textEl) return;
+      textEl.textContent = textContentInput.value;
+      const parent = textEl.parentNode;
+      if (parent && parent.dataset && parent.dataset.type === 'placeholder') {
+        updatePlaceholderFrame(parent);
+      }
+      updateSelectionVisuals();
+      markDirty();
+    });
+  }
+
+  textSizeInput.addEventListener('input', () => {
+    const textEl = getActiveTextTarget();
+    if (!textEl) return;
+    const v = parseFloat(textSizeInput.value);
+    if (!isNaN(v) && v > 0) {
+      textEl.setAttribute('font-size', v);
+
+      const parent = textEl.parentNode;
+      if (parent && parent.dataset && parent.dataset.type === 'placeholder') {
+        updatePlaceholderFrame(parent);
+      }
+
+      updateSelectionVisuals();
+      markDirty();
+    }
+  });
+
+
+  textSizeInput.addEventListener('input', () => {
+    const textEl = getActiveTextTarget();
+    if (!textEl) return;
+      const v = parseFloat(textSizeInput.value);
+      if (!isNaN(v) && v > 0) {
+        textEl.setAttribute('font-size', v);
+        updateSelectionVisuals();
+        markDirty();
+      }
+    });
+
+  if (textPlaceholderInput) {
+    textPlaceholderInput.addEventListener('input', () => {
+      const textEl = getActiveTextTarget();
+      if (!textEl) return;
+      const val = (textPlaceholderInput.value || '').trim();
+      let titleNode = textEl.querySelector('title');
+      if (val) {
+        if (!titleNode) {
+          titleNode = document.createElementNS(svgNS, 'title');
+          textEl.insertBefore(titleNode, textEl.firstChild);
+        }
+        titleNode.textContent = val;
+      } else if (titleNode) {
+        titleNode.parentNode.removeChild(titleNode);
+      }
+      markDirty();
+    });
+  }
+
+  alignButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const textEl = getActiveTextTarget();
+      if (!textEl) return;
+      const align = btn.dataset.align || 'start';
+      textEl.setAttribute('text-anchor', align);
+
+      alignButtons.forEach(b => b.classList.remove('is-active'));
+      btn.classList.add('is-active');
+      updateSelectionVisuals();
+      markDirty();
+    });
+  });
+
+  function getActiveLineElement() {
+    return isLineElement(selectedElement) ? selectedElement : null;
+  }
+
+  function updateLineInspector() {
+    if (!lineInspector) return;
+    const lineEl = getActiveLineElement();
+    if (!lineEl) {
+      lineInspector.style.display = 'none';
+      return;
+    }
+    // säkerställ att tidigare rotationer buntas in i koordinater
+    bakeLineRotation(lineEl);
+    lineInspector.style.display = 'block';
+
+    const x1 = parseFloat(lineEl.getAttribute('x1') || 0);
+    const y1 = parseFloat(lineEl.getAttribute('y1') || 0);
+    const x2 = parseFloat(lineEl.getAttribute('x2') || 0);
+    const y2 = parseFloat(lineEl.getAttribute('y2') || 0);
+    const isHorizontal = Math.abs(y2 - y1) <= Math.abs(x2 - x1);
+
+    if (lineStrokeInput) {
+      const strokeVal = parseFloat(lineEl.getAttribute('stroke-width') || '0.3');
+      lineStrokeInput.value = isNaN(strokeVal) ? '0.3' : strokeVal;
+    }
+    if (lineOrientationBtn) {
+      lineOrientationBtn.textContent = isHorizontal ? 'Byt till stående linje' : 'Byt till liggande linje';
+    }
+  }
+
+  function toggleLineOrientation(lineEl) {
+    if (!lineEl) return;
+    bakeLineRotation(lineEl);
+    const x1 = parseFloat(lineEl.getAttribute('x1') || 0);
+    const y1 = parseFloat(lineEl.getAttribute('y1') || 0);
+    const x2 = parseFloat(lineEl.getAttribute('x2') || 0);
+    const y2 = parseFloat(lineEl.getAttribute('y2') || 0);
+    const len = Math.max(0.5, Math.hypot(x2 - x1, y2 - y1));
+    const cx = (x1 + x2) / 2;
+    const cy = (y1 + y2) / 2;
+    const isHorizontal = Math.abs(y2 - y1) <= Math.abs(x2 - x1);
+    if (isHorizontal) {
+      lineEl.setAttribute('x1', cx);
+      lineEl.setAttribute('x2', cx);
+      lineEl.setAttribute('y1', cy - len / 2);
+      lineEl.setAttribute('y2', cy + len / 2);
+    } else {
+      lineEl.setAttribute('y1', cy);
+      lineEl.setAttribute('y2', cy);
+      lineEl.setAttribute('x1', cx - len / 2);
+      lineEl.setAttribute('x2', cx + len / 2);
+    }
+    lineEl.removeAttribute('transform');
+  }
+
+  if (lineOrientationBtn) {
+    lineOrientationBtn.addEventListener('click', () => {
+      const lineEl = getActiveLineElement();
+      if (!lineEl) return;
+      toggleLineOrientation(lineEl);
+      updateSelectionVisuals();
+      markDirty();
+    });
+  }
+
+  if (lineStrokeInput) {
+    lineStrokeInput.addEventListener('input', () => {
+      const lineEl = getActiveLineElement();
+      if (!lineEl) return;
+      const v = parseFloat(lineStrokeInput.value);
+      if (!isNaN(v) && v > 0) {
+        lineEl.setAttribute('stroke-width', v);
+        updateSelectionVisuals();
+        markDirty();
+      }
+    });
+  }
+
+  // ==== Fil-hantering ====
+
+  function getSelectedSizeFromControls() {
+    const selected = document.querySelector('input[name="sizePreset"]:checked');
+    if (selected && selected.value !== 'custom') {
+      const w = parseFloat(selected.dataset.w);
+      const h = parseFloat(selected.dataset.h);
+      if (w && h) {
+        return { w, h };
+      }
+    }
+    const customWidth = parseFloat(document.getElementById('customWidth').value) || 100;
+    const customHeight = parseFloat(document.getElementById('customHeight').value) || 50;
+    return { w: customWidth, h: customHeight };
+  }
+
+  function canvasHasUserContent() {
+    if (!svg) return false;
+    return Array.from(svg.children || []).some(child => !(child.dataset && child.dataset.editorHelper === '1'));
+  }
+
+  function createBlankCanvas(widthMm, heightMm) {
+    clearSelection();
+    const container = document.getElementById('svgContainer');
+    const freshSvg = document.createElementNS(svgNS, 'svg');
+    freshSvg.setAttribute('id', 'svgCanvas');
+    freshSvg.setAttribute('xmlns', svgNS);
+    freshSvg.setAttribute('xmlns:xlink', xlinkNS);
+    freshSvg.setAttribute('version', '1.1');
+
+    container.innerHTML = '';
+    container.appendChild(freshSvg);
+    svg = freshSvg;
+
+    initSelectionGraphics();
+    attachSvgInteraction();
+    updateCanvasSize(widthMm, heightMm);
+    ensureEditorBackgroundRect();
+    fitCanvasToContainer();
+    localStorage.removeItem(DRAFT_KEY);
+    hasDraft = false;
+  }
+
+  function initFileHandling() {
+    const openFileInput = document.getElementById('openFile');
+    const saveBtn = document.getElementById('saveBtn');
+    const newTemplateBtn = document.getElementById('newTemplateBtn');
+
+    if (newTemplateBtn) {
+      newTemplateBtn.addEventListener('click', () => {
+        const hasContent = canvasHasUserContent();
+        if (hasContent) {
+          const confirmed = confirm('Canvasen innehåller element. Rensa och skapa en ny tom mall?');
+          if (!confirmed) return;
+        }
+        const { w, h } = getSelectedSizeFromControls();
+        createBlankCanvas(w, h);
+        document.getElementById('customWidth').value = w;
+        document.getElementById('customHeight').value = h;
+      });
+    }
+
+    openFileInput.addEventListener('change', event => {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = e => {
+        const text = e.target.result;
+        try {
+          const parser = new DOMParser();
+          const doc = parser.parseFromString(text, 'image/svg+xml');
+          const loadedSvg = doc.querySelector('svg');
+          if (!loadedSvg) {
+            alert('Ingen <svg>-tagg hittades i filen.');
+            return;
+          }
+          const container = document.getElementById('svgContainer');
+
+          const importedSvg = document.importNode(loadedSvg, true);
+          importedSvg.id = 'svgCanvas';
+          if (!importedSvg.getAttribute('xmlns:xlink')) {
+            importedSvg.setAttribute('xmlns:xlink', xlinkNS);
+          }
+          markEditableRecursive(importedSvg);
+      removeSelectionGraphics(importedSvg);
+      bakeAllLineRotations(importedSvg);
+
+      container.innerHTML = '';
+      container.appendChild(importedSvg);
+      svg = importedSvg;
+
+      initSelectionGraphics();
+      attachSvgInteraction();
+      ensureEditorBackgroundRect();
+      fitCanvasToContainer();
+
+      const vb = svg.getAttribute('viewBox');
+      let w, h;
+      if (vb) {
+            const parts = vb.split(' ');
+            w = parseFloat(parts[2]) || 100;
+            h = parseFloat(parts[3]) || 50;
+          } else {
+            const widthAttr = svg.getAttribute('width');
+            const heightAttr = svg.getAttribute('height');
+            w = parseFloat(widthAttr) || 100;
+            h = parseFloat(heightAttr) || 50;
+          }
+
+          updateCanvasSize(w, h);
+
+          document.getElementById('customWidth').value = w;
+          document.getElementById('customHeight').value = h;
+          document.getElementById('sizeCustom').checked = true;
+          localStorage.setItem(SIZE_KEY, JSON.stringify({ w, h, preset: 'custom' }));
+          markDirty();
+        } catch (err) {
+          console.error(err);
+          alert('Kunde inte läsa SVG-filen.');
+        }
+      };
+      reader.readAsText(file);
+    });
+
+    saveBtn.addEventListener('click', () => {
+      const clonedSvg = createExportClone();
+
+      const serializer = new XMLSerializer();
+      let source = serializer.serializeToString(clonedSvg);
+
+      if (!source.match(/^<\?xml/)) {
+        source = '<?xml version="1.0" standalone="no"?>\n' + source;
+      }
+
+      const blob = new Blob([source], { type: 'image/svg+xml;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'tickster-mall.svg';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      localStorage.removeItem(DRAFT_KEY);
+      hasDraft = false;
+    });
+
+    if (savePngBtn) {
+      savePngBtn.addEventListener('click', () => {
+        const clonedSvg = createExportClone();
+        const { width, height } = getViewBoxSize();
+        const serializer = new XMLSerializer();
+        let source = serializer.serializeToString(clonedSvg);
+        if (!source.match(/^<\?xml/)) {
+          source = '<?xml version="1.0" standalone="no"?>\n' + source;
+        }
+        const svgUrl = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(source);
+
+        const img = new Image();
+        img.onload = () => {
+          const mmToPx = 3.7795275591;
+          const canvas = document.createElement('canvas');
+          canvas.width = width * mmToPx;
+          canvas.height = height * mmToPx;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          canvas.toBlob(blob => {
+            if (!blob) return;
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'tickster-mall.png';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+          }, 'image/png');
+        };
+        img.src = svgUrl;
+      });
+    }
+  }
+
+  function initImageButton() {
+    const btn = document.getElementById('addImageBtn');
+    const fileInput = document.getElementById('imageFileInput');
+
+    btn.addEventListener('click', () => {
+      fileInput.value = '';
+      fileInput.click();
+    });
+
+    fileInput.addEventListener('change', evt => {
+      const file = evt.target.files[0];
+      if (!file) return;
+      addImageFromFile(file);
+    });
+  }
+
+  function initPlaceholderModal() {
+    const modal = document.getElementById('placeholderModal');
+    const btnOpen = document.getElementById('addPlaceholderBtn');
+    const btnCancel = document.getElementById('placeholderCancelBtn');
+    const btnAdd = document.getElementById('placeholderAddBtn');
+    const backdrop = modal.querySelector('.modal-backdrop');
+
+    const closeModal = () => {
+      modal.classList.add('hidden');
+    };
+
+    btnOpen.addEventListener('click', () => {
+      modal.classList.remove('hidden');
+    });
+
+    btnCancel.addEventListener('click', closeModal);
+    backdrop.addEventListener('click', closeModal);
+
+    btnAdd.addEventListener('click', () => {
+      const checkboxes = modal.querySelectorAll('input[type="checkbox"]:checked');
+      const values = Array.from(checkboxes).map(cb => cb.value);
+      if (values.length > 0) {
+        addPlaceholders(values);
+      }
+      closeModal();
+    });
+  }
+
+  function attachSvgInteraction() {
+    svg.addEventListener('mousedown', onSvgMouseDown);
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mouseup', onMouseUp);
+  }
+
+  function initElementButtons() {
+    document.getElementById('addSquareBtn').addEventListener('click', addSquare);
+    document.getElementById('addLineBtn').addEventListener('click', addLine);
+    document.getElementById('addTextBtn').addEventListener('click', addText);
+    deleteElementBtn.addEventListener('click', deleteSelectedElement);
+    if (clearHelpersBtn) {
+      clearHelpersBtn.addEventListener('click', () => {
+        clearAllHelpers();
+      });
+    }
+    rotateCwBtn.addEventListener('click', () => rotateSelected(90));
+    rotateCcwBtn.addEventListener('click', () => rotateSelected(-90));
+    updateDeleteButtonState();
+  }
+
+  window.addEventListener('DOMContentLoaded', () => {
+    initSizeControls();
+    initElementButtons();
+    initFileHandling();
+    initImageButton();
+    initPlaceholderModal();
+    initSelectionGraphics();
+    attachSvgInteraction();
+    initMoveControls();
+    initAlignButtons();
+    tryRestoreDraft();
+    if (!restoredDraft) {
+      restoreSizeState();
+    }
+
+    window.addEventListener('beforeunload', (e) => {
+      const hasStoredDraft = !!localStorage.getItem(DRAFT_KEY);
+      if (hasStoredDraft) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    });
+
+    const firstPreset = document.querySelector('input[name="sizePreset"]:checked');
+    const sizeAlreadyRestored = restoredDraft || sizeRestored;
+    if (!sizeAlreadyRestored && firstPreset) {
+      const wVal = parseFloat(firstPreset.dataset.w || '0');
+      const hVal = parseFloat(firstPreset.dataset.h || '0');
+      if (wVal && hVal) {
+        updateCanvasSize(wVal, hVal);
+        document.getElementById('customWidth').value = wVal;
+        document.getElementById('customHeight').value = hVal;
+      }
+    }
+    fitCanvasToContainer();
+  });
+
+  window.addEventListener('resize', fitCanvasToContainer);
+</script>
+</body>
+</html>
