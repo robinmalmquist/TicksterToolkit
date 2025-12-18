@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8" />
+  <title>CSS-generator för prisregioner</title>
+  <style>
+    /* -----------------------------------------
+       Tickster-inspirerade tokens (förenklad)
+       ----------------------------------------- */
+    :root {
+      /* Färger från styleguiden */
+      --primary: #14a0f4;           /* blue-45 */
+      --secondary: #19bab5;         /* turquoise-45 */
+      --surface: #f3f5f6;           /* grey-95 */
+      --surface-container: #ffffff; /* card-bakgrund */
+      --surface-container-lowest: #f9fafb; /* grey-98 */
+      --outline: #dbe0e4;           /* grey-85 */
+      --outline-strong: #b8c1c7;    /* grey-68 */
+      --on-surface: #1a2027;        /* mörk text */
+      --on-surface-variant: #4f5d68;/* sekundär text */
+      --shadow-normal: 0 1px 2px rgba(5, 9, 14, 0.06),
+                       0 2px 4px rgba(5, 9, 14, 0.06);
+      --shadow-raised: 0 6px 16px rgba(5, 9, 14, 0.12);
+      --radius-card: 12px;
+      --radius-pill: 999px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--surface);
+      color: var(--on-surface);
+      display: flex;
+      justify-content: center;
+    }
+
+    .app-shell {
+      width: 100%;
+      max-width: 1400px;
+      margin: 32px 16px;
+    }
+
+    /* Layout liknande o-grid */
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+      gap: 16px;
+    }
+
+    @media (max-width: 900px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+      .c-card--instructions {
+        grid-column: 1 / -1;
+      }
+    }
+
+    /* -----------------------------------------
+       Card (c-card)
+       ----------------------------------------- */
+    .c-card {
+      background: var(--surface-container);
+      border-radius: var(--radius-card);
+      box-shadow: var(--shadow-normal);
+      border: 1px solid var(--outline);
+      padding: 18px 20px;
+    }
+
+    .c-card__header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .c-card__title {
+      margin: 0;
+      font-size: 1rem;
+      font-weight: 600;
+    }
+
+    .c-card__subtitle {
+      font-size: 0.78rem;
+      color: var(--on-surface-variant);
+      margin-top: 2px;
+    }
+
+    .c-card--instructions {
+      grid-column: 1 / -1; /* sträcker sig över båda kolumner */
+      margin-top: 4px;
+    }
+
+    /* -----------------------------------------
+       Typografi-utilities (u-font--)
+       ----------------------------------------- */
+    .u-font--small {
+      font-size: 0.8rem;
+    }
+
+    .u-font--smaller {
+      font-size: 0.75rem;
+    }
+
+    .u-font--base {
+      font-size: 0.9rem;
+    }
+
+    .u-font--mono {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+                   "Liberation Mono", "Courier New", monospace;
+    }
+
+    /* -----------------------------------------
+       Status & text
+       ----------------------------------------- */
+    .status {
+      font-size: 0.8rem;
+      color: var(--on-surface-variant);
+      margin-top: 0.35rem;
+    }
+
+    .status--error {
+      color: #c12e44;
+    }
+
+    /* -----------------------------------------
+       Färgtilldelning-rad
+       ----------------------------------------- */
+    .ranges-toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+      font-size: 0.8rem;
+      color: var(--on-surface-variant);
+    }
+
+    .ranges-toolbar span strong {
+      color: var(--on-surface);
+    }
+
+    .color-mode-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 10px;
+      font-size: 0.8rem;
+      color: var(--on-surface-variant);
+      flex-wrap: wrap;
+    }
+
+    .color-mode-row span {
+      font-weight: 500;
+      color: var(--on-surface);
+    }
+
+    .color-mode-row label {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+
+    .color-mode-row input[type="radio"] {
+      cursor: pointer;
+    }
+
+    .ranges-container {
+      margin-top: 0.5rem;
+      max-height: 360px;
+      overflow-y: auto;
+      border-radius: 8px;
+      padding: 4px;
+      background: var(--surface-container-lowest);
+      border: 1px solid var(--outline);
+    }
+
+    .range-row {
+      display: grid;
+      grid-template-columns: minmax(0, 2fr) minmax(0, 1.4fr) auto auto auto;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 6px 8px;
+      border-radius: 8px;
+      margin: 2px 0;
+      background: #ffffff;
+      border: 1px solid transparent;
+      transition: border-color 0.12s ease, box-shadow 0.12s ease,
+                  transform 0.05s ease;
+    }
+
+    .range-row:hover {
+      border-color: var(--outline-strong);
+      box-shadow: var(--shadow-raised);
+      transform: translateY(-1px);
+    }
+
+    .range-label {
+      font-weight: 500;
+      font-size: 0.88rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .range-id {
+      font-size: 0.8rem;
+      color: var(--on-surface-variant);
+    }
+
+    .color-hex {
+      font-size: 0.8rem;
+      text-align: center;
+      padding: 2px 8px;
+      border-radius: var(--radius-pill);
+      background: var(--surface);
+      border: 1px solid var(--outline);
+      min-width: 86px;
+    }
+
+    input[type="color"] {
+      width: 44px;
+      height: 24px;
+      border-radius: var(--radius-pill);
+      border: 1px solid var(--outline);
+      padding: 0;
+      background: transparent;
+      cursor: pointer;
+    }
+
+    .file-input {
+      margin-top: 0.5rem;
+    }
+
+    input[type="file"] {
+      font-size: 0.85rem;
+    }
+
+    /* -----------------------------------------
+       Buttons (c-button)
+       ----------------------------------------- */
+    .c-button {
+      border-radius: var(--radius-pill);
+      border: 1px solid transparent;
+      padding: 0.4rem 0.95rem;
+      font-size: 0.8rem;
+      font-weight: 500;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: transparent;
+      color: var(--on-surface);
+      text-decoration: none;
+      transition: transform 0.06s ease, box-shadow 0.08s ease,
+                  background 0.12s ease, border-color 0.12s ease,
+                  opacity 0.12s ease;
+      box-shadow: var(--shadow-normal);
+    }
+
+    .c-button--primary {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+    }
+
+    .c-button--secondary {
+      background: var(--secondary);
+      color: #fff;
+      border-color: var(--secondary);
+    }
+
+    .c-button--ghost {
+      background: transparent;
+      color: var(--on-surface-variant);
+      border-color: var(--outline);
+      box-shadow: none;
+    }
+
+    .c-button--small {
+      padding: 0.25rem 0.6rem;
+      font-size: 0.75rem;
+    }
+
+    .c-button.is-disabled,
+    .c-button:disabled {
+      opacity: 0.55;
+      cursor: default;
+      box-shadow: none;
+    }
+
+    .c-button:not(:disabled):hover {
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-raised);
+      filter: brightness(0.97);
+    }
+
+    .c-button--ghost:not(:disabled):hover {
+      background: var(--surface);
+      box-shadow: none;
+    }
+
+    .c-button__icon {
+      font-size: 1rem;
+      line-height: 1;
+      display: inline-block;
+    }
+
+    /* -----------------------------------------
+       Pill (c-pill)
+       ----------------------------------------- */
+    .c-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      padding: 0.15rem 0.6rem;
+      border-radius: var(--radius-pill);
+      background: var(--surface);
+      font-size: 0.75rem;
+      color: var(--on-surface-variant);
+      border: 1px solid var(--outline);
+    }
+
+    .c-pill__code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+                   "Liberation Mono", "Courier New", monospace;
+      font-size: 0.75rem;
+    }
+
+    /* -----------------------------------------
+       CSS-output
+       ----------------------------------------- */
+    textarea {
+      width: 100%;
+      min-height: 450px;
+      resize: vertical;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+                   "Liberation Mono", "Courier New", monospace;
+      font-size: 0.84rem;
+      padding: 0.7rem 0.8rem;
+      border-radius: 8px;
+      border: 1px solid var(--outline-strong);
+      background: #05090e;
+      color: #e5e7eb;
+      box-sizing: border-box;
+    }
+
+    .css-toolbar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 8px 0 10px;
+      flex-wrap: wrap;
+    }
+
+    .copy-status {
+      font-size: 0.78rem;
+      color: var(--on-surface-variant);
+    }
+
+    /* -----------------------------------------
+       Instruktionskort
+       ----------------------------------------- */
+    .instructions-card h2 {
+      margin-top: 0;
+      font-size: 1rem;
+      margin-bottom: 8px;
+    }
+
+    .instructions-card h3 {
+      margin: 12px 0 4px;
+      font-size: 0.9rem;
+    }
+
+    .instructions-card p {
+      margin: 0;
+      font-size: 0.86rem;
+      color: var(--on-surface-variant);
+      line-height: 1.5;
+    }
+
+    .instructions-card p + h3 {
+      margin-top: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <main class="layout">
+      <!-- Vänster: fil + prisregioner -->
+      <section class="c-card">
+        <header class="c-card__header">
+          <div>
+            <h2 class="c-card__title">1–2. Ladda upp TPR och välj färger</h2>
+            <p class="c-card__subtitle">
+              Färger från Ticksters palett genereras automatiskt, men kan justeras eller laddas om per rad.
+            </p>
+          </div>
+        </header>
+
+        <div>
+          <input class="file-input" type="file" id="tprFile" accept=".tpr" />
+          <div id="status" class="status">Ingen fil vald ännu.</div>
+        </div>
+
+        <div class="color-mode-row">
+          <span>Färgtilldelning vid inläsning:</span>
+          <label>
+            <input type="radio" name="colorMode" value="sequential" checked>
+            I ordning
+          </label>
+          <label>
+            <input type="radio" name="colorMode" value="random">
+            Slumpad
+          </label>
+        </div>
+
+        <div style="margin-top: 14px;">
+          <div class="ranges-toolbar">
+            <span>Prisregioner: <strong id="rangeCount">0</strong></span>
+            <span class="u-font--smaller">Tips: klicka <strong>Ladda om</strong> för en annan färg ur paletten.</span>
+          </div>
+          <div id="rangesContainer" class="ranges-container">
+            <div class="status" style="padding: 6px 8px;">
+              Prisregionerna visas här efter att du laddat upp en TPR-fil.
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Höger: CSS -->
+      <section class="c-card">
+        <header class="c-card__header">
+          <div>
+            <h2 class="c-card__title">3. Generera CSS</h2>
+            <p class="c-card__subtitle">
+              CSS per prisregion enligt <code>.pr-{RangeId}</code>.
+            </p>
+          </div>
+        </header>
+
+        <p class="u-font--small" style="color: var(--on-surface-variant); margin-bottom: 4px;">
+          Mallen som används:
+          <span class="c-pill">
+            <span class="c-pill__code">.pr-{RangeId}.available</span>
+          </span>
+          <span class="c-pill">
+            <span class="c-pill__code">div.pr-{RangeId}, .c-pill.pr-{RangeId}</span>
+          </span>
+        </p>
+
+        <div class="css-toolbar">
+          <button id="generateCssBtn" class="c-button c-button--primary" disabled>
+            <span class="c-button__icon">⚙️</span>
+            <span>Generera CSS</span>
+          </button>
+          <button id="copyCssBtn" class="c-button c-button--secondary" disabled>
+            <span class="c-button__icon">📋</span>
+            <span>Kopiera CSS</span>
+          </button>
+          <span id="copyStatus" class="copy-status"></span>
+        </div>
+
+        <textarea id="cssOutput" placeholder="CSS kommer att synas här efter att du klickat på &quot;Generera CSS&quot;..."></textarea>
+      </section>
+
+      <!-- Nederkant: instruktioner över full bredd -->
+      <section class="c-card instructions-card c-card--instructions">
+        <h2>Instruktioner</h2>
+
+        <h3>Ladda ner evenemangsspecifik TPR:</h3>
+        <p>
+          Gå till <strong>Evenemang &gt; Hantera prisregioner</strong> och välj evenemanget i fråga.
+          Klicka därefter på <strong>&quot;Ladda hem&quot;</strong> precis under där det står
+          <strong>&quot;Evenemangsspecifika prisregioner&quot;</strong>.
+        </p>
+
+        <h3>Ladda ner CSS:</h3>
+        <p>
+          Gå till <strong>Arena &amp; ombud</strong> och redigera arenan där layouten ligger.
+          Gå till fliken <strong>Konfigurationer</strong> och klicka på <strong>&quot;Mer information&quot;</strong>
+          för layouten som används. Ladda ner CSS-filen på raden där det står <strong>&quot;CSS&quot;</strong>
+          till vänster. Om det inte finns något där så klicka på <strong>CSS</strong> på raden där det står
+          <strong>&quot;Exportera&quot;</strong> till vänster.
+        </p>
+
+        <h3>Applicera nya färger:</h3>
+        <p>
+          Använd detta verktyget för att välja färger och generera CSS. Kopiera sedan CSS-koden och klistra in den
+          i CSS-filen du laddat ner. Inget ska ersättas utan koden ska endast läggas till.
+          Ladda sedan upp CSS-filen på nytt under <strong>Arena &amp; ombud</strong>.
+        </p>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const fileInput = document.getElementById('tprFile');
+    const statusEl = document.getElementById('status');
+    const rangesContainer = document.getElementById('rangesContainer');
+    const generateCssBtn = document.getElementById('generateCssBtn');
+    const copyCssBtn = document.getElementById('copyCssBtn');
+    const cssOutput = document.getElementById('cssOutput');
+    const copyStatus = document.getElementById('copyStatus');
+    const rangeCountEl = document.getElementById('rangeCount');
+    const colorModeInputs = document.querySelectorAll('input[name="colorMode"]');
+
+    /** Tickster-standardpalett (18 färger) */
+    const TICKSTER_PALETTE = [
+      "#7cd0ff", "#14a0f4", "#0c6ba5",  // blue
+      "#6ee0db", "#19bab5", "#117c79",  // turquoise
+      "#ffe479", "#e6c229", "#99811c",  // yellow
+      "#dbe0e4", "#849099", "#4f5d68",  // grey
+      "#e57c8c", "#c12e44", "#801f2e",  // red
+      "#5cae8f", "#007347", "#004d2f"   // green
+    ];
+
+    /** Håller info om prisregioner: { id, name, color } */
+    let priceRanges = [];
+    let colorMode = 'sequential'; // 'sequential' eller 'random'
+
+    colorModeInputs.forEach(input => {
+      input.addEventListener('change', () => {
+        colorMode = input.value;
+        // Om vi redan har prisregioner, tilldela om färger direkt
+        if (priceRanges.length > 0) {
+          if (colorMode === 'sequential') {
+            assignPaletteColorsSequential();
+          } else {
+            assignPaletteColorsRandom();
+          }
+          renderRanges();
+        }
+      });
+    });
+
+    fileInput.addEventListener('change', event => {
+      const file = event.target.files[0];
+      if (!file) {
+        statusEl.textContent = 'Ingen fil vald.';
+        statusEl.classList.remove('status--error');
+        resetState();
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = e => {
+        try {
+          const text = e.target.result;
+          priceRanges = parseTpr(text);
+          if (priceRanges.length === 0) {
+            statusEl.textContent = 'Inga prisregioner (RangeType=PriceRegion) hittades i filen.';
+            statusEl.classList.add('status--error');
+            resetState();
+          } else {
+            statusEl.textContent = `Läst in ${priceRanges.length} prisregion(er) från filen.`;
+            statusEl.classList.remove('status--error');
+
+            if (colorMode === 'sequential') {
+              assignPaletteColorsSequential();
+            } else {
+              assignPaletteColorsRandom();
+            }
+
+            renderRanges();
+            generateCssBtn.disabled = false;
+            copyCssBtn.disabled = false;
+          }
+        } catch (err) {
+          console.error(err);
+          statusEl.textContent = 'Kunde inte tolka TPR-filen. Kontrollera formatet.';
+          statusEl.classList.add('status--error');
+          resetState();
+        }
+      };
+      reader.onerror = () => {
+        statusEl.textContent = 'Fel vid läsning av fil.';
+        statusEl.classList.add('status--error');
+        resetState();
+      };
+      reader.readAsText(file, 'UTF-8');
+    });
+
+    function resetState() {
+      priceRanges = [];
+      renderRanges();
+      generateCssBtn.disabled = true;
+      copyCssBtn.disabled = true;
+      cssOutput.value = '';
+      copyStatus.textContent = '';
+      rangeCountEl.textContent = '0';
+    }
+
+    /**
+     * Parsar TPR-innehåll och plockar ut alla RangeId där
+     * RangeType=PriceRegion samt deras Name.
+     */
+    function parseTpr(text) {
+      const lines = text.split(/\r?\n/);
+      const map = new Map(); // RangeId -> { id, name, isPriceRegion }
+
+      for (const line of lines) {
+        if (!line.trim()) continue;
+        const parts = line.split('|');
+        if (parts.length < 2) continue;
+
+        const eventType = parts[1];
+
+        if (eventType === 'RangeSetType') {
+          let rangeId = null;
+          let rangeType = null;
+          for (let i = 2; i < parts.length; i++) {
+            if (parts[i].startsWith('RangeId=')) {
+              rangeId = parts[i].slice('RangeId='.length);
+            } else if (parts[i].startsWith('RangeType=')) {
+              rangeType = parts[i].slice('RangeType='.length);
+            }
+          }
+          if (!rangeId) continue;
+          if (!map.has(rangeId)) {
+            map.set(rangeId, { id: rangeId, name: null, isPriceRegion: false });
+          }
+          if (rangeType === 'PriceRegion') {
+            map.get(rangeId).isPriceRegion = true;
+          }
+        } else if (eventType === 'RangeSetName') {
+          let rangeId = null;
+          let name = null;
+          for (let i = 2; i < parts.length; i++) {
+            if (parts[i].startsWith('RangeId=')) {
+              rangeId = parts[i].slice('RangeId='.length);
+            } else if (parts[i].startsWith('Name=')) {
+              name = parts[i].slice('Name='.length);
+            }
+          }
+          if (!rangeId) continue;
+          if (!map.has(rangeId)) {
+            map.set(rangeId, { id: rangeId, name: null, isPriceRegion: false });
+          }
+          map.get(rangeId).name = name;
+        }
+      }
+
+      const result = [];
+      for (const entry of map.values()) {
+        if (entry.isPriceRegion) {
+          if (!entry.name) {
+            entry.name = 'RangeId ' + entry.id;
+          }
+          result.push({
+            id: entry.id,
+            name: entry.name,
+            color: '#cccccc' // placeholder, sätts i assignPaletteColors*
+          });
+        }
+      }
+
+      result.sort((a, b) => a.name.localeCompare(b.name, 'sv'));
+      return result;
+    }
+
+    /** Tilldelar Tickster-palettfärger sekventiellt över alla prisregioner. */
+    function assignPaletteColorsSequential() {
+      if (priceRanges.length === 0) return;
+      const n = TICKSTER_PALETTE.length;
+      for (let i = 0; i < priceRanges.length; i++) {
+        priceRanges[i].color = TICKSTER_PALETTE[i % n];
+      }
+    }
+
+    /** Tilldelar slumpmässiga färger ur Tickster-paletten utan dubbletter per cykel. */
+    function assignPaletteColorsRandom() {
+      if (priceRanges.length === 0) return;
+
+      const available = [...TICKSTER_PALETTE]; // klon
+      for (let i = 0; i < priceRanges.length; i++) {
+        if (available.length === 0) {
+          // fler prisregioner än färger → börja om en ny "cykel"
+          available.push(...TICKSTER_PALETTE);
+        }
+        const index = Math.floor(Math.random() * available.length);
+        const color = available.splice(index, 1)[0];
+        priceRanges[i].color = color;
+      }
+    }
+
+    /** Välj en annan färg ur paletten än currentColor och undvik dubbletter så långt det går. */
+    function pickAnotherPaletteColor(currentColor) {
+      const usedColors = new Set(priceRanges.map(pr => (pr.color || '').toLowerCase()));
+      const normalizedCurrent = (currentColor || "").toLowerCase();
+
+      let candidates = TICKSTER_PALETTE.filter(
+        c => c.toLowerCase() !== normalizedCurrent && !usedColors.has(c.toLowerCase())
+      );
+
+      // Om alla är använda → tillåt återanvändning (men inte samma som nuvarande)
+      if (candidates.length === 0) {
+        candidates = TICKSTER_PALETTE.filter(c => c.toLowerCase() !== normalizedCurrent);
+        if (candidates.length === 0) {
+          return currentColor || TICKSTER_PALETTE[0];
+        }
+      }
+
+      const index = Math.floor(Math.random() * candidates.length);
+      return candidates[index];
+    }
+
+    /** Renderar listan med prisregioner och färgväljare. */
+    function renderRanges() {
+      rangesContainer.innerHTML = '';
+      rangeCountEl.textContent = priceRanges.length.toString();
+
+      if (priceRanges.length === 0) {
+        const msg = document.createElement('div');
+        msg.className = 'status';
+        msg.style.padding = '6px 8px';
+        msg.textContent = 'Inga prisregioner att visa ännu.';
+        rangesContainer.appendChild(msg);
+        return;
+      }
+
+      for (const pr of priceRanges) {
+        const row = document.createElement('div');
+        row.className = 'range-row';
+        row.dataset.rangeId = pr.id;
+
+        const label = document.createElement('div');
+        label.className = 'range-label';
+        label.textContent = pr.name;
+
+        const idSpan = document.createElement('span');
+        idSpan.className = 'range-id u-font--mono';
+        idSpan.textContent = `RangeId: ${pr.id}`;
+
+        const colorInput = document.createElement('input');
+        colorInput.type = 'color';
+        colorInput.value = pr.color;
+
+        const hexSpan = document.createElement('span');
+        hexSpan.className = 'color-hex u-font--mono';
+        hexSpan.textContent = pr.color.toLowerCase();
+
+        const reloadBtn = document.createElement('button');
+        reloadBtn.className = 'c-button c-button--small c-button--ghost';
+        reloadBtn.type = 'button';
+        reloadBtn.innerHTML = '<span class="c-button__icon">🔁</span><span>Ladda om</span>';
+
+        colorInput.addEventListener('input', () => {
+          pr.color = colorInput.value;
+          hexSpan.textContent = colorInput.value.toLowerCase();
+        });
+
+        reloadBtn.addEventListener('click', () => {
+          const newColor = pickAnotherPaletteColor(pr.color);
+          pr.color = newColor;
+          colorInput.value = newColor;
+          hexSpan.textContent = newColor.toLowerCase();
+        });
+
+        row.appendChild(label);
+        row.appendChild(idSpan);
+        row.appendChild(colorInput);
+        row.appendChild(hexSpan);
+        row.appendChild(reloadBtn);
+
+        rangesContainer.appendChild(row);
+      }
+    }
+
+    /** Skapar CSS baserat på nuvarande färgval. */
+    function generateCss() {
+      const lines = [];
+      for (const pr of priceRanges) {
+        const color = pr.color || '#9ca3af';
+        lines.push(`/* Colors for price region ${pr.name} */`);
+        lines.push(`.pr-${pr.id}.available { stroke: ${color}; fill: ${color}; }`);
+        lines.push(`div.pr-${pr.id}, .c-pill.pr-${pr.id}{ background-color: ${color}; }`);
+        lines.push('');
+      }
+      return lines.join('\n');
+    }
+
+    generateCssBtn.addEventListener('click', () => {
+      copyStatus.textContent = '';
+      if (priceRanges.length === 0) {
+        cssOutput.value = '/* Inga prisregioner att generera CSS för. */';
+        return;
+      }
+      cssOutput.value = generateCss();
+    });
+
+    copyCssBtn.addEventListener('click', async () => {
+      copyStatus.textContent = '';
+      let text = cssOutput.value.trim();
+      if (!text && priceRanges.length > 0) {
+        cssOutput.value = generateCss();
+        text = cssOutput.value.trim();
+      }
+      if (!text) {
+        copyStatus.textContent = 'Ingen CSS att kopiera ännu.';
+        return;
+      }
+      try {
+        await navigator.clipboard.writeText(cssOutput.value);
+        copyStatus.textContent = 'CSS kopierad till urklipp.';
+      } catch (err) {
+        console.error(err);
+        copyStatus.textContent = 'Kunde inte kopiera till urklipp – markera och kopiera manuellt.';
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,4282 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8" />
+  <title>Arena Designer</title>
+  <style>
+    * { box-sizing: border-box; }
+
+    :root {
+      --tick-blue-light: #7cd0ff;
+      --tick-blue:       #14a0f4;
+      --tick-blue-dark:  #0c6ba5;
+
+      --tick-turq-light: #6ee0db;
+      --tick-turq:       #19bab5;
+      --tick-turq-dark:  #117c79;
+
+      --tick-yellow-light: #ffe479;
+      --tick-yellow:       #e6c229;
+      --tick-yellow-dark:  #99811c;
+
+      --tick-grey-light: #dbe0e4;
+      --tick-grey:       #849099;
+      --tick-grey-dark:  #4f5d68;
+
+      --tick-red-light: #e57c8c;
+      --tick-red:       #c12e44;
+      --tick-red-dark:  #801f2e;
+
+      --tick-green-light: #5cae8f;
+      --tick-green:       #007347;
+      --tick-green-dark:  #004d2f;
+
+      --app-bg: #f3f6f9;
+      --card-bg: #ffffff;
+      --card-border: #dbe0e4;
+      --card-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      --radius-card: 10px;
+      --radius-pill: 999px;
+      --transition-fast: 0.15s ease-out;
+      --font-main: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+    }
+
+    body {
+      font-family: var(--font-main);
+      background: radial-gradient(circle at top left, #7cd0ff 0, #f3f6f9 40%, #f3f6f9 100%);
+      color: var(--tick-grey-dark);
+      overflow: hidden;
+    }
+
+    /* Layout-root */
+    #app {
+      display: grid;
+      grid-template-columns: 240px 1fr 260px;
+      grid-template-rows: 1fr;
+      gap: 0.75rem;
+      height: 100vh;
+      padding: 0.75rem;
+    }
+
+    /* ---------- Tickster-komponenter ---------- */
+
+    .c-card {
+      background: var(--card-bg);
+      border-radius: var(--radius-card);
+      border: 1px solid var(--card-border);
+      box-shadow: var(--card-shadow);
+      padding: 0.75rem;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .c-card__header {
+      margin-bottom: 0.5rem;
+    }
+
+    .c-card__title {
+      font-size: 0.9rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--tick-grey-dark);
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    .c-card__subtitle {
+      font-size: 0.8rem;
+      color: var(--tick-grey);
+      margin-top: 0.1rem;
+    }
+
+    .c-toolbar {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .c-toolbar--horizontal {
+      flex-direction: row;
+      align-items: center;
+    }
+
+    .c-button {
+      border-radius: var(--radius-pill);
+      border: 1px solid transparent;
+      background: #f7f9fc;
+      padding: 0.4rem 0.9rem;
+      font-size: 0.85rem;
+      cursor: pointer;
+      color: var(--tick-grey-dark);
+      transition: background var(--transition-fast), border-color var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.3rem;
+      white-space: nowrap;
+    }
+
+    .c-button:hover:not(:disabled) {
+      background: #edf5ff;
+      transform: translateY(-1px);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.07);
+    }
+
+    .c-button:disabled {
+      opacity: 0.5;
+      cursor: default;
+      box-shadow: none;
+      transform: none;
+    }
+
+    .c-button--primary {
+      background: var(--tick-blue);
+      border-color: var(--tick-blue-dark);
+      color: #fff;
+    }
+
+    .c-button--primary:hover:not(:disabled) {
+      background: var(--tick-blue-dark);
+    }
+
+    .c-button--secondary {
+      background: var(--tick-turq-light);
+      border-color: var(--tick-turq);
+      color: var(--tick-turq-dark);
+    }
+
+    .c-button--ghost {
+      background: transparent;
+      border-color: var(--tick-grey-light);
+      color: var(--tick-grey-dark);
+    }
+
+    .c-button--small {
+      padding: 0.25rem 0.7rem;
+      font-size: 0.78rem;
+    }
+
+    .c-button--icon-left::before {
+      content: attr(data-icon);
+      font-size: 0.9rem;
+    }
+
+    .c-button--active {
+      box-shadow: 0 0 0 1px rgba(20,160,244,0.6);
+      border-color: var(--tick-blue);
+      background: rgba(124,208,255,0.15);
+      color: var(--tick-blue-dark);
+    }
+
+    .c-pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.15rem 0.55rem;
+      border-radius: var(--radius-pill);
+      font-size: 0.75rem;
+      background: var(--tick-grey-light);
+      color: var(--tick-grey-dark);
+      gap: 0.25rem;
+    }
+
+    .c-pill__code {
+      font-family: var(--font-mono);
+      background: #fff;
+      padding: 0.05rem 0.4rem;
+      border-radius: var(--radius-pill);
+      border: 1px solid rgba(0,0,0,0.06);
+      font-size: 0.72rem;
+    }
+
+    .u-font--small   { font-size: 0.8rem; }
+    .u-font--smaller { font-size: 0.75rem; }
+    .u-font--mono    { font-family: var(--font-mono); }
+
+    /* ---------- Vänster verktygspalett ---------- */
+
+    #left-toolbar {
+      border: none;
+      background: transparent;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    #left-toolbar .c-card {
+      flex: 1;
+      gap: 0.75rem;
+    }
+
+    #toolButtons {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+
+    .tool-button {
+      width: 100%;
+      text-align: left;
+    }
+
+    .tool-button.active {
+      /* kopplad till JS .active-klassen */
+      background: rgba(124,208,255,0.20);
+      border-color: var(--tick-blue);
+      color: var(--tick-blue-dark);
+      box-shadow: 0 0 0 1px rgba(20,160,244,0.5);
+    }
+
+    #selectionModeGroup {
+      margin-top: 0.25rem;
+    }
+
+    .help-text {
+      font-size: 0.78rem;
+      color: var(--tick-grey-dark);
+      line-height: 1.5;
+      padding: 0.6rem 0.7rem;
+      border-radius: 8px;
+      background: rgba(219,224,228,0.4);
+    }
+
+    .help-text strong {
+      font-family: var(--font-mono);
+      font-size: 0.76rem;
+      background: rgba(255,255,255,0.6);
+      padding: 0 0.25rem;
+      border-radius: 4px;
+    }
+
+    /* ---------- Höger panel ---------- */
+
+    #right-panels {
+      padding: 0;
+      border: none;
+    }
+
+    #right-panels .c-card {
+      gap: 0.5rem;
+    }
+
+    #info-panel {
+      font-size: 0.85rem;
+      line-height: 1.4;
+      color: var(--tick-grey-dark);
+    }
+
+    #info-panel div {
+      margin-bottom: 0.25rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    #info-panel strong {
+      font-weight: 500;
+    }
+
+    #info-panel span {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      background: rgba(219,224,228,0.6);
+      padding: 0.1rem 0.35rem;
+      border-radius: 999px;
+    }
+
+    /* Bakgrundsreglage */
+    .bg-control {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .bg-control input[type="range"] {
+      flex: 1;
+    }
+
+    /* Sektion-editor */
+    #sectionModalOverlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(18, 32, 53, 0.65);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 20;
+    }
+
+    #sectionModal {
+      background: #fff;
+      border-radius: 12px;
+      width: min(720px, 90vw);
+      max-height: 80vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.25);
+      border: 1px solid #dbe0e4;
+    }
+
+    #sectionModal header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.9rem 1rem;
+      border-bottom: 1px solid #e5e9ef;
+    }
+
+    #sectionModal h3 {
+      margin: 0;
+      font-size: 1rem;
+      letter-spacing: 0.02em;
+    }
+
+    #sectionModal main {
+      padding: 1rem;
+      overflow: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 0.8rem;
+    }
+
+    .section-field {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .section-field input {
+      flex: 1;
+      padding: 0.45rem 0.6rem;
+      border-radius: 8px;
+      border: 1px solid #cdd3e0;
+      font-size: 0.95rem;
+    }
+
+    .rows-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .row-item {
+      border: 1px solid #e0e5ed;
+      border-radius: 10px;
+      padding: 0.7rem;
+      background: #f9fbff;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+
+    .row-line {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .row-line input.row-name-input {
+      width: 60px;
+      flex: 0 0 60px;
+      padding: 0.3rem 0.45rem;
+      border-radius: 8px;
+      border: 1px solid #cdd3e0;
+      font-size: 0.9rem;
+      text-align: center;
+    }
+
+    .seat-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      align-items: center;
+    }
+
+    .seat-chip {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: #eef2f7;
+      border: 1px solid #d4dbe6;
+      font-size: 0.8rem;
+      position: relative;
+      overflow: hidden;
+      padding: 0;
+    }
+
+    .seat-chip input {
+      width: 24px;
+      border: none;
+      background: transparent;
+      outline: none;
+      font-size: 0.8rem;
+      text-align: center;
+    }
+
+    .seat-chip button {
+      border: none;
+      background: transparent;
+      color: #c0392b;
+      cursor: pointer;
+      position: absolute;
+      top: -6px;
+      right: -6px;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      font-size: 10px;
+      line-height: 14px;
+    }
+
+    #sectionModal footer {
+      display: flex;
+      justify-content: space-between;
+      padding: 0.8rem 1rem;
+      border-top: 1px solid #e5e9ef;
+      background: #f7f9fc;
+    }
+
+    #sectionModal footer .actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    /* Kod-modal */
+    #codeModalOverlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(18, 32, 53, 0.65);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 20;
+    }
+
+    #codeModal {
+      background: #fff;
+      border-radius: 12px;
+      width: min(1080px, 95vw);
+      max-height: 85vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.25);
+      border: 1px solid #dbe0e4;
+    }
+
+    #codeModal header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.9rem 1rem;
+      border-bottom: 1px solid #e5e9ef;
+    }
+
+    #codeModal main {
+      padding: 1rem;
+      flex: 1;
+      background: #f8f9fb;
+      display: flex;
+    }
+
+    #codeModal textarea {
+      width: 100%;
+      height: 60vh;
+      border-radius: 8px;
+      border: 1px solid #cdd3e0;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      padding: 0.45rem;
+      background: #fff;
+      resize: vertical;
+      white-space: pre;
+      color: #27313b;
+    }
+
+    #codeModal footer {
+      padding: 0.8rem 1rem;
+      border-top: 1px solid #e5e9ef;
+      background: #f7f9fc;
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.5rem;
+    }
+
+    /* ---------- Mitten: canvas + topp-bar + kod ---------- */
+
+    #center-area {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      gap: 0.5rem;
+    }
+
+    #top-bar {
+      padding: 0.45rem 0.75rem;
+      border-radius: var(--radius-card);
+      border: 1px solid var(--card-border);
+      background: var(--card-bg);
+      box-shadow: var(--card-shadow);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      flex: 0 0 auto;
+    }
+
+    #top-bar-left {
+      display: flex;
+      gap: 0.45rem;
+      align-items: center;
+    }
+
+    #top-bar .file-info {
+      font-size: 0.8rem;
+      color: var(--tick-grey-dark);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    #top-bar .file-info::before {
+      content: "●";
+      font-size: 0.6rem;
+      color: var(--tick-green);
+    }
+
+    #top-bar button {
+      /* overrida gamla knappar – nu Tickster-knappar */
+      border: none;
+    }
+
+    #openFileBtnTop {
+      /* primär handling */
+      color: #fff;
+    }
+
+    #saveBtn {
+      /* sekundär visuell – men fortfarande .c-button--primary i HTML om du vill */
+      color: #243743;
+    }
+
+    #top-bar input[type="file"] {
+      display: none;
+    }
+
+    #canvas-container {
+      flex: 1 1 auto;
+      background: #e2e7f0;
+      border-radius: var(--radius-card);
+      border: 1px solid var(--card-border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.75rem;
+      cursor: default;
+      overflow: hidden;
+      box-shadow: var(--card-shadow);
+    }
+
+    #canvas-container.panning {
+      cursor: grabbing;
+    }
+
+    #layoutCanvas {
+      background: #f8f9fb;
+      border-radius: 8px;
+      border: 1px solid #cdd3e0;
+      box-shadow: 0 0 0 1px #fff, 0 8px 18px rgba(0,0,0,0.07);
+      display: block;
+    }
+
+    /* Kodruta nedtill */
+
+
+    /* Tooltip */
+
+    #tooltip {
+      position: fixed;
+      pointer-events: none;
+      background: rgba(12, 28, 48, 0.96);
+      color: #fff;
+      padding: 6px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      line-height: 1.4;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.35);
+      display: none;
+      z-index: 10;
+      max-width: 260px;
+      border: 1px solid rgba(124,208,255,0.4);
+    }
+
+    #tooltip strong {
+      font-weight: 600;
+      color: var(--tick-yellow-light);
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <!-- Vänster: verktyg -->
+    <aside id="left-toolbar">
+      <div class="c-card">
+        <div class="c-card__header">
+          <div class="c-card__title">Verktyg</div>
+          <div class="c-card__subtitle u-font--small">Markera, flytta och panorera din arenalayout.</div>
+        </div>
+
+        <div id="toolButtons" class="c-toolbar">
+          <button id="selectToolBtn" class="tool-button c-button c-button--ghost c-button--small c-button--active">
+            Select (C)
+          </button>
+          <button id="moveToolBtn" class="tool-button c-button c-button--ghost c-button--small" disabled>
+            Move (V)
+          </button>
+          <button id="rotateToolBtn" class="tool-button c-button c-button--ghost c-button--small" disabled>
+            Rotate (R)
+          </button>
+          <button id="resizeToolBtn" class="tool-button c-button c-button--ghost c-button--small" disabled>
+            Resize (Z)
+          </button>
+          <button id="bendToolBtn" class="tool-button c-button c-button--ghost c-button--small" disabled>
+            Bend (B)
+          </button>
+          <button id="reshapeRowBtn" class="tool-button c-button c-button--ghost c-button--small" disabled>
+            Reshape row (E)
+          </button>
+          <button id="resetRowBtn" class="tool-button c-button c-button--ghost c-button--small" disabled>
+            Reset row (Q)
+          </button>
+          <button id="makeTableBtn" class="tool-button c-button c-button--ghost c-button--small" disabled>
+            Make table (T)
+          </button>
+          <button id="deselectToolBtn" class="tool-button c-button c-button--ghost c-button--small">
+            Deselect (CTRL+D)
+          </button>
+        </div>
+
+        <div id="selectionModeGroup">
+          <div class="u-font--small" style="text-transform:uppercase; letter-spacing:0.08em; color:#555; margin-bottom:0.3rem;">
+            Markeringsnivå
+          </div>
+          <div class="c-toolbar">
+            <button id="modeSectionBtn" class="tool-button c-button c-button--ghost c-button--small c-button--active">
+              Sektion (S)
+            </button>
+            <button id="modeRowBtn" class="tool-button c-button c-button--ghost c-button--small">
+              Rad (D)
+            </button>
+            <button id="modeSeatBtn" class="tool-button c-button c-button--ghost c-button--small">
+              Plats (F)
+            </button>
+          </div>
+        </div>
+
+        <div class="help-text">
+          <div class="u-font--small" style="margin-bottom:0.25rem; font-weight:600;">Genvägar</div>
+          Panna: <strong>CTRL + dra</strong><br/>
+          Zoom: <strong>CTRL + scroll</strong><br/>
+          Multi-select: <strong>SHIFT + klick</strong><br/>
+          Ruta-markering: <strong>Dra utan CTRL</strong><br/>
+          Ångra: <strong>CTRL + Z</strong>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Mitten: canvas + kod -->
+    <section id="center-area">
+      <div id="top-bar">
+
+        <div id="top-bar-left" class="c-toolbar c-toolbar--horizontal">
+
+          <button id="openFileBtnTop" class="c-button c-button--primary c-button--icon-left" data-icon="">
+
+            Öppna .tlt-fil
+
+          </button>
+
+          <button id="addSectionBtn" class="c-button c-button--ghost c-button--small c-button--icon-left" data-icon="+">
+
+            Lägg till sektion
+
+          </button>
+
+          <button id="saveBtn" class="c-button c-button--secondary c-button--icon-left" data-icon="" disabled>
+
+            Spara
+
+          </button>
+
+          <input type="file" id="fileInput" accept=".tlt,.txt" />
+
+        </div>
+
+        <div class="file-info u-font--small" id="fileInfo">
+
+          Ingen fil läst ännu.
+
+        </div>
+
+      </div>
+
+
+
+      <div id="alignBar" class="c-toolbar c-toolbar--horizontal" style="margin-top:0.25rem;">
+        <button id="alignTopBtn" class="c-button c-button--ghost c-button--small" title="Align top">Align Up</button>
+        <button id="alignBottomBtn" class="c-button c-button--ghost c-button--small" title="Align bottom">Align Down</button>
+        <button id="alignLeftBtn" class="c-button c-button--ghost c-button--small" title="Align left">Align Left</button>
+        <button id="alignRightBtn" class="c-button c-button--ghost c-button--small" title="Align right">Align Right</button>
+        <button id="alignCenterHBtn" class="c-button c-button--ghost c-button--small" title="Center horizontally">Center H</button>
+        <button id="alignCenterVBtn" class="c-button c-button--ghost c-button--small" title="Center vertically">Center V</button>
+      </div>
+
+      <div id="canvas-container">
+        <canvas id="layoutCanvas"></canvas>
+      </div>
+    </section>
+
+    <!-- Höger: paneler -->
+    <aside id="right-panels">
+      <div class="c-card">
+        <div class="c-card__header">
+          <div class="c-card__title">Paneler</div>
+          <div class="c-card__subtitle u-font--small">Snabb överblick över layoutens omfattning.</div>
+        </div>
+        <div id="info-panel">
+          <div>
+            <strong>Platser:</strong>
+            <span id="seatCount">0</span>
+          </div>
+          <div>
+            <strong>Sektioner:</strong>
+            <span id="sectionCount">0</span>
+          </div>
+          <div>
+            <strong>Rader:</strong>
+            <span id="rowCount">0</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="c-card">
+        <div class="c-card__header">
+          <div class="c-card__title">Referensbakgrund</div>
+          <div class="c-card__subtitle u-font--small">Visa en bild bakom platserna.</div>
+        </div>
+        <div class="c-toolbar">
+          <button id="bgLoadBtn" class="c-button c-button--ghost c-button--small">Lägg till referensbakgrund</button>
+          <label class="bg-control u-font--small">
+            <input type="checkbox" id="bgEnabledToggle" />
+            Aktivera bild
+          </label>
+          <label class="bg-control u-font--small">
+            Opacitet
+            <input type="range" id="bgOpacityRange" min="0" max="1" step="0.05" value="0.4" />
+            <span id="bgOpacityValue" class="u-font--mono">0.40</span>
+          </label>
+          <label class="bg-control u-font--small">
+            Skala
+            <input type="range" id="bgScaleRange" min="0.1" max="10" step="0.1" value="1" />
+            <span id="bgScaleValue" class="u-font--mono">1.0x</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="c-card">
+        <div class="c-card__header">
+          <div class="c-card__title">Visning</div>
+          <div class="c-card__subtitle u-font--small">Snabbt sätt att ändra hur platser visas.</div>
+        </div>
+        <div class="c-toolbar">
+          <label class="bg-control u-font--small">
+            <input type="checkbox" id="viewGrayToggle" />
+            Gråskala (platser)
+          </label>
+          <label class="bg-control u-font--small">
+            <input type="checkbox" id="viewHoverToggle" checked />
+            Hover-info för platser
+          </label>
+          <label class="bg-control u-font--small">
+            <input type="checkbox" id="viewSectionNamesToggle" />
+            Visa sektionsnamn
+          </label>
+          <button id="openCodeModalBtn" class="c-button c-button--ghost c-button--small">Visa källkod</button>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+    <div id="tooltip"></div>
+  <input type="file" id="bgFileInput" accept="image/*" style="display:none" />
+  <div id="sectionModalOverlay">
+
+    <div id="sectionModal">
+
+      <header>
+
+        <h3 id="sectionModalTitle">Ny sektion</h3>
+
+        <button id="sectionModalClose" class="c-button c-button--ghost c-button--small">Stäng</button>
+
+      </header>
+
+      <main>
+
+        <div class="section-field">
+
+          <input id="sectionIdInput" type="text" placeholder="Sektion-ID" style="max-width:120px;" />
+
+          <input id="sectionNameInput" type="text" placeholder="Sektionsnamn" />
+
+        </div>
+
+        <div class="rows-list" id="sectionRowsContainer"></div>
+
+        <button id="addRowBtn" class="c-button c-button--ghost c-button--small" style="align-self:flex-start;">+ Lägg till rad</button>
+
+      </main>
+
+      <footer>
+
+        <div class="actions">
+
+          <button id="sectionModalCancel" class="c-button c-button--ghost c-button--small">Avbryt</button>
+
+        </div>
+
+        <div class="actions">
+
+          <button id="sectionModalSave" class="c-button c-button--primary c-button--small">Spara sektion</button>
+
+        </div>
+
+      </footer>
+
+    </div>
+
+  </div>
+
+  <div id="codeModalOverlay">
+    <div id="codeModal">
+      <header>
+        <h3>Källkod (.tlt)</h3>
+        <button id="codeModalClose" class="c-button c-button--ghost c-button--small">Stäng</button>
+      </header>
+      <main>
+        <textarea
+          id="code-pane"
+          class="u-font--mono u-font--smaller"
+          placeholder="Här visas och kan du ändra din .tlt-källkod"
+        ></textarea>
+      </main>
+      <footer>
+        <button id="codeModalApply" class="c-button c-button--primary c-button--small" disabled>Uppdatera och stäng</button>
+      </footer>
+    </div>
+  </div>
+
+
+<script>
+  // --- Globala variabler ---
+  const canvas = document.getElementById("layoutCanvas");
+  const canvasContainer = document.getElementById("canvas-container");
+  const ctx = canvas.getContext("2d");
+
+  const codePane = document.getElementById("code-pane");
+  const alignTopBtn = document.getElementById("alignTopBtn");
+  const alignBottomBtn = document.getElementById("alignBottomBtn");
+  const alignLeftBtn = document.getElementById("alignLeftBtn");
+  const alignRightBtn = document.getElementById("alignRightBtn");
+  const alignCenterHBtn = document.getElementById("alignCenterHBtn");
+  const alignCenterVBtn = document.getElementById("alignCenterVBtn");
+
+  const openFileBtnTop = document.getElementById("openFileBtnTop");
+  const addSectionBtn = document.getElementById("addSectionBtn");
+  const sectionModalOverlay = document.getElementById("sectionModalOverlay");
+  const sectionModalClose = document.getElementById("sectionModalClose");
+  const sectionModalCancel = document.getElementById("sectionModalCancel");
+  const sectionModalSave = document.getElementById("sectionModalSave");
+  const sectionModalTitle = document.getElementById("sectionModalTitle");
+  const sectionNameInput = document.getElementById("sectionNameInput");
+  const sectionIdInput = document.getElementById("sectionIdInput");
+  const sectionRowsContainer = document.getElementById("sectionRowsContainer");
+  const addRowBtn = document.getElementById("addRowBtn");
+  const saveBtn = document.getElementById("saveBtn");
+  const fileInput = document.getElementById("fileInput");
+  const fileInfo = document.getElementById("fileInfo");
+
+  const selectToolBtn = document.getElementById("selectToolBtn");
+  const moveToolBtn = document.getElementById("moveToolBtn");
+  const rotateToolBtn = document.getElementById("rotateToolBtn");
+  const resizeToolBtn = document.getElementById("resizeToolBtn");
+  const bendToolBtn = document.getElementById("bendToolBtn");
+  const reshapeRowBtn = document.getElementById("reshapeRowBtn");
+  const resetRowBtn = document.getElementById("resetRowBtn");
+  const makeTableBtn = document.getElementById("makeTableBtn");
+  const deselectToolBtn = document.getElementById("deselectToolBtn");
+
+  const modeSectionBtn = document.getElementById("modeSectionBtn");
+  const modeRowBtn = document.getElementById("modeRowBtn");
+  const modeSeatBtn = document.getElementById("modeSeatBtn");
+
+  const seatCountEl = document.getElementById("seatCount");
+  const sectionCountEl = document.getElementById("sectionCount");
+  const rowCountEl = document.getElementById("rowCount");
+
+  const tooltipEl = document.getElementById("tooltip");
+
+  const bgFileInput = document.getElementById("bgFileInput");
+  const bgLoadBtn = document.getElementById("bgLoadBtn");
+  const bgEnabledToggle = document.getElementById("bgEnabledToggle");
+  const bgOpacityRange = document.getElementById("bgOpacityRange");
+  const bgOpacityValue = document.getElementById("bgOpacityValue");
+  const bgScaleRange = document.getElementById("bgScaleRange");
+  const bgScaleValue = document.getElementById("bgScaleValue");
+  const viewGrayToggle = document.getElementById("viewGrayToggle");
+  const viewHoverToggle = document.getElementById("viewHoverToggle");
+  const viewSectionNamesToggle = document.getElementById("viewSectionNamesToggle");
+  const openCodeModalBtn = document.getElementById("openCodeModalBtn");
+  const codeModalOverlay = document.getElementById("codeModalOverlay");
+  const codeModalClose = document.getElementById("codeModalClose");
+  const codeModalApply = document.getElementById("codeModalApply");
+  const codeModalTextarea = document.getElementById("code-pane");
+
+  let seats = [];
+  let outlines = [];
+  let sectionNames = new Map();
+  let layoutBounds = null;
+  let backgroundState = {
+    dataUrl: "",
+    img: null,
+    enabled: false,
+    opacity: 0.4,
+    scale: 1,
+    originX: 0,
+    originY: 0
+  };
+  let renderGrayscale = false;
+  let showHoverInfo = true;
+  let showSectionNames = false;
+  let sectionEditorState = {
+    sectionId: "",
+    sectionName: "",
+    rows: []
+  };
+  let sectionColors = new Map();
+
+  // Kamera/transform
+  let translateX = 0;
+  let translateY = 0;
+  let scale = 1;
+
+  // Pan
+  let isPanning = false;
+  let panStartX = 0;
+  let panStartY = 0;
+  let panStartTranslateX = 0;
+  let panStartTranslateY = 0;
+
+  // Drag-flytt av markerade
+  let isDraggingSelection = false;
+  let dragStartWorldX = 0;
+  let dragStartWorldY = 0;
+  let dragStartSnapshot = null; // startpositioner för alla seats vid move
+
+  // Rotation av markerade
+  let isRotatingSelection = false;
+  let rotateStartSnapshot = null;
+  let rotateSnapshotById = null;
+  let rotatePivot = null;
+  let rotateStartAngle = 0;
+  let hasRotatedDuringDrag = false;
+
+  // Resize av markerade
+  let isResizingSelection = false;
+  let resizeStartSnapshot = null;
+  let resizeSnapshotById = null;
+  let resizePivot = null;
+  let resizeStartBounds = null;
+  let resizeHandleId = null;
+  let resizeStartVector = null;
+  let hasResizedDuringDrag = false;
+
+  // Bend av rader
+  let isBendingSelection = false;
+  let bendStartSnapshot = null;
+  let bendControlPoint = null; // anchor for quadratic bend
+  let bendRowsData = null;
+  let hasBentDuringDrag = false;
+  let bendDragTarget = null;     // "anchor" | "start" | "end"
+  let bendActiveRowId = null;
+
+  // Reshape row
+  let isReshapingRow = false;
+  let reshapeDragTarget = null; // "start" | "end"
+  let reshapeStartSnapshot = null;
+  let reshapeSnapshotById = null;
+  let reshapeRowSeats = null;
+  let reshapePivotSeatId = null;
+
+  // Ruta-markering
+  let selectionRectActive = false;
+  let rectStartCanvasX = 0;
+  let rectStartCanvasY = 0;
+  let rectEndCanvasX = 0;
+  let rectEndCanvasY = 0;
+
+  // Verktyg & markeringsläge
+  let currentTool = "select";   // "select" | "move" | "rotate" | "resize" | "bend" | "reshape"
+  let selectionMode = "section";   // "section" | "row" | "seat"
+
+  // Smart rendering / prestanda
+  let lastVisibleSeatCount = 0;
+  const RECT_DOT_THRESHOLD = 2500; // över detta: små fyrkanter
+  const HOVER_VISIBLE_LIMIT = 4000; // över detta: ingen tooltip/hover-info
+
+  let hoverSeat = null;
+
+  // Historik (undo, inkl. markering)
+  let history = [];
+  let historyIndex = -1;
+
+  // Filhantering / kodsynk
+  let currentFileHandle = null;
+  let currentFileName = "";
+  let hasUnsavedChanges = false;
+
+  let originalLines = [];
+  let seatIdToLineIndex = new Map();
+
+  const MIN_SEAT_SCREEN_RADIUS = 3;  // px vid långt utzoomat
+  const BASE_WORLD_RADIUS = 50;      // i "layoutvärlden"
+  const SESSION_STORAGE_KEY = "arenaEditorSessionV1";
+
+  const DB_NAME = "arenaEditorFileHandles";
+  const DB_VERSION = 1;
+  const DB_STORE = "handles";
+
+  const supportsOpenPicker = typeof window.showOpenFilePicker === "function";
+  const supportsSavePicker = typeof window.showSaveFilePicker === "function";
+
+
+  // --- Canvas-storlek ---
+  function resizeCanvas() {
+    const rect = canvasContainer.getBoundingClientRect();
+    const padding = 12;
+    canvas.width = Math.max(100, rect.width - padding * 2);
+    canvas.height = Math.max(100, rect.height - padding * 2);
+    renderCanvas();
+  }
+
+  window.addEventListener("resize", resizeCanvas);
+  resizeCanvas();
+
+  // --- Utilities: world <-> screen ---
+  function worldToScreen(wx, wy) {
+    return {
+      x: wx * scale + translateX,
+      y: wy * scale + translateY
+    };
+  }
+
+  function screenToWorld(sx, sy) {
+    return {
+      worldX: (sx - translateX) / scale,
+      worldY: (sy - translateY) / scale
+    };
+  }
+
+  // --- Färger per sektion ---
+  function rebuildSectionColors() {
+    sectionColors.clear();
+    const uniqueSections = Array.from(new Set(
+      seats.map(s => s.sectionId).filter(Boolean)
+    )).sort();
+
+    const goldenAngle = 137.508;
+    uniqueSections.forEach((secId, i) => {
+      const hue = (i * goldenAngle) % 360;
+      const color = `hsl(${hue}, 65%, 55%)`;
+      sectionColors.set(secId, color);
+    });
+  }
+
+  function sectionIdToOutlineCode(sectionId) {
+    if (!sectionId) return "0";
+    const parts = String(sectionId).split(".");
+    const major = parseInt(parts[0], 10);
+    const minor = parseInt(parts[1] || "0", 10);
+    if (!Number.isFinite(major)) return String(sectionId);
+    const minorStr = Number.isFinite(minor) ? String(minor).padStart(2, "0") : "00";
+    return `${major}${minorStr}000000000`;
+  }
+
+  function outlineCodeToSectionId(code) {
+    if (!code) return null;
+    const codeStr = String(code);
+    const trimmed = codeStr.replace(/0{9}$/, "");
+    if (trimmed.length < 2) return codeStr;
+    const majorStr = trimmed.slice(0, -2);
+    const minorStr = trimmed.slice(-2);
+    const major = parseInt(majorStr, 10);
+    const minor = parseInt(minorStr, 10);
+    if (!Number.isFinite(major) || !Number.isFinite(minor)) return codeStr;
+    return `${major}.${minor}`;
+  }
+
+  // --- Parse av .tlt ---
+  function parseTlt(text) {
+    seats = [];
+    outlines = [];
+    sectionNames = new Map();
+    originalLines = text.split(/\r?\n/);
+    seatIdToLineIndex = new Map();
+
+    const sections = new Map();
+    const rows = new Map();
+
+    let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+
+    for (let lineIndex = 0; lineIndex < originalLines.length; lineIndex++) {
+      const line = originalLines[lineIndex].trim();
+      if (!line) continue;
+
+      // Outline
+      if (line.includes("<Outline|")) {
+        const polyIndex = line.indexOf("[Poly|");
+        if (polyIndex >= 0) {
+          const beforePoly = line.slice(0, polyIndex);
+          const suffix = line.includes("|]>") ? "|]>" : (line.includes("]>") ? "]>" : "]");
+
+          let sectionId = null;
+          let sectionNameFromLine = null;
+          let prefixTokens = [];
+          const outlineStart = line.indexOf("<Outline|");
+          if (outlineStart >= 0 && outlineStart < polyIndex) {
+            const prefixPart = line.slice(outlineStart + "<Outline|".length, polyIndex);
+            prefixTokens = prefixPart.split("|").filter(Boolean);
+            if (prefixTokens.length >= 1) sectionId = outlineCodeToSectionId(prefixTokens[0]) || prefixTokens[0];
+            if (prefixTokens.length >= 2) sectionNameFromLine = prefixTokens[1];
+          }
+          if (!sectionId) {
+            const sectionMatch = line.match(/SectionId=([^|]+)/i);
+            sectionId = sectionMatch ? sectionMatch[1] : null;
+          }
+
+          let polyPart = line.slice(polyIndex + 6);
+          polyPart = polyPart.replace(/[\]>]/g, "");
+          const tokens = polyPart.split("|");
+          const coords = [];
+          for (let i = 3; i < tokens.length; i++) {
+            const t = tokens[i];
+            if (!t) continue;
+            const [xs, ys] = t.split(",");
+            const x = parseFloat(xs);
+            const y = parseFloat(ys);
+            if (Number.isFinite(x) && Number.isFinite(y)) {
+              coords.push({ x, y });
+            }
+          }
+          if (coords.length > 1) {
+            outlines.push({
+          sectionId,
+          sectionName: sectionNameFromLine || sectionNames.get(sectionId) || "",
+          coords,
+          lineIndex,
+          beforePoly,
+          suffix,
+              headerTokens: tokens.slice(0, 3),
+              prefixTokens
+            });
+          }
+        }
+        continue;
+      }
+
+      const pipeIdx = line.indexOf("|");
+      if (pipeIdx < 0) continue;
+      const timestamp = line.slice(0, pipeIdx);
+      const rest = line.slice(pipeIdx + 1);
+      const parts = rest.split("|");
+      if (parts.length < 1) continue;
+      const cmd = parts[0];
+
+      const kv = {};
+      for (let i = 1; i < parts.length; i++) {
+        const seg = parts[i];
+        const eqIdx = seg.indexOf("=");
+        if (eqIdx > -1) {
+          const key = seg.slice(0, eqIdx);
+          const val = seg.slice(eqIdx + 1);
+          kv[key] = val;
+        }
+      }
+
+      if (cmd === "SectionAdd") {
+        const sectionId = kv["SectionId"];
+        const name = kv["Name"] || "";
+        if (sectionId) {
+          sections.set(sectionId, name);
+          sectionNames.set(sectionId, name);
+        }
+      } else if (cmd === "RowAdd") {
+        const rowId = kv["RowId"];
+        const name = kv["Name"] || "";
+        if (rowId) rows.set(rowId, name);
+      } else if (cmd === "SeatAdd") {
+        const seatId = kv["SeatId"];
+        if (!seatId) continue;
+
+        const name = kv["Name"] || "";
+        const cx = parseFloat(kv["CenterX"]);
+        const cy = parseFloat(kv["CenterY"]);
+        if (!Number.isFinite(cx) || !Number.isFinite(cy)) continue;
+
+        const rotation = parseFloat(kv["Rotation"] || "0");
+        const width = parseFloat(kv["Width"] || "100");
+        const entryVia = kv["EntryVia"] ?? "-";
+        const goodness = kv["Goodness"] ?? "0";
+        const attribute = kv["Attribute"] || "";
+
+        let sectionId = null;
+        let rowId = null;
+        const idParts = seatId.split(".");
+        if (idParts.length >= 2) {
+          sectionId = idParts[0] + "." + idParts[1];
+        }
+        if (idParts.length >= 3) {
+          rowId = idParts[0] + "." + idParts[1] + "." + idParts[2];
+        }
+
+        const sectionName = sectionId ? (sections.get(sectionId) || "") : "";
+        const rowName = rowId ? (rows.get(rowId) || "") : "";
+
+        const seat = {
+          seatId,
+          name,
+          sectionId,
+          rowId,
+          sectionName,
+          rowName,
+          centerX: cx,
+          centerY: cy,
+          vx: cx,
+          vy: cy,
+          radius: 10, // grund i world (justeras i render)
+          rotation,
+          width,
+          entryVia,
+          goodness,
+          attribute,
+          timestamp,
+          selected: false,
+          lineIndex
+        };
+
+        seats.push(seat);
+        seatIdToLineIndex.set(seatId, lineIndex);
+
+        if (cx < minX) minX = cx;
+        if (cx > maxX) maxX = cx;
+        if (cy < minY) minY = cy;
+        if (cy > maxY) maxY = cy;
+      }
+    }
+
+    // Info-panel
+    seatCountEl.textContent = seats.length.toString();
+    const uniqueSections = new Set(seats.map(s => s.sectionId).filter(Boolean));
+    const uniqueRows = new Set(seats.map(s => s.rowId).filter(Boolean));
+    sectionCountEl.textContent = uniqueSections.size.toString();
+    rowCountEl.textContent = uniqueRows.size.toString();
+
+    rebuildSectionColors();
+    const outlinesChangedOnLoad = syncOutlinesIntoOriginalLines();
+    if (outlinesChangedOnLoad) {
+      const newText = originalLines.join("\n");
+      if (codePane.value !== newText) {
+        codePane.value = newText;
+      }
+    }
+
+    // Fit to canvas
+    if (seats.length > 0 && Number.isFinite(minX) && Number.isFinite(maxX)) {
+      const paddingWorld = 50;
+      const widthWorld = (maxX - minX) + paddingWorld * 2;
+      const heightWorld = (maxY - minY) + paddingWorld * 2;
+      const cxWorld = (minX + maxX) / 2;
+      const cyWorld = (minY + maxY) / 2;
+
+      const scaleX = canvas.width / widthWorld;
+      const scaleY = canvas.height / heightWorld;
+      scale = Math.min(scaleX, scaleY);
+
+      translateX = canvas.width / 2 - cxWorld * scale;
+      translateY = canvas.height / 2 - cyWorld * scale;
+    }
+
+    // Historik: nollställ och lägg första snapshot
+    history = [];
+    historyIndex = -1;
+    pushHistorySnapshot();
+
+    renderCanvas();
+
+    hasUnsavedChanges = outlinesChangedOnLoad;
+    updateSaveButton();
+
+    saveSessionToLocalStorage();
+    return outlinesChangedOnLoad;
+  }
+
+  // --- Historik (undo) – nu inkl. markering ---
+  function captureSeatState() {
+    return seats.map(s => ({
+      seatId: s.seatId,
+      vx: s.vx,
+      vy: s.vy,
+      centerX: s.centerX,
+      centerY: s.centerY,
+      selected: s.selected
+    }));
+  }
+
+  function applySeatState(state) {
+    const byId = new Map();
+    for (const s of seats) byId.set(s.seatId, s);
+
+    let anyPositionChanged = false;
+    for (const snap of state) {
+      const s = byId.get(snap.seatId);
+      if (!s) continue;
+      if (s.centerX !== snap.centerX || s.centerY !== snap.centerY) {
+        anyPositionChanged = true;
+      }
+      s.vx = snap.vx;
+      s.vy = snap.vy;
+      s.centerX = snap.centerX;
+      s.centerY = snap.centerY;
+      if (typeof snap.selected === "boolean") {
+        s.selected = snap.selected;
+      }
+    }
+
+    renderCanvas();
+
+    // Markera ändringar & kod om positionerna ändrats
+    if (anyPositionChanged) {
+      hasUnsavedChanges = true;
+      updateCodeFromSeats();
+    }
+    updateSaveButton();
+    updateMoveButtonState();
+  }
+
+  function pushHistorySnapshot() {
+    if (!seats.length) return;
+    const snapshot = captureSeatState();
+    history = history.slice(0, historyIndex + 1);
+    history.push(snapshot);
+    historyIndex = history.length - 1;
+  }
+
+  function undoLast() {
+    if (historyIndex > 0) {
+      historyIndex--;
+      const state = history[historyIndex];
+      applySeatState(state);
+    }
+  }
+
+  // --- tlt-uppbyggnad vid flyttar ---
+  function formatNumber(num) {
+    if (!Number.isFinite(num)) return "0";
+    if (Math.abs(num - Math.round(num)) < 1e-6) return String(Math.round(num));
+    let s = num.toFixed(5);
+    s = s.replace(/0+$/, "").replace(/\.$/, "");
+    return s;
+  }
+
+  function buildSeatLine(seat) {
+    const timestamp = seat.timestamp || "";
+    const widthStr = seat.width != null ? seat.width : 100;
+    const rotationStr = seat.rotation != null ? seat.rotation : 0;
+    const entryStr = seat.entryVia != null ? seat.entryVia : "-";
+    const goodStr = seat.goodness != null ? seat.goodness : 0;
+    const cxStr = formatNumber(seat.centerX);
+    const cyStr = formatNumber(seat.centerY);
+
+    let line = `${timestamp}|SeatAdd|SeatId=${seat.seatId}|Name=${seat.name}` +
+      `|CenterX=${cxStr}|CenterY=${cyStr}|Width=${widthStr}|Rotation=${rotationStr}` +
+      `|EntryVia=${entryStr}|Goodness=${goodStr}`;
+    if (seat.attribute) {
+      line += `|Attribute=${seat.attribute}`;
+    }
+    return line;
+  }
+
+  function computeSectionOutlinesFromSeats(padding = 0) {
+    const boundsBySection = new Map();
+    for (const s of seats) {
+      if (!s.sectionId) continue;
+      let b = boundsBySection.get(s.sectionId);
+      if (!b) {
+        b = { minX: s.centerX, maxX: s.centerX, minY: s.centerY, maxY: s.centerY };
+        boundsBySection.set(s.sectionId, b);
+      } else {
+        b.minX = Math.min(b.minX, s.centerX);
+        b.maxX = Math.max(b.maxX, s.centerX);
+        b.minY = Math.min(b.minY, s.centerY);
+        b.maxY = Math.max(b.maxY, s.centerY);
+      }
+    }
+
+    layoutBounds = null;
+    for (const b of boundsBySection.values()) {
+      if (!layoutBounds) {
+        layoutBounds = { ...b };
+      } else {
+        layoutBounds.minX = Math.min(layoutBounds.minX, b.minX);
+        layoutBounds.maxX = Math.max(layoutBounds.maxX, b.maxX);
+        layoutBounds.minY = Math.min(layoutBounds.minY, b.minY);
+        layoutBounds.maxY = Math.max(layoutBounds.maxY, b.maxY);
+      }
+    }
+
+    const result = [];
+    for (const [sectionId, b] of boundsBySection.entries()) {
+      const coords = [
+        { x: b.minX - padding, y: b.minY - padding },
+        { x: b.maxX + padding, y: b.minY - padding },
+        { x: b.maxX + padding, y: b.maxY + padding },
+        { x: b.minX - padding, y: b.maxY + padding }
+      ];
+      result.push({
+        sectionId,
+        sectionName: sectionNames.get(sectionId) || "",
+        coords
+      });
+    }
+    return result;
+  }
+
+  function buildOutlineLine(sectionId, sectionName, coords, template) {
+    const headerTokens = (template && Array.isArray(template.headerTokens) && template.headerTokens.length)
+      ? [...template.headerTokens]
+      : ["1", "10", "#FFD3D3D3"];
+    while (headerTokens.length < 3) headerTokens.push("0");
+    if (headerTokens.length > 3) headerTokens.length = 3;
+
+    const defaultTimestamp = seats[0]?.timestamp || Date.now();
+    const timePrefixRaw = template?.beforePoly
+      ? template.beforePoly.split("<Outline")[0]
+      : `${defaultTimestamp}`;
+    const timePrefix = timePrefixRaw.replace(/\|$/, "");
+
+    const sectionCode = sectionIdToOutlineCode(sectionId);
+    const typeToken = (template && Array.isArray(template.prefixTokens) && template.prefixTokens.length >= 3)
+      ? template.prefixTokens[2]
+      : "1";
+    const beforePoly = `${timePrefix}<Outline|${sectionCode}|${sectionName || ""}|${typeToken}|`;
+    const suffix = template?.suffix || "|]>";
+    const coordTokens = coords.map(c => `${Math.round(c.x)},${Math.round(c.y)}`);
+    const allTokens = [...headerTokens, ...coordTokens].join("|");
+    return `${beforePoly}[Poly|${allTokens}${suffix}`;
+  }
+
+  function syncOutlinesIntoOriginalLines() {
+    if (!originalLines || !originalLines.length) return false;
+
+    const computed = computeSectionOutlinesFromSeats(20);
+    const existingBySection = new Map();
+    for (const o of outlines) {
+      if (!o.sectionId) continue;
+      existingBySection.set(o.sectionId, o);
+    }
+
+    const usedLineIndexes = new Set();
+    const newOutlines = [];
+    let changed = false;
+
+    for (const outline of computed) {
+      const template = existingBySection.get(outline.sectionId);
+      if (template && typeof template.lineIndex === "number" && template.lineIndex >= 0 && template.lineIndex < originalLines.length) {
+        const newLine = buildOutlineLine(outline.sectionId, outline.sectionName, outline.coords, template);
+        if (originalLines[template.lineIndex] !== newLine) {
+          originalLines[template.lineIndex] = newLine;
+          changed = true;
+        }
+        usedLineIndexes.add(template.lineIndex);
+        newOutlines.push({
+          ...outline,
+          lineIndex: template.lineIndex,
+          beforePoly: template.beforePoly,
+          suffix: template.suffix,
+          headerTokens: template.headerTokens,
+          prefixTokens: template.prefixTokens
+        });
+      } else {
+        const newLine = buildOutlineLine(outline.sectionId, outline.sectionName, outline.coords, null);
+        originalLines.push(newLine);
+        changed = true;
+        const newIndex = originalLines.length - 1;
+        newOutlines.push({
+          ...outline,
+          lineIndex: newIndex,
+          beforePoly: newLine.slice(0, newLine.indexOf("[Poly|")),
+          suffix: newLine.includes("|]>") ? "|]>" : (newLine.includes("]>") ? "]>" : "]"),
+          headerTokens: ["1", "10", "#FFD3D3D3"],
+          prefixTokens: [sectionIdToOutlineCode(outline.sectionId), outline.sectionName || "", "1"]
+        });
+      }
+    }
+
+    for (const o of outlines) {
+      if (!o.sectionId) continue;
+      if (typeof o.lineIndex === "number" && !usedLineIndexes.has(o.lineIndex) && o.lineIndex < originalLines.length) {
+        if (originalLines[o.lineIndex] !== "") {
+          originalLines[o.lineIndex] = "";
+          changed = true;
+        }
+      }
+    }
+
+    outlines = newOutlines;
+    return changed;
+  }
+
+  // --- Bakgrundshantering ---
+  function updateBgOpacityDisplay() {
+    bgOpacityValue.textContent = backgroundState.opacity.toFixed(2);
+  }
+
+  function updateBgScaleDisplay() {
+    bgScaleValue.textContent = `${backgroundState.scale.toFixed(1)}x`
+  }
+
+  function setBackgroundEnabled(enabled) {
+    backgroundState.enabled = enabled;
+    bgEnabledToggle.checked = enabled;
+    saveSessionToLocalStorage();
+    renderCanvas();
+  }
+
+  function setBackgroundOpacity(val) {
+    const clamped = Math.min(1, Math.max(0, val));
+    backgroundState.opacity = clamped;
+    bgOpacityRange.value = clamped;
+    updateBgOpacityDisplay();
+    saveSessionToLocalStorage();
+    renderCanvas();
+  }
+
+  function setBackgroundScale(val) {
+    const clamped = Math.min(10, Math.max(0.1, val));
+    backgroundState.scale = clamped;
+    bgScaleRange.value = clamped;
+    updateBgScaleDisplay();
+    saveSessionToLocalStorage();
+    renderCanvas();
+  }
+
+  function loadBackgroundFromDataUrl(dataUrl) {
+    return new Promise((resolve, reject) => {
+      if (!dataUrl) {
+        backgroundState.dataUrl = "";
+        backgroundState.img = null;
+        setBackgroundEnabled(false);
+        saveSessionToLocalStorage();
+        renderCanvas();
+        resolve();
+        return;
+      }
+      const img = new Image();
+      img.onload = () => {
+        backgroundState.dataUrl = dataUrl;
+        backgroundState.img = img;
+        if (!Number.isFinite(backgroundState.originX) || !Number.isFinite(backgroundState.originY)) {
+          if (layoutBounds) {
+            backgroundState.originX = layoutBounds.minX;
+            backgroundState.originY = layoutBounds.minY;
+          } else {
+            backgroundState.originX = 0;
+            backgroundState.originY = 0;
+          }
+        }
+        setBackgroundEnabled(true);
+        saveSessionToLocalStorage();
+        renderCanvas();
+        resolve();
+      };
+      img.onerror = reject;
+      img.src = dataUrl;
+    });
+  }
+
+  function updateCodeFromSeats() {
+    if (!originalLines || !originalLines.length) return;
+    let changed = false;
+    for (const s of seats) {
+      if (typeof s.lineIndex === "number" && s.lineIndex >= 0 && s.lineIndex < originalLines.length) {
+        const newLine = buildSeatLine(s);
+        if (originalLines[s.lineIndex] !== newLine) {
+          originalLines[s.lineIndex] = newLine;
+          changed = true;
+        }
+      }
+    }
+    const outlinesChanged = syncOutlinesIntoOriginalLines();
+    changed = changed || outlinesChanged;
+    if (!changed) return;
+    const newText = originalLines.join("\n");
+    if (codePane.value !== newText) {
+      codePane.value = newText;
+    }
+    hasUnsavedChanges = true;
+    updateSaveButton();
+    saveSessionToLocalStorage(); 
+  }
+
+
+  function saveSessionToLocalStorage() {
+  try {
+    const payload = {
+      tltText: codePane.value || "",
+      fileName: currentFileName || "",
+      translateX,
+      translateY,
+      scale,
+      background: {
+        dataUrl: backgroundState.dataUrl || "",
+        enabled: !!backgroundState.enabled,
+        opacity: backgroundState.opacity,
+        scale: backgroundState.scale,
+        originX: backgroundState.originX,
+        originY: backgroundState.originY
+      },
+      timestamp: Date.now()
+    };
+    localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(payload));
+  } catch (err) {
+    console.warn("Kunde inte spara session i localStorage:", err);
+  }
+}
+
+function openHandleDB() {
+  return new Promise((resolve, reject) => {
+    if (!("indexedDB" in window)) {
+      reject(new Error("IndexedDB saknas"));
+      return;
+    }
+
+    const req = indexedDB.open(DB_NAME, DB_VERSION);
+    req.onupgradeneeded = (e) => {
+      const db = e.target.result;
+      if (!db.objectStoreNames.contains(DB_STORE)) {
+        db.createObjectStore(DB_STORE);
+      }
+    };
+    req.onsuccess = (e) => {
+      resolve(e.target.result);
+    };
+    req.onerror = (e) => {
+      reject(e.target.error || new Error("Kunde inte öppna DB"));
+    };
+  });
+}
+
+async function saveCurrentFileHandleToDB(handle) {
+  if (!handle || !("indexedDB" in window)) return;
+  try {
+    const db = await openHandleDB();
+    const tx = db.transaction(DB_STORE, "readwrite");
+    tx.objectStore(DB_STORE).put(handle, "current");
+    tx.oncomplete = () => db.close();
+  } catch (err) {
+    console.warn("Kunde inte spara fileHandle i IndexedDB:", err);
+  }
+}
+
+async function loadCurrentFileHandleFromDB() {
+  if (!("indexedDB" in window)) return null;
+  try {
+    const db = await openHandleDB();
+    return await new Promise((resolve, reject) => {
+      const tx = db.transaction(DB_STORE, "readonly");
+      const req = tx.objectStore(DB_STORE).get("current");
+      req.onsuccess = () => {
+        const handle = req.result || null;
+        db.close();
+        resolve(handle);
+      };
+      req.onerror = (e) => {
+        db.close();
+        reject(e.target.error || new Error("get current failed"));
+      };
+    });
+  } catch (err) {
+    console.warn("Kunde inte läsa fileHandle från IndexedDB:", err);
+    return null;
+  }
+}
+
+async function clearCurrentFileHandleInDB() {
+  if (!("indexedDB" in window)) return;
+  try {
+    const db = await openHandleDB();
+    const tx = db.transaction(DB_STORE, "readwrite");
+    tx.objectStore(DB_STORE).delete("current");
+    tx.oncomplete = () => db.close();
+  } catch (err) {
+    console.warn("Kunde inte rensa fileHandle i IndexedDB:", err);
+  }
+}
+
+
+async function tryRestoreSessionFromLocalStorage() {
+  try {
+    const raw = localStorage.getItem(SESSION_STORAGE_KEY);
+    if (!raw) return;
+
+    const data = JSON.parse(raw);
+    if (!data || !data.tltText) return;
+
+    const accept = confirm(
+      "Det finns en tidigare osparad session.\nVill du återställa den?"
+    );
+    if (!accept) return;
+
+    // Återställ tlt-texten
+    codePane.value = data.tltText;
+    parseTlt(data.tltText);
+
+    // Återställ filnamn-info (om vi hade ett)
+    currentFileName = data.fileName || "";
+    if (currentFileName) {
+      fileInfo.textContent = `Återställd session (${currentFileName})`;
+    } else {
+      fileInfo.textContent = "Återställd session (ej sparad fil)";
+    }
+
+    // Återställ zoom/pan om vi har dem
+    if (typeof data.translateX === "number") translateX = data.translateX;
+    if (typeof data.translateY === "number") translateY = data.translateY;
+    if (typeof data.scale === "number")      scale      = data.scale;
+
+    if (data.background) {
+      backgroundState.enabled = !!data.background.enabled;
+      backgroundState.opacity = typeof data.background.opacity === "number" ? data.background.opacity : backgroundState.opacity;
+      backgroundState.scale = typeof data.background.scale === "number" ? data.background.scale : backgroundState.scale;
+      backgroundState.originX = typeof data.background.originX === "number" ? data.background.originX : backgroundState.originX;
+      backgroundState.originY = typeof data.background.originY === "number" ? data.background.originY : backgroundState.originY;
+      updateBgOpacityDisplay();
+      updateBgScaleDisplay();
+      bgEnabledToggle.checked = backgroundState.enabled;
+      if (data.background.dataUrl) {
+        await loadBackgroundFromDataUrl(data.background.dataUrl);
+      }
+    }
+
+
+
+    renderCanvas();
+
+    // Vi betraktar detta som osparade ändringar (kan ju vara viktigare än filen)
+    hasUnsavedChanges = true;
+    updateSaveButton();
+
+    loadCurrentFileHandleFromDB().then((handle) => {
+      if (handle) {
+        currentFileHandle = handle;
+        // fileInfo-texten är redan satt utifrån currentFileName
+      }
+    });
+
+  } catch (err) {
+    console.warn("Kunde inte läsa session från localStorage:", err);
+  }
+}
+
+codePane.addEventListener("input", () => {
+  hasUnsavedChanges = true;
+  updateSaveButton();
+  saveSessionToLocalStorage();
+});
+
+
+  async function loadTltFromHandle(handle) {
+    const file = await handle.getFile();
+    const text = await file.text();
+    parseTlt(text);
+    codePane.value = text;
+    currentFileHandle = handle;
+    currentFileName = file.name || "";
+    fileInfo.textContent = currentFileName ? `Öppnad fil (${currentFileName})` : "Öppnad fil";
+    hasUnsavedChanges = false;
+    updateSaveButton();
+    saveCurrentFileHandleToDB(handle);
+  }
+
+  async function handleOpenViaPicker() {
+    try {
+      const pickerOpts = {
+        types: [
+          {
+            description: "Tickster Layout (.tlt)",
+            accept: { "text/plain": [".tlt", ".txt"] }
+          }
+        ],
+        excludeAcceptAllOption: false,
+        multiple: false
+      };
+      if (currentFileHandle) {
+        pickerOpts.startIn = currentFileHandle;
+      }
+      const [handle] = await window.showOpenFilePicker(pickerOpts);
+      if (handle) {
+        await loadTltFromHandle(handle);
+      }
+    } catch (err) {
+      console.warn("Öppna via picker misslyckades, provar filinput:", err);
+      fileInput?.click();
+    }
+  }
+
+  async function handleSaveViaPicker() {
+    const text = codePane.value || "";
+    try {
+      let handle = currentFileHandle;
+      if (!handle) {
+        const pickerOpts = {
+          types: [
+            {
+              description: "Tickster Layout (.tlt)",
+              accept: { "text/plain": [".tlt", ".txt"] }
+            }
+          ],
+          suggestedName: currentFileName || "layout.tlt",
+          excludeAcceptAllOption: false
+        };
+        handle = await window.showSaveFilePicker(pickerOpts);
+      }
+      if (!handle) return;
+      const writable = await handle.createWritable();
+      await writable.write(text);
+      await writable.close();
+      currentFileHandle = handle;
+      currentFileName = handle.name || currentFileName || "layout.tlt";
+      fileInfo.textContent = `Sparad (${currentFileName})`;
+      hasUnsavedChanges = false;
+      updateSaveButton();
+      saveCurrentFileHandleToDB(handle);
+    } catch (err) {
+      console.warn("Spara via picker misslyckades, provar nedladdning:", err);
+      downloadFallback(text);
+    }
+  }
+
+  function downloadFallback(text) {
+    try {
+      const blob = new Blob([text], { type: "text/plain" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = currentFileName || "layout.tlt";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      fileInfo.textContent = `Sparad (${a.download})`;
+      hasUnsavedChanges = false;
+      updateSaveButton();
+    } catch (err) {
+      console.warn("Nedladdningsfallback misslyckades:", err);
+    }
+  }
+
+  async function openFileFromInput(file) {
+    if (!file) return;
+    const text = await file.text();
+    parseTlt(text);
+    codePane.value = text;
+    currentFileName = file.name || "";
+    currentFileHandle = null;
+    fileInfo.textContent = currentFileName ? `Öppnad fil (${currentFileName})` : "Öppnad fil";
+    hasUnsavedChanges = false;
+    updateSaveButton();
+    clearCurrentFileHandleInDB();
+    fileInput.value = "";
+  }
+
+  async function openFile() {
+    if (supportsOpenPicker) {
+      await handleOpenViaPicker();
+    } else {
+      fileInput?.click();
+    }
+  }
+
+  async function saveFile() {
+    if (supportsSavePicker) {
+      await handleSaveViaPicker();
+    } else {
+      downloadFallback(codePane.value || "");
+    }
+  }
+
+  openFileBtnTop?.addEventListener("click", () => {
+    openFile();
+  });
+
+  saveBtn?.addEventListener("click", () => {
+    if (!hasUnsavedChanges && currentFileHandle) {
+      fileInfo.textContent = currentFileName ? `Sparad (${currentFileName})` : "Sparad";
+      return;
+    }
+    saveFile();
+  });
+
+  fileInput?.addEventListener("change", (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (file) {
+      openFileFromInput(file);
+    }
+  });
+
+  // Försök återanvända senaste handle direkt vid start (utan att öppna filen automatiskt)
+  loadCurrentFileHandleFromDB().then((handle) => {
+    if (handle) {
+      currentFileHandle = handle;
+      currentFileName = handle.name || currentFileName;
+    }
+  });
+
+  function updateSaveButton() {
+    saveBtn.disabled = !hasUnsavedChanges;
+  }
+
+  function updateMoveButtonState() {
+    const anySelected = seats.some(s => s.selected);
+    const selectedRows = getSelectedRows();
+    const selectedRowsCount = selectedRows.size;
+    const allowTransform = anySelected;
+    const allowResize = anySelected && (selectionMode === "section" || selectionMode === "row");
+    const allowBend = selectionMode === "row" && selectedRowsCount === 1;
+    const allowReshape = selectionMode === "row" && selectedRowsCount === 1;
+    const allowResetRow = selectionMode === "row" && selectedRowsCount >= 1;
+    const allowMakeTable = selectionMode === "row" && selectedRowsCount >= 1;
+
+    moveToolBtn.disabled = !allowTransform;
+    rotateToolBtn.disabled = !allowTransform;
+    resizeToolBtn.disabled = !allowResize;
+    bendToolBtn.disabled = !allowBend;
+    reshapeRowBtn.disabled = !allowReshape;
+    resetRowBtn.disabled = !allowResetRow;
+    makeTableBtn.disabled = !allowMakeTable;
+
+    if (
+      (!allowTransform && (currentTool === "move" || currentTool === "rotate")) ||
+      (!allowResize && currentTool === "resize") ||
+      (!allowBend && currentTool === "bend") ||
+      (!allowReshape && currentTool === "reshape")
+    ) {
+      setTool("select");
+    }
+
+    updateAlignButtons();
+  }
+
+  function updateAlignButtons() {
+    const groups = getAlignGroups();
+    const enabled = groups.length >= 2;
+    alignTopBtn.disabled = !enabled;
+    alignBottomBtn.disabled = !enabled;
+    alignLeftBtn.disabled = !enabled;
+    alignRightBtn.disabled = !enabled;
+    alignCenterHBtn.disabled = !enabled;
+    alignCenterVBtn.disabled = !enabled;
+  }
+
+  // --- Render ---
+  function renderCanvas() {
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    const worldMinX = (-translateX) / scale;
+    const worldMaxX = (canvas.width - translateX) / scale;
+    const worldMinY = (-translateY) / scale;
+    const worldMaxY = (canvas.height - translateY) / scale;
+
+    // Först: räkna synliga platser
+    let visibleCount = 0;
+    for (const s of seats) {
+      if (
+        s.vx < worldMinX || s.vx > worldMaxX ||
+        s.vy < worldMinY || s.vy > worldMaxY
+      ) continue;
+      visibleCount++;
+    }
+    lastVisibleSeatCount = visibleCount;
+
+    const useRectDots = visibleCount > RECT_DOT_THRESHOLD;
+    const rectScreenSize = 2;
+    const rectSizeWorld = rectScreenSize / scale;
+
+    ctx.save();
+    ctx.translate(translateX, translateY);
+    ctx.scale(scale, scale);
+
+    // Bakgrundsbild
+    if (backgroundState.enabled && backgroundState.img) {
+      const bgImg = backgroundState.img;
+      const drawW = bgImg.naturalWidth * backgroundState.scale;
+      const drawH = bgImg.naturalHeight * backgroundState.scale;
+      ctx.save();
+      ctx.globalAlpha = backgroundState.opacity;
+      ctx.drawImage(bgImg, backgroundState.originX, backgroundState.originY, drawW, drawH);
+      ctx.restore();
+    }
+
+    // Platser
+    for (const s of seats) {
+      if (
+        s.vx < worldMinX || s.vx > worldMaxX ||
+        s.vy < worldMinY || s.vy > worldMaxY
+      ) continue;
+
+      let baseColor = sectionColors.get(s.sectionId) || "#4a90e2";
+      if (s.attribute === "Wheelchair") {
+        baseColor = "#2ecc71";
+      }
+      if (renderGrayscale) {
+        baseColor = s.attribute === "Wheelchair" ? "#7c8a98" : "#9ca8b7";
+      }
+
+      // Fyrkantsläge (massor av platser)
+      if (useRectDots) {
+        ctx.fillStyle = baseColor;
+        ctx.fillRect(
+          s.vx - rectSizeWorld / 2,
+          s.vy - rectSizeWorld / 2,
+          rectSizeWorld,
+          rectSizeWorld
+        );
+
+        if (s.selected) {
+          ctx.strokeStyle = "#000";
+          ctx.lineWidth = 1 / scale;
+          ctx.strokeRect(
+            s.vx - rectSizeWorld,
+            s.vy - rectSizeWorld,
+            rectSizeWorld * 2,
+            rectSizeWorld * 2
+          );
+        }
+        continue;
+      }
+
+      // Cirkel-läge
+      let pxRadius = BASE_WORLD_RADIUS * scale;
+      if (pxRadius < MIN_SEAT_SCREEN_RADIUS) {
+        pxRadius = MIN_SEAT_SCREEN_RADIUS;
+      }
+      const worldRadius = pxRadius / scale;
+
+      ctx.beginPath();
+      ctx.arc(s.vx, s.vy, worldRadius, 0, Math.PI * 2);
+      ctx.fillStyle = baseColor;
+      ctx.fill();
+
+      if (s.selected) {
+        ctx.lineWidth = 3 / scale;
+        ctx.strokeStyle = "#000";
+        ctx.stroke();
+      } else {
+        ctx.lineWidth = 1.2 / scale;
+        ctx.strokeStyle = "rgba(0,0,0,0.25)";
+        ctx.stroke();
+      }
+    }
+
+    // Sektionsnamn (mitt i sektionen)
+    if (showSectionNames) {
+      const boundsBySection = new Map();
+      for (const s of seats) {
+        if (!s.sectionId) continue;
+        let b = boundsBySection.get(s.sectionId);
+        if (!b) {
+          b = { minX: s.vx, maxX: s.vx, minY: s.vy, maxY: s.vy };
+          boundsBySection.set(s.sectionId, b);
+        } else {
+          b.minX = Math.min(b.minX, s.vx);
+          b.maxX = Math.max(b.maxX, s.vx);
+          b.minY = Math.min(b.minY, s.vy);
+          b.maxY = Math.max(b.maxY, s.vy);
+        }
+      }
+      ctx.save();
+      ctx.fillStyle = "rgba(0,0,0,0.75)";
+      ctx.strokeStyle = "rgba(255,255,255,0.8)";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      for (const [sectionId, b] of boundsBySection.entries()) {
+        const cx = (b.minX + b.maxX) / 2;
+        const cy = (b.minY + b.maxY) / 2;
+        if (cx < worldMinX || cx > worldMaxX || cy < worldMinY || cy > worldMaxY) continue;
+        const name = sectionNames.get(sectionId) || sectionId || "";
+        if (!name) continue;
+        const fontSize = 20 / Math.max(scale, 0.001);
+        ctx.lineWidth = 3 / Math.max(scale, 0.001);
+        ctx.font = `${fontSize}px "Segoe UI", system-ui, sans-serif`;
+        ctx.strokeText(name, cx, cy);
+        ctx.fillText(name, cx, cy);
+      }
+      ctx.restore();
+    }
+
+    // Reshape-pivot-indikator
+    if (currentTool === "reshape" && reshapePivotSeatId) {
+      const pivotSeat = seats.find(s => s.seatId === reshapePivotSeatId);
+      if (pivotSeat) {
+        const r = (BASE_WORLD_RADIUS * 1) / Math.max(scale, 1e-6);
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(pivotSeat.vx, pivotSeat.vy, r, 0, Math.PI * 2);
+        ctx.strokeStyle = "#e67e22";
+        ctx.lineWidth = 2 / scale;
+        ctx.setLineDash([4 / scale, 3 / scale]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = "rgba(230,126,34,0.2)";
+        ctx.fill();
+        ctx.restore();
+      }
+    }
+
+    if (!seats.length) {
+      ctx.restore();
+      ctx.fillStyle = "#777";
+      ctx.font = "12px system-ui";
+      ctx.fillText("Inga SeatAdd-rader att visa.", 10, 20);
+      lastVisibleSeatCount = 0;
+      return;
+    }
+
+    // Ruta-markering overlay (i world + transform)
+    if (selectionRectActive) {
+      const x1 = Math.min(rectStartCanvasX, rectEndCanvasX);
+      const y1 = Math.min(rectStartCanvasY, rectEndCanvasY);
+      const x2 = Math.max(rectStartCanvasX, rectEndCanvasX);
+      const y2 = Math.max(rectStartCanvasY, rectEndCanvasY);
+
+      const w1 = (x1 - translateX) / scale;
+      const h1 = (y1 - translateY) / scale;
+      const w2 = (x2 - translateX) / scale;
+      const h2 = (y2 - translateY) / scale;
+
+      ctx.save();
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.beginPath();
+      ctx.rect(x1, y1, x2 - x1, y2 - y1);
+      ctx.strokeStyle = "rgba(47,128,237,0.9)";
+      ctx.lineWidth = 1;
+      ctx.setLineDash([4, 3]);
+      ctx.stroke();
+      ctx.fillStyle = "rgba(47,128,237,0.15)";
+      ctx.fill();
+      ctx.restore();
+    }
+
+    ctx.restore();
+
+    // Tooltip-hantering utanför transform
+    if (showHoverInfo && hoverSeat && lastVisibleSeatCount <= HOVER_VISIBLE_LIMIT) {
+      tooltipEl.style.display = "block";
+    } else {
+      tooltipEl.style.display = "none";
+    }
+
+    // Resize-overlay (handtag) ritas ovanpå allt
+    if (currentTool === "resize") {
+      const selected = getSelectedSeats();
+      if (selected.length) {
+        const bounds = getSelectionBounds(selected);
+        if (bounds) {
+          ctx.save();
+          ctx.translate(translateX, translateY);
+          ctx.scale(scale, scale);
+
+          ctx.lineWidth = 1.5 / scale;
+          ctx.strokeStyle = "rgba(0,0,0,0.6)";
+          ctx.setLineDash([6 / scale, 4 / scale]);
+          ctx.strokeRect(bounds.minX, bounds.minY, bounds.maxX - bounds.minX, bounds.maxY - bounds.minY);
+
+          ctx.setLineDash([]);
+          const handleSize = 10 / scale;
+          const handles = getResizeHandles(bounds);
+          ctx.fillStyle = "#ffffff";
+          ctx.strokeStyle = "#14a0f4";
+          for (const h of handles) {
+            ctx.beginPath();
+            ctx.rect(h.x - handleSize / 2, h.y - handleSize / 2, handleSize, handleSize);
+            ctx.fill();
+            ctx.stroke();
+          }
+
+          ctx.restore();
+        }
+      }
+    }
+
+    // Bend-overlay: single anchor quadratic
+    if (currentTool === "bend") {
+      const rows = getSelectedRows();
+      if (rows.size === 1) {
+        const firstRow = rows.values().next().value;
+        if (firstRow && firstRow.length >= 2) {
+          const data = computeRowEndpoints(firstRow);
+          const p0 = { x: data.first.vx, y: data.first.vy };
+          const p2 = { x: data.last.vx, y: data.last.vy };
+          const mid = { x: (p0.x + p2.x) / 2, y: (p0.y + p2.y) / 2 };
+          const anchor = bendControlPoint || mid;
+
+          ctx.save();
+          ctx.translate(translateX, translateY);
+          ctx.scale(scale, scale);
+
+          ctx.strokeStyle = "#c12e44";
+          ctx.lineWidth = 2 / scale;
+          ctx.setLineDash([6 / scale, 4 / scale]);
+          ctx.beginPath();
+          ctx.moveTo(p0.x, p0.y);
+          if (anchor) {
+            ctx.quadraticCurveTo(anchor.x, anchor.y, p2.x, p2.y);
+          } else {
+            ctx.lineTo(p2.x, p2.y);
+          }
+          ctx.stroke();
+
+          ctx.setLineDash([]);
+          ctx.fillStyle = "#c12e44";
+          ctx.strokeStyle = "#fff";
+          const r = 6 / scale;
+
+          if (anchor) {
+            ctx.beginPath();
+            ctx.arc(anchor.x, anchor.y, r, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+          }
+          ctx.beginPath();
+          ctx.arc(p0.x, p0.y, r * 0.8, 0, Math.PI * 2);
+          ctx.arc(p2.x, p2.y, r * 0.8, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.stroke();
+
+          ctx.restore();
+        }
+      }
+    }
+  }
+
+  function zoomToFitAllSeats() {
+  if (!seats || seats.length === 0) return;
+
+  let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+  for (const s of seats) {
+    if (s.vx < minX) minX = s.vx;
+    if (s.vx > maxX) maxX = s.vx;
+    if (s.vy < minY) minY = s.vy;
+    if (s.vy > maxY) maxY = s.vy;
+  }
+
+  if (!Number.isFinite(minX) || !Number.isFinite(maxX)) return;
+
+  const paddingWorld = 50;
+  const widthWorld  = (maxX - minX) + paddingWorld * 2;
+  const heightWorld = (maxY - minY) + paddingWorld * 2;
+  const cxWorld = (minX + maxX) / 2;
+  const cyWorld = (minY + maxY) / 2;
+
+  const scaleX = canvas.width  / widthWorld;
+  const scaleY = canvas.height / heightWorld;
+  scale = Math.min(scaleX, scaleY);
+
+  translateX = canvas.width  / 2 - cxWorld * scale;
+  translateY = canvas.height / 2 - cyWorld * scale;
+
+  renderCanvas();
+}
+
+function selectAllSeats() {
+  if (!seats || seats.length === 0) return;
+
+  let changed = false;
+  for (const s of seats) {
+    if (!s.selected) {
+      s.selected = true;
+      changed = true;
+    }
+  }
+  if (!changed) return;
+
+  // Aktivera Move-verktyget (det är bara knappen som ska bli aktiverbar)
+  moveToolBtn.disabled = false;
+
+  // Lägg detta i historiken så att Ctrl+Z även ångrar "markera alla"
+  if (typeof pushHistorySnapshot === "function") {
+    pushHistorySnapshot();
+  }
+
+    renderCanvas();
+  }
+
+
+  // --- Markeringsdata ---
+  function getSelectedSeats() {
+    return seats.filter(s => s.selected);
+  }
+
+  function getSelectionBounds(selectedSeats) {
+    if (!selectedSeats || !selectedSeats.length) return null;
+    let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+    for (const s of selectedSeats) {
+      if (s.vx < minX) minX = s.vx;
+      if (s.vx > maxX) maxX = s.vx;
+      if (s.vy < minY) minY = s.vy;
+      if (s.vy > maxY) maxY = s.vy;
+    }
+    if (!Number.isFinite(minX) || !Number.isFinite(minY) || !Number.isFinite(maxX) || !Number.isFinite(maxY)) {
+      return null;
+    }
+    return {
+      minX,
+      minY,
+      maxX,
+      maxY,
+      centerX: (minX + maxX) / 2,
+      centerY: (minY + maxY) / 2
+    };
+  }
+
+  function getSelectedRows() {
+    const selected = getSelectedSeats();
+    const rows = new Map();
+    for (const s of selected) {
+      if (!s.rowId) continue;
+      if (!rows.has(s.rowId)) rows.set(s.rowId, []);
+      rows.get(s.rowId).push(s);
+    }
+    return rows;
+  }
+
+  function sortSeatsInRow(rowSeats) {
+    // Försök numerisk sort på name, annars seatId-suffix, annars vx/vy
+    const parseKey = (seat) => {
+      const num = parseFloat(seat.name);
+      if (!Number.isNaN(num)) return { kind: "num", value: num };
+      const parts = seat.seatId ? seat.seatId.split(".") : [];
+      const last = parts[parts.length - 1];
+      const lastNum = parseFloat(last);
+      if (!Number.isNaN(lastNum)) return { kind: "num", value: lastNum };
+      return { kind: "pos", value: seat.vx + seat.vy * 1e-3 };
+    };
+    return [...rowSeats].sort((a, b) => {
+      const ka = parseKey(a);
+      const kb = parseKey(b);
+      if (ka.kind === "num" && kb.kind === "num") return ka.value - kb.value;
+      if (ka.kind === "num") return -1;
+      if (kb.kind === "num") return 1;
+      return ka.value - kb.value;
+    });
+  }
+
+  function computeRowEndpoints(rowSeats) {
+    const sorted = sortSeatsInRow(rowSeats);
+    const first = sorted[0];
+    const last = sorted[sorted.length - 1];
+    return { first, last, order: sorted };
+  }
+
+  function redistributeRowLinear(rowData) {
+    const { first, last, order } = rowData;
+    const n = order.length;
+    if (n <= 1) return;
+    const dx = last.vx - first.vx;
+    const dy = last.vy - first.vy;
+    const denom = Math.max(n - 1, 1);
+    for (let i = 0; i < n; i++) {
+      const t = denom === 0 ? 0 : i / denom;
+      const x = first.vx + dx * t;
+      const y = first.vy + dy * t;
+      const seat = order[i];
+      seat.vx = x;
+      seat.vy = y;
+      seat.centerX = x;
+      seat.centerY = y;
+    }
+  }
+
+  function applyRowBend(rowData, rowId) {
+    if (!bendControlPoint) {
+      redistributeRowLinear(rowData);
+      return;
+    }
+    bendRowsWithControl(bendControlPoint, [rowData]);
+  }
+
+  function bezierPoint(t, p0, p1, p2) {
+    const u = 1 - t;
+    const tt = t * t;
+    const uu = u * u;
+    const x = uu * p0.x + 2 * u * t * p1.x + tt * p2.x;
+    const y = uu * p0.y + 2 * u * t * p1.y + tt * p2.y;
+    return { x, y };
+  }
+
+  function cubicPoint(t, p0, p1, p2, p3) {
+    const u = 1 - t;
+    const tt = t * t;
+    const uu = u * u;
+    const uuu = uu * u;
+    const ttt = tt * t;
+    const x = uuu * p0.x + 3 * uu * t * p1.x + 3 * u * tt * p2.x + ttt * p3.x;
+    const y = uuu * p0.y + 3 * uu * t * p1.y + 3 * u * tt * p2.y + ttt * p3.y;
+    return { x, y };
+  }
+
+  function buildBezierArcTable(p0, p1, p2, steps = 150) {
+    const table = [];
+    let prev = p0;
+    let length = 0;
+    table.push({ t: 0, len: 0 });
+    for (let i = 1; i <= steps; i++) {
+      const t = i / steps;
+      const pt = bezierPoint(t, p0, p1, p2);
+      const dx = pt.x - prev.x;
+      const dy = pt.y - prev.y;
+      length += Math.hypot(dx, dy);
+      table.push({ t, len: length });
+      prev = pt;
+    }
+    return { table, total: length };
+  }
+
+  function buildCubicArcTable(p0, p1, p2, p3, steps = 180) {
+    const table = [];
+    let prev = p0;
+    let length = 0;
+    table.push({ t: 0, len: 0 });
+    for (let i = 1; i <= steps; i++) {
+      const t = i / steps;
+      const pt = cubicPoint(t, p0, p1, p2, p3);
+      const dx = pt.x - prev.x;
+      const dy = pt.y - prev.y;
+      length += Math.hypot(dx, dy);
+      table.push({ t, len: length });
+      prev = pt;
+    }
+    return { table, total: length };
+  }
+
+  function tAtArcLength(targetLen, arcTable) {
+    const { table, total } = arcTable;
+    if (targetLen <= 0) return 0;
+    if (targetLen >= total) return 1;
+    // binary search
+    let lo = 0, hi = table.length - 1;
+    while (lo + 1 < hi) {
+      const mid = Math.floor((lo + hi) / 2);
+      if (table[mid].len < targetLen) lo = mid;
+      else hi = mid;
+    }
+    const a = table[lo], b = table[hi];
+    const span = b.len - a.len || 1e-6;
+    const f = (targetLen - a.len) / span;
+    return a.t + (b.t - a.t) * f;
+  }
+
+  function bendRowsWithControl(controlPoint, rowsData) {
+    for (const rowData of rowsData) {
+      const { first, last, order } = rowData;
+      const n = order.length;
+      if (n <= 2) continue;
+      if (!controlPoint) {
+        redistributeRowLinear(rowData);
+        continue;
+      }
+      // single anchor -> quadratic curve
+      const pts = [
+        { x: first.vx, y: first.vy },
+        { x: controlPoint.x, y: controlPoint.y },
+        { x: last.vx, y: last.vy }
+      ];
+      const arc = buildBezierArcTable(pts[0], pts[1], pts[2]);
+      const segmentLen = arc.total / (n - 1);
+      for (let i = 0; i < n; i++) {
+        const targetLen = segmentLen * i;
+        const t = tAtArcLength(targetLen, arc);
+        const pt = bezierPoint(t, pts[0], pts[1], pts[2]);
+        const seat = order[i];
+        seat.vx = pt.x;
+        seat.vy = pt.y;
+        seat.centerX = pt.x;
+        seat.centerY = pt.y;
+      }
+    }
+  }
+
+  function resetSelectedRowsLinear() {
+    const rows = getSelectedRows();
+    if (!rows.size) return false;
+    let changed = false;
+    for (const [, rowSeats] of rows) {
+      if (rowSeats.length < 2) continue;
+      const data = computeRowEndpoints(rowSeats);
+      redistributeRowLinear(data);
+      changed = true;
+    }
+    return changed;
+  }
+
+  function applyReshapeDrag(target, newX, newY) {
+    if (!reshapeRowSeats || !reshapeRowSeats.length || !reshapeSnapshotById) return;
+    const sorted = sortSeatsInRow(reshapeRowSeats);
+    if (!sorted.length) return;
+
+    const pivotIndex = reshapePivotSeatId
+      ? sorted.findIndex(s => s.seatId === reshapePivotSeatId)
+      : -1;
+
+    const startSnap = reshapeSnapshotById.get(sorted[0].seatId);
+    const endSnap = reshapeSnapshotById.get(sorted[sorted.length - 1].seatId);
+    if (!startSnap || !endSnap) return;
+
+    if (target === "start") {
+      const anchorSnap = pivotIndex >= 0
+        ? reshapeSnapshotById.get(sorted[pivotIndex].seatId) || endSnap
+        : endSnap;
+      const segLen = pivotIndex >= 0 ? pivotIndex : sorted.length - 1;
+      for (let i = 0; i < sorted.length; i++) {
+        if (pivotIndex >= 0 && i > pivotIndex) {
+          const snap = reshapeSnapshotById.get(sorted[i].seatId);
+          if (snap) {
+            sorted[i].vx = snap.vx;
+            sorted[i].vy = snap.vy;
+            sorted[i].centerX = snap.vx;
+            sorted[i].centerY = snap.vy;
+          }
+          continue;
+        }
+        const t = segLen === 0 ? 0 : i / segLen;
+        const x = newX + (anchorSnap.vx - newX) * t;
+        const y = newY + (anchorSnap.vy - newY) * t;
+        sorted[i].vx = x;
+        sorted[i].vy = y;
+        sorted[i].centerX = x;
+        sorted[i].centerY = y;
+      }
+    } else if (target === "end") {
+      const anchorSnap = pivotIndex >= 0
+        ? reshapeSnapshotById.get(sorted[pivotIndex].seatId) || startSnap
+        : startSnap;
+      const startIndex = pivotIndex >= 0 ? pivotIndex : 0;
+      const segLen = pivotIndex >= 0 ? (sorted.length - 1 - pivotIndex) : (sorted.length - 1);
+      for (let i = 0; i < sorted.length; i++) {
+        if (i < startIndex) {
+          const snap = reshapeSnapshotById.get(sorted[i].seatId);
+          if (snap) {
+            sorted[i].vx = snap.vx;
+            sorted[i].vy = snap.vy;
+            sorted[i].centerX = snap.vx;
+            sorted[i].centerY = snap.vy;
+          }
+          continue;
+        }
+        const t = segLen === 0 ? 0 : (i - startIndex) / segLen;
+        const x = anchorSnap.vx + (newX - anchorSnap.vx) * t;
+        const y = anchorSnap.vy + (newY - anchorSnap.vy) * t;
+        sorted[i].vx = x;
+        sorted[i].vy = y;
+        sorted[i].centerX = x;
+        sorted[i].centerY = y;
+      }
+    }
+  }
+
+  function getAlignGroups() {
+    const selected = getSelectedSeats();
+    if (!selected.length) return [];
+
+    const groups = [];
+    if (selectionMode === "section") {
+      const bySection = new Map();
+      for (const s of selected) {
+        if (!s.sectionId) continue;
+        if (!bySection.has(s.sectionId)) bySection.set(s.sectionId, []);
+        bySection.get(s.sectionId).push(s);
+      }
+      for (const seatsArr of bySection.values()) {
+        const b = getSelectionBounds(seatsArr);
+        if (b) groups.push({ seats: seatsArr, bounds: b });
+      }
+    } else if (selectionMode === "row") {
+      const byRow = new Map();
+      for (const s of selected) {
+        if (!s.rowId) continue;
+        if (!byRow.has(s.rowId)) byRow.set(s.rowId, []);
+        byRow.get(s.rowId).push(s);
+      }
+      for (const seatsArr of byRow.values()) {
+        const b = getSelectionBounds(seatsArr);
+        if (b) groups.push({ seats: seatsArr, bounds: b });
+      }
+    } else {
+      // Seat-läge: behandla varje plats som egen grupp
+      for (const s of selected) {
+        groups.push({ seats: [s], bounds: { minX: s.vx, maxX: s.vx, minY: s.vy, maxY: s.vy, centerX: s.vx, centerY: s.vy } });
+      }
+    }
+    return groups;
+  }
+
+  function alignSelectedSeats(mode) {
+    const groups = getAlignGroups();
+    if (!groups.length) return false;
+    // Kräver minst 2 grupper för meningsfull align
+    if (groups.length < 2) return false;
+
+    // Samla övergripande bounds från gruppers bounding box
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    for (const g of groups) {
+      minX = Math.min(minX, g.bounds.minX);
+      minY = Math.min(minY, g.bounds.minY);
+      maxX = Math.max(maxX, g.bounds.maxX);
+      maxY = Math.max(maxY, g.bounds.maxY);
+    }
+    const overall = {
+      minX,
+      minY,
+      maxX,
+      maxY,
+      centerX: (minX + maxX) / 2,
+      centerY: (minY + maxY) / 2
+    };
+
+    let changed = false;
+    for (const g of groups) {
+      let deltaX = 0;
+      let deltaY = 0;
+      switch (mode) {
+        case "top":
+          deltaY = overall.minY - g.bounds.minY;
+          break;
+        case "bottom":
+          deltaY = overall.maxY - g.bounds.maxY;
+          break;
+        case "left":
+          deltaX = overall.minX - g.bounds.minX;
+          break;
+        case "right":
+          deltaX = overall.maxX - g.bounds.maxX;
+          break;
+        case "centerH":
+          deltaX = overall.centerX - g.bounds.centerX;
+          break;
+        case "centerV":
+          deltaY = overall.centerY - g.bounds.centerY;
+          break;
+        default:
+          break;
+      }
+      if (deltaX !== 0 || deltaY !== 0) {
+        changed = true;
+        for (const s of g.seats) {
+          s.vx += deltaX;
+          s.vy += deltaY;
+          s.centerX += deltaX;
+          s.centerY += deltaY;
+        }
+      }
+    }
+    return changed;
+  }
+
+  function nudgeSelection(dxScreen, dyScreen) {
+    const selected = getSelectedSeats();
+    if (!selected.length) return false;
+    const dxWorld = dxScreen / scale;
+    const dyWorld = dyScreen / scale;
+    let moved = false;
+    for (const s of selected) {
+      const newX = s.vx + dxWorld;
+      const newY = s.vy + dyWorld;
+      if (newX !== s.vx || newY !== s.vy) {
+        s.vx = newX;
+        s.vy = newY;
+        s.centerX = newX;
+        s.centerY = newY;
+        moved = true;
+      }
+    }
+    return moved;
+  }
+
+  function makeTableFromSelectedRows() {
+    const rows = getSelectedRows();
+    if (!rows.size) return false;
+    let changed = false;
+    for (const [, rowSeats] of rows) {
+      if (rowSeats.length < 2) continue;
+      const sorted = sortSeatsInRow(rowSeats);
+      const first = sorted[0];
+      let dirX = 1, dirY = 0, spacing = 50;
+      if (sorted.length > 1) {
+        const second = sorted[1];
+        const dx = second.vx - first.vx;
+        const dy = second.vy - first.vy;
+        const dist = Math.hypot(dx, dy);
+        if (dist > 1e-3) {
+          dirX = dx / dist;
+          dirY = dy / dist;
+          spacing = dist;
+        }
+      }
+      const perpX = -dirY;
+      const perpY = dirX;
+      const stepDown = spacing * 1.2;
+
+      for (let i = 0; i < sorted.length; i++) {
+        const col = i % 2;
+        const row = Math.floor(i / 2);
+        const x = first.vx + dirX * spacing * col + perpX * stepDown * row;
+        const y = first.vy + dirY * spacing * col + perpY * stepDown * row;
+        const seat = sorted[i];
+        seat.vx = x;
+        seat.vy = y;
+        seat.centerX = x;
+        seat.centerY = y;
+      }
+      changed = true;
+    }
+    return changed;
+  }
+
+  function ensureBendDefaults() {
+    if (currentTool !== "bend") return;
+    const rows = getSelectedRows();
+    if (rows.size !== 1) return;
+    const rowSeats = rows.values().next().value;
+    if (!rowSeats || rowSeats.length < 2) return;
+    const data = computeRowEndpoints(rowSeats);
+    const rowId = rowSeats[0].rowId || null;
+    const mid = { x: (data.first.vx + data.last.vx) / 2, y: (data.first.vy + data.last.vy) / 2 };
+
+    if (bendActiveRowId !== rowId) {
+      bendControlPoint = mid;
+      bendActiveRowId = rowId;
+    } else {
+      if (!bendControlPoint) bendControlPoint = mid;
+    }
+  }
+
+  function getResizeHandles(bounds) {
+    const { minX, maxX, minY, maxY, centerX, centerY } = bounds;
+    return [
+      { id: "nw", x: minX, y: minY },
+      { id: "n",  x: centerX, y: minY },
+      { id: "ne", x: maxX, y: minY },
+      { id: "e",  x: maxX, y: centerY },
+      { id: "se", x: maxX, y: maxY },
+      { id: "s",  x: centerX, y: maxY },
+      { id: "sw", x: minX, y: maxY },
+      { id: "w",  x: minX, y: centerY }
+    ];
+  }
+
+
+
+  // --- Hit-test ---
+  function hitTestSeat(worldX, worldY) {
+    if (!seats.length) return null;
+    const baseR = BASE_WORLD_RADIUS;
+    const maxDist = baseR * 1.5;
+    let best = null;
+    let bestDist2 = Infinity;
+
+    for (const s of seats) {
+      const dx = worldX - s.vx;
+      const dy = worldY - s.vy;
+      const d2 = dx * dx + dy * dy;
+      if (d2 < maxDist * maxDist && d2 < bestDist2) {
+        bestDist2 = d2;
+        best = s;
+      }
+    }
+    return best;
+  }
+
+  // --- Markerings-läge: vilken grupp hör en klickad plats till? ---
+  function getGroupForSeat(seat) {
+    if (!seat) return [];
+    if (selectionMode === "seat") {
+      return [seat];
+    } else if (selectionMode === "row") {
+      return seats.filter(s => s.rowId && s.rowId === seat.rowId);
+    } else if (selectionMode === "section") {
+      return seats.filter(s => s.sectionId && s.sectionId === seat.sectionId);
+    }
+    return [seat];
+  }
+
+  // --- Markerings-ruta beroende på läge ---
+  function selectByRect(rectWorld, additive) {
+    const { minX, maxX, minY, maxY } = rectWorld;
+
+    if (!additive) {
+      for (const s of seats) s.selected = false;
+    }
+
+    let selectionChanged = false;
+
+    if (selectionMode === "seat") {
+      for (const s of seats) {
+        if (
+          s.vx >= minX && s.vx <= maxX &&
+          s.vy >= minY && s.vy <= maxY
+        ) {
+          if (!s.selected) {
+            s.selected = true;
+            selectionChanged = true;
+          }
+        }
+      }
+    } else if (selectionMode === "row") {
+      const rowsInside = new Set();
+      for (const s of seats) {
+        if (
+          s.vx >= minX && s.vx <= maxX &&
+          s.vy >= minY && s.vy <= maxY &&
+          s.rowId
+        ) {
+          rowsInside.add(s.rowId);
+        }
+      }
+      for (const s of seats) {
+        if (rowsInside.has(s.rowId)) {
+          if (!s.selected) {
+            s.selected = true;
+            selectionChanged = true;
+          }
+        }
+      }
+    } else if (selectionMode === "section") {
+      const sectInside = new Set();
+      for (const s of seats) {
+        if (
+          s.vx >= minX && s.vx <= maxX &&
+          s.vy >= minY && s.vy <= maxY &&
+          s.sectionId
+        ) {
+          sectInside.add(s.sectionId);
+        }
+      }
+      for (const s of seats) {
+        if (sectInside.has(s.sectionId)) {
+          if (!s.selected) {
+            s.selected = true;
+            selectionChanged = true;
+          }
+        }
+      }
+    }
+
+    if (selectionChanged) {
+      pushHistorySnapshot();     // <-- nu ångrar Ctrl+Z även detta
+      updateMoveButtonState();
+      renderCanvas();
+    }
+  }
+
+  // --- Zoom ---
+  canvas.addEventListener("wheel", (e) => {
+    if (!e.ctrlKey) return;
+    e.preventDefault();
+
+    const rect = canvas.getBoundingClientRect();
+    const canvasX = e.clientX - rect.left;
+    const canvasY = e.clientY - rect.top;
+
+    const zoomIntensity = 1.1;
+    const wheel = e.deltaY < 0 ? 1 : -1;
+    const oldScale = scale;
+    const newScale = wheel > 0 ? scale * zoomIntensity : scale / zoomIntensity;
+
+    const { worldX, worldY } = screenToWorld(canvasX, canvasY);
+
+    scale = Math.max(0.01, Math.min(20, newScale));
+
+    translateX = canvasX - worldX * scale;
+    translateY = canvasY - worldY * scale;
+
+    renderCanvas();
+  }, { passive: false });
+
+  // --- Musinteraktion ---
+  canvas.addEventListener("mousedown", (e) => {
+    if (e.button !== 0) return;
+
+    const rect = canvas.getBoundingClientRect();
+    const canvasX = e.clientX - rect.left;
+    const canvasY = e.clientY - rect.top;
+
+    // CTRL = pan
+    if (e.ctrlKey && currentTool !== "rotate") {
+      isPanning = true;
+      panStartX = e.clientX;
+      panStartY = e.clientY;
+      panStartTranslateX = translateX;
+      panStartTranslateY = translateY;
+      canvasContainer.classList.add("panning");
+      return;
+    }
+
+    const { worldX, worldY } = screenToWorld(canvasX, canvasY);
+
+    if (currentTool === "rotate") {
+      const selectedSeats = getSelectedSeats();
+      if (!selectedSeats.length) return;
+
+      hasRotatedDuringDrag = false;
+      rotateStartSnapshot = captureSeatState();
+      rotateSnapshotById = new Map();
+      for (const snap of rotateStartSnapshot) {
+        rotateSnapshotById.set(snap.seatId, snap);
+      }
+
+      const bounds = getSelectionBounds(selectedSeats);
+      if (!bounds) return;
+      rotatePivot = { x: bounds.centerX, y: bounds.centerY };
+      rotateStartAngle = Math.atan2(worldY - rotatePivot.y, worldX - rotatePivot.x);
+      isRotatingSelection = true;
+      return;
+    }
+
+    if (currentTool === "bend") {
+      const rows = getSelectedRows();
+      if (rows.size !== 1) return; // endast en rad åt gången för stabil riktning
+
+      const [, rowSeats] = rows.entries().next().value || [];
+      const thisRowId = rowSeats && rowSeats.length ? rowSeats[0].rowId : null;
+
+      bendStartSnapshot = captureSeatState();
+      bendRowsData = [];
+      for (const [, rowSeats] of rows) {
+        if (rowSeats.length < 2) continue;
+        bendRowsData.push(computeRowEndpoints(rowSeats));
+        break; // bara första (enda) raden
+      }
+      if (!bendRowsData.length) return;
+
+      ensureBendDefaults();
+      const rowData = bendRowsData[0];
+      const startSeat = rowData.first;
+      const endSeat = rowData.last;
+      const hitRadius = 10;
+      const startScreen = worldToScreen(startSeat.vx, startSeat.vy);
+      const endScreen = worldToScreen(endSeat.vx, endSeat.vy);
+      const distStart = Math.hypot(startScreen.x - canvasX, startScreen.y - canvasY);
+      const distEnd = Math.hypot(endScreen.x - canvasX, endScreen.y - canvasY);
+
+      bendDragTarget = null;
+      if (distStart <= hitRadius) {
+        bendDragTarget = "start";
+      } else if (distEnd <= hitRadius) {
+        bendDragTarget = "end";
+      } else {
+        bendDragTarget = "anchor";
+        bendControlPoint = { x: worldX, y: worldY };
+      }
+
+      if (!bendDragTarget) return;
+      hasBentDuringDrag = true;
+      isBendingSelection = true;
+
+      // Initial böjning direkt vid klick
+      applyRowBend(rowData, thisRowId);
+      renderCanvas();
+      return;
+    }
+
+    if (currentTool === "reshape") {
+      const rows = getSelectedRows();
+      if (rows.size !== 1) return;
+      const [, rowSeats] = rows.entries().next().value || [];
+      if (!rowSeats || rowSeats.length < 2) return;
+
+      const sorted = sortSeatsInRow(rowSeats);
+      const startSeat = sorted[0];
+      const endSeat = sorted[sorted.length - 1];
+      const hitRadius = 12;
+      const startScreen = worldToScreen(startSeat.vx, startSeat.vy);
+      const endScreen = worldToScreen(endSeat.vx, endSeat.vy);
+      const distStart = Math.hypot(startScreen.x - canvasX, startScreen.y - canvasY);
+      const distEnd = Math.hypot(endScreen.x - canvasX, endScreen.y - canvasY);
+
+      reshapeDragTarget = null;
+      if (distStart <= hitRadius) {
+        reshapeDragTarget = "start";
+      } else if (distEnd <= hitRadius) {
+        reshapeDragTarget = "end";
+      }
+      if (!reshapeDragTarget) return;
+
+      reshapeStartSnapshot = captureSeatState();
+      reshapeSnapshotById = new Map(reshapeStartSnapshot.map(s => [s.seatId, s]));
+      reshapeRowSeats = rowSeats;
+      isReshapingRow = true;
+      applyReshapeDrag(reshapeDragTarget, worldX, worldY);
+      renderCanvas();
+      return;
+    }
+
+    if (currentTool === "resize") {
+      const selectedSeats = getSelectedSeats();
+      if (!selectedSeats.length) return;
+      const bounds = getSelectionBounds(selectedSeats);
+      if (!bounds) return;
+      const handles = getResizeHandles(bounds);
+
+      const handleSizePx = 12;
+      const hitHandle = handles.find(h => {
+        const screen = worldToScreen(h.x, h.y);
+        return Math.abs(screen.x - canvasX) <= handleSizePx / 2 && Math.abs(screen.y - canvasY) <= handleSizePx / 2;
+      });
+      if (!hitHandle) return;
+
+      isResizingSelection = true;
+      hasResizedDuringDrag = false;
+      resizeHandleId = hitHandle.id;
+      resizeStartBounds = bounds;
+      resizeStartSnapshot = captureSeatState();
+      resizeSnapshotById = new Map();
+      for (const snap of resizeStartSnapshot) resizeSnapshotById.set(snap.seatId, snap);
+
+      // pivot beror pГҐ vilket handtag vi drar
+      const { minX, maxX, minY, maxY, centerX, centerY } = bounds;
+      const pivotMap = {
+        nw: { x: maxX, y: maxY },
+        n:  { x: centerX, y: maxY },
+        ne: { x: minX, y: maxY },
+        e:  { x: minX, y: centerY },
+        se: { x: minX, y: minY },
+        s:  { x: centerX, y: minY },
+        sw: { x: maxX, y: minY },
+        w:  { x: maxX, y: centerY }
+      };
+      resizePivot = pivotMap[hitHandle.id];
+
+      const handlePoint = { x: hitHandle.x, y: hitHandle.y };
+      resizeStartVector = { x: handlePoint.x - resizePivot.x, y: handlePoint.y - resizePivot.y };
+      return;
+    }
+
+    if (currentTool === "select") {
+      const hit = hitTestSeat(worldX, worldY);
+      const additiveClick = e.metaKey || e.shiftKey || e.altKey; // enkel: ctrl används för pan, så låt t.ex. Shift/Alt/Cmd bli additive
+
+      let selectionChanged = false;
+
+      if (hit) {
+        const group = getGroupForSeat(hit);
+
+        if (!additiveClick) {
+          // ersätt markering
+          for (const s of seats) {
+            if (s.selected) {
+              s.selected = false;
+              selectionChanged = true;
+            }
+          }
+          for (const s of group) {
+            if (!s.selected) {
+              s.selected = true;
+              selectionChanged = true;
+            }
+          }
+        } else {
+          // toggla grupp
+          const groupSelected = group.every(s => s.selected);
+          if (groupSelected) {
+            for (const s of group) {
+              if (s.selected) {
+                s.selected = false;
+                selectionChanged = true;
+              }
+            }
+          } else {
+            for (const s of group) {
+              if (!s.selected) {
+                s.selected = true;
+                selectionChanged = true;
+              }
+            }
+          }
+        }
+
+        if (selectionChanged) {
+          pushHistorySnapshot();   // markering i historiken
+          updateMoveButtonState();
+          renderCanvas();
+        }
+
+        return;
+      }
+
+      // Ingen träff: starta ruta-markering
+      selectionRectActive = true;
+      rectStartCanvasX = canvasX;
+      rectStartCanvasY = canvasY;
+      rectEndCanvasX = canvasX;
+      rectEndCanvasY = canvasY;
+
+      // additive rect: om shift/meta/alt = lägg till
+      selectionRectAdditive = !!(e.metaKey || e.shiftKey || e.altKey);
+      return;
+    }
+
+    if (currentTool === "move") {
+      // Starta drag om det finns markerade platser
+      const anySelected = seats.some(s => s.selected);
+      if (!anySelected) return;
+
+      isDraggingSelection = true;
+      dragStartWorldX = worldX;
+      dragStartWorldY = worldY;
+      dragStartSnapshot = captureSeatState(); // för relativ flytt
+      return;
+    }
+  });
+
+  canvas.addEventListener("contextmenu", (e) => {
+    if (currentTool !== "reshape") return;
+    const rect = canvas.getBoundingClientRect();
+    const canvasX = e.clientX - rect.left;
+    const canvasY = e.clientY - rect.top;
+    const { worldX, worldY } = screenToWorld(canvasX, canvasY);
+    const hit = hitTestSeat(worldX, worldY);
+    if (!hit || !hit.rowId) return;
+    const rows = getSelectedRows();
+    if (rows.size !== 1 || !rows.has(hit.rowId)) return;
+    reshapePivotSeatId = hit.seatId;
+    e.preventDefault();
+  });
+
+  let selectionRectAdditive = false;
+
+  canvas.addEventListener("mousemove", (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const canvasX = e.clientX - rect.left;
+    const canvasY = e.clientY - rect.top;
+    const { worldX, worldY } = screenToWorld(canvasX, canvasY);
+
+    // Pan
+    if (isPanning) {
+      const dx = e.clientX - panStartX;
+      const dy = e.clientY - panStartY;
+      translateX = panStartTranslateX + dx;
+      translateY = panStartTranslateY + dy;
+      renderCanvas();
+      return;
+    }
+
+    // Rotation-drag
+    if (isRotatingSelection && rotateStartSnapshot && rotatePivot) {
+      const snapshotMap = rotateSnapshotById || new Map(rotateStartSnapshot.map(s => [s.seatId, s]));
+      if (!rotateSnapshotById) {
+        rotateSnapshotById = snapshotMap;
+      }
+      const currentAngle = Math.atan2(worldY - rotatePivot.y, worldX - rotatePivot.x);
+      const snapStep = (5 * Math.PI) / 180;
+      let delta = currentAngle - rotateStartAngle;
+      if (e.ctrlKey) {
+        delta = Math.round(delta / snapStep) * snapStep;
+      }
+      if (Math.abs(delta) > 1e-6) {
+        hasRotatedDuringDrag = true;
+      }
+      const cosA = Math.cos(delta);
+      const sinA = Math.sin(delta);
+
+      for (const s of seats) {
+        if (!s.selected) continue;
+        const start = snapshotMap.get(s.seatId);
+        if (!start) continue;
+        const dx = start.vx - rotatePivot.x;
+        const dy = start.vy - rotatePivot.y;
+        const rotatedX = rotatePivot.x + dx * cosA - dy * sinA;
+        const rotatedY = rotatePivot.y + dx * sinA + dy * cosA;
+        s.vx = rotatedX;
+        s.vy = rotatedY;
+        s.centerX = rotatedX;
+        s.centerY = rotatedY;
+      }
+
+      renderCanvas();
+      return;
+    }
+
+    // Bend-drag
+    if (isBendingSelection && bendRowsData && bendRowsData.length) {
+      const rowData = bendRowsData[0];
+      const rowId = bendActiveRowId || rowData.first.rowId || rowData.last.rowId || "";
+
+      if (bendDragTarget === "start") {
+        rowData.first.vx = worldX;
+        rowData.first.vy = worldY;
+        rowData.first.centerX = worldX;
+        rowData.first.centerY = worldY;
+      } else if (bendDragTarget === "end") {
+        rowData.last.vx = worldX;
+        rowData.last.vy = worldY;
+        rowData.last.centerX = worldX;
+        rowData.last.centerY = worldY;
+      } else if (bendDragTarget === "anchor") {
+        bendControlPoint = { x: worldX, y: worldY };
+      }
+
+      hasBentDuringDrag = true;
+      applyRowBend(rowData, rowId);
+      renderCanvas();
+      return;
+    }
+
+    // Reshape-drag
+    if (isReshapingRow && reshapeRowSeats && reshapeDragTarget && reshapeSnapshotById) {
+      applyReshapeDrag(reshapeDragTarget, worldX, worldY);
+      renderCanvas();
+      return;
+    }
+
+    // Resize-drag
+    if (isResizingSelection && resizeStartSnapshot && resizePivot && resizeStartVector) {
+      const snapshotMap = resizeSnapshotById || new Map(resizeStartSnapshot.map(s => [s.seatId, s]));
+      if (!resizeSnapshotById) resizeSnapshotById = snapshotMap;
+
+      const dx = worldX - resizePivot.x;
+      const dy = worldY - resizePivot.y;
+      let scaleX = resizeStartVector.x === 0 ? 1 : dx / resizeStartVector.x;
+      let scaleY = resizeStartVector.y === 0 ? 1 : dy / resizeStartVector.y;
+
+      // LСҖs axlar fСЧr kant-handtag
+      if (resizeHandleId === "n" || resizeHandleId === "s") {
+        scaleX = 1;
+      } else if (resizeHandleId === "e" || resizeHandleId === "w") {
+        scaleY = 1;
+      }
+
+      // Skydda mot 0/NaN
+      if (!Number.isFinite(scaleX) || Math.abs(scaleX) < 0.0001) scaleX = 0.0001 * Math.sign(scaleX || 1);
+      if (!Number.isFinite(scaleY) || Math.abs(scaleY) < 0.0001) scaleY = 0.0001 * Math.sign(scaleY || 1);
+
+      if (Math.abs(scaleX - 1) > 1e-6 || Math.abs(scaleY - 1) > 1e-6) {
+        hasResizedDuringDrag = true;
+      }
+
+      for (const s of seats) {
+        if (!s.selected) continue;
+        const start = snapshotMap.get(s.seatId);
+        if (!start) continue;
+        const relX = start.vx - resizePivot.x;
+        const relY = start.vy - resizePivot.y;
+        const newX = resizePivot.x + relX * scaleX;
+        const newY = resizePivot.y + relY * scaleY;
+        s.vx = newX;
+        s.vy = newY;
+        s.centerX = newX;
+        s.centerY = newY;
+      }
+
+      renderCanvas();
+      return;
+    }
+
+    // Move-drag
+    if (isDraggingSelection && dragStartSnapshot) {
+      const dxWorld = worldX - dragStartWorldX;
+      const dyWorld = worldY - dragStartWorldY;
+
+      const snapshotById = new Map();
+      for (const snap of dragStartSnapshot) {
+        snapshotById.set(snap.seatId, snap);
+      }
+
+      for (const s of seats) {
+        if (!s.selected) continue;
+        const start = snapshotById.get(s.seatId);
+        if (!start) continue;
+        s.vx = start.vx + dxWorld;
+        s.vy = start.vy + dyWorld;
+        s.centerX = start.centerX + dxWorld;
+        s.centerY = start.centerY + dyWorld;
+      }
+
+      renderCanvas();
+      return;
+    }
+
+    // Ruta-markering live
+    if (selectionRectActive) {
+      rectEndCanvasX = canvasX;
+      rectEndCanvasY = canvasY;
+      renderCanvas();
+      return;
+    }
+
+    // Hover-seat
+    if (showHoverInfo && lastVisibleSeatCount <= HOVER_VISIBLE_LIMIT) {
+      const hit = hitTestSeat(worldX, worldY);
+      hoverSeat = hit || null;
+
+      if (hoverSeat) {
+        const screenPos = worldToScreen(hoverSeat.vx, hoverSeat.vy);
+        const tooltipLines = [];
+        if (hoverSeat.sectionId || hoverSeat.sectionName) {
+          tooltipLines.push(
+            `<strong>Sektion:</strong> ${hoverSeat.sectionName || hoverSeat.sectionId}`
+          );
+        }
+        if (hoverSeat.rowName || hoverSeat.rowId) {
+          tooltipLines.push(
+            `<strong>Rad:</strong> ${hoverSeat.rowName || hoverSeat.rowId}`
+          );
+        }
+        tooltipLines.push(
+          `<strong>Plats:</strong> ${hoverSeat.name}`
+        );
+        if (hoverSeat.entryVia && hoverSeat.entryVia !== "-") {
+          tooltipLines.push(`<strong>Entry via:</strong> ${hoverSeat.entryVia}`);
+        }
+
+        tooltipEl.innerHTML = tooltipLines.join("<br/>");
+        tooltipEl.style.left = (screenPos.x + 12) + "px";
+        tooltipEl.style.top = (screenPos.y + 12) + "px";
+      }
+
+      renderCanvas();
+    } else {
+      hoverSeat = null;
+    }
+  });
+
+  canvas.addEventListener("mouseup", (e) => {
+    if (isPanning) {
+      isPanning = false;
+      canvasContainer.classList.remove("panning");
+    }
+
+    if (isRotatingSelection) {
+      const didRotate = hasRotatedDuringDrag;
+      isRotatingSelection = false;
+      hasRotatedDuringDrag = false;
+      rotateStartSnapshot = null;
+      rotateSnapshotById = null;
+      rotatePivot = null;
+      rotateStartAngle = 0;
+
+      if (didRotate) {
+        // Rotation klar -> historik + kod + save-knapp
+        pushHistorySnapshot();
+        hasUnsavedChanges = true;
+        updateCodeFromSeats();
+        updateSaveButton();
+      }
+    }
+
+    if (isBendingSelection) {
+      const didBend = hasBentDuringDrag;
+      isBendingSelection = false;
+      hasBentDuringDrag = false;
+      bendStartSnapshot = null;
+      // Behåll anchor/handle mellan interaktioner; nollställ bara drag-target
+      bendDragTarget = null;
+
+      if (didBend) {
+        pushHistorySnapshot();
+        hasUnsavedChanges = true;
+        updateCodeFromSeats();
+        updateSaveButton();
+      }
+    }
+
+    if (isReshapingRow) {
+      const didReshape = !!reshapeDragTarget;
+      isReshapingRow = false;
+      reshapeDragTarget = null;
+      reshapeStartSnapshot = null;
+      reshapeSnapshotById = null;
+      reshapeRowSeats = null;
+
+      if (didReshape) {
+        pushHistorySnapshot();
+        hasUnsavedChanges = true;
+        updateCodeFromSeats();
+        updateSaveButton();
+      }
+    }
+
+    if (isResizingSelection) {
+      const didResize = hasResizedDuringDrag;
+      isResizingSelection = false;
+      hasResizedDuringDrag = false;
+      resizeStartSnapshot = null;
+      resizeSnapshotById = null;
+      resizePivot = null;
+      resizeStartBounds = null;
+      resizeHandleId = null;
+      resizeStartVector = null;
+
+      if (didResize) {
+        pushHistorySnapshot();
+        hasUnsavedChanges = true;
+        updateCodeFromSeats();
+        updateSaveButton();
+      }
+    }
+
+    if (isDraggingSelection) {
+      isDraggingSelection = false;
+      dragStartSnapshot = null;
+
+      // Flytten är klar -> historik + kod + save-knapp
+      pushHistorySnapshot();
+      hasUnsavedChanges = true;
+      updateCodeFromSeats();
+      updateSaveButton();
+      return;
+    }
+
+    if (selectionRectActive) {
+      selectionRectActive = false;
+
+      const x1 = Math.min(rectStartCanvasX, rectEndCanvasX);
+      const y1 = Math.min(rectStartCanvasY, rectEndCanvasY);
+      const x2 = Math.max(rectStartCanvasX, rectEndCanvasX);
+      const y2 = Math.max(rectStartCanvasY, rectEndCanvasY);
+
+      const worldMinX = (x1 - translateX) / scale;
+      const worldMaxX = (x2 - translateX) / scale;
+      const worldMinY = (y1 - translateY) / scale;
+      const worldMaxY = (y2 - translateY) / scale;
+
+      selectByRect(
+        { minX: worldMinX, maxX: worldMaxX, minY: worldMinY, maxY: worldMaxY },
+        selectionRectAdditive
+      );
+      selectionRectAdditive = false;
+    }
+  });
+
+  canvas.addEventListener("mouseleave", () => {
+    hoverSeat = null;
+    if (isPanning) {
+      isPanning = false;
+      canvasContainer.classList.remove("panning");
+    }
+    if (isRotatingSelection) {
+      const didRotate = hasRotatedDuringDrag;
+      isRotatingSelection = false;
+      hasRotatedDuringDrag = false;
+      rotateStartSnapshot = null;
+      rotateSnapshotById = null;
+      rotatePivot = null;
+      rotateStartAngle = 0;
+
+      if (didRotate) {
+        pushHistorySnapshot();
+        hasUnsavedChanges = true;
+        updateCodeFromSeats();
+        updateSaveButton();
+      }
+    }
+    if (isBendingSelection) {
+      const didBend = hasBentDuringDrag;
+      isBendingSelection = false;
+      hasBentDuringDrag = false;
+      bendStartSnapshot = null;
+      bendDragTarget = null;
+
+      if (didBend) {
+        pushHistorySnapshot();
+        hasUnsavedChanges = true;
+        updateCodeFromSeats();
+        updateSaveButton();
+      }
+    }
+    if (isReshapingRow) {
+      const didReshape = !!reshapeDragTarget;
+      isReshapingRow = false;
+      reshapeDragTarget = null;
+      reshapeStartSnapshot = null;
+      reshapeSnapshotById = null;
+      reshapeRowSeats = null;
+
+      if (didReshape) {
+        pushHistorySnapshot();
+        hasUnsavedChanges = true;
+        updateCodeFromSeats();
+        updateSaveButton();
+      }
+    }
+    if (isResizingSelection) {
+      const didResize = hasResizedDuringDrag;
+      isResizingSelection = false;
+      hasResizedDuringDrag = false;
+      resizeStartSnapshot = null;
+      resizeSnapshotById = null;
+      resizePivot = null;
+      resizeStartBounds = null;
+      resizeHandleId = null;
+      resizeStartVector = null;
+
+      if (didResize) {
+        pushHistorySnapshot();
+        hasUnsavedChanges = true;
+        updateCodeFromSeats();
+        updateSaveButton();
+      }
+    }
+    if (isDraggingSelection) {
+      isDraggingSelection = false;
+      dragStartSnapshot = null;
+
+      pushHistorySnapshot();
+      hasUnsavedChanges = true;
+      updateCodeFromSeats();
+      updateSaveButton();
+    }
+    if (selectionRectActive) {
+      selectionRectActive = false;
+    }
+    renderCanvas();
+  });
+
+  canvas.addEventListener("dblclick", (e) => {
+    if (currentTool !== "bend") return;
+    const rows = getSelectedRows();
+    if (rows.size !== 1) return;
+
+    const rowSeats = rows.values().next().value;
+    if (!rowSeats || rowSeats.length < 2) return;
+
+    const rect = canvas.getBoundingClientRect();
+    const canvasX = e.clientX - rect.left;
+    const canvasY = e.clientY - rect.top;
+    const { worldX, worldY } = screenToWorld(canvasX, canvasY);
+
+    const anchor = bendControlPoint;
+    if (!anchor) return;
+    const screenAnchor = worldToScreen(anchor.x, anchor.y);
+    const hitRadius = 10;
+    const dist = Math.hypot(screenAnchor.x - canvasX, screenAnchor.y - canvasY);
+    if (dist > hitRadius) return;
+
+    bendControlPoint = null;
+    const rowData = computeRowEndpoints(rowSeats);
+    redistributeRowLinear(rowData);
+
+    pushHistorySnapshot();
+    hasUnsavedChanges = true;
+    updateCodeFromSeats();
+    updateSaveButton();
+    renderCanvas();
+  });
+
+  // --- Tangentbord / genvägar ---
+  window.addEventListener("keydown", (e) => {
+    const key = e.key.toLowerCase();
+    const activeEl = document.activeElement;
+    const isTextInput =
+      activeEl &&
+      (activeEl.tagName === "INPUT" ||
+        activeEl.tagName === "TEXTAREA" ||
+        activeEl.isContentEditable);
+
+    // Ctrl/Cmd-kombinationer
+    if (e.ctrlKey || e.metaKey) {
+      if (key === "s") {
+        e.preventDefault();
+        if (!saveBtn.disabled) saveBtn.click();
+        return;
+      }
+      if (key === "o") {
+        e.preventDefault();
+        openFileBtnTop.click();
+        return;
+      }
+      if (key === "d") {
+        e.preventDefault();
+        deselectToolBtn.click();
+        return;
+      }
+      if (key === "a") {
+        e.preventDefault();
+        selectAllSeats();
+        return;
+      }
+      if (!e.shiftKey && key === "z") {
+        e.preventDefault();
+        undoLast();
+        return;
+      }
+      return;
+    }
+
+    // Om man skriver i textfält: inga fler genvägar
+    if (isTextInput) return;
+
+    // Piltangenter: nudge
+    if (e.key === "ArrowUp" || e.key === "ArrowDown" || e.key === "ArrowLeft" || e.key === "ArrowRight") {
+      e.preventDefault();
+      const step = e.shiftKey ? 10 : 1;
+      let dx = 0, dy = 0;
+      if (e.key === "ArrowUp") dy = -step;
+      if (e.key === "ArrowDown") dy = step;
+      if (e.key === "ArrowLeft") dx = -step;
+      if (e.key === "ArrowRight") dx = step;
+      const didMove = nudgeSelection(dx, dy);
+      if (didMove) {
+        pushHistorySnapshot();
+        hasUnsavedChanges = true;
+        updateCodeFromSeats();
+        updateSaveButton();
+        renderCanvas();
+      }
+      return;
+    }
+
+    // Home = zooma så att allt syns
+    if (e.key === "Home") {
+      e.preventDefault();
+      zoomToFitAllSeats();
+      return;
+    }
+
+    // Enkeltangenter
+    switch (key) {
+      case "s":
+        e.preventDefault();
+        modeSectionBtn.click();
+        break;
+      case "d":
+        e.preventDefault();
+        modeRowBtn.click();
+        break;
+      case "f":
+        e.preventDefault();
+        modeSeatBtn.click();
+        break;
+      case "v":
+        e.preventDefault();
+        if (!moveToolBtn.disabled) moveToolBtn.click();
+        break;
+      case "r":
+        e.preventDefault();
+        if (!rotateToolBtn.disabled) rotateToolBtn.click();
+        break;
+      case "z":
+        e.preventDefault();
+        if (!resizeToolBtn.disabled) resizeToolBtn.click();
+        break;
+      case "b":
+        e.preventDefault();
+        if (!bendToolBtn.disabled) bendToolBtn.click();
+        break;
+      case "c":
+        e.preventDefault();
+        selectToolBtn.click();
+        break;
+      case "q":
+        e.preventDefault();
+        resetRowBtn.click();
+        break;
+      case "t":
+        e.preventDefault();
+        makeTableBtn.click();
+        break;
+      case "e":
+        e.preventDefault();
+        if (!reshapeRowBtn.disabled) reshapeRowBtn.click();
+        break;
+      default:
+        break;
+    }
+  });
+
+  // --- Verktyg-knappar ---
+  function setButtonActive(btn, isActive) {
+    btn.classList.toggle("active", isActive);
+    btn.classList.toggle("c-button--active", isActive);
+  }
+
+  function setTool(tool) {
+    currentTool = tool;
+    setButtonActive(selectToolBtn, tool === "select");
+    setButtonActive(moveToolBtn, tool === "move");
+    setButtonActive(rotateToolBtn, tool === "rotate");
+    setButtonActive(resizeToolBtn, tool === "resize");
+    setButtonActive(bendToolBtn, tool === "bend");
+    setButtonActive(reshapeRowBtn, tool === "reshape");
+    if (tool === "bend") {
+      ensureBendDefaults();
+      renderCanvas();
+    }
+  }
+
+  selectToolBtn.addEventListener("click", () => setTool("select"));
+  moveToolBtn.addEventListener("click", () => {
+    if (!moveToolBtn.disabled) setTool("move");
+  });
+  rotateToolBtn.addEventListener("click", () => {
+    if (!rotateToolBtn.disabled) setTool("rotate");
+  });
+  resizeToolBtn.addEventListener("click", () => {
+    if (!resizeToolBtn.disabled) setTool("resize");
+  });
+  bendToolBtn.addEventListener("click", () => {
+    if (!bendToolBtn.disabled) setTool("bend");
+  });
+  reshapeRowBtn.addEventListener("click", () => {
+    if (!reshapeRowBtn.disabled) setTool("reshape");
+  });
+  resetRowBtn.addEventListener("click", () => {
+    if (resetRowBtn.disabled) return;
+    const didReset = resetSelectedRowsLinear();
+    if (didReset) {
+      pushHistorySnapshot();
+      hasUnsavedChanges = true;
+      updateCodeFromSeats();
+      updateSaveButton();
+      renderCanvas();
+    }
+  });
+  makeTableBtn.addEventListener("click", () => {
+    if (makeTableBtn.disabled) return;
+    const didMake = makeTableFromSelectedRows();
+    if (didMake) {
+      pushHistorySnapshot();
+      hasUnsavedChanges = true;
+      updateCodeFromSeats();
+      updateSaveButton();
+      renderCanvas();
+    }
+  });
+
+  deselectToolBtn.addEventListener("click", () => {
+    let changed = false;
+    for (const s of seats) {
+      if (s.selected) {
+        s.selected = false;
+        changed = true;
+      }
+    }
+    if (changed) {
+      pushHistorySnapshot();    // ångra deselect
+      updateMoveButtonState();
+      renderCanvas();
+    }
+    setTool("select");
+  });
+
+  // --- Markeringsnivå-knappar ---
+  function setSelectionMode(mode) {
+    selectionMode = mode;
+    setButtonActive(modeSectionBtn, mode === "section");
+    setButtonActive(modeRowBtn, mode === "row");
+    setButtonActive(modeSeatBtn, mode === "seat");
+  }
+
+  modeSectionBtn.addEventListener("click", () => setSelectionMode("section"));
+  modeRowBtn.addEventListener("click", () => setSelectionMode("row"));
+  modeSeatBtn.addEventListener("click", () => setSelectionMode("seat"));
+
+  // --- Bakgrundsbild ---
+  bgLoadBtn.addEventListener("click", () => bgFileInput.click());
+  bgFileInput.addEventListener("change", () => {
+    const file = bgFileInput.files && bgFileInput.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      const dataUrl = e.target?.result;
+      if (typeof dataUrl === "string") {
+        await loadBackgroundFromDataUrl(dataUrl);
+      }
+    };
+    reader.readAsDataURL(file);
+  });
+  bgEnabledToggle.addEventListener("change", (e) => {
+    setBackgroundEnabled(e.target.checked);
+  });
+  bgOpacityRange.addEventListener("input", (e) => {
+    const val = parseFloat(e.target.value);
+    setBackgroundOpacity(val);
+  });
+  bgScaleRange.addEventListener("input", (e) => {
+    const val = parseFloat(e.target.value);
+    setBackgroundScale(val);
+  });
+  viewGrayToggle?.addEventListener("change", (e) => {
+    renderGrayscale = e.target.checked;
+    renderCanvas();
+  });
+  viewHoverToggle?.addEventListener("change", (e) => {
+    showHoverInfo = e.target.checked;
+    if (!showHoverInfo) {
+      hoverSeat = null;
+      tooltipEl.style.display = "none";
+    }
+    renderCanvas();
+  });
+  viewSectionNamesToggle?.addEventListener("change", (e) => {
+    showSectionNames = e.target.checked;
+    renderCanvas();
+  });
+
+  // --- Align-knappar ---
+  function handleAlign(mode) {
+    const didAlign = alignSelectedSeats(mode);
+    if (didAlign) {
+      pushHistorySnapshot();
+      hasUnsavedChanges = true;
+      updateCodeFromSeats();
+      updateSaveButton();
+      renderCanvas();
+    }
+  }
+  alignTopBtn.addEventListener("click", () => handleAlign("top"));
+  alignBottomBtn.addEventListener("click", () => handleAlign("bottom"));
+  alignLeftBtn.addEventListener("click", () => handleAlign("left"));
+  alignRightBtn.addEventListener("click", () => handleAlign("right"));
+  alignCenterHBtn.addEventListener("click", () => handleAlign("centerH"));
+  alignCenterVBtn.addEventListener("click", () => handleAlign("centerV"));
+
+      // --- Sektion-editor ---
+  function newSeat(name = "1") {
+    return { id: crypto.randomUUID ? crypto.randomUUID() : String(Math.random()), name };
+  }
+
+  function newRow(name = "Rad") {
+    return { id: crypto.randomUUID ? crypto.randomUUID() : String(Math.random()), name, seats: [newSeat("1"), newSeat("2")] };
+  }
+
+  function computeNextSectionId() {
+    const ids = new Set();
+    sectionNames.forEach((_, key) => ids.add(key));
+    seats.forEach(s => { if (s.sectionId) ids.add(s.sectionId); });
+    let maxMajor = 0;
+    ids.forEach(id => {
+      const parts = String(id).split('.');
+      const major = parseInt(parts[0], 10);
+      if (Number.isFinite(major) && major > maxMajor) maxMajor = major;
+    });
+    const nextMajor = maxMajor > 0 ? maxMajor + 1 : 1;
+    return `${nextMajor}.1`;
+  }
+
+  function resetSectionEditorState(section) {
+    if (section) {
+      sectionEditorState = JSON.parse(JSON.stringify(section));
+    } else {
+      const nextId = computeNextSectionId();
+      sectionEditorState = {
+        sectionId: nextId,
+        sectionName: "",
+        rows: [newRow("Rad 1")]
+      };
+    }
+  }
+
+  function renderSectionEditor() {
+
+    sectionNameInput.value = sectionEditorState.sectionName || "";
+
+    sectionIdInput.value = sectionEditorState.sectionId || "";
+
+    sectionRowsContainer.innerHTML = "";
+
+    const disableRowRemove = sectionEditorState.rows.length <= 1;
+
+    sectionEditorState.rows.forEach((row, idx) => {
+
+      if (!row.seats || !row.seats.length) {
+
+        row.seats = [newSeat("1"), newSeat("2")];
+
+      }
+
+      const rowEl = document.createElement("div");
+
+      rowEl.className = "row-item";
+
+      rowEl.dataset.rowId = row.id;
+
+      const seatsHtml = row.seats.map(seat => `<span class="seat-chip" data-row="${row.id}" data-seat="${seat.id}"><input type="text" value="${seat.name || ""}" class="seat-name-input" data-row="${row.id}" data-seat="${seat.id}" /><button class="remove-seat" data-row="${row.id}" data-seat="${seat.id}" title="Ta bort plats">&times;</button></span>`).join("");
+
+      rowEl.innerHTML = `
+
+        <div class="row-line">
+
+          <input type="text" value="${row.name || ""}" data-row="${row.id}" class="row-name-input" placeholder="${idx + 1}" />
+
+          <div class="seat-grid" data-row="${row.id}">
+
+            ${seatsHtml}
+
+            <button class="c-button c-button--ghost c-button--small add-seat" data-row="${row.id}" title="Lägg till plats">+</button>
+
+            <button class="c-button c-button--ghost c-button--small remove-seat-last" data-row="${row.id}" title="Ta bort sista plats">-</button>
+
+          </div>
+
+          <button class="c-button c-button--ghost c-button--small remove-row" data-row="${row.id}" ${disableRowRemove ? "disabled" : ""} title="Ta bort rad">X</button>
+
+        </div>
+
+      `;
+
+      sectionRowsContainer.appendChild(rowEl);
+
+    });
+
+  }
+
+  function openSectionModal(mode = "create", section = null) {
+    resetSectionEditorState(section);
+    sectionModalTitle.textContent = mode === "edit" ? "Redigera sektion" : "Ny sektion";
+    renderSectionEditor();
+    sectionModalOverlay.style.display = "flex";
+  }
+
+  function closeSectionModal() {
+    sectionModalOverlay.style.display = "none";
+  }
+
+  addSectionBtn?.addEventListener("click", () => openSectionModal("create"));
+  sectionModalClose?.addEventListener("click", closeSectionModal);
+  sectionModalCancel?.addEventListener("click", closeSectionModal);
+  sectionModalOverlay?.addEventListener("click", (e) => {
+    if (e.target === sectionModalOverlay) closeSectionModal();
+  });
+
+  sectionNameInput?.addEventListener("input", (e) => {
+    sectionEditorState.sectionName = e.target.value;
+  });
+  sectionIdInput?.addEventListener("input", (e) => {
+    sectionEditorState.sectionId = e.target.value;
+  });
+
+  addRowBtn?.addEventListener("click", () => {
+    sectionEditorState.rows.push(newRow(`Rad ${sectionEditorState.rows.length + 1}`));
+    renderSectionEditor();
+  });
+
+  sectionRowsContainer?.addEventListener("input", (e) => {
+    const rowId = e.target.getAttribute("data-row");
+    const seatId = e.target.getAttribute("data-seat");
+    if (e.target.classList.contains("row-name-input")) {
+      const row = sectionEditorState.rows.find(r => r.id === rowId);
+      if (row) row.name = e.target.value;
+    } else if (e.target.classList.contains("seat-name-input")) {
+      const row = sectionEditorState.rows.find(r => r.id === rowId);
+      if (row) {
+        const seat = row.seats.find(s => s.id === seatId);
+        if (seat) seat.name = e.target.value;
+      }
+    }
+  });
+
+  sectionRowsContainer?.addEventListener("click", (e) => {
+
+    const rowId = e.target.getAttribute("data-row");
+
+    const seatId = e.target.getAttribute("data-seat");
+
+    if (e.target.classList.contains("add-seat")) {
+
+      const row = sectionEditorState.rows.find(r => r.id === rowId);
+
+      if (row) {
+
+        row.seats.push(newSeat(String(row.seats.length + 1)));
+
+        renderSectionEditor();
+
+      }
+
+    } else if (e.target.classList.contains("remove-seat-last")) {
+
+      const row = sectionEditorState.rows.find(r => r.id === rowId);
+
+      if (row && row.seats.length > 0) {
+
+        row.seats.pop();
+
+        renderSectionEditor();
+
+      }
+
+    } else if (e.target.classList.contains("remove-seat")) {
+
+      const row = sectionEditorState.rows.find(r => r.id === rowId);
+
+      if (row) {
+
+        row.seats = row.seats.filter(s => s.id !== seatId);
+
+        renderSectionEditor();
+
+      }
+
+    } else if (e.target.classList.contains("remove-row")) {
+
+      if (sectionEditorState.rows.length > 1) {
+
+        sectionEditorState.rows = sectionEditorState.rows.filter(r => r.id !== rowId);
+
+        renderSectionEditor();
+
+      }
+
+    }
+
+  });
+
+
+
+  function saveSectionFromEditor() {
+
+    const sectionId = (sectionEditorState.sectionId || computeNextSectionId()).trim();
+
+    const sectionName = (sectionEditorState.sectionName || sectionId).trim();
+
+    if (!sectionId) return;
+
+
+
+    computeSectionOutlinesFromSeats(0);
+
+    const baseX = layoutBounds ? layoutBounds.maxX + 200 : 0;
+
+    const baseY = layoutBounds ? layoutBounds.minY : 0;
+
+    const seatSpacing = 60;
+
+    const rowSpacing = 80;
+
+    const timestamp = Date.now();
+
+
+
+    sectionNames.set(sectionId, sectionName);
+
+    originalLines.push(`${timestamp}|SectionAdd|SectionId=${sectionId}|Name=${sectionName}`);
+
+
+
+    const rows = sectionEditorState.rows.length ? sectionEditorState.rows : [newRow("Rad 1")];
+
+    rows.forEach((row, rowIdx) => {
+
+      const rowName = (row.name || `Rad ${rowIdx + 1}`).trim();
+
+      const rowId = `${sectionId}.${rowIdx + 1}`;
+
+      originalLines.push(`${timestamp}|RowAdd|RowId=${rowId}|Name=${rowName}`);
+
+
+
+      const rowSeats = row.seats && row.seats.length ? row.seats : [newSeat("1"), newSeat("2")];
+
+      rowSeats.forEach((seat, seatIdx) => {
+
+        const seatName = (seat.name || `${seatIdx + 1}`).trim();
+
+        const seatId = `${sectionId}.${rowIdx + 1}.${seatIdx + 1}`;
+
+        const centerX = baseX + seatIdx * seatSpacing;
+
+        const centerY = baseY + rowIdx * rowSpacing;
+
+        const seatObj = {
+
+          seatId,
+
+          name: seatName,
+
+          sectionId,
+
+          rowId,
+
+          sectionName,
+
+          rowName,
+
+          centerX,
+
+          centerY,
+
+          vx: centerX,
+
+          vy: centerY,
+
+          radius: 10,
+
+          rotation: 0,
+
+          width: 100,
+
+          entryVia: "-",
+
+          goodness: 0,
+
+          attribute: "",
+
+          timestamp,
+
+          selected: false,
+
+          lineIndex: originalLines.length
+
+        };
+
+        originalLines.push(buildSeatLine(seatObj));
+
+        seats.push(seatObj);
+
+        seatIdToLineIndex.set(seatId, seatObj.lineIndex);
+
+      });
+
+    });
+
+
+
+    const uniqueSections = new Set(seats.map(s => s.sectionId).filter(Boolean));
+
+    const uniqueRows = new Set(seats.map(s => s.rowId).filter(Boolean));
+
+    seatCountEl.textContent = seats.length.toString();
+
+    sectionCountEl.textContent = uniqueSections.size.toString();
+
+    rowCountEl.textContent = uniqueRows.size.toString();
+
+
+
+    rebuildSectionColors();
+
+    updateCodeFromSeats();
+
+    codePane.value = originalLines.join("\n");
+
+
+
+    hasUnsavedChanges = true;
+
+    updateSaveButton();
+
+    pushHistorySnapshot();
+
+    renderCanvas();
+
+  }
+
+
+
+  sectionModalSave?.addEventListener("click", () => {
+
+    saveSectionFromEditor();
+
+    closeSectionModal();
+
+  });
+
+
+// --- Kod-modal ---
+  let codeModalOriginal = "";
+  function openCodeModal() {
+    codeModalOriginal = codePane.value || "";
+    codeModalTextarea.value = codeModalOriginal;
+    codeModalApply.disabled = true;
+    codeModalOverlay.style.display = "flex";
+  }
+  function closeCodeModal() {
+    codeModalOverlay.style.display = "none";
+  }
+  openCodeModalBtn?.addEventListener("click", openCodeModal);
+  codeModalClose?.addEventListener("click", closeCodeModal);
+  codeModalOverlay?.addEventListener("click", (e) => {
+    if (e.target === codeModalOverlay) closeCodeModal();
+  });
+  codeModalTextarea?.addEventListener("input", () => {
+    codeModalApply.disabled = codeModalTextarea.value === codeModalOriginal;
+  });
+  codeModalApply?.addEventListener("click", () => {
+    const newText = codeModalTextarea.value;
+    codePane.value = newText;
+    parseTlt(newText);
+    hasUnsavedChanges = true;
+    updateSaveButton();
+    closeCodeModal();
+  });
+
+
+  // --- Init ---
+
+  window.addEventListener("load", () => {
+  // Försök återställa en tidigare session (om det finns)
+  tryRestoreSessionFromLocalStorage();
+});
+
+window.addEventListener("beforeunload", (e) => {
+  if (!hasUnsavedChanges) return;
+
+  // Detta magiska returnValue krävs för att vissa browsers ska visa varningen
+  e.preventDefault();
+  e.returnValue = "";
+});
+
+
+  updateBgOpacityDisplay();
+  updateBgScaleDisplay();
+  bgEnabledToggle.checked = backgroundState.enabled;
+  renderGrayscale = viewGrayToggle?.checked ?? false;
+  showHoverInfo = viewHoverToggle?.checked ?? true;
+  showSectionNames = viewSectionNamesToggle?.checked ?? false;
+
+  setTool("select");
+  setSelectionMode("seat");
+  updateMoveButtonState();
+  updateSaveButton();
+  renderCanvas();
+</script>
+
+
+</body>
+</html>
