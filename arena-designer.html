@@ -202,6 +202,412 @@
     .u-font--smaller { font-size: 0.75rem; }
     .u-font--mono    { font-family: var(--font-mono); }
 
+    /* Sektion-manager modal */
+    #sectionManagerOverlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(12, 28, 48, 0.65);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 30;
+      padding: 1rem;
+    }
+
+    .section-manager {
+      width: min(1440px, 98vw);
+      height: min(90vh, 960px);
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.25);
+      border: 1px solid #dbe0e4;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .section-manager__header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.85rem 1rem;
+      border-bottom: 1px solid #e5e9ef;
+    }
+
+    .section-manager__title {
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: #243743;
+      font-size: 0.95rem;
+    }
+
+    .section-manager__body {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      gap: 0.75rem;
+      padding: 0.75rem;
+      background: #f7f9fc;
+    }
+
+    .section-list {
+      background: #fff;
+      border: 1px solid #e1e6ef;
+      border-radius: 10px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.04);
+    }
+
+    .section-list__header {
+      padding: 0.7rem 0.75rem;
+      border-bottom: 1px solid #e6ebf3;
+      display: flex;
+      gap: 0.45rem;
+      align-items: center;
+    }
+
+    .section-list__search {
+      flex: 1;
+      max-width: 180px;
+      padding: 0.4rem 0.55rem;
+      border-radius: 8px;
+      border: 1px solid #d3dae5;
+      font-size: 0.9rem;
+    }
+
+    .section-cards {
+      flex: 1;
+      overflow: auto;
+      padding: 0.4rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      background: #f9fbff;
+    }
+
+    .section-card {
+      border: 1px solid #e1e6ef;
+      border-radius: 10px;
+      background: #fff;
+      padding: 0.55rem 0.65rem;
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+      cursor: pointer;
+      transition: border-color var(--transition-fast), box-shadow var(--transition-fast), transform var(--transition-fast);
+    }
+
+    .section-card:hover {
+      border-color: var(--tick-blue);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    }
+
+    .section-card--active {
+      border-color: var(--tick-blue);
+      box-shadow: 0 0 0 1px rgba(20,160,244,0.4);
+      background: #f0f8ff;
+    }
+
+    .section-card__color {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      border: 1px solid #cbd4df;
+      flex: 0 0 auto;
+    }
+
+    .section-card__body {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      min-width: 0;
+      gap: 0.1rem;
+    }
+
+    .section-card__name {
+      font-weight: 600;
+      font-size: 0.9rem;
+      color: #243743;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .section-card__meta {
+      display: flex;
+      gap: 0.5rem;
+      font-size: 0.78rem;
+      color: #5b6673;
+    }
+
+    .section-editor {
+      background: #fff;
+      border: 1px solid #e1e6ef;
+      border-radius: 10px;
+      padding: 0.85rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.04);
+      overflow: hidden;
+    }
+
+    .section-editor__grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 0.6rem;
+    }
+
+    .section-editor__field input,
+    .section-editor__field select {
+      width: 100%;
+      padding: 0.45rem 0.6rem;
+      border-radius: 8px;
+      border: 1px solid #cdd3e0;
+      font-size: 0.9rem;
+    }
+
+    .section-editor__rows {
+      flex: 1;
+      background: #f8fbff;
+      border: 1px dashed #d0d9e8;
+      border-radius: 10px;
+      padding: 0.6rem;
+      overflow: auto;
+      display: none;
+      flex-direction: column;
+      gap: 0.5rem;
+      height: 0;
+      padding: 0;
+      border: 0;
+    }
+
+    .section-preview {
+      background: #f8fbff;
+      border: 1px solid #d0d9e8;
+      border-radius: 10px;
+      padding: 0.6rem 0.8rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      flex: 0 0 auto;
+      min-height: 260px;
+      max-height: 320px;
+    }
+
+    .section-preview__header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #2e3c47;
+    }
+
+    .section-preview__canvas {
+      width: 100%;
+      height: 100%;
+      min-height: 240px;
+      max-height: 320px;
+      border-radius: 8px;
+      background: linear-gradient(180deg, #ffffff, #f0f5fb);
+      border: 1px solid #d8e1ed;
+      box-shadow: inset 0 1px 2px rgba(0,0,0,0.04);
+    }
+
+    /* Ny layout-modal */
+    #newLayoutOverlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.35);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    }
+    #newLayoutModal {
+      background: #fff;
+      border-radius: 12px;
+      padding: 1rem;
+      width: min(520px, 92vw);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    #newLayoutModal h3 {
+      margin: 0;
+      font-size: 1.1rem;
+      color: #1f2b35;
+    }
+    .new-layout-field {
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+      font-size: 0.9rem;
+    }
+    .new-layout-field input {
+      padding: 0.55rem 0.65rem;
+      border-radius: 8px;
+      border: 1px solid #cdd3e0;
+      font-size: 0.95rem;
+    }
+    .new-layout-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.5rem;
+    }
+
+    .row-card {
+      background: #fff;
+      border: 1px solid #e1e6ef;
+      border-radius: 10px;
+      padding: 0.55rem 0.6rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+    }
+
+    .row-card__header {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .row-card__name {
+      flex: 1;
+      padding: 0.35rem 0.5rem;
+      border-radius: 8px;
+      border: 1px solid #d3dae5;
+      font-size: 0.88rem;
+    }
+
+    .row-card__actions {
+      display: flex;
+      gap: 0.35rem;
+      align-items: center;
+    }
+
+    .row-card__controls {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.35rem;
+      flex-wrap: wrap;
+    }
+
+    .row-card__counter {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-size: 0.84rem;
+      color: #243743;
+    }
+
+    .row-card__index {
+      width: 48px;
+      padding: 0.3rem 0.4rem;
+      border-radius: 8px;
+      border: 1px solid #d3dae5;
+      text-align: center;
+      font-size: 0.9rem;
+    }
+
+    .row-card__line {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      flex-wrap: wrap;
+    }
+
+    .row-card__chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.25rem;
+    }
+
+    .seat-chip {
+      background: #f1f5fb;
+      border: 1px solid #d6deed;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      font-size: 0.82rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.2rem;
+      cursor: default;
+      padding: 0;
+    }
+
+    .seat-chip input {
+      border: none;
+      background: transparent;
+      width: 20px;
+      font-size: 0.82rem;
+      text-align: center;
+      color: #243743;
+    }
+
+    .seat-chip input:focus {
+      outline: none;
+    }
+
+    .seat-chip__remove {
+      border: none;
+      background: transparent;
+      color: #c12e44;
+      cursor: pointer;
+      font-size: 0.85rem;
+      padding: 0;
+    }
+
+    .seat-chip--gap {
+      background: #fff7e6;
+      border-style: dashed;
+      color: #c27c2c;
+      width: 28px;
+      height: 28px;
+      justify-content: center;
+      font-weight: 700;
+    }
+
+    .section-editor__footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .section-hint {
+      font-size: 0.8rem;
+      color: #5b6673;
+    }
+
+    .row-textarea {
+      width: 100%;
+      min-height: 160px;
+      border: 1px solid #cdd3e0;
+      border-radius: 10px;
+      padding: 0.55rem;
+      font-family: var(--font-mono);
+      font-size: 0.9rem;
+      resize: vertical;
+      background: #f8fbff;
+    }
+
+    .section-errors {
+      color: #c12e44;
+      font-size: 0.82rem;
+      margin-top: 0.35rem;
+      white-space: pre-line;
+    }
+
     /* ---------- Vänster verktygspalett ---------- */
 
     #left-toolbar {
@@ -304,158 +710,6 @@
       flex: 1;
     }
 
-    /* Sektion-editor */
-    #sectionModalOverlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(18, 32, 53, 0.65);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 20;
-    }
-
-    #sectionModal {
-      background: #fff;
-      border-radius: 12px;
-      width: min(720px, 90vw);
-      max-height: 80vh;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-      box-shadow: 0 20px 50px rgba(0,0,0,0.25);
-      border: 1px solid #dbe0e4;
-    }
-
-    #sectionModal header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0.9rem 1rem;
-      border-bottom: 1px solid #e5e9ef;
-    }
-
-    #sectionModal h3 {
-      margin: 0;
-      font-size: 1rem;
-      letter-spacing: 0.02em;
-    }
-
-    #sectionModal main {
-      padding: 1rem;
-      overflow: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 0.8rem;
-    }
-
-    .section-field {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      flex-wrap: wrap;
-    }
-
-    .section-field input {
-      flex: 1;
-      padding: 0.45rem 0.6rem;
-      border-radius: 8px;
-      border: 1px solid #cdd3e0;
-      font-size: 0.95rem;
-    }
-
-    .rows-list {
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-    }
-
-    .row-item {
-      border: 1px solid #e0e5ed;
-      border-radius: 10px;
-      padding: 0.7rem;
-      background: #f9fbff;
-      display: flex;
-      flex-direction: column;
-      gap: 0.4rem;
-    }
-
-    .row-line {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      flex-wrap: wrap;
-    }
-
-    .row-line input.row-name-input {
-      width: 60px;
-      flex: 0 0 60px;
-      padding: 0.3rem 0.45rem;
-      border-radius: 8px;
-      border: 1px solid #cdd3e0;
-      font-size: 0.9rem;
-      text-align: center;
-    }
-
-    .seat-grid {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.4rem;
-      align-items: center;
-    }
-
-    .seat-chip {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 28px;
-      height: 28px;
-      border-radius: 50%;
-      background: #eef2f7;
-      border: 1px solid #d4dbe6;
-      font-size: 0.8rem;
-      position: relative;
-      overflow: hidden;
-      padding: 0;
-    }
-
-    .seat-chip input {
-      width: 24px;
-      border: none;
-      background: transparent;
-      outline: none;
-      font-size: 0.8rem;
-      text-align: center;
-    }
-
-    .seat-chip button {
-      border: none;
-      background: transparent;
-      color: #c0392b;
-      cursor: pointer;
-      position: absolute;
-      top: -6px;
-      right: -6px;
-      width: 16px;
-      height: 16px;
-      border-radius: 50%;
-      font-size: 10px;
-      line-height: 14px;
-    }
-
-    #sectionModal footer {
-      display: flex;
-      justify-content: space-between;
-      padding: 0.8rem 1rem;
-      border-top: 1px solid #e5e9ef;
-      background: #f7f9fc;
-    }
-
-    #sectionModal footer .actions {
-      display: flex;
-      gap: 0.5rem;
-    }
-
     /* Kod-modal */
     #codeModalOverlay {
       position: fixed;
@@ -533,10 +787,17 @@
       background: var(--card-bg);
       box-shadow: var(--card-shadow);
       display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      flex: 0 0 auto;
+    }
+
+    .top-bar__row {
+      display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 0.75rem;
-      flex: 0 0 auto;
+      flex-wrap: wrap;
     }
 
     #top-bar-left {
@@ -576,6 +837,12 @@
 
     #top-bar input[type="file"] {
       display: none;
+    }
+
+    #alignBar {
+      width: 100%;
+      flex-wrap: wrap;
+      gap: 0.35rem;
     }
 
     #canvas-container {
@@ -677,13 +944,13 @@
           </div>
           <div class="c-toolbar">
             <button id="modeSectionBtn" class="tool-button c-button c-button--ghost c-button--small c-button--active">
-              Sektion (S)
+              Section (S)
             </button>
             <button id="modeRowBtn" class="tool-button c-button c-button--ghost c-button--small">
-              Rad (D)
+              Row (D)
             </button>
             <button id="modeSeatBtn" class="tool-button c-button c-button--ghost c-button--small">
-              Plats (F)
+              Seat (F)
             </button>
           </div>
         </div>
@@ -703,48 +970,55 @@
     <section id="center-area">
       <div id="top-bar">
 
-        <div id="top-bar-left" class="c-toolbar c-toolbar--horizontal">
+        <div class="top-bar__row">
+          <div id="top-bar-left" class="c-toolbar c-toolbar--horizontal">
 
-          <button id="openFileBtnTop" class="c-button c-button--primary c-button--icon-left" data-icon="">
+            <button id="newLayoutBtn" class="c-button c-button--secondary c-button--icon-left" data-icon="">
 
-            Öppna .tlt-fil
+              Skapa ny layout
 
-          </button>
+            </button>
 
-          <button id="addSectionBtn" class="c-button c-button--ghost c-button--small c-button--icon-left" data-icon="+">
+            <button id="openFileBtnTop" class="c-button c-button--primary c-button--icon-left" data-icon="">
 
-            Lägg till sektion
+              Öppna layout
 
-          </button>
+            </button>
 
-          <button id="saveBtn" class="c-button c-button--secondary c-button--icon-left" data-icon="" disabled>
+            <button id="saveBtn" class="c-button c-button--secondary c-button--icon-left" data-icon="" disabled>
 
-            Spara
+              Spara layout
 
-          </button>
+            </button>
 
-          <input type="file" id="fileInput" accept=".tlt,.txt" />
+            <button id="openSectionManagerBtn" class="c-button c-button--ghost c-button--small c-button--icon-left" data-icon="◎">
 
+              Skapa sektioner
+
+            </button>
+
+            <input type="file" id="fileInput" accept=".tlt,.txt" />
+
+          </div>
+
+          <div class="file-info u-font--small" id="fileInfo">
+
+            Ingen fil läst ännu.
+
+          </div>
         </div>
 
-        <div class="file-info u-font--small" id="fileInfo">
-
-          Ingen fil läst ännu.
-
+        <div id="alignBar" class="c-toolbar c-toolbar--horizontal">
+          <button id="alignTopBtn" class="c-button c-button--ghost c-button--small" title="Align top">Align Up</button>
+          <button id="alignBottomBtn" class="c-button c-button--ghost c-button--small" title="Align bottom">Align Down</button>
+          <button id="alignLeftBtn" class="c-button c-button--ghost c-button--small" title="Align left">Align Left</button>
+          <button id="alignRightBtn" class="c-button c-button--ghost c-button--small" title="Align right">Align Right</button>
+          <button id="alignCenterHBtn" class="c-button c-button--ghost c-button--small" title="Center horizontally">Center H</button>
+          <button id="alignCenterVBtn" class="c-button c-button--ghost c-button--small" title="Center vertically">Center V</button>
         </div>
 
       </div>
 
-
-
-      <div id="alignBar" class="c-toolbar c-toolbar--horizontal" style="margin-top:0.25rem;">
-        <button id="alignTopBtn" class="c-button c-button--ghost c-button--small" title="Align top">Align Up</button>
-        <button id="alignBottomBtn" class="c-button c-button--ghost c-button--small" title="Align bottom">Align Down</button>
-        <button id="alignLeftBtn" class="c-button c-button--ghost c-button--small" title="Align left">Align Left</button>
-        <button id="alignRightBtn" class="c-button c-button--ghost c-button--small" title="Align right">Align Right</button>
-        <button id="alignCenterHBtn" class="c-button c-button--ghost c-button--small" title="Center horizontally">Center H</button>
-        <button id="alignCenterVBtn" class="c-button c-button--ghost c-button--small" title="Center vertically">Center V</button>
-      </div>
 
       <div id="canvas-container">
         <canvas id="layoutCanvas"></canvas>
@@ -816,6 +1090,21 @@
             <input type="checkbox" id="viewSectionNamesToggle" />
             Visa sektionsnamn
           </label>
+          <div class="u-font--small" style="display:flex; flex-direction:column; gap:0.35rem;">
+            <div>Platsinfo (I)</div>
+            <label class="bg-control">
+              <input type="radio" name="seatLabelMode" id="viewSeatLabelNone" value="none" checked />
+              Ingen platsinfo (standard)
+            </label>
+            <label class="bg-control">
+              <input type="radio" name="seatLabelMode" id="viewSeatLabelRow" value="row" />
+              Visa radnummer
+            </label>
+            <label class="bg-control">
+              <input type="radio" name="seatLabelMode" id="viewSeatLabelSeat" value="seat" />
+              Visa platsnummer
+            </label>
+          </div>
           <button id="openCodeModalBtn" class="c-button c-button--ghost c-button--small">Visa källkod</button>
         </div>
       </div>
@@ -824,52 +1113,98 @@
 
     <div id="tooltip"></div>
   <input type="file" id="bgFileInput" accept="image/*" style="display:none" />
-  <div id="sectionModalOverlay">
-
-    <div id="sectionModal">
-
-      <header>
-
-        <h3 id="sectionModalTitle">Ny sektion</h3>
-
-        <button id="sectionModalClose" class="c-button c-button--ghost c-button--small">Stäng</button>
-
+  <div id="sectionManagerOverlay">
+    <div class="section-manager">
+      <header class="section-manager__header">
+        <div class="section-manager__title">Sektioner</div>
+        <div class="c-toolbar c-toolbar--horizontal" style="gap:0.35rem;">
+          <span id="sectionDirtyFlag" class="section-hint">Ej sparade ändringar</span>
+        </div>
       </header>
+      <div class="section-manager__body">
+        <aside class="section-list">
+          <div class="section-list__header">
+            <input id="sectionSearchInput" class="section-list__search" placeholder="Sök sektion..." />
+            <button id="sectionCreateBtn" class="c-button c-button--primary c-button--small" title="Ny sektion">+ Ny</button>
+          </div>
+          <div id="sectionCards" class="section-cards"></div>
+        </aside>
+        <div class="section-editor">
+        <div class="section-editor__grid">
+          <label class="section-editor__field">
+            <div class="u-font--small" style="margin-bottom:0.25rem;">Sektion-ID</div>
+            <input id="sectionEditId" type="text" placeholder="1.1" />
+          </label>
+            <label class="section-editor__field">
+              <div class="u-font--small" style="margin-bottom:0.25rem;">Namn</div>
+              <input id="sectionEditName" type="text" placeholder="T ex Sektion A" />
+            </label>
+            <label class="section-editor__field">
+              <div class="u-font--small" style="margin-bottom:0.25rem;">Färg</div>
+              <input id="sectionEditColor" type="color" value="#14a0f4" />
+            </label>
+          </div>
 
-      <main>
+          <div>
+            <div class="u-font--small" style="margin-bottom:0.25rem;">Rader (format: Radnamn: 1,10|20,30)</div>
+            <textarea id="sectionRowText" class="row-textarea" placeholder="Rad A: 1,10&#10;Rad B: 20,30"></textarea>
+            <div class="c-toolbar c-toolbar--horizontal" style="margin-top:0.35rem; gap:0.35rem;">
+              <button id="parseRowsBtn" class="c-button c-button--ghost c-button--small">Uppdatera rader</button>
+              <span class="section-hint">Varje rad per radbrytning. Intervall separeras med | och använder start,slut.</span>
+            </div>
+            <div id="sectionRowErrors" class="section-errors"></div>
 
-        <div class="section-field">
+          </div>
 
-          <input id="sectionIdInput" type="text" placeholder="Sektion-ID" style="max-width:120px;" />
 
-          <input id="sectionNameInput" type="text" placeholder="Sektionsnamn" />
 
+          <div class="section-preview">
+
+            <div class="section-preview__header">
+
+              <span>WYSIWYG-förhandsvisning</span>
+
+              <span class="section-hint">Speglas av inmatningen ovan.</span>
+
+            </div>
+
+            <canvas id="sectionPreviewCanvas" class="section-preview__canvas"></canvas>
+
+          </div>
+
+
+
+          <div class="section-editor__rows" id="sectionRowsEditor"></div>
+
+          <div class="section-editor__footer">
+            <div class="section-hint" id="sectionEditHint">Ny sektion – du kan lägga till rader och platser.</div>
+            <div class="c-toolbar c-toolbar--horizontal">
+              <button id="sectionManagerClose" class="c-button c-button--ghost c-button--small">Stäng</button>
+              <button id="sectionSaveBtn" class="c-button c-button--primary c-button--small">Spara sektion</button>
+            </div>
+          </div>
         </div>
-
-        <div class="rows-list" id="sectionRowsContainer"></div>
-
-        <button id="addRowBtn" class="c-button c-button--ghost c-button--small" style="align-self:flex-start;">+ Lägg till rad</button>
-
-      </main>
-
-      <footer>
-
-        <div class="actions">
-
-          <button id="sectionModalCancel" class="c-button c-button--ghost c-button--small">Avbryt</button>
-
-        </div>
-
-        <div class="actions">
-
-          <button id="sectionModalSave" class="c-button c-button--primary c-button--small">Spara sektion</button>
-
-        </div>
-
-      </footer>
-
+      </div>
     </div>
+  </div>
 
+  <div id="newLayoutOverlay">
+    <div id="newLayoutModal">
+      <h3>Skapa ny layout</h3>
+      <div class="new-layout-field">
+        <label for="newProjectName">Projektnamn</label>
+        <input id="newProjectName" type="text" placeholder="T ex ArenaLayout2026" />
+      </div>
+      <div class="new-layout-field">
+        <label for="newVenueId">VenueId</label>
+        <input id="newVenueId" type="text" placeholder="Ange VenueId" />
+      </div>
+      <div class="section-hint">Skapar .tlt, .tlc och .tpr (prisregioner läggs till senare).</div>
+      <div class="new-layout-actions">
+        <button id="newLayoutCancel" class="c-button c-button--ghost c-button--small">Avbryt</button>
+        <button id="newLayoutStart" class="c-button c-button--primary c-button--small">Börja skapa</button>
+      </div>
+    </div>
   </div>
 
   <div id="codeModalOverlay">
@@ -907,16 +1242,7 @@
   const alignCenterVBtn = document.getElementById("alignCenterVBtn");
 
   const openFileBtnTop = document.getElementById("openFileBtnTop");
-  const addSectionBtn = document.getElementById("addSectionBtn");
-  const sectionModalOverlay = document.getElementById("sectionModalOverlay");
-  const sectionModalClose = document.getElementById("sectionModalClose");
-  const sectionModalCancel = document.getElementById("sectionModalCancel");
-  const sectionModalSave = document.getElementById("sectionModalSave");
-  const sectionModalTitle = document.getElementById("sectionModalTitle");
-  const sectionNameInput = document.getElementById("sectionNameInput");
-  const sectionIdInput = document.getElementById("sectionIdInput");
-  const sectionRowsContainer = document.getElementById("sectionRowsContainer");
-  const addRowBtn = document.getElementById("addRowBtn");
+  const openSectionManagerBtn = document.getElementById("openSectionManagerBtn");
   const saveBtn = document.getElementById("saveBtn");
   const fileInput = document.getElementById("fileInput");
   const fileInfo = document.getElementById("fileInfo");
@@ -951,11 +1277,39 @@
   const viewGrayToggle = document.getElementById("viewGrayToggle");
   const viewHoverToggle = document.getElementById("viewHoverToggle");
   const viewSectionNamesToggle = document.getElementById("viewSectionNamesToggle");
+  const viewSeatLabelNone = document.getElementById("viewSeatLabelNone");
+  const viewSeatLabelRow = document.getElementById("viewSeatLabelRow");
+  const viewSeatLabelSeat = document.getElementById("viewSeatLabelSeat");
   const openCodeModalBtn = document.getElementById("openCodeModalBtn");
   const codeModalOverlay = document.getElementById("codeModalOverlay");
   const codeModalClose = document.getElementById("codeModalClose");
   const codeModalApply = document.getElementById("codeModalApply");
   const codeModalTextarea = document.getElementById("code-pane");
+  const newLayoutBtn = document.getElementById("newLayoutBtn");
+  const newLayoutOverlay = document.getElementById("newLayoutOverlay");
+  const newLayoutStart = document.getElementById("newLayoutStart");
+  const newLayoutCancel = document.getElementById("newLayoutCancel");
+  const newProjectName = document.getElementById("newProjectName");
+  const newVenueId = document.getElementById("newVenueId");
+  const sectionManagerOverlay = document.getElementById("sectionManagerOverlay");
+  const sectionManagerClose = document.getElementById("sectionManagerClose");
+  const sectionCardsEl = document.getElementById("sectionCards");
+  const sectionSearchInput = document.getElementById("sectionSearchInput");
+  const sectionCreateBtn = document.getElementById("sectionCreateBtn");
+  const sectionEditId = document.getElementById("sectionEditId");
+  const sectionEditName = document.getElementById("sectionEditName");
+  const sectionEditColor = document.getElementById("sectionEditColor");
+  const sectionRowsEditor = document.getElementById("sectionRowsEditor");
+  const addRowInlineBtn = document.getElementById("addRowInlineBtn");
+  const sectionSaveBtn = document.getElementById("sectionSaveBtn");
+  const sectionEditHint = document.getElementById("sectionEditHint");
+  const sectionDuplicateBtn = document.getElementById("sectionDuplicateBtn");
+  const sectionDirtyFlag = document.getElementById("sectionDirtyFlag");
+  const sectionRowText = document.getElementById("sectionRowText");
+  const parseRowsBtn = document.getElementById("parseRowsBtn");
+  const sectionRowErrors = document.getElementById("sectionRowErrors");
+  const sectionPreviewCanvas = document.getElementById("sectionPreviewCanvas");
+  const sectionRawText = new Map();
 
   let seats = [];
   let outlines = [];
@@ -970,15 +1324,37 @@
     originX: 0,
     originY: 0
   };
+  let seatLabelMode = "none";
+  let lastDirectoryHandle = null;
+
+  function setSeatLabelMode(mode, syncUI = true) {
+    seatLabelMode = mode || "none";
+    if (syncUI) {
+      if (mode === "none" && viewSeatLabelNone) viewSeatLabelNone.checked = true;
+      if (mode === "row" && viewSeatLabelRow) viewSeatLabelRow.checked = true;
+      if (mode === "seat" && viewSeatLabelSeat) viewSeatLabelSeat.checked = true;
+    }
+    renderCanvas();
+  }
+
+  async function tryGetDirectoryHandle(handle) {
+    if (!handle) return null;
+    if (handle.kind === "directory") return handle;
+    if (typeof handle.getParent === "function") {
+      try {
+        const dir = await handle.getParent();
+        if (dir?.kind === "directory") return dir;
+      } catch (_) {}
+    }
+    return null;
+  }
   let renderGrayscale = false;
   let showHoverInfo = true;
   let showSectionNames = false;
-  let sectionEditorState = {
-    sectionId: "",
-    sectionName: "",
-    rows: []
-  };
   let sectionColors = new Map();
+  let sectionDrafts = [];
+  let activeSectionDraftId = null;
+  let sectionDirty = false;
 
   // Kamera/transform
   let translateX = 0;
@@ -1413,6 +1789,20 @@
     return s;
   }
 
+  function buildTimestamp() {
+    const d = new Date();
+    const pad = (v, len = 2) => String(v).padStart(len, "0");
+    return (
+      d.getFullYear().toString() +
+      pad(d.getMonth() + 1) +
+      pad(d.getDate()) +
+      pad(d.getHours()) +
+      pad(d.getMinutes()) +
+      pad(d.getSeconds()) +
+      pad(d.getMilliseconds(), 3)
+    );
+  }
+
   function buildSeatLine(seat) {
     const timestamp = seat.timestamp || "";
     const widthStr = seat.width != null ? seat.width : 100;
@@ -1483,7 +1873,7 @@
     while (headerTokens.length < 3) headerTokens.push("0");
     if (headerTokens.length > 3) headerTokens.length = 3;
 
-    const defaultTimestamp = seats[0]?.timestamp || Date.now();
+    const defaultTimestamp = seats[0]?.timestamp || buildTimestamp();
     const timePrefixRaw = template?.beforePoly
       ? template.beforePoly.split("<Outline")[0]
       : `${defaultTimestamp}`;
@@ -1827,6 +2217,7 @@ codePane.addEventListener("input", () => {
     codePane.value = text;
     currentFileHandle = handle;
     currentFileName = file.name || "";
+    lastDirectoryHandle = await tryGetDirectoryHandle(handle) || handle;
     fileInfo.textContent = currentFileName ? `Öppnad fil (${currentFileName})` : "Öppnad fil";
     hasUnsavedChanges = false;
     updateSaveButton();
@@ -1845,8 +2236,9 @@ codePane.addEventListener("input", () => {
         excludeAcceptAllOption: false,
         multiple: false
       };
-      if (currentFileHandle) {
-        pickerOpts.startIn = currentFileHandle;
+      const startDir = lastDirectoryHandle || await tryGetDirectoryHandle(currentFileHandle);
+      if (startDir) {
+        pickerOpts.startIn = startDir;
       }
       const [handle] = await window.showOpenFilePicker(pickerOpts);
       if (handle) {
@@ -1862,6 +2254,7 @@ codePane.addEventListener("input", () => {
     const text = codePane.value || "";
     try {
       let handle = currentFileHandle;
+      const startDir = lastDirectoryHandle || await tryGetDirectoryHandle(currentFileHandle);
       if (!handle) {
         const pickerOpts = {
           types: [
@@ -1871,7 +2264,8 @@ codePane.addEventListener("input", () => {
             }
           ],
           suggestedName: currentFileName || "layout.tlt",
-          excludeAcceptAllOption: false
+          excludeAcceptAllOption: false,
+          startIn: startDir || undefined
         };
         handle = await window.showSaveFilePicker(pickerOpts);
       }
@@ -1880,12 +2274,17 @@ codePane.addEventListener("input", () => {
       await writable.write(text);
       await writable.close();
       currentFileHandle = handle;
+      lastDirectoryHandle = await tryGetDirectoryHandle(handle) || handle;
       currentFileName = handle.name || currentFileName || "layout.tlt";
       fileInfo.textContent = `Sparad (${currentFileName})`;
       hasUnsavedChanges = false;
       updateSaveButton();
       saveCurrentFileHandleToDB(handle);
     } catch (err) {
+      if (err?.name === "AbortError") {
+        console.warn("Spara avbrutet av användare.");
+        return;
+      }
       console.warn("Spara via picker misslyckades, provar nedladdning:", err);
       downloadFallback(text);
     }
@@ -1940,6 +2339,31 @@ codePane.addEventListener("input", () => {
     }
   }
 
+  function resetLayoutState(baseName = "", venueId = "") {
+    seats = [];
+    outlines = [];
+    const initTs = buildTimestamp();
+    originalLines = [`${initTs}|LayoutInit|VenueId=${venueId}`];
+    seatIdToLineIndex = new Map();
+    sectionNames = new Map();
+    sectionColors = new Map();
+    sectionRawText.clear();
+    activeSectionDraftId = null;
+    layoutBounds = null;
+    codePane.value = originalLines.join("\n");
+    currentFileHandle = null;
+    currentFileName = baseName ? `${baseName}.tlt` : "";
+    hasUnsavedChanges = false;
+    updateSaveButton();
+    seatCountEl.textContent = "0";
+    sectionCountEl.textContent = "0";
+    rowCountEl.textContent = "0";
+    resetSectionDrafts();
+    renderSectionCards();
+    renderSectionDetail();
+    renderCanvas();
+  }
+
   openFileBtnTop?.addEventListener("click", () => {
     openFile();
   });
@@ -1958,6 +2382,47 @@ codePane.addEventListener("input", () => {
       openFileFromInput(file);
     }
   });
+
+  function openNewLayoutModal() {
+    if (newLayoutOverlay) newLayoutOverlay.style.display = "flex";
+    if (newProjectName) {
+      newProjectName.value = "";
+      setTimeout(() => newProjectName.focus(), 50);
+    }
+    if (newVenueId) newVenueId.value = "";
+  }
+
+  function closeNewLayoutModal() {
+    if (newLayoutOverlay) newLayoutOverlay.style.display = "none";
+  }
+
+  function handleStartNewLayout() {
+    const rawName = (newProjectName?.value || "").trim();
+    if (!rawName) {
+      alert("Ange projektnamn.");
+      return;
+    }
+    const venueIdVal = (newVenueId?.value || "").trim();
+    const safeBase = rawName.replace(/[\\/:*?\"<>|]/g, "_");
+
+    resetLayoutState(safeBase, venueIdVal);
+    updateCodeFromSeats(); // tom layout -> initline finns
+
+    // Markera som osparad så användaren sparar manuellt
+    currentFileName = safeBase ? `${safeBase}.TLT` : "";
+    fileInfo.textContent = "Ny layout (ej sparad)";
+    hasUnsavedChanges = true;
+    updateSaveButton();
+    closeNewLayoutModal();
+    openSectionManager();
+  }
+
+  newLayoutBtn?.addEventListener("click", openNewLayoutModal);
+  newLayoutCancel?.addEventListener("click", closeNewLayoutModal);
+  newLayoutOverlay?.addEventListener("click", (e) => {
+    if (e.target === newLayoutOverlay) closeNewLayoutModal();
+  });
+  newLayoutStart?.addEventListener("click", handleStartNewLayout);
 
   // Försök återanvända senaste handle direkt vid start (utan att öppna filen automatiskt)
   loadCurrentFileHandleFromDB().then((handle) => {
@@ -2011,6 +2476,33 @@ codePane.addEventListener("input", () => {
     alignRightBtn.disabled = !enabled;
     alignCenterHBtn.disabled = !enabled;
     alignCenterVBtn.disabled = !enabled;
+  }
+
+  // Hjälpfunktioner för färgkontrast på etiketter
+  const labelColorCache = new Map();
+  function hexToRgb(hex) {
+    const h = hex.replace("#", "").trim();
+    if (h.length === 3) {
+      return {
+        r: parseInt(h[0] + h[0], 16),
+        g: parseInt(h[1] + h[1], 16),
+        b: parseInt(h[2] + h[2], 16)
+      };
+    }
+    return {
+      r: parseInt(h.slice(0, 2), 16),
+      g: parseInt(h.slice(2, 4), 16),
+      b: parseInt(h.slice(4, 6), 16)
+    };
+  }
+  function getLabelTextColor(color) {
+    if (!color) return "#fff";
+    if (labelColorCache.has(color)) return labelColorCache.get(color);
+    const { r, g, b } = hexToRgb(color);
+    const lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+    const txt = lum > 0.55 ? "#0f1d2a" : "#ffffff";
+    labelColorCache.set(color, txt);
+    return txt;
   }
 
   // --- Render ---
@@ -2091,31 +2583,49 @@ codePane.addEventListener("input", () => {
         continue;
       }
 
-      // Cirkel-läge
-      let pxRadius = BASE_WORLD_RADIUS * scale;
-      if (pxRadius < MIN_SEAT_SCREEN_RADIUS) {
-        pxRadius = MIN_SEAT_SCREEN_RADIUS;
-      }
-      const worldRadius = pxRadius / scale;
+        // Cirkel-läge
+        let pxRadius = BASE_WORLD_RADIUS * scale;
+        if (pxRadius < MIN_SEAT_SCREEN_RADIUS) {
+          pxRadius = MIN_SEAT_SCREEN_RADIUS;
+        }
+        const worldRadius = pxRadius / scale;
 
       ctx.beginPath();
       ctx.arc(s.vx, s.vy, worldRadius, 0, Math.PI * 2);
       ctx.fillStyle = baseColor;
       ctx.fill();
 
-      if (s.selected) {
-        ctx.lineWidth = 3 / scale;
-        ctx.strokeStyle = "#000";
-        ctx.stroke();
+        if (s.selected) {
+          ctx.lineWidth = 3 / scale;
+          ctx.strokeStyle = "#000";
+          ctx.stroke();
       } else {
-        ctx.lineWidth = 1.2 / scale;
-        ctx.strokeStyle = "rgba(0,0,0,0.25)";
-        ctx.stroke();
-      }
-    }
+          ctx.lineWidth = 1.2 / scale;
+          ctx.strokeStyle = "rgba(0,0,0,0.25)";
+          ctx.stroke();
+        }
 
-    // Sektionsnamn (mitt i sektionen)
-    if (showSectionNames) {
+        if (seatLabelMode !== "none") {
+          const label = seatLabelMode === "seat" ? (s.name || "") : (s.rowName || s.rowId || s.row || "");
+          if (label) {
+            const fontPx = Math.max(26, Math.min(48, 33 / Math.max(scale, 0.001)));
+            const textColor = getLabelTextColor(baseColor);
+            ctx.save();
+            ctx.fillStyle = textColor;
+            ctx.strokeStyle = "rgba(255,255,255,0.7)";
+            ctx.lineWidth = 2 / Math.max(scale, 0.001);
+            ctx.font = `${fontPx}px "Segoe UI", system-ui, sans-serif`;
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.strokeText(label, s.vx, s.vy);
+            ctx.fillText(label, s.vx, s.vy);
+            ctx.restore();
+          }
+        }
+      }
+
+      // Sektionsnamn (mitt i sektionen)
+      if (showSectionNames) {
       const boundsBySection = new Map();
       for (const s of seats) {
         if (!s.sectionId) continue;
@@ -2173,7 +2683,7 @@ codePane.addEventListener("input", () => {
       ctx.restore();
       ctx.fillStyle = "#777";
       ctx.font = "12px system-ui";
-      ctx.fillText("Inga SeatAdd-rader att visa.", 10, 20);
+      ctx.fillText("Ingen layout laddad eller skapad.", 10, 20);
       lastVisibleSeatCount = 0;
       return;
     }
@@ -3677,6 +4187,12 @@ function selectAllSeats() {
       zoomToFitAllSeats();
       return;
     }
+    // Tangent 1 = zoom-to-fit (bekväm snabbe)
+    if (key === "1") {
+      e.preventDefault();
+      zoomToFitAllSeats();
+      return;
+    }
 
     // Enkeltangenter
     switch (key) {
@@ -3691,6 +4207,12 @@ function selectAllSeats() {
       case "f":
         e.preventDefault();
         modeSeatBtn.click();
+        break;
+      case "i":
+        e.preventDefault();
+        if (seatLabelMode === "none") setSeatLabelMode("row");
+        else if (seatLabelMode === "row") setSeatLabelMode("seat");
+        else setSeatLabelMode("none");
         break;
       case "v":
         e.preventDefault();
@@ -3857,6 +4379,12 @@ function selectAllSeats() {
     showSectionNames = e.target.checked;
     renderCanvas();
   });
+  [viewSeatLabelNone, viewSeatLabelRow, viewSeatLabelSeat].forEach((el) => {
+    el?.addEventListener("change", (e) => {
+      if (!e.target.checked) return;
+      setSeatLabelMode(e.target.value || "none", false);
+    });
+  });
 
   // --- Align-knappar ---
   function handleAlign(mode) {
@@ -3876,7 +4404,7 @@ function selectAllSeats() {
   alignCenterHBtn.addEventListener("click", () => handleAlign("centerH"));
   alignCenterVBtn.addEventListener("click", () => handleAlign("centerV"));
 
-      // --- Sektion-editor ---
+  // --- Sektion: helpers & modal ---
   function newSeat(name = "1") {
     return { id: crypto.randomUUID ? crypto.randomUUID() : String(Math.random()), name };
   }
@@ -3889,9 +4417,10 @@ function selectAllSeats() {
     const ids = new Set();
     sectionNames.forEach((_, key) => ids.add(key));
     seats.forEach(s => { if (s.sectionId) ids.add(s.sectionId); });
+    sectionDrafts?.forEach(d => { if (d.sectionId) ids.add(d.sectionId); });
     let maxMajor = 0;
     ids.forEach(id => {
-      const parts = String(id).split('.');
+      const parts = String(id).split(".");
       const major = parseInt(parts[0], 10);
       if (Number.isFinite(major) && major > maxMajor) maxMajor = major;
     });
@@ -3899,324 +4428,695 @@ function selectAllSeats() {
     return `${nextMajor}.1`;
   }
 
-  function resetSectionEditorState(section) {
-    if (section) {
-      sectionEditorState = JSON.parse(JSON.stringify(section));
-    } else {
-      const nextId = computeNextSectionId();
-      sectionEditorState = {
-        sectionId: nextId,
-        sectionName: "",
-        rows: [newRow("Rad 1")]
-      };
-    }
-  }
-
-  function renderSectionEditor() {
-
-    sectionNameInput.value = sectionEditorState.sectionName || "";
-
-    sectionIdInput.value = sectionEditorState.sectionId || "";
-
-    sectionRowsContainer.innerHTML = "";
-
-    const disableRowRemove = sectionEditorState.rows.length <= 1;
-
-    sectionEditorState.rows.forEach((row, idx) => {
-
-      if (!row.seats || !row.seats.length) {
-
-        row.seats = [newSeat("1"), newSeat("2")];
-
+  function buildSectionDraftsFromSeats() {
+    const bySection = new Map();
+    const compareIdSegments = (idA, idB) => {
+      const aParts = String(idA).split(".").map((p) => parseInt(p, 10));
+      const bParts = String(idB).split(".").map((p) => parseInt(p, 10));
+      const len = Math.max(aParts.length, bParts.length);
+      for (let i = 0; i < len; i++) {
+        const av = aParts[i] ?? 0;
+        const bv = bParts[i] ?? 0;
+        if (av !== bv) return av - bv;
       }
-
-      const rowEl = document.createElement("div");
-
-      rowEl.className = "row-item";
-
-      rowEl.dataset.rowId = row.id;
-
-      const seatsHtml = row.seats.map(seat => `<span class="seat-chip" data-row="${row.id}" data-seat="${seat.id}"><input type="text" value="${seat.name || ""}" class="seat-name-input" data-row="${row.id}" data-seat="${seat.id}" /><button class="remove-seat" data-row="${row.id}" data-seat="${seat.id}" title="Ta bort plats">&times;</button></span>`).join("");
-
-      rowEl.innerHTML = `
-
-        <div class="row-line">
-
-          <input type="text" value="${row.name || ""}" data-row="${row.id}" class="row-name-input" placeholder="${idx + 1}" />
-
-          <div class="seat-grid" data-row="${row.id}">
-
-            ${seatsHtml}
-
-            <button class="c-button c-button--ghost c-button--small add-seat" data-row="${row.id}" title="Lägg till plats">+</button>
-
-            <button class="c-button c-button--ghost c-button--small remove-seat-last" data-row="${row.id}" title="Ta bort sista plats">-</button>
-
-          </div>
-
-          <button class="c-button c-button--ghost c-button--small remove-row" data-row="${row.id}" ${disableRowRemove ? "disabled" : ""} title="Ta bort rad">X</button>
-
-        </div>
-
-      `;
-
-      sectionRowsContainer.appendChild(rowEl);
-
+      return 0;
+    };
+    seats.forEach((s) => {
+      if (!s.sectionId) return;
+      if (!bySection.has(s.sectionId)) {
+        bySection.set(s.sectionId, {
+          sectionId: s.sectionId,
+          sectionName: sectionNames.get(s.sectionId) || s.sectionName || s.sectionId,
+          color: sectionColors.get(s.sectionId) || "#14a0f4",
+          rows: new Map()
+        });
+      }
+      const draft = bySection.get(s.sectionId);
+      if (!draft.rows.has(s.rowId)) {
+        draft.rows.set(s.rowId, { id: s.rowId, name: s.rowName || s.rowId, seats: [] });
+      }
+      draft.rows.get(s.rowId).seats.push({ id: s.seatId, name: s.name || s.seatId });
     });
 
+    // Convert maps to arrays and sort row/seat by id natural order
+    return Array.from(bySection.values()).map((draft) => ({
+      sectionId: draft.sectionId,
+      sectionName: draft.sectionName,
+      color: draft.color,
+      rows: Array.from(draft.rows.values()).map((row) => ({
+        id: row.id,
+        name: row.name,
+        seats: row.seats.sort((a, b) => compareIdSegments(a.id, b.id))
+      }))
+    })).sort((a, b) => a.sectionId.localeCompare(b.sectionId));
   }
 
-  function openSectionModal(mode = "create", section = null) {
-    resetSectionEditorState(section);
-    sectionModalTitle.textContent = mode === "edit" ? "Redigera sektion" : "Ny sektion";
-    renderSectionEditor();
-    sectionModalOverlay.style.display = "flex";
-  }
-
-  function closeSectionModal() {
-    sectionModalOverlay.style.display = "none";
-  }
-
-  addSectionBtn?.addEventListener("click", () => openSectionModal("create"));
-  sectionModalClose?.addEventListener("click", closeSectionModal);
-  sectionModalCancel?.addEventListener("click", closeSectionModal);
-  sectionModalOverlay?.addEventListener("click", (e) => {
-    if (e.target === sectionModalOverlay) closeSectionModal();
-  });
-
-  sectionNameInput?.addEventListener("input", (e) => {
-    sectionEditorState.sectionName = e.target.value;
-  });
-  sectionIdInput?.addEventListener("input", (e) => {
-    sectionEditorState.sectionId = e.target.value;
-  });
-
-  addRowBtn?.addEventListener("click", () => {
-    sectionEditorState.rows.push(newRow(`Rad ${sectionEditorState.rows.length + 1}`));
-    renderSectionEditor();
-  });
-
-  sectionRowsContainer?.addEventListener("input", (e) => {
-    const rowId = e.target.getAttribute("data-row");
-    const seatId = e.target.getAttribute("data-seat");
-    if (e.target.classList.contains("row-name-input")) {
-      const row = sectionEditorState.rows.find(r => r.id === rowId);
-      if (row) row.name = e.target.value;
-    } else if (e.target.classList.contains("seat-name-input")) {
-      const row = sectionEditorState.rows.find(r => r.id === rowId);
-      if (row) {
-        const seat = row.seats.find(s => s.id === seatId);
-        if (seat) seat.name = e.target.value;
+  function resetSectionDrafts() {
+    sectionDrafts = buildSectionDraftsFromSeats();
+    sectionDrafts.forEach((d) => {
+      if (sectionRawText.has(d.sectionId)) {
+        const txt = sectionRawText.get(d.sectionId) || "";
+        const parsed = parseRowsText(txt);
+        d.rows = parsed.rows;
+        d.rawRowText = txt;
+      } else {
+        d.rawRowText = rowsToText(d.rows || []);
       }
+    });
+    if (!sectionDrafts.length) {
+      sectionDrafts.push({
+        sectionId: computeNextSectionId(),
+        sectionName: "",
+        color: "#14a0f4",
+        rows: [newRow("Rad 1")]
+      });
     }
-  });
+    activeSectionDraftId = sectionDrafts[0].sectionId;
+    sectionDirty = false;
+  }
 
-  sectionRowsContainer?.addEventListener("click", (e) => {
+  function setSectionDirty(isDirty) {
+    sectionDirty = isDirty;
+    if (sectionDirtyFlag) {
+      sectionDirtyFlag.textContent = isDirty ? "Ej sparade ändringar" : "Sparad";
+      sectionDirtyFlag.style.color = isDirty ? "#c12e44" : "#5b6673";
+    }
+  }
 
-    const rowId = e.target.getAttribute("data-row");
+  function rowsToText(rows) {
+    return rows.map((row) => row.rawTextLine || "").filter(Boolean).join("\n");
+  }
 
-    const seatId = e.target.getAttribute("data-seat");
-
-    if (e.target.classList.contains("add-seat")) {
-
-      const row = sectionEditorState.rows.find(r => r.id === rowId);
-
-      if (row) {
-
-        row.seats.push(newSeat(String(row.seats.length + 1)));
-
-        renderSectionEditor();
-
+  function parseRowsText(text) {
+    const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+    const parsed = [];
+    const errors = [];
+    lines.forEach((line, lineIdx) => {
+      if (!line.includes(":")) {
+        errors.push(`Saknar kolon (:) i rad: "${line}"`);
+        return;
       }
+      const [rawName, rest] = line.split(":", 2);
+      const rowName = rawName.trim() || "Rad";
+      const rowBlocks = rest.split("||"); // double pipe = ny rad-id, samma Y men +1 gap i X
+      let slotCursor = 0; // X-slot över hela textraden
+      rowBlocks.forEach((block) => {
+        const blockText = block.trim();
+        const intervals = blockText.split("|").map(s => s.trim()).filter(Boolean);
+        const items = [];
+        const seatsArr = [];
+        intervals.forEach((seg, idx) => {
+          const parts = seg.split(/[,;-]/).map(x => x.trim()).filter(Boolean);
+          if (parts.length === 1) {
+            const n = Number(parts[0]);
+            if (Number.isFinite(n) && Number.isInteger(n)) {
+              const seatObj = newSeat(String(n));
+              items.push({ ...seatObj, pos: slotCursor });
+              seatsArr.push(seatObj);
+              slotCursor += 1;
+            } else {
+              errors.push(`Ogiltigt nummer "${parts[0]}" i rad "${rowName}" (rad ${lineIdx + 1})`);
+            }
+          } else if (parts.length >= 2) {
+            const start = Number(parts[0]);
+            const end = Number(parts[1]);
+            if (!Number.isInteger(start) || !Number.isInteger(end)) {
+              errors.push(`Ogiltigt intervall "${seg}" i rad "${rowName}" (rad ${lineIdx + 1})`);
+              return;
+            }
+            const step = start <= end ? 1 : -1;
+            for (let v = start; step === 1 ? v <= end : v >= end; v += step) {
+              const seatObj = newSeat(String(v));
+              items.push({ ...seatObj, pos: slotCursor });
+              seatsArr.push(seatObj);
+              slotCursor += 1;
+            }
+          }
+          if (idx < intervals.length - 1) {
+            items.push({ id: crypto.randomUUID ? crypto.randomUUID() : String(Math.random()), name: "", isGap: true, pos: slotCursor });
+            slotCursor += 1;
+          }
+        });
+        parsed.push({
+          id: crypto.randomUUID ? crypto.randomUUID() : String(Math.random()),
+          name: rowName,
+          seats: seatsArr.length ? seatsArr : [newSeat("1")],
+          items: items.length ? items : [{ ...newSeat("1"), pos: slotCursor }],
+          rowLine: lineIdx,
+          rawTextLine: `${rowName}: ${rest}`
+        });
+        // Lägg ett tomt slot i X-led mellan blocken
+        slotCursor += 1;
+      });
+    });
+    return { rows: parsed.length ? parsed : [newRow("Rad 1")], errors };
+  }
 
-    } else if (e.target.classList.contains("remove-seat-last")) {
+  function renderSectionPreview(draft) {
+    if (!sectionPreviewCanvas) return;
+    const ctxPrev = sectionPreviewCanvas.getContext("2d");
+    if (!ctxPrev) return;
 
-      const row = sectionEditorState.rows.find(r => r.id === rowId);
+    // GruppЫra rader per radbrytning (rowLine)
+    const groups = new Map();
+    draft.rows.forEach((row, idx) => {
+      const key = Number.isFinite(row.rowLine) ? row.rowLine : idx;
+      if (!groups.has(key)) groups.set(key, []);
+      groups.get(key).push(row);
+    });
+    const lines = Array.from(groups.entries()).sort((a, b) => a[0] - b[0]);
+    const slotSize = 40;
+    const rowHeight = 50;
+    const marginX = 70;
+    const marginY = 32;
 
-      if (row && row.seats.length > 0) {
+    let maxOffset = 0;
+    lines.forEach(([, rows]) => {
+      rows.forEach((row) => {
+        const items = row.items && row.items.length ? row.items : row.seats.map((s, i) => ({ ...s, pos: i }));
+        items.forEach((it) => {
+          if (Number.isFinite(it.pos) && it.pos > maxOffset) maxOffset = it.pos;
+        });
+      });
+    });
+    const contentWidth = marginX * 2 + (maxOffset + 1) * slotSize;
+    const contentHeight = marginY * 2 + lines.length * rowHeight;
+    const cssWidth = sectionPreviewCanvas.clientWidth || 900;
+    const targetHeight = 320;
+    const scaleX = contentWidth > 0 ? Math.min(1, cssWidth / contentWidth) : 1;
+    const scaleY = contentHeight > 0 ? Math.min(1, targetHeight / contentHeight) : 1;
+    const scale = Math.min(scaleX, scaleY);
+    const dpr = window.devicePixelRatio || 1;
+    const finalWidth = cssWidth;
+    sectionPreviewCanvas.width = finalWidth * dpr;
+    sectionPreviewCanvas.height = targetHeight * dpr;
+    sectionPreviewCanvas.style.height = `${targetHeight}px`;
+    sectionPreviewCanvas.style.width = "100%";
 
-        row.seats.pop();
+    ctxPrev.save();
+    ctxPrev.scale(dpr * scale, dpr * scale);
+    const clearW = finalWidth / scale;
+    const clearH = targetHeight / scale;
+    ctxPrev.clearRect(0, 0, clearW, clearH);
+    ctxPrev.fillStyle = "#f7faff";
+    ctxPrev.fillRect(0, 0, clearW, clearH);
 
-        renderSectionEditor();
+    const labelColor = "#2e3c47";
+    // Färginställningar för tydliga nummer
+    const seatHex = draft.color || "#14a0f4";
+    const seatFill = "#ffffff";
+    const seatStroke = seatHex;
+    const textColor = "#0f1d2a";
 
+    ctxPrev.lineWidth = 1;
+    ctxPrev.font = "12px 'Segoe UI', sans-serif";
+    ctxPrev.textBaseline = "middle";
+
+    lines.forEach(([, rows], lineIdx) => {
+      const baseY = marginY + lineIdx * rowHeight;
+      const displayRowNumber = (rows[0].name || "").replace(/^Rad\s*/i, "").trim() || `${lineIdx + 1}`;
+
+      // Rad-etikett
+      ctxPrev.fillStyle = labelColor;
+      ctxPrev.fillText(displayRowNumber, 16, baseY);
+
+      // Samla alla chips pЪ linjen
+      const chips = [];
+      rows.forEach((row) => {
+        const items = row.items && row.items.length ? row.items : row.seats.map((s, i) => ({ ...s, pos: i }));
+        items.forEach((it) => chips.push({ offset: it.pos ?? 0, seat: it }));
+      });
+      chips.sort((a, b) => a.offset - b.offset);
+
+      let lastOffset = -1;
+      chips.forEach(({ seat, offset }) => {
+        const gapCount = offset - (lastOffset + 1);
+        for (let g = 0; g < gapCount; g++) {
+          const gx = marginX + (lastOffset + 1 + g) * slotSize;
+          const gy = baseY;
+          ctxPrev.strokeStyle = "#cbd7e6";
+          ctxPrev.setLineDash([4, 4]);
+          ctxPrev.beginPath();
+          ctxPrev.arc(gx, gy, 14, 0, Math.PI * 2);
+          ctxPrev.stroke();
+          ctxPrev.setLineDash([]);
+        }
+
+        const x = marginX + offset * slotSize;
+        const y = baseY;
+        if (seat.isGap) {
+          ctxPrev.strokeStyle = "#cbd7e6";
+          ctxPrev.setLineDash([4, 4]);
+          ctxPrev.beginPath();
+          ctxPrev.arc(x, y, 14, 0, Math.PI * 2);
+          ctxPrev.stroke();
+          ctxPrev.setLineDash([]);
+        } else {
+          ctxPrev.fillStyle = seatFill;
+          ctxPrev.strokeStyle = seatStroke;
+          ctxPrev.beginPath();
+          ctxPrev.arc(x, y, 14, 0, Math.PI * 2);
+          ctxPrev.fill();
+          ctxPrev.stroke();
+
+          ctxPrev.fillStyle = textColor;
+          ctxPrev.font = "12px 'Segoe UI', sans-serif";
+          ctxPrev.textAlign = "center";
+          ctxPrev.fillText(seat.name || "", x, y);
+        }
+        lastOffset = offset;
+      });
+    });
+    ctxPrev.restore();
+  }
+
+  function hydrateDraftRowsFromRaw(draft) {
+    const rawText = (draft.sectionId && sectionRawText.get(draft.sectionId)) ?? draft.rawRowText ?? "";
+    if (!rawText.trim()) return { ok: true };
+    const parsed = parseRowsText(rawText);
+    if (parsed.errors.length) {
+      return { ok: false, errors: parsed.errors, rawText };
+    }
+    draft.rows = parsed.rows;
+    draft.rawRowText = rawText;
+    if (draft.sectionId) sectionRawText.set(draft.sectionId, rawText);
+    return { ok: true };
+  }
+
+  function renderRowsPreview(draft) {
+    sectionRowsEditor.innerHTML = "";
+    const groups = new Map();
+    draft.rows.forEach((row, idx) => {
+      const key = Number.isFinite(row.rowLine) ? row.rowLine : idx;
+      if (!groups.has(key)) groups.set(key, []);
+      groups.get(key).push(row);
+    });
+
+    Array.from(groups.entries()).sort((a, b) => a[0] - b[0]).forEach(([lineIdx, rows]) => {
+      const rowEl = document.createElement("div");
+      rowEl.className = "row-card";
+      const displayRowNumber = (rows[0].name || "").replace(/^Rad\s*/i, "").trim() || `${lineIdx + 1}`;
+
+      // samla chips med offset och lägg in gap-chip när det saknas offset (dubbla pipes)
+      const chips = [];
+      rows.forEach((row) => {
+        const items = row.items && row.items.length ? row.items : row.seats.map((s, i) => ({ ...s, pos: i }));
+        items.forEach((it) => chips.push({ offset: it.pos ?? 0, seat: it }));
+      });
+      chips.sort((a, b) => a.offset - b.offset);
+      let lastOffset = -1;
+      const chipHtml = [];
+      chips.forEach(({ seat, offset }) => {
+        const gapCount = offset - (lastOffset + 1);
+        for (let g = 0; g < gapCount; g++) {
+          chipHtml.push(`
+            <span class="seat-chip seat-chip--gap" title="Tomt utrymme">
+              <span>·</span>
+            </span>
+          `);
+        }
+        chipHtml.push(`
+          <span class="seat-chip ${seat.isGap ? "seat-chip--gap" : ""}">
+            ${seat.isGap ? `<span title="Tomt utrymme">·</span>` : `<input data-role="seat-name" value="${seat.name || ""}" />`}
+          </span>
+        `);
+        lastOffset = offset;
+      });
+      rowEl.innerHTML = `
+        <div class="row-card__line">
+          <strong style="min-width:60px;display:inline-block;">${displayRowNumber}</strong>
+          <span class="u-font--small" style="display:flex;flex-wrap:wrap;gap:0.25rem;align-items:center;">
+            ${chipHtml.join("")}
+          </span>
+        </div>
+      `;
+      sectionRowsEditor.appendChild(rowEl);
+    });
+  }
+
+  function renderSectionCards(filter = "") {
+    if (!sectionCardsEl) return;
+    sectionCardsEl.innerHTML = "";
+    const lower = filter.trim().toLowerCase();
+    sectionDrafts
+      .filter(d => !lower || d.sectionId.toLowerCase().includes(lower) || (d.sectionName || "").toLowerCase().includes(lower))
+      .forEach((draft) => {
+        const card = document.createElement("div");
+        card.className = "section-card" + (draft.sectionId === activeSectionDraftId ? " section-card--active" : "");
+        card.dataset.sectionId = draft.sectionId;
+
+        const colorDot = document.createElement("div");
+        colorDot.className = "section-card__color";
+        colorDot.style.background = draft.color || "#14a0f4";
+
+        const body = document.createElement("div");
+        body.className = "section-card__body";
+
+        const title = document.createElement("div");
+        title.className = "section-card__name";
+        title.textContent = draft.sectionName || draft.sectionId;
+
+        const meta = document.createElement("div");
+        meta.className = "section-card__meta";
+        const rowCount = draft.rows.length;
+        const seatCount = draft.rows.reduce((sum, r) => sum + (r.seats?.length || 0), 0);
+        meta.innerHTML = `<span>${rowCount} rader</span><span>${seatCount} platser</span>`;
+
+        body.appendChild(title);
+        body.appendChild(meta);
+
+        card.appendChild(colorDot);
+        card.appendChild(body);
+        sectionCardsEl.appendChild(card);
+      });
+  }
+
+  function getActiveDraft() {
+    return sectionDrafts.find((d) => d.sectionId === activeSectionDraftId) || null;
+  }
+
+  function renderSectionDetail() {
+    const draft = getActiveDraft();
+    if (!draft || !sectionEditId || !sectionEditName || !sectionEditColor || !sectionRowsEditor) return;
+    sectionEditId.value = draft.sectionId || "";
+    sectionEditName.value = draft.sectionName || "";
+    sectionEditColor.value = draft.color || "#14a0f4";
+    const rawTxt = draft.rawRowText || sectionRawText.get(draft.sectionId) || rowsToText(draft.rows || []);
+    if (sectionRowText && document.activeElement !== sectionRowText) {
+      sectionRowText.value = rawTxt;
+    }
+    draft.rawRowText = rawTxt;
+    // Säkerställ att rows matchar den text som visas
+    if (rawTxt && rawTxt.trim()) {
+      const parsed = parseRowsText(rawTxt);
+      if (!parsed.errors.length) {
+        draft.rows = parsed.rows;
       }
-
-    } else if (e.target.classList.contains("remove-seat")) {
-
-      const row = sectionEditorState.rows.find(r => r.id === rowId);
-
-      if (row) {
-
-        row.seats = row.seats.filter(s => s.id !== seatId);
-
-        renderSectionEditor();
-
+      if (sectionRowErrors) {
+        sectionRowErrors.textContent = parsed.errors.join("\n");
       }
-
-    } else if (e.target.classList.contains("remove-row")) {
-
-      if (sectionEditorState.rows.length > 1) {
-
-        sectionEditorState.rows = sectionEditorState.rows.filter(r => r.id !== rowId);
-
-        renderSectionEditor();
-
-      }
-
+    } else if (sectionRowErrors) {
+      sectionRowErrors.textContent = "";
     }
 
-  });
+    const existingSeats = seats.some((s) => s.sectionId === draft.sectionId);
+    sectionEditId.disabled = existingSeats;
+    if (sectionEditHint) {
+      sectionEditHint.textContent = existingSeats
+        ? "Redigering av befintlig sektion – namn går att ändra. Strukturändringar begränsade."
+        : "Ny sektion – du kan lägga till rader och platser.";
+    }
 
+    renderRowsPreview(draft);
+    renderSectionPreview(draft);
+  }
 
+  function openSectionManager() {
+    resetSectionDrafts();
+    renderSectionCards();
+    renderSectionDetail();
+    setSectionDirty(false);
+    if (sectionManagerOverlay) sectionManagerOverlay.style.display = "flex";
+  }
 
-  function saveSectionFromEditor() {
+  function closeSectionManager() {
+    if (sectionManagerOverlay) sectionManagerOverlay.style.display = "none";
+  }
 
-    const sectionId = (sectionEditorState.sectionId || computeNextSectionId()).trim();
+  function addNewDraftFromTemplate() {
+    const newDraft = {
+      sectionId: computeNextSectionId(),
+      sectionName: "",
+      color: "#14a0f4",
+      rows: [newRow("Rad 1")]
+    };
+    sectionDrafts.push(newDraft);
+    activeSectionDraftId = newDraft.sectionId;
+    setSectionDirty(true);
+    renderSectionCards(sectionSearchInput?.value || "");
+    renderSectionDetail();
+  }
 
-    const sectionName = (sectionEditorState.sectionName || sectionId).trim();
+  function handleRowAdd() {
+    const draft = getActiveDraft();
+    if (!draft) return;
+    draft.rows.push(newRow(`Rad ${draft.rows.length + 1}`));
+    setSectionDirty(true);
+    renderSectionDetail();
+    renderSectionCards(sectionSearchInput?.value || "");
+  }
 
-    if (!sectionId) return;
+  function handleRowRemove(rowId) {
+    const draft = getActiveDraft();
+    if (!draft) return;
+    draft.rows = draft.rows.filter((r) => r.id !== rowId);
+    if (!draft.rows.length) draft.rows = [newRow("Rad 1")];
+    setSectionDirty(true);
+    renderSectionDetail();
+    renderSectionCards(sectionSearchInput?.value || "");
+  }
 
+  function handleSeatAdd(rowId) {
+    const draft = getActiveDraft();
+    if (!draft) return;
+    const row = draft.rows.find((r) => r.id === rowId);
+    if (!row) return;
+    row.seats.push(newSeat(String(row.seats.length + 1)));
+    setSectionDirty(true);
+    renderSectionDetail();
+    renderSectionCards(sectionSearchInput?.value || "");
+  }
 
+  function setRowSeatCount(rowId, targetCount) {
+    const draft = getActiveDraft();
+    if (!draft) return;
+    const row = draft.rows.find((r) => r.id === rowId);
+    if (!row) return;
+    const count = Math.max(1, Math.floor(targetCount || 0));
+    if (count === row.seats.length) return;
+    if (count > row.seats.length) {
+      const start = row.seats.length;
+      for (let i = start; i < count; i++) {
+        row.seats.push(newSeat(String(i + 1)));
+      }
+    } else {
+      row.seats = row.seats.slice(0, count);
+    }
+    setSectionDirty(true);
+    renderSectionDetail();
+    renderSectionCards(sectionSearchInput?.value || "");
+  }
 
+  function handleSeatRemove(rowId, seatId) {
+    const draft = getActiveDraft();
+    if (!draft) return;
+    const row = draft.rows.find((r) => r.id === rowId);
+    if (!row) return;
+    row.seats = row.seats.filter((s) => s.id !== seatId);
+    if (!row.seats.length) row.seats.push(newSeat("1"));
+    setSectionDirty(true);
+    renderSectionDetail();
+    renderSectionCards(sectionSearchInput?.value || "");
+  }
+
+  function splitRowIntoSegments(row) {
+    return [row.seats];
+  }
+
+  function materializeNewSection(draft) {
     computeSectionOutlinesFromSeats(0);
-
     const baseX = layoutBounds ? layoutBounds.maxX + 200 : 0;
-
     const baseY = layoutBounds ? layoutBounds.minY : 0;
+    const seatSpacing = 120;
+    const rowSpacing = 180;
+    const timestamp = buildTimestamp();
 
-    const seatSpacing = 60;
-
-    const rowSpacing = 80;
-
-    const timestamp = Date.now();
-
-
-
+    const sectionId = (draft.sectionId || computeNextSectionId()).trim();
+    const sectionName = (draft.sectionName || sectionId).trim();
     sectionNames.set(sectionId, sectionName);
 
     originalLines.push(`${timestamp}|SectionAdd|SectionId=${sectionId}|Name=${sectionName}`);
 
-
-
-    const rows = sectionEditorState.rows.length ? sectionEditorState.rows : [newRow("Rad 1")];
-
-    rows.forEach((row, rowIdx) => {
-
-      const rowName = (row.name || `Rad ${rowIdx + 1}`).trim();
-
-      const rowId = `${sectionId}.${rowIdx + 1}`;
-
+    let rowCounter = 1;
+    draft.rows.forEach((row, rowIdx) => {
+      const yIndex = Number.isFinite(row.rowLine) ? row.rowLine : rowIdx;
+      const rowName = (row.name || `Rad ${rowCounter}`).trim();
+      const rowId = `${sectionId}.${rowCounter}`;
       originalLines.push(`${timestamp}|RowAdd|RowId=${rowId}|Name=${rowName}`);
 
-
-
-      const rowSeats = row.seats && row.seats.length ? row.seats : [newSeat("1"), newSeat("2")];
-
-      rowSeats.forEach((seat, seatIdx) => {
-
-        const seatName = (seat.name || `${seatIdx + 1}`).trim();
-
-        const seatId = `${sectionId}.${rowIdx + 1}.${seatIdx + 1}`;
-
-        const centerX = baseX + seatIdx * seatSpacing;
-
-        const centerY = baseY + rowIdx * rowSpacing;
-
+      const items = row.items && row.items.length ? row.items : row.seats.map((s, i) => ({ ...s, pos: i }));
+      let seatOrdinal = 1;
+      items.forEach((seat) => {
+        if (seat.isGap) return;
+        const seatName = (seat.name || `${seatOrdinal}`).trim();
+        const seatId = `${sectionId}.${rowCounter}.${seatOrdinal}`;
+        const centerX = baseX + (seat.pos ?? (seatOrdinal - 1)) * seatSpacing;
+        const centerY = baseY + yIndex * rowSpacing;
         const seatObj = {
-
           seatId,
-
           name: seatName,
-
           sectionId,
-
           rowId,
-
           sectionName,
-
           rowName,
-
           centerX,
-
           centerY,
-
           vx: centerX,
-
           vy: centerY,
-
           radius: 10,
-
           rotation: 0,
-
           width: 100,
-
           entryVia: "-",
-
           goodness: 0,
-
           attribute: "",
-
           timestamp,
-
           selected: false,
-
           lineIndex: originalLines.length
-
         };
-
         originalLines.push(buildSeatLine(seatObj));
-
         seats.push(seatObj);
-
         seatIdToLineIndex.set(seatId, seatObj.lineIndex);
-
+        seatOrdinal += 1;
       });
-
+      rowCounter += 1;
     });
-
-
-
-    const uniqueSections = new Set(seats.map(s => s.sectionId).filter(Boolean));
-
-    const uniqueRows = new Set(seats.map(s => s.rowId).filter(Boolean));
-
-    seatCountEl.textContent = seats.length.toString();
-
-    sectionCountEl.textContent = uniqueSections.size.toString();
-
-    rowCountEl.textContent = uniqueRows.size.toString();
-
-
-
-    rebuildSectionColors();
-
-    updateCodeFromSeats();
-
-    codePane.value = originalLines.join("\n");
-
-
-
-    hasUnsavedChanges = true;
-
-    updateSaveButton();
-
-    pushHistorySnapshot();
-
-    renderCanvas();
-
   }
 
+  function removeSectionData(sectionId) {
+    // Ta bort seats för sektionen
+    seats = seats.filter(s => s.sectionId !== sectionId);
 
+    // Filtrera originalLines från Section/Row/Seat/Outline som tillhör sektionen
+    const matchSection = (line) => {
+      if (!line) return false;
+      const outlineCode = sectionIdToOutlineCode(sectionId);
+      return line.includes(`SectionId=${sectionId}`) ||
+             line.includes(`RowId=${sectionId}.`) ||
+             line.includes(`SeatId=${sectionId}.`) ||
+             line.includes(`<Outline|${outlineCode}|`);
+    };
+    originalLines = originalLines.filter(line => !matchSection(line));
+    outlines = outlines.filter(o => o.sectionId !== sectionId);
 
-  sectionModalSave?.addEventListener("click", () => {
+    // Bygg om index-map
+    seatIdToLineIndex = new Map();
+    originalLines.forEach((line, idx) => {
+      if (line.includes("|SeatAdd|")) {
+        const seatIdMatch = line.match(/SeatId=([^|]+)/);
+        if (seatIdMatch) {
+          seatIdToLineIndex.set(seatIdMatch[1], idx);
+        }
+      }
+    });
+  }
 
-    saveSectionFromEditor();
+  function applyDraftToExisting(draft) {
+    const sectionId = draft.sectionId;
+    const draftRows = draft.rows || [];
+    sectionNames.set(sectionId, draft.sectionName || sectionId);
+    const grouped = new Map();
+    seats.forEach((s) => {
+      if (s.sectionId === sectionId) {
+        if (!grouped.has(s.rowId)) grouped.set(s.rowId, []);
+        grouped.get(s.rowId).push(s);
+      }
+    });
+    const compareIdSegments = (idA, idB) => {
+      const aParts = String(idA).split(".").map((p) => parseInt(p, 10));
+      const bParts = String(idB).split(".").map((p) => parseInt(p, 10));
+      const len = Math.max(aParts.length, bParts.length);
+      for (let i = 0; i < len; i++) {
+        const av = aParts[i] ?? 0;
+        const bv = bParts[i] ?? 0;
+        if (av !== bv) return av - bv;
+      }
+      return 0;
+    };
 
-    closeSectionModal();
+    draftRows.forEach((row) => {
+      const rowSeats = grouped.get(row.id);
+      if (!rowSeats) return;
+      rowSeats.sort((a, b) => compareIdSegments(a.seatId, b.seatId));
+      rowSeats.forEach((seatObj, idx) => {
+        seatObj.rowName = row.name || seatObj.rowName;
+        seatObj.sectionName = draft.sectionName || seatObj.sectionName;
+        if (row.seats[idx]) {
+          seatObj.name = row.seats[idx].name || seatObj.name;
+        }
+      });
+    });
+  }
 
-  });
+  function saveActiveSection() {
+    const activeDraft = getActiveDraft();
+    if (activeDraft && sectionEditId && sectionEditName && sectionEditColor) {
+      activeDraft.sectionId = (sectionEditId.value || activeDraft.sectionId || "").trim();
+      activeDraft.sectionName = (sectionEditName.value || activeDraft.sectionName || "").trim();
+      activeDraft.color = sectionEditColor.value || activeDraft.color || "#14a0f4";
+    }
 
+    const missingNames = sectionDrafts.filter(d => !d.sectionName || !d.sectionName.trim());
+    if (missingNames.length) {
+      alert("Alla sektioner måste ha namn innan du kan spara.");
+      return;
+    }
+
+    const validationErrors = [];
+    sectionDrafts.forEach((draft) => {
+      const res = hydrateDraftRowsFromRaw(draft);
+      if (!res.ok) {
+        validationErrors.push(`${draft.sectionName || draft.sectionId || "Sektion"}: ${res.errors.join("; ")}`);
+        if (draft.sectionId === activeSectionDraftId && sectionRowErrors) {
+          sectionRowErrors.textContent = res.errors.join("\n");
+          if (sectionRowText && document.activeElement !== sectionRowText) {
+            sectionRowText.value = res.rawText ?? sectionRowText.value;
+          }
+        }
+      }
+    });
+    if (validationErrors.length) {
+      alert("Kan inte spara förrän radformatet är korrekt:\n" + validationErrors.join("\n"));
+      return;
+    }
+
+    let addedNew = false;
+    let anyChanged = false;
+    sectionDrafts.forEach((draft) => {
+      if (!draft.sectionId) return;
+      const exists = seats.some((s) => s.sectionId === draft.sectionId);
+      if (exists) {
+        removeSectionData(draft.sectionId);
+        materializeNewSection(draft);
+        anyChanged = true;
+      } else {
+        materializeNewSection(draft);
+        addedNew = true;
+        anyChanged = true;
+      }
+      sectionColors.set(draft.sectionId, draft.color || "#14a0f4");
+    });
+
+    if (anyChanged) {
+      rebuildSectionColors();
+      const uniqueSections = new Set(seats.map(s => s.sectionId).filter(Boolean));
+      const uniqueRows = new Set(seats.map(s => s.rowId).filter(Boolean));
+      seatCountEl.textContent = seats.length.toString();
+      sectionCountEl.textContent = uniqueSections.size.toString();
+      rowCountEl.textContent = uniqueRows.size.toString();
+
+      updateCodeFromSeats();
+      hasUnsavedChanges = true;
+      updateSaveButton();
+      pushHistorySnapshot();
+      renderCanvas();
+      if (addedNew) {
+        zoomToFitAllSeats();
+      }
+    }
+
+    setSectionDirty(false);
+    renderSectionCards(sectionSearchInput?.value || "");
+  }
 
 // --- Kod-modal ---
   let codeModalOriginal = "";
@@ -4246,6 +5146,207 @@ function selectAllSeats() {
     closeCodeModal();
   });
 
+  // --- Section manager events ---
+  openSectionManagerBtn?.addEventListener("click", openSectionManager);
+  sectionManagerClose?.addEventListener("click", () => {
+    if (!sectionDirty) {
+      closeSectionManager();
+      return;
+    }
+    if (confirm("Stäng utan att spara?")) closeSectionManager();
+  });
+  sectionManagerOverlay?.addEventListener("click", (e) => {
+    if (e.target === sectionManagerOverlay) closeSectionManager();
+  });
+
+  sectionCreateBtn?.addEventListener("click", () => {
+    addNewDraftFromTemplate();
+  });
+
+  function syncRowsFromText() {
+    const draft = getActiveDraft();
+    if (!draft) return;
+    const rawText = sectionRowText?.value || "";
+    const parsed = parseRowsText(rawText);
+    draft.rows = parsed.rows;
+    draft.rawRowText = rawText;
+    if (draft.sectionId) sectionRawText.set(draft.sectionId, rawText);
+    if (sectionRowErrors) {
+      sectionRowErrors.textContent = parsed.errors.join("\n");
+    }
+    setSectionDirty(true);
+    renderSectionDetail();
+    renderSectionCards(sectionSearchInput?.value || "");
+  }
+
+  parseRowsBtn?.addEventListener("click", syncRowsFromText);
+  sectionRowText?.addEventListener("input", () => {
+    // Låt användaren skriva fritt; rensa bara felmeddelande tills man klickar "Uppdatera rader"
+    const draft = getActiveDraft();
+    if (draft && sectionRowText) {
+      draft.rawRowText = sectionRowText.value;
+    }
+    if (sectionRowErrors) sectionRowErrors.textContent = "";
+  });
+
+  sectionCardsEl?.addEventListener("click", (e) => {
+    const card = e.target.closest(".section-card");
+    if (!card) return;
+    activeSectionDraftId = card.dataset.sectionId;
+    renderSectionCards(sectionSearchInput?.value || "");
+    renderSectionDetail();
+  });
+
+  sectionSearchInput?.addEventListener("input", (e) => {
+    renderSectionCards(e.target.value || "");
+  });
+
+  sectionEditId?.addEventListener("input", (e) => {
+    const draft = getActiveDraft();
+    if (!draft) return;
+    draft.sectionId = e.target.value;
+    activeSectionDraftId = draft.sectionId;
+    setSectionDirty(true);
+    renderSectionCards(sectionSearchInput?.value || "");
+  });
+
+  sectionEditName?.addEventListener("input", (e) => {
+    const draft = getActiveDraft();
+    if (!draft) return;
+    draft.sectionName = e.target.value;
+    setSectionDirty(true);
+    renderSectionCards(sectionSearchInput?.value || "");
+  });
+
+  sectionEditColor?.addEventListener("input", (e) => {
+    const draft = getActiveDraft();
+    if (!draft) return;
+    draft.color = e.target.value;
+    setSectionDirty(true);
+    renderSectionCards(sectionSearchInput?.value || "");
+  });
+
+  addRowInlineBtn?.addEventListener("click", () => {
+    const draft = getActiveDraft();
+    if (!draft) return;
+    const exists = seats.some((s) => s.sectionId === draft.sectionId);
+    if (exists) {
+      alert("Strukturändring av befintliga sektioner är begränsad. Skapa en ny sektion för större ändringar.");
+      return;
+    }
+    handleRowAdd();
+  });
+
+  sectionRowsEditor?.addEventListener("input", (e) => {
+    const rowEl = e.target.closest(".row-card");
+    const draft = getActiveDraft();
+    if (!rowEl || !draft) return;
+    const rowId = rowEl.dataset.rowId;
+    const row = draft.rows.find((r) => r.id === rowId);
+    if (!row) return;
+    if (e.target.dataset.role === "row-name") {
+      row.name = e.target.value;
+      setSectionDirty(true);
+      renderSectionCards(sectionSearchInput?.value || "");
+    } else if (e.target.dataset.role === "seat-name") {
+      const seatId = e.target.closest(".seat-chip")?.dataset.seatId;
+      const seat = row.seats.find((s) => s.id === seatId);
+      if (seat) {
+        seat.name = e.target.value;
+        setSectionDirty(true);
+      }
+    }
+  });
+
+  sectionRowsEditor?.addEventListener("click", (e) => {
+    const rowEl = e.target.closest(".row-card");
+    const draft = getActiveDraft();
+    if (!rowEl || !draft) return;
+    const rowId = rowEl.dataset.rowId;
+    const exists = seats.some((s) => s.sectionId === draft.sectionId);
+
+    if (e.target.dataset.role === "row-seat-inc") {
+      if (exists) {
+        alert("Strukturändring av befintliga sektioner är begränsad. Skapa en ny sektion för större ändringar.");
+        return;
+      }
+      handleSeatAdd(rowId);
+    }
+    if (e.target.dataset.role === "row-seat-dec") {
+      if (exists) {
+        alert("Strukturändring av befintliga sektioner är begränsad. Skapa en ny sektion för större ändringar.");
+        return;
+      }
+      const draft = getActiveDraft();
+      const row = draft?.rows.find(r => r.id === rowId);
+      if (row && row.seats.length > 1) {
+        row.seats.pop();
+        setSectionDirty(true);
+        renderSectionDetail();
+        renderSectionCards(sectionSearchInput?.value || "");
+      }
+    }
+    if (e.target.dataset.role === "row-seat-set") {
+      if (exists) {
+        alert("Strukturändring av befintliga sektioner är begränsad. Skapa en ny sektion för större ändringar.");
+        return;
+      }
+      const current = getActiveDraft()?.rows.find(r => r.id === rowId)?.seats.length || 0;
+      const input = prompt("Ange antal platser i raden:", String(current));
+      if (input !== null) {
+        const n = parseInt(input, 10);
+        if (Number.isFinite(n) && n > 0) {
+          setRowSeatCount(rowId, n);
+        }
+      }
+    }
+    if (e.target.dataset.role === "row-new-id") {
+      if (exists) {
+        alert("Strukturändring av befintliga sektioner är begränsad. Skapa en ny sektion för större ändringar.");
+        return;
+      }
+      const draft = getActiveDraft();
+      if (!draft) return;
+      const row = draft.rows.find(r => r.id === rowId);
+      if (!row) return;
+      const rowIdx = draft.rows.findIndex(r => r.id === rowId);
+      const newR = newRow(row.name || `Rad ${draft.rows.length + 1}`);
+      draft.rows.splice(rowIdx + 1, 0, newR);
+      setSectionDirty(true);
+      renderSectionDetail();
+      renderSectionCards(sectionSearchInput?.value || "");
+    }
+    if (e.target.dataset.role === "row-remove") {
+      if (exists) {
+        alert("Du kan inte ta bort rader i befintliga sektioner i denna version.");
+        return;
+      }
+      handleRowRemove(rowId);
+    }
+    if (e.target.dataset.role === "seat-remove") {
+      if (exists) return;
+      const seatId = e.target.closest(".seat-chip")?.dataset.seatId;
+      if (seatId) handleSeatRemove(rowId, seatId);
+    }
+  });
+
+  sectionDuplicateBtn?.addEventListener("click", () => {
+    const draft = getActiveDraft();
+    if (!draft) return;
+    const copy = JSON.parse(JSON.stringify(draft));
+    copy.sectionId = computeNextSectionId();
+    copy.sectionName = `${draft.sectionName || draft.sectionId} (kopia)`;
+    sectionDrafts.push(copy);
+    activeSectionDraftId = copy.sectionId;
+    setSectionDirty(true);
+    renderSectionCards(sectionSearchInput?.value || "");
+    renderSectionDetail();
+  });
+
+  sectionSaveBtn?.addEventListener("click", () => {
+    saveActiveSection();
+  });
+
 
   // --- Init ---
 
@@ -4269,14 +5370,17 @@ window.addEventListener("beforeunload", (e) => {
   renderGrayscale = viewGrayToggle?.checked ?? false;
   showHoverInfo = viewHoverToggle?.checked ?? true;
   showSectionNames = viewSectionNamesToggle?.checked ?? false;
+  if (viewSeatLabelRow?.checked) seatLabelMode = "row";
+  else if (viewSeatLabelSeat?.checked) seatLabelMode = "seat";
+  else seatLabelMode = "none";
 
   setTool("select");
   setSelectionMode("seat");
   updateMoveButtonState();
   updateSaveButton();
   renderCanvas();
-</script>
+  </script>
 
 
-</body>
-</html>
+  </body>
+  </html>
