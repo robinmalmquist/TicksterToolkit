@@ -1503,7 +1503,7 @@
 
             </button>
 
-            <button id="openSectionManagerBtn" class="c-button c-button--primary c-button--icon-left" data-icon="◎">
+            <button id="openSectionManagerBtn" class="c-button c-button--primary c-button--icon-left" data-icon="">
 
               Skapa sektioner
 
@@ -1515,15 +1515,9 @@
           </div>
 
           <div id="top-bar-right" class="c-toolbar c-toolbar--horizontal">
-            <button id="themeToggleBtn" class="c-button c-button--ghost c-button--small" title="Toggle dark mode">
+            <button id="themeToggleBtn" class="c-button c-button--ghost" title="Toggle dark mode">
               Dark mode
-            </button>
-            <div class="file-info u-font--small" id="fileInfo">
-
-            Ingen fil läst ännu.
-
-            </div>
-          </div>
+            </button></div>
         </div>
 
         <div id="alignBar" class="c-toolbar c-toolbar--horizontal">
@@ -1556,13 +1550,10 @@
             <span id="sectionCount">0</span>
           </div>
           <div>
-            <strong>Rader:</strong>
-            <span id="rowCount">0</span>
-          </div>
-          <div>
             <strong>Platser:</strong>
             <span id="seatCount">0</span>
           </div>
+          <div id="fileInfo" class="file-info u-font--small">Ingen fil läst ännu.</div>
 
         </div>
       </div>
@@ -1850,7 +1841,6 @@
 
   const seatCountEl = document.getElementById("seatCount");
   const sectionCountEl = document.getElementById("sectionCount");
-  const rowCountEl = document.getElementById("rowCount");
 
   const tooltipEl = document.getElementById("tooltip");
   const seatContextMenu = document.getElementById("seatContextMenu");
@@ -1964,6 +1954,7 @@
   let showHoverInfo = true;
   let showSectionNames = false;
   let showPriceRegions = false;
+  let restoredSession = false;
   let sectionColors = new Map();
   let sectionDrafts = [];
   let activeSectionDraftId = null;
@@ -2342,9 +2333,7 @@
     // Info-panel
     seatCountEl.textContent = seats.length.toString();
     const uniqueSections = new Set(seats.map(s => s.sectionId).filter(Boolean));
-    const uniqueRows = new Set(seats.map(s => s.rowId).filter(Boolean));
     sectionCountEl.textContent = uniqueSections.size.toString();
-    rowCountEl.textContent = uniqueRows.size.toString();
 
     rebuildSectionColors();
     updatePriceRegionStatus();
@@ -2777,8 +2766,14 @@
   }
 
 
-  function saveSessionToLocalStorage() {
+function saveSessionToLocalStorage() {
   try {
+    const readSeatLabelMode = () => {
+      if (viewSeatLabelRow?.checked) return "row";
+      if (viewSeatLabelSeat?.checked) return "seat";
+      return "none";
+    };
+    seatLabelMode = readSeatLabelMode();
     let sessionFileName = currentFileName || "";
     if (!sessionFileName) {
       const previous = localStorage.getItem(SESSION_STORAGE_KEY);
@@ -2899,6 +2894,7 @@ async function tryRestoreSessionFromLocalStorage() {
       "Det finns en tidigare osparad session.\nVill du återställa den?"
     );
     if (!accept) return;
+    restoredSession = true;
 
     // Återställ tlt-texten
     codePane.value = data.tltText;
@@ -2907,12 +2903,11 @@ async function tryRestoreSessionFromLocalStorage() {
     // Återställ filnamn-info (om vi hade ett)
     currentFileName = data.fileName || "";
     if (currentFileName) {
-      fileInfo.textContent = `Återställd session (${currentFileName})`;
+      fileInfo.textContent = `Återställd session \n${currentFileName}`;
     } else {
-      fileInfo.textContent = "Återställd session (ej sparad fil)";
+      fileInfo.textContent = "Återställd session \n(ej sparad fil)";
     }
     loadPriceRegionsFromStorage();
-    saveSessionToLocalStorage();
 
     // Återställ zoom/pan om vi har dem
     if (typeof data.translateX === "number") translateX = data.translateX;
@@ -2944,6 +2939,8 @@ async function tryRestoreSessionFromLocalStorage() {
       if (viewPriceRegionToggle) viewPriceRegionToggle.checked = showPriceRegions;
       setSeatLabelMode(seatLabelMode, true);
     }
+
+    saveSessionToLocalStorage();
 
 
 
@@ -3040,7 +3037,7 @@ codePane.addEventListener("input", () => {
       currentFileHandle = handle;
       lastDirectoryHandle = await tryGetDirectoryHandle(handle) || handle;
       currentFileName = handle.name || currentFileName || "layout.tlt";
-      fileInfo.textContent = `Sparad (${currentFileName})`;
+      fileInfo.textContent = `Sparad ${currentFileName}`;
       hasUnsavedChanges = false;
       updateSaveButton();
       saveCurrentFileHandleToDB(handle);
@@ -3065,7 +3062,7 @@ codePane.addEventListener("input", () => {
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      fileInfo.textContent = `Sparad (${a.download})`;
+      fileInfo.textContent = `Sparad ${a.download}`;
       hasUnsavedChanges = false;
       updateSaveButton();
     } catch (err) {
@@ -3123,7 +3120,6 @@ codePane.addEventListener("input", () => {
     updateSaveButton();
     seatCountEl.textContent = "0";
     sectionCountEl.textContent = "0";
-    rowCountEl.textContent = "0";
     resetSectionDrafts();
     renderSectionCards();
     renderSectionDetail();
@@ -4030,9 +4026,9 @@ codePane.addEventListener("input", () => {
         }
         if (s.attributes && s.attributes.length) {
           ctx.save();
-          ctx.fillStyle = "rgba(0,0,0,0.7)";
-          ctx.strokeStyle = "rgba(255,255,255,0.85)";
-          drawHexMarker(ctx, s.vx, s.vy, rectSizeWorld * 0.55, 1 / scale);
+          ctx.fillStyle = "rgba(0,0,0,0.35)";
+          ctx.strokeStyle = "rgba(255,255,255,0.8)";
+          drawHexMarker(ctx, s.vx, s.vy, rectSizeWorld * 0.7, 1.6 / scale);
           ctx.restore();
         }
         continue;
@@ -4080,9 +4076,9 @@ codePane.addEventListener("input", () => {
 
         if (s.attributes && s.attributes.length) {
           ctx.save();
-          ctx.fillStyle = "rgba(0,0,0,0.7)";
-          ctx.strokeStyle = "rgba(255,255,255,0.85)";
-          drawHexMarker(ctx, s.vx, s.vy, worldRadius * 0.45, 1 / scale);
+          ctx.fillStyle = "rgba(0,0,0,0.45)";
+          ctx.strokeStyle = "rgba(255,255,255,0.7)";
+          drawHexMarker(ctx, s.vx, s.vy, worldRadius * 0.6, 1.6 / scale);
           ctx.restore();
         }
       }
@@ -6713,10 +6709,8 @@ function selectAllSeats() {
 
       rebuildSectionColors();
       const uniqueSections = new Set(seats.map(s => s.sectionId).filter(Boolean));
-      const uniqueRows = new Set(seats.map(s => s.rowId).filter(Boolean));
       seatCountEl.textContent = seats.length.toString();
       sectionCountEl.textContent = uniqueSections.size.toString();
-      rowCountEl.textContent = uniqueRows.size.toString();
 
       updateCodeFromSeats();
       hasUnsavedChanges = true;
@@ -7035,6 +7029,7 @@ function selectAllSeats() {
 });
 
 window.addEventListener("beforeunload", (e) => {
+  saveSessionToLocalStorage();
   if (!hasUnsavedChanges) return;
 
   // Detta magiska returnValue krävs för att vissa browsers ska visa varningen
@@ -7046,13 +7041,15 @@ window.addEventListener("beforeunload", (e) => {
   updateBgOpacityDisplay();
   updateBgScaleDisplay();
   bgEnabledToggle.checked = backgroundState.enabled;
-  renderGrayscale = false;
-  showHoverInfo = viewHoverToggle?.checked ?? true;
-  showSectionNames = viewSectionNamesToggle?.checked ?? false;
-  if (viewSeatLabelRow?.checked) seatLabelMode = "row";
-  else if (viewSeatLabelSeat?.checked) seatLabelMode = "seat";
-  else seatLabelMode = "none";
-  showPriceRegions = viewPriceRegionToggle?.checked ?? false;
+  if (!restoredSession) {
+    renderGrayscale = false;
+    showHoverInfo = viewHoverToggle?.checked ?? true;
+    showSectionNames = viewSectionNamesToggle?.checked ?? false;
+    if (viewSeatLabelRow?.checked) seatLabelMode = "row";
+    else if (viewSeatLabelSeat?.checked) seatLabelMode = "seat";
+    else seatLabelMode = "none";
+    showPriceRegions = viewPriceRegionToggle?.checked ?? false;
+  }
 
     setTool("select");
     setSelectionMode("seat");
@@ -7071,5 +7068,3 @@ window.addEventListener("beforeunload", (e) => {
 
   </body>
   </html>
-
-
