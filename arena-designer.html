@@ -36,7 +36,7 @@
       --card-border: #dbe0e4;
       --card-shadow: 0 2px 8px rgba(0,0,0,0.04);
       --radius-card: 10px;
-      --radius-pill: 999px;
+      --radius-pill: 5px;
       --transition-fast: 0.15s ease-out;
       --font-main: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
@@ -50,7 +50,8 @@
 
     body {
       font-family: var(--font-main);
-      background: radial-gradient(circle at top left, #7cd0ff 0, #f3f6f9 40%, #f3f6f9 100%);
+      /*background: radial-gradient(circle at top left, #415e6e 0, #f3f6f9 40%, #f3f6f9 100%);*/
+      background: #415e6e;
       color: var(--tick-grey-dark);
       overflow: hidden;
     }
@@ -75,6 +76,7 @@
       padding: 0.75rem;
       display: flex;
       flex-direction: column;
+      margin-bottom: .5rem;
     }
 
     .c-card__header {
@@ -140,7 +142,7 @@
     }
 
     .c-button--primary {
-      background: var(--tick-blue);
+      background: var(--tick-blue-dark);
       border-color: var(--tick-blue-dark);
       color: #fff;
     }
@@ -156,8 +158,8 @@
     }
 
     .c-button--ghost {
-      background: transparent;
-      border-color: var(--tick-grey-light);
+      background: var(--tick-grey-light);
+      border-color: var(--tick-grey-dark);
       color: var(--tick-grey-dark);
     }
 
@@ -438,7 +440,61 @@
       flex-direction: column;
       gap: 0.75rem;
     }
-    #newLayoutModal h3 {
+
+    #priceRegionOverlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.35);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    }
+
+    #priceRegionModal {
+      background: #fff;
+      border-radius: 12px;
+      padding: 1rem;
+      width: min(420px, 92vw);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    #exportOverlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.35);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    }
+    #exportModal {
+      background: #fff;
+      border-radius: 12px;
+      padding: 1rem;
+      width: min(520px, 92vw);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    .export-options {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 0.5rem;
+      padding: 0.4rem 0;
+    }
+    .export-option {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-size: 0.9rem;
+    }
+    #newLayoutModal h3,
+    #priceRegionModal h3,
+    #exportModal h3 {
       margin: 0;
       font-size: 1.1rem;
       color: #1f2b35;
@@ -674,6 +730,157 @@
       gap: 0.5rem;
     }
 
+    #right-panels .c-card__header {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      margin-bottom: 0;
+    }
+
+    #right-panels .c-card__body {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .c-card__toggle {
+      margin-left: auto;
+      width: 22px;
+      height: 22px;
+      border-radius: 6px;
+      border: 1px solid var(--card-border);
+      background: #f7f9fc;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background var(--transition-fast), border-color var(--transition-fast), transform var(--transition-fast);
+    }
+
+    .c-card__toggle:hover {
+      background: #edf5ff;
+      border-color: var(--tick-blue);
+    }
+
+    .c-card__toggle::before {
+      content: "";
+      width: 6px;
+      height: 6px;
+      border-right: 2px solid var(--tick-grey-dark);
+      border-bottom: 2px solid var(--tick-grey-dark);
+      transform: rotate(45deg);
+      transition: transform var(--transition-fast);
+    }
+
+    .c-card--collapsed .c-card__toggle::before {
+      transform: rotate(-45deg);
+    }
+
+    .c-card--collapsed .c-card__body {
+      display: none;
+    }
+
+    #right-panels .c-card--collapsed .c-card__body {
+      display: none !important;
+    }
+
+    #right-panels .c-card__body[hidden] {
+      display: none !important;
+    }
+
+    .price-region-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .price-region-item {
+      border: 1px solid #e1e6ef;
+      border-radius: 8px;
+      padding: 0.5rem 0.6rem;
+      background: #f9fbff;
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      position: relative;
+    }
+
+    .price-region-item__header {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 0.5rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #243743;
+    }
+
+    .price-region-item__header-left {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      min-width: 0;
+    }
+
+    .price-region-item__delete {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      border: none;
+      background: var(--tick-red);
+      color: #fff;
+      font-weight: 700;
+      font-size: 0.75rem;
+      line-height: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .price-region-item__delete:hover {
+      background: var(--tick-red-dark);
+    }
+
+    .price-region-item__add--active {
+      background: var(--tick-green);
+      border-color: var(--tick-green-dark);
+      color: #fff;
+    }
+
+    .price-region-item__add--active:hover:not(:disabled) {
+      background: var(--tick-green-dark);
+    }
+
+    .price-region-item__meta {
+      font-size: 0.78rem;
+      color: var(--tick-grey);
+    }
+
+    .price-region-status {
+      font-size: 0.95em;
+      margin-left: 0.35rem;
+    }
+
+    .price-region-item__color {
+      width: 34px;
+      height: 20px;
+      padding: 0;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+    }
+
+    .price-region-item__actions {
+      display: flex;
+      gap: 0.4rem;
+      justify-content: flex-end;
+      flex-wrap: wrap;
+    }
+
     #info-panel {
       font-size: 0.85rem;
       line-height: 1.4;
@@ -771,6 +978,74 @@
       gap: 0.5rem;
     }
 
+    /* Attribute-modal */
+    #attributeModalOverlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(18, 32, 53, 0.65);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 25;
+      padding: 1rem;
+    }
+
+    #attributeModal {
+      background: #fff;
+      border-radius: 12px;
+      width: min(520px, 92vw);
+      max-height: 80vh;
+      display: flex;
+      flex-direction: column;
+      border: 1px solid #dbe0e4;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.25);
+      overflow: hidden;
+    }
+
+    #attributeModal header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.85rem 1rem;
+      border-bottom: 1px solid #e5e9ef;
+    }
+
+    #attributeModal main {
+      padding: 0.75rem 1rem;
+      overflow: auto;
+      background: #f8f9fb;
+    }
+
+    .attribute-modal__list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+
+    .attribute-option {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.45rem 0.5rem;
+      border-radius: 8px;
+      background: #fff;
+      border: 1px solid #e1e6ef;
+      font-size: 0.88rem;
+    }
+
+    .attribute-option input {
+      margin: 0;
+    }
+
+    #attributeModal footer {
+      padding: 0.75rem 1rem;
+      border-top: 1px solid #e5e9ef;
+      background: #f7f9fc;
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.5rem;
+    }
+
     /* ---------- Mitten: canvas + topp-bar + kod ---------- */
 
     #center-area {
@@ -832,11 +1107,167 @@
 
     #saveBtn {
       /* sekundär visuell – men fortfarande .c-button--primary i HTML om du vill */
-      color: #243743;
+      color: #fff;
     }
 
     #top-bar input[type="file"] {
       display: none;
+    }
+
+    #top-bar-right {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    html[data-theme="dark"] body {
+      background: #0f141a;
+      color: #e5e7eb;
+    }
+
+    html[data-theme="dark"] .c-card,
+    html[data-theme="dark"] #top-bar,
+    html[data-theme="dark"] #codeModal,
+    html[data-theme="dark"] #newLayoutModal,
+    html[data-theme="dark"] .section-manager,
+    html[data-theme="dark"] .section-list,
+    html[data-theme="dark"] .section-editor,
+    html[data-theme="dark"] .section-preview {
+      background: #151b23;
+      border-color: #2b3442;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.45);
+    }
+
+    html[data-theme="dark"] .section-manager__body,
+    html[data-theme="dark"] #codeModal main,
+    html[data-theme="dark"] #codeModal footer,
+    html[data-theme="dark"] .section-cards,
+    html[data-theme="dark"] .row-textarea {
+      background: #0f141a;
+      border-color: #2b3442;
+    }
+
+    html[data-theme="dark"] #canvas-container {
+      background: #0b1117;
+      border-color: #2b3442;
+      box-shadow: 0 10px 24px rgba(0,0,0,0.5);
+    }
+
+    html[data-theme="dark"] #layoutCanvas {
+      background: #111827;
+      border-color: #2b3442;
+      box-shadow: 0 0 0 1px rgba(255,255,255,0.04), 0 10px 24px rgba(0,0,0,0.6);
+    }
+
+    html[data-theme="dark"] .section-card,
+    html[data-theme="dark"] .row-card {
+      background: #111827;
+      border-color: #2b3442;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.35);
+    }
+
+    html[data-theme="dark"] .section-card--active {
+      background: rgba(59,130,246,0.15);
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 1px rgba(59,130,246,0.35);
+    }
+
+    html[data-theme="dark"] .section-preview__canvas {
+      background: linear-gradient(180deg, #0f172a, #0b1117);
+      border-color: #2b3442;
+      box-shadow: inset 0 1px 2px rgba(0,0,0,0.45);
+    }
+
+    html[data-theme="dark"] .c-button {
+      background: #1f2937;
+      border-color: #2b3442;
+      color: #e5e7eb;
+    }
+
+    html[data-theme="dark"] .c-button:hover:not(:disabled) {
+      background: #273244;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.45);
+    }
+
+    html[data-theme="dark"] .c-button--ghost {
+      background: transparent;
+      border-color: #334155;
+      color: #e5e7eb;
+    }
+
+    html[data-theme="dark"] .c-button--active {
+      background: rgba(59,130,246,0.18);
+      border-color: #3b82f6;
+      color: #e5e7eb;
+      box-shadow: 0 0 0 1px rgba(59,130,246,0.35);
+    }
+
+    html[data-theme="dark"] input,
+    html[data-theme="dark"] select,
+    html[data-theme="dark"] textarea,
+    html[data-theme="dark"] .row-card__name,
+    html[data-theme="dark"] .row-card__index,
+    html[data-theme="dark"] .section-list__search {
+      background: #0f141a;
+      border-color: #2b3442;
+      color: #e5e7eb;
+    }
+
+    html[data-theme="dark"] .seat-chip {
+      background: #0f172a;
+      border-color: #2b3442;
+      color: #e5e7eb;
+    }
+
+    html[data-theme="dark"] .seat-chip input {
+      color: #e5e7eb;
+    }
+
+    html[data-theme="dark"] .help-text {
+      background: rgba(31,41,55,0.65);
+      color: #cbd5f5;
+    }
+
+    html[data-theme="dark"] .help-text strong {
+      background: rgba(15,23,42,0.7);
+      color: #e5e7eb;
+    }
+
+    html[data-theme="dark"] #info-panel span,
+    html[data-theme="dark"] .c-pill,
+    html[data-theme="dark"] .c-pill__code {
+      background: rgba(31,41,55,0.7);
+      border-color: #2b3442;
+      color: #e5e7eb;
+    }
+
+    html[data-theme="dark"] #codeModalOverlay,
+    html[data-theme="dark"] #sectionManagerOverlay {
+      background: rgba(6, 10, 18, 0.7);
+    }
+
+    html[data-theme="dark"] #attributeModalOverlay {
+      background: rgba(6, 10, 18, 0.7);
+    }
+
+    html[data-theme="dark"] #attributeModal {
+      background: #151b23;
+      border-color: #2b3442;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.45);
+    }
+
+    html[data-theme="dark"] #attributeModal main,
+    html[data-theme="dark"] #attributeModal footer {
+      background: #0f141a;
+      border-color: #2b3442;
+    }
+
+    html[data-theme="dark"] .attribute-option {
+      background: #111827;
+      border-color: #2b3442;
+      color: #e5e7eb;
     }
 
     #alignBar {
@@ -847,7 +1278,7 @@
 
     #canvas-container {
       flex: 1 1 auto;
-      background: #e2e7f0;
+      background: #fff;
       border-radius: var(--radius-card);
       border: 1px solid var(--card-border);
       display: flex;
@@ -866,8 +1297,7 @@
     #layoutCanvas {
       background: #f8f9fb;
       border-radius: 8px;
-      border: 1px solid #cdd3e0;
-      box-shadow: 0 0 0 1px #fff, 0 8px 18px rgba(0,0,0,0.07);
+      border: 1px solid #f1f1f1;
       display: block;
     }
 
@@ -896,6 +1326,65 @@
       font-weight: 600;
       color: var(--tick-yellow-light);
     }
+
+    .context-menu {
+      position: fixed;
+      z-index: 60;
+      background: #ffffff;
+      border: 1px solid #dbe0e4;
+      border-radius: 10px;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.18);
+      padding: 0.35rem;
+      min-width: 220px;
+      display: none;
+      color: #243743;
+      font-size: 0.85rem;
+    }
+
+    .context-menu.open {
+      display: block;
+    }
+
+    .context-menu__list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.15rem;
+      padding: 0.15rem;
+      max-height: 70vh;
+      overflow: auto;
+    }
+
+    .context-menu__item {
+      width: 100%;
+      border: none;
+      background: transparent;
+      text-align: left;
+      padding: 0.45rem 0.6rem;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      color: inherit;
+      user-select: none;
+      white-space: nowrap;
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .context-menu__item:hover {
+      background: #f1f5fb;
+    }
+
+    html[data-theme="dark"] .context-menu {
+      background: #111827;
+      border-color: #2b3442;
+      color: #e5e7eb;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.45);
+    }
+
+    html[data-theme="dark"] .context-menu__item:hover {
+      background: #1f2937;
+    }
   </style>
 </head>
 <body>
@@ -904,8 +1393,7 @@
     <aside id="left-toolbar">
       <div class="c-card">
         <div class="c-card__header">
-          <div class="c-card__title">Verktyg</div>
-          <div class="c-card__subtitle u-font--small">Markera, flytta och panorera din arenalayout.</div>
+          <div class="c-card__title">Tools</div>
         </div>
 
         <div id="toolButtons" class="c-toolbar">
@@ -936,11 +1424,14 @@
           <button id="deselectToolBtn" class="tool-button c-button c-button--ghost c-button--small">
             Deselect (CTRL+D)
           </button>
+          <button id="updateOutlinesBtn" class="tool-button c-button c-button--ghost c-button--small">
+            Update outlines
+          </button>
         </div>
 
         <div id="selectionModeGroup">
-          <div class="u-font--small" style="text-transform:uppercase; letter-spacing:0.08em; color:#555; margin-bottom:0.3rem;">
-            Markeringsnivå
+        <div class="c-card__header" style="margin-top:0.5rem;">
+          <div class="c-card__title">Selection Level</div>
           </div>
           <div class="c-toolbar">
             <button id="modeSectionBtn" class="tool-button c-button c-button--ghost c-button--small c-button--active">
@@ -953,6 +1444,27 @@
               Seat (F)
             </button>
           </div>
+        </div>
+
+        <div class="c-card__header" style="margin-top:0.5rem;">
+          <div class="c-card__title">Background Image</div>
+        </div>
+        <div class="c-toolbar">
+          <button id="bgLoadBtn" class="c-button c-button--ghost c-button--small">Add background image</button>
+          <label class="bg-control u-font--small">
+            <input type="checkbox" id="bgEnabledToggle" />
+            Activate background image
+          </label>
+          <label class="bg-control u-font--small">
+            Opacity
+            <input type="range" id="bgOpacityRange" min="0" max="1" step="0.05" value="0.4" />
+            <span id="bgOpacityValue" class="u-font--mono">0.40</span>
+          </label>
+          <label class="bg-control u-font--small">
+            Scale
+            <input type="range" id="bgScaleRange" min="0.1" max="10" step="0.1" value="1" />
+            <span id="bgScaleValue" class="u-font--mono">1.0x</span>
+          </label>
         </div>
 
         <div class="help-text">
@@ -973,7 +1485,7 @@
         <div class="top-bar__row">
           <div id="top-bar-left" class="c-toolbar c-toolbar--horizontal">
 
-            <button id="newLayoutBtn" class="c-button c-button--secondary c-button--icon-left" data-icon="">
+            <button id="newLayoutBtn" class="c-button c-button--primary c-button--icon-left" data-icon="">
 
               Skapa ny layout
 
@@ -985,26 +1497,32 @@
 
             </button>
 
-            <button id="saveBtn" class="c-button c-button--secondary c-button--icon-left" data-icon="" disabled>
+            <button id="saveBtn" class="c-button c-button--primary c-button--icon-left" data-icon="" disabled>
 
               Spara layout
 
             </button>
 
-            <button id="openSectionManagerBtn" class="c-button c-button--ghost c-button--small c-button--icon-left" data-icon="◎">
+            <button id="openSectionManagerBtn" class="c-button c-button--primary c-button--icon-left" data-icon="◎">
 
               Skapa sektioner
 
             </button>
 
+            <button id="exportBtn" class="c-button c-button--primary">Export</button>
             <input type="file" id="fileInput" accept=".tlt,.txt" />
 
           </div>
 
-          <div class="file-info u-font--small" id="fileInfo">
+          <div id="top-bar-right" class="c-toolbar c-toolbar--horizontal">
+            <button id="themeToggleBtn" class="c-button c-button--ghost c-button--small" title="Toggle dark mode">
+              Dark mode
+            </button>
+            <div class="file-info u-font--small" id="fileInfo">
 
             Ingen fil läst ännu.
 
+            </div>
           </div>
         </div>
 
@@ -1027,17 +1545,13 @@
 
     <!-- Höger: paneler -->
     <aside id="right-panels">
-      <div class="c-card">
+      <div class="c-card" data-collapsible="true">
         <div class="c-card__header">
-          <div class="c-card__title">Paneler</div>
-          <div class="c-card__subtitle u-font--small">Snabb överblick över layoutens omfattning.</div>
+          <div class="c-card__title">Layoutinformation</div>
+          <button class="c-card__toggle" type="button" aria-expanded="true" aria-label="Toggle panel" onclick="toggleRightPanel(this)"></button>
         </div>
-        <div id="info-panel">
-          <div>
-            <strong>Platser:</strong>
-            <span id="seatCount">0</span>
-          </div>
-          <div>
+        <div class="c-card__body" id="info-panel">
+                    <div>
             <strong>Sektioner:</strong>
             <span id="sectionCount">0</span>
           </div>
@@ -1045,43 +1559,31 @@
             <strong>Rader:</strong>
             <span id="rowCount">0</span>
           </div>
+          <div>
+            <strong>Platser:</strong>
+            <span id="seatCount">0</span>
+          </div>
+
         </div>
       </div>
 
-      <div class="c-card">
+      <div class="c-card" data-collapsible="true">
         <div class="c-card__header">
-          <div class="c-card__title">Referensbakgrund</div>
-          <div class="c-card__subtitle u-font--small">Visa en bild bakom platserna.</div>
+          <div class="c-card__title">PRISREGIONER <span id="priceRegionStatus" class="price-region-status">❌</span></div>
+          <button class="c-card__toggle" type="button" aria-expanded="true" aria-label="Toggle panel" onclick="toggleRightPanel(this)"></button>
         </div>
-        <div class="c-toolbar">
-          <button id="bgLoadBtn" class="c-button c-button--ghost c-button--small">Lägg till referensbakgrund</button>
-          <label class="bg-control u-font--small">
-            <input type="checkbox" id="bgEnabledToggle" />
-            Aktivera bild
-          </label>
-          <label class="bg-control u-font--small">
-            Opacitet
-            <input type="range" id="bgOpacityRange" min="0" max="1" step="0.05" value="0.4" />
-            <span id="bgOpacityValue" class="u-font--mono">0.40</span>
-          </label>
-          <label class="bg-control u-font--small">
-            Skala
-            <input type="range" id="bgScaleRange" min="0.1" max="10" step="0.1" value="1" />
-            <span id="bgScaleValue" class="u-font--mono">1.0x</span>
-          </label>
+        <div class="c-card__body c-toolbar">
+          <button id="createPriceRegionBtn" class="c-button c-button--ghost c-button--small">Skapa ny prisregion</button>
+          <div id="priceRegionList" class="price-region-list"></div>
         </div>
       </div>
 
-      <div class="c-card">
+      <div class="c-card" data-collapsible="true">
         <div class="c-card__header">
           <div class="c-card__title">Visning</div>
-          <div class="c-card__subtitle u-font--small">Snabbt sätt att ändra hur platser visas.</div>
+          <button class="c-card__toggle" type="button" aria-expanded="true" aria-label="Toggle panel" onclick="toggleRightPanel(this)"></button>
         </div>
-        <div class="c-toolbar">
-          <label class="bg-control u-font--small">
-            <input type="checkbox" id="viewGrayToggle" />
-            Gråskala (platser)
-          </label>
+        <div class="c-card__body c-toolbar">
           <label class="bg-control u-font--small">
             <input type="checkbox" id="viewHoverToggle" checked />
             Hover-info för platser
@@ -1089,6 +1591,10 @@
           <label class="bg-control u-font--small">
             <input type="checkbox" id="viewSectionNamesToggle" />
             Visa sektionsnamn
+          </label>
+          <label class="bg-control u-font--small">
+            <input type="checkbox" id="viewPriceRegionToggle" />
+            Visa prisregioner
           </label>
           <div class="u-font--small" style="display:flex; flex-direction:column; gap:0.35rem;">
             <div>Platsinfo (I)</div>
@@ -1108,10 +1614,17 @@
           <button id="openCodeModalBtn" class="c-button c-button--ghost c-button--small">Visa källkod</button>
         </div>
       </div>
+
+
     </aside>
   </div>
 
     <div id="tooltip"></div>
+    <div id="seatContextMenu" class="context-menu" aria-hidden="true">
+      <div class="context-menu__list">
+        <button id="attributeMenuItem" class="context-menu__item" type="button">Attribute</button>
+      </div>
+    </div>
   <input type="file" id="bgFileInput" accept="image/*" style="display:none" />
   <div id="sectionManagerOverlay">
     <div class="section-manager">
@@ -1124,8 +1637,7 @@
       <div class="section-manager__body">
         <aside class="section-list">
           <div class="section-list__header">
-            <input id="sectionSearchInput" class="section-list__search" placeholder="Sök sektion..." />
-            <button id="sectionCreateBtn" class="c-button c-button--primary c-button--small" title="Ny sektion">+ Ny</button>
+            <button id="sectionCreateBtn" class="c-button c-button--primary" title="Ny sektion" style="width:100%; padding:0.7rem 0.9rem; font-weight:600;">+ Ny sektion</button>
           </div>
           <div id="sectionCards" class="section-cards"></div>
         </aside>
@@ -1139,7 +1651,7 @@
               <div class="u-font--small" style="margin-bottom:0.25rem;">Namn</div>
               <input id="sectionEditName" type="text" placeholder="T ex Sektion A" />
             </label>
-            <label class="section-editor__field">
+            <label class="section-editor__field" style="display:none;">
               <div class="u-font--small" style="margin-bottom:0.25rem;">Färg</div>
               <input id="sectionEditColor" type="color" value="#14a0f4" />
             </label>
@@ -1180,6 +1692,7 @@
             <div class="section-hint" id="sectionEditHint">Ny sektion – du kan lägga till rader och platser.</div>
             <div class="c-toolbar c-toolbar--horizontal">
               <button id="sectionManagerClose" class="c-button c-button--ghost c-button--small">Stäng</button>
+              <button id="sectionSaveCloseBtn" class="c-button c-button--secondary c-button--small">Spara och stäng</button>
               <button id="sectionSaveBtn" class="c-button c-button--primary c-button--small">Spara sektion</button>
             </div>
           </div>
@@ -1199,11 +1712,83 @@
         <label for="newVenueId">VenueId</label>
         <input id="newVenueId" type="text" placeholder="Ange VenueId" />
       </div>
-      <div class="section-hint">Skapar .tlt, .tlc och .tpr (prisregioner läggs till senare).</div>
       <div class="new-layout-actions">
         <button id="newLayoutCancel" class="c-button c-button--ghost c-button--small">Avbryt</button>
         <button id="newLayoutStart" class="c-button c-button--primary c-button--small">Börja skapa</button>
       </div>
+    </div>
+  </div>
+
+  <div id="priceRegionOverlay">
+    <div id="priceRegionModal">
+      <h3>Ny prisregion</h3>
+      <div class="new-layout-field">
+        <label for="priceRegionName">Namn</label>
+        <input id="priceRegionName" type="text" placeholder="Ange namn" />
+      </div>
+      <div class="new-layout-actions">
+        <button id="priceRegionCancel" class="c-button c-button--ghost c-button--small">Avbryt</button>
+        <button id="priceRegionCreate" class="c-button c-button--primary c-button--small">Lägg till</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="exportOverlay">
+    <div id="exportModal">
+      <h3>Exportera filer</h3>
+      <div class="new-layout-field">
+        <label for="exportName">Exportnamn</label>
+        <input id="exportName" type="text" placeholder="Ange namn" />
+      </div>
+      <div class="new-layout-field">
+        <label for="exportVenueId">VenueId</label>
+        <input id="exportVenueId" type="text" placeholder="Ange VenueId" />
+      </div>
+      <div class="export-options">
+        <label class="export-option">
+          <input type="checkbox" id="exportTlc" checked />
+          TLC
+        </label>
+        <label class="export-option">
+          <input type="checkbox" id="exportTlt" checked />
+          TLT
+        </label>
+        <label class="export-option">
+          <input type="checkbox" id="exportTpr" checked />
+          TPR
+        </label>
+        <label class="export-option">
+          <input type="checkbox" id="exportCss" checked />
+          CSS
+        </label>
+        <label class="export-option">
+          <input type="checkbox" id="exportSvg" checked />
+          SVG
+        </label>
+      </div>
+      <div class="new-layout-actions">
+        <button id="exportCancel" class="c-button c-button--ghost c-button--small">Avbryt</button>
+        <button id="exportConfirm" class="c-button c-button--primary c-button--small">Exportera</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="attributeModalOverlay">
+    <div id="attributeModal">
+      <header>
+        <h3>Attribute</h3>
+        <button id="attributeModalClose" class="c-button c-button--ghost c-button--small">Stäng</button>
+      </header>
+      <main>
+        <div class="u-font--small" style="margin-bottom:0.5rem;">
+          Välj attribut för markerade platser.
+        </div>
+        <div id="attributeModalList" class="attribute-modal__list"></div>
+      </main>
+      <footer>
+        <button id="attributeModalCancel" class="c-button c-button--ghost c-button--small">Avbryt</button>
+        <button id="attributeModalSave" class="c-button c-button--primary c-button--small">Spara &amp; stäng</button>
+      </footer>
     </div>
   </div>
 
@@ -1246,6 +1831,7 @@
   const saveBtn = document.getElementById("saveBtn");
   const fileInput = document.getElementById("fileInput");
   const fileInfo = document.getElementById("fileInfo");
+  const themeToggleBtn = document.getElementById("themeToggleBtn");
 
   const selectToolBtn = document.getElementById("selectToolBtn");
   const moveToolBtn = document.getElementById("moveToolBtn");
@@ -1256,6 +1842,7 @@
   const resetRowBtn = document.getElementById("resetRowBtn");
   const makeTableBtn = document.getElementById("makeTableBtn");
   const deselectToolBtn = document.getElementById("deselectToolBtn");
+  const updateOutlinesBtn = document.getElementById("updateOutlinesBtn");
 
   const modeSectionBtn = document.getElementById("modeSectionBtn");
   const modeRowBtn = document.getElementById("modeRowBtn");
@@ -1266,6 +1853,13 @@
   const rowCountEl = document.getElementById("rowCount");
 
   const tooltipEl = document.getElementById("tooltip");
+  const seatContextMenu = document.getElementById("seatContextMenu");
+  const attributeMenuItem = document.getElementById("attributeMenuItem");
+  const attributeModalOverlay = document.getElementById("attributeModalOverlay");
+  const attributeModalList = document.getElementById("attributeModalList");
+  const attributeModalClose = document.getElementById("attributeModalClose");
+  const attributeModalCancel = document.getElementById("attributeModalCancel");
+  const attributeModalSave = document.getElementById("attributeModalSave");
 
   const bgFileInput = document.getElementById("bgFileInput");
   const bgLoadBtn = document.getElementById("bgLoadBtn");
@@ -1274,9 +1868,9 @@
   const bgOpacityValue = document.getElementById("bgOpacityValue");
   const bgScaleRange = document.getElementById("bgScaleRange");
   const bgScaleValue = document.getElementById("bgScaleValue");
-  const viewGrayToggle = document.getElementById("viewGrayToggle");
   const viewHoverToggle = document.getElementById("viewHoverToggle");
   const viewSectionNamesToggle = document.getElementById("viewSectionNamesToggle");
+  const viewPriceRegionToggle = document.getElementById("viewPriceRegionToggle");
   const viewSeatLabelNone = document.getElementById("viewSeatLabelNone");
   const viewSeatLabelRow = document.getElementById("viewSeatLabelRow");
   const viewSeatLabelSeat = document.getElementById("viewSeatLabelSeat");
@@ -1291,10 +1885,26 @@
   const newLayoutCancel = document.getElementById("newLayoutCancel");
   const newProjectName = document.getElementById("newProjectName");
   const newVenueId = document.getElementById("newVenueId");
+  const exportBtn = document.getElementById("exportBtn");
+  const exportOverlay = document.getElementById("exportOverlay");
+  const exportName = document.getElementById("exportName");
+  const exportVenueId = document.getElementById("exportVenueId");
+  const exportTlc = document.getElementById("exportTlc");
+  const exportTlt = document.getElementById("exportTlt");
+  const exportTpr = document.getElementById("exportTpr");
+  const exportCss = document.getElementById("exportCss");
+  const exportSvg = document.getElementById("exportSvg");
+  const exportCancel = document.getElementById("exportCancel");
+  const exportConfirm = document.getElementById("exportConfirm");
+  const createPriceRegionBtn = document.getElementById("createPriceRegionBtn");
+  const priceRegionList = document.getElementById("priceRegionList");
+  const priceRegionOverlay = document.getElementById("priceRegionOverlay");
+  const priceRegionName = document.getElementById("priceRegionName");
+  const priceRegionCancel = document.getElementById("priceRegionCancel");
+  const priceRegionCreate = document.getElementById("priceRegionCreate");
   const sectionManagerOverlay = document.getElementById("sectionManagerOverlay");
   const sectionManagerClose = document.getElementById("sectionManagerClose");
   const sectionCardsEl = document.getElementById("sectionCards");
-  const sectionSearchInput = document.getElementById("sectionSearchInput");
   const sectionCreateBtn = document.getElementById("sectionCreateBtn");
   const sectionEditId = document.getElementById("sectionEditId");
   const sectionEditName = document.getElementById("sectionEditName");
@@ -1302,6 +1912,7 @@
   const sectionRowsEditor = document.getElementById("sectionRowsEditor");
   const addRowInlineBtn = document.getElementById("addRowInlineBtn");
   const sectionSaveBtn = document.getElementById("sectionSaveBtn");
+  const sectionSaveCloseBtn = document.getElementById("sectionSaveCloseBtn");
   const sectionEditHint = document.getElementById("sectionEditHint");
   const sectionDuplicateBtn = document.getElementById("sectionDuplicateBtn");
   const sectionDirtyFlag = document.getElementById("sectionDirtyFlag");
@@ -1310,6 +1921,7 @@
   const sectionRowErrors = document.getElementById("sectionRowErrors");
   const sectionPreviewCanvas = document.getElementById("sectionPreviewCanvas");
   const sectionRawText = new Map();
+  const priceRegions = [];
 
   let seats = [];
   let outlines = [];
@@ -1351,6 +1963,7 @@
   let renderGrayscale = false;
   let showHoverInfo = true;
   let showSectionNames = false;
+  let showPriceRegions = false;
   let sectionColors = new Map();
   let sectionDrafts = [];
   let activeSectionDraftId = null;
@@ -1479,16 +2092,62 @@
   }
 
   // --- Färger per sektion ---
+  function hslToHex(h, s, l) {
+    const sat = Math.max(0, Math.min(1, s / 100));
+    const light = Math.max(0, Math.min(1, l / 100));
+    const c = (1 - Math.abs(2 * light - 1)) * sat;
+    const hh = ((h % 360) + 360) % 360 / 60;
+    const x = c * (1 - Math.abs((hh % 2) - 1));
+    let r = 0, g = 0, b = 0;
+    if (hh >= 0 && hh < 1) [r, g, b] = [c, x, 0];
+    else if (hh >= 1 && hh < 2) [r, g, b] = [x, c, 0];
+    else if (hh >= 2 && hh < 3) [r, g, b] = [0, c, x];
+    else if (hh >= 3 && hh < 4) [r, g, b] = [0, x, c];
+    else if (hh >= 4 && hh < 5) [r, g, b] = [x, 0, c];
+    else if (hh >= 5 && hh < 6) [r, g, b] = [c, 0, x];
+    const m = light - c / 2;
+    const toHex = (v) => Math.round((v + m) * 255).toString(16).padStart(2, "0");
+    return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+  }
+
+  function normalizeColorToHex(color, fallback) {
+    if (typeof color === "string") {
+      const trimmed = color.trim();
+      if (/^#([0-9a-f]{6})$/i.test(trimmed)) return trimmed;
+      const hslMatch = trimmed.match(/hsl\(\s*([\d.]+)\s*,\s*([\d.]+)%\s*,\s*([\d.]+)%\s*\)/i);
+      if (hslMatch) {
+        return hslToHex(
+          parseFloat(hslMatch[1]),
+          parseFloat(hslMatch[2]),
+          parseFloat(hslMatch[3])
+        );
+      }
+    }
+    return fallback;
+  }
+
+  function generatePriceRegionColor(index) {
+    const goldenAngle = 137.508;
+    const hue = (index * goldenAngle) % 360;
+    return hslToHex(hue, 58, 54);
+  }
+
   function rebuildSectionColors() {
     sectionColors.clear();
     const uniqueSections = Array.from(new Set(
       seats.map(s => s.sectionId).filter(Boolean)
     )).sort();
-
-    const goldenAngle = 137.508;
+    const grayPalette = [];
+    const steps = 40;
+    const minL = 20;
+    const maxL = 85;
+    for (let i = 0; i < steps; i++) {
+      const t = steps === 1 ? 0 : i / (steps - 1);
+      const l = minL + (maxL - minL) * t;
+      grayPalette.push(`hsl(0, 0%, ${l.toFixed(1)}%)`);
+    }
     uniqueSections.forEach((secId, i) => {
-      const hue = (i * goldenAngle) % 360;
-      const color = `hsl(${hue}, 65%, 55%)`;
+      const color = grayPalette[i % grayPalette.length];
       sectionColors.set(secId, color);
     });
   }
@@ -1594,13 +2253,18 @@
       const cmd = parts[0];
 
       const kv = {};
+      const attributes = [];
       for (let i = 1; i < parts.length; i++) {
         const seg = parts[i];
         const eqIdx = seg.indexOf("=");
         if (eqIdx > -1) {
           const key = seg.slice(0, eqIdx);
           const val = seg.slice(eqIdx + 1);
-          kv[key] = val;
+          if (key === "Attribute") {
+            attributes.push(val);
+          } else {
+            kv[key] = val;
+          }
         }
       }
 
@@ -1628,7 +2292,7 @@
         const width = parseFloat(kv["Width"] || "100");
         const entryVia = kv["EntryVia"] ?? "-";
         const goodness = kv["Goodness"] ?? "0";
-        const attribute = kv["Attribute"] || "";
+        const attributesList = attributes;
 
         let sectionId = null;
         let rowId = null;
@@ -1659,7 +2323,7 @@
           width,
           entryVia,
           goodness,
-          attribute,
+          attributes: attributesList,
           timestamp,
           selected: false,
           lineIndex
@@ -1683,6 +2347,7 @@
     rowCountEl.textContent = uniqueRows.size.toString();
 
     rebuildSectionColors();
+    updatePriceRegionStatus();
     const outlinesChangedOnLoad = syncOutlinesIntoOriginalLines();
     if (outlinesChangedOnLoad) {
       const newText = originalLines.join("\n");
@@ -1815,16 +2480,63 @@
     let line = `${timestamp}|SeatAdd|SeatId=${seat.seatId}|Name=${seat.name}` +
       `|CenterX=${cxStr}|CenterY=${cyStr}|Width=${widthStr}|Rotation=${rotationStr}` +
       `|EntryVia=${entryStr}|Goodness=${goodStr}`;
-    if (seat.attribute) {
-      line += `|Attribute=${seat.attribute}`;
+    if (seat.attributes && seat.attributes.length) {
+      for (const attr of seat.attributes) {
+        line += `|Attribute=${attr}`;
+      }
     }
     return line;
   }
 
+  function computeConvexHull(points) {
+    if (!points || points.length < 3) return points ? [...points] : [];
+    const sorted = [...points].sort((a, b) => (a.x === b.x ? a.y - b.y : a.x - b.x));
+    const cross = (o, a, b) => (a.x - o.x) * (b.y - o.y) - (a.y - o.y) * (b.x - o.x);
+    const lower = [];
+    for (const p of sorted) {
+      while (lower.length >= 2 && cross(lower[lower.length - 2], lower[lower.length - 1], p) <= 0) {
+        lower.pop();
+      }
+      lower.push(p);
+    }
+    const upper = [];
+    for (let i = sorted.length - 1; i >= 0; i--) {
+      const p = sorted[i];
+      while (upper.length >= 2 && cross(upper[upper.length - 2], upper[upper.length - 1], p) <= 0) {
+        upper.pop();
+      }
+      upper.push(p);
+    }
+    upper.pop();
+    lower.pop();
+    return lower.concat(upper);
+  }
+
+  function expandOutline(points, padding) {
+    if (!points.length || !padding) return points;
+    let sumX = 0;
+    let sumY = 0;
+    for (const p of points) {
+      sumX += p.x;
+      sumY += p.y;
+    }
+    const cx = sumX / points.length;
+    const cy = sumY / points.length;
+    return points.map((p) => {
+      const dx = p.x - cx;
+      const dy = p.y - cy;
+      const len = Math.hypot(dx, dy) || 1;
+      return { x: p.x + (dx / len) * padding, y: p.y + (dy / len) * padding };
+    });
+  }
+
   function computeSectionOutlinesFromSeats(padding = 0) {
     const boundsBySection = new Map();
+    const pointsBySection = new Map();
     for (const s of seats) {
       if (!s.sectionId) continue;
+      if (!pointsBySection.has(s.sectionId)) pointsBySection.set(s.sectionId, []);
+      pointsBySection.get(s.sectionId).push({ x: s.centerX, y: s.centerY });
       let b = boundsBySection.get(s.sectionId);
       if (!b) {
         b = { minX: s.centerX, maxX: s.centerX, minY: s.centerY, maxY: s.centerY };
@@ -1851,12 +2563,19 @@
 
     const result = [];
     for (const [sectionId, b] of boundsBySection.entries()) {
-      const coords = [
-        { x: b.minX - padding, y: b.minY - padding },
-        { x: b.maxX + padding, y: b.minY - padding },
-        { x: b.maxX + padding, y: b.maxY + padding },
-        { x: b.minX - padding, y: b.maxY + padding }
-      ];
+      const points = pointsBySection.get(sectionId) || [];
+      let coords = [];
+      if (points.length >= 3) {
+        const hull = computeConvexHull(points);
+        coords = expandOutline(hull, padding);
+      } else {
+        coords = [
+          { x: b.minX - padding, y: b.minY - padding },
+          { x: b.maxX + padding, y: b.minY - padding },
+          { x: b.maxX + padding, y: b.maxY + padding },
+          { x: b.minX - padding, y: b.maxY + padding }
+        ];
+      }
       result.push({
         sectionId,
         sectionName: sectionNames.get(sectionId) || "",
@@ -1949,6 +2668,20 @@
 
     outlines = newOutlines;
     return changed;
+  }
+
+  function updateOutlinesFromSeats() {
+    if (!originalLines || !originalLines.length) return;
+    const outlinesChanged = syncOutlinesIntoOriginalLines();
+    if (!outlinesChanged) return;
+    const newText = originalLines.join("\n");
+    if (codePane.value !== newText) {
+      codePane.value = newText;
+    }
+    hasUnsavedChanges = true;
+    updateSaveButton();
+    saveSessionToLocalStorage();
+    renderCanvas();
   }
 
   // --- Bakgrundshantering ---
@@ -2046,9 +2779,17 @@
 
   function saveSessionToLocalStorage() {
   try {
+    let sessionFileName = currentFileName || "";
+    if (!sessionFileName) {
+      const previous = localStorage.getItem(SESSION_STORAGE_KEY);
+      if (previous) {
+        const prevData = JSON.parse(previous);
+        if (prevData && prevData.fileName) sessionFileName = prevData.fileName;
+      }
+    }
     const payload = {
       tltText: codePane.value || "",
-      fileName: currentFileName || "",
+      fileName: sessionFileName,
       translateX,
       translateY,
       scale,
@@ -2059,6 +2800,13 @@
         scale: backgroundState.scale,
         originX: backgroundState.originX,
         originY: backgroundState.originY
+      },
+      view: {
+        grayscale: !!renderGrayscale,
+        hoverInfo: !!showHoverInfo,
+        sectionNames: !!showSectionNames,
+        priceRegions: !!showPriceRegions,
+        seatLabelMode: seatLabelMode || "none"
       },
       timestamp: Date.now()
     };
@@ -2163,6 +2911,8 @@ async function tryRestoreSessionFromLocalStorage() {
     } else {
       fileInfo.textContent = "Återställd session (ej sparad fil)";
     }
+    loadPriceRegionsFromStorage();
+    saveSessionToLocalStorage();
 
     // Återställ zoom/pan om vi har dem
     if (typeof data.translateX === "number") translateX = data.translateX;
@@ -2181,6 +2931,18 @@ async function tryRestoreSessionFromLocalStorage() {
       if (data.background.dataUrl) {
         await loadBackgroundFromDataUrl(data.background.dataUrl);
       }
+    }
+
+    if (data.view) {
+      renderGrayscale = false;
+      showHoverInfo = !!data.view.hoverInfo;
+      showSectionNames = !!data.view.sectionNames;
+      showPriceRegions = !!data.view.priceRegions;
+      seatLabelMode = data.view.seatLabelMode || "none";
+      if (viewHoverToggle) viewHoverToggle.checked = showHoverInfo;
+      if (viewSectionNamesToggle) viewSectionNamesToggle.checked = showSectionNames;
+      if (viewPriceRegionToggle) viewPriceRegionToggle.checked = showPriceRegions;
+      setSeatLabelMode(seatLabelMode, true);
     }
 
 
@@ -2221,6 +2983,8 @@ codePane.addEventListener("input", () => {
     fileInfo.textContent = currentFileName ? `Öppnad fil (${currentFileName})` : "Öppnad fil";
     hasUnsavedChanges = false;
     updateSaveButton();
+    saveSessionToLocalStorage();
+    loadPriceRegionsFromStorage();
     saveCurrentFileHandleToDB(handle);
   }
 
@@ -2319,6 +3083,8 @@ codePane.addEventListener("input", () => {
     fileInfo.textContent = currentFileName ? `Öppnad fil (${currentFileName})` : "Öppnad fil";
     hasUnsavedChanges = false;
     updateSaveButton();
+    saveSessionToLocalStorage();
+    loadPriceRegionsFromStorage();
     clearCurrentFileHandleInDB();
     fileInput.value = "";
   }
@@ -2362,6 +3128,564 @@ codePane.addEventListener("input", () => {
     renderSectionCards();
     renderSectionDetail();
     renderCanvas();
+    loadPriceRegionsFromStorage();
+  }
+
+  function getLayoutMeta() {
+    let venueId = "";
+    for (const line of originalLines) {
+      if (!line || !line.includes("|LayoutInit|")) continue;
+      const match = line.match(/VenueId=([^|]+)/i);
+      if (match) venueId = match[1];
+      break;
+    }
+    return {
+      venueId,
+      layoutName: currentFileName || ""
+    };
+  }
+
+  function getPriceRegionStorageKey() {
+    const meta = getLayoutMeta();
+    const venuePart = meta.venueId || "unknown";
+    const layoutPart = meta.layoutName || "unsaved";
+    return `arenaDesignerPriceRegions:${venuePart}:${layoutPart}`;
+  }
+
+  function loadPriceRegionsFromStorage() {
+    priceRegions.length = 0;
+    try {
+      const raw = localStorage.getItem(getPriceRegionStorageKey());
+      if (raw) {
+        const data = JSON.parse(raw);
+        if (data && Array.isArray(data.regions)) {
+          data.regions.forEach((region, idx) => {
+            if (region && region.id && region.name) {
+              const fallbackColor = generatePriceRegionColor(idx);
+              const normalizedColor = normalizeColorToHex(region.color, fallbackColor);
+              priceRegions.push({
+                id: region.id,
+                name: region.name,
+                color: normalizedColor,
+                sections: Array.isArray(region.sections) ? region.sections : [],
+                rows: Array.isArray(region.rows) ? region.rows : [],
+                seats: Array.isArray(region.seats) ? region.seats : []
+              });
+            }
+          });
+        }
+      }
+    } catch (err) {
+      console.warn("Kunde inte läsa prisregioner:", err);
+    }
+    renderPriceRegionList();
+    updatePriceRegionUi();
+    if (showPriceRegions) renderCanvas();
+  }
+
+  function savePriceRegionsToStorage() {
+    try {
+      localStorage.setItem(getPriceRegionStorageKey(), JSON.stringify({ regions: priceRegions }));
+    } catch (err) {
+      console.warn("Kunde inte spara prisregioner:", err);
+    }
+    saveSessionToLocalStorage();
+  }
+
+  function renderPriceRegionList() {
+    if (!priceRegionList) return;
+    priceRegionList.innerHTML = "";
+    if (!priceRegions.length) {
+      const empty = document.createElement("div");
+      empty.className = "u-font--small";
+      empty.style.color = "var(--tick-grey)";
+      empty.textContent = "Inga prisregioner skapade än.";
+      priceRegionList.appendChild(empty);
+      return;
+    }
+    priceRegions.forEach((region) => {
+      const item = document.createElement("div");
+      item.className = "price-region-item";
+
+      const header = document.createElement("div");
+      header.className = "price-region-item__header";
+      const headerLeft = document.createElement("div");
+      headerLeft.className = "price-region-item__header-left";
+      const deleteBtn = document.createElement("button");
+      deleteBtn.type = "button";
+      deleteBtn.className = "price-region-item__delete";
+      deleteBtn.textContent = "×";
+      deleteBtn.dataset.role = "price-region-delete";
+      deleteBtn.dataset.regionId = region.id;
+      const colorInput = document.createElement("input");
+      colorInput.type = "color";
+      colorInput.className = "price-region-item__color";
+      colorInput.value = normalizeColorToHex(region.color, "#888888");
+      colorInput.dataset.role = "price-region-color";
+      colorInput.dataset.regionId = region.id;
+      const name = document.createElement("div");
+      const seatCount = getPriceRegionSeatCount(region);
+      name.textContent = `${region.name} (${seatCount})`;
+      headerLeft.appendChild(colorInput);
+      headerLeft.appendChild(name);
+      header.appendChild(headerLeft);
+
+      const meta = document.createElement("div");
+      meta.className = "price-region-item__meta";
+      const parts = [];
+      if (region.sections.length) parts.push(`Sektioner: ${region.sections.length}`);
+      if (region.rows.length) parts.push(`Rader: ${region.rows.length}`);
+      if (region.seats.length) parts.push(`Platser: ${region.seats.length}`);
+      meta.textContent = parts.length ? parts.join(" • ") : "Inga objekt tillagda";
+
+      const actions = document.createElement("div");
+      actions.className = "price-region-item__actions";
+      const addBtn = document.createElement("button");
+      addBtn.type = "button";
+      addBtn.className = "c-button c-button--ghost c-button--small";
+      addBtn.textContent = "Lägg till";
+      addBtn.dataset.role = "price-region-add";
+      addBtn.dataset.regionId = region.id;
+      const markBtn = document.createElement("button");
+      markBtn.type = "button";
+      markBtn.className = "c-button c-button--ghost c-button--small";
+      markBtn.textContent = "Markera";
+      markBtn.dataset.role = "price-region-mark";
+      markBtn.dataset.regionId = region.id;
+      const clearBtn = document.createElement("button");
+      clearBtn.type = "button";
+      clearBtn.className = "c-button c-button--ghost c-button--small";
+      clearBtn.textContent = "Rensa";
+      clearBtn.dataset.role = "price-region-clear";
+      clearBtn.dataset.regionId = region.id;
+      actions.appendChild(addBtn);
+      actions.appendChild(markBtn);
+      actions.appendChild(clearBtn);
+
+      item.appendChild(deleteBtn);
+      item.appendChild(header);
+      item.appendChild(meta);
+      item.appendChild(actions);
+      priceRegionList.appendChild(item);
+    });
+    updatePriceRegionStatus();
+  }
+
+  function updatePriceRegionUi() {
+    if (!priceRegionList) return;
+    const hasSelection = getSelectedSeats().length > 0;
+    priceRegionList.querySelectorAll("[data-role='price-region-add']").forEach((btn) => {
+      btn.disabled = !hasSelection;
+      btn.classList.toggle("price-region-item__add--active", hasSelection);
+    });
+    priceRegionList.querySelectorAll("[data-role='price-region-mark']").forEach((btn) => {
+      const regionId = btn.dataset.regionId;
+      const region = priceRegions.find(r => r.id === regionId);
+      const hasItems = region ? (region.sections.length + region.rows.length + region.seats.length) > 0 : false;
+      btn.disabled = !hasItems;
+    });
+    priceRegionList.querySelectorAll("[data-role='price-region-clear']").forEach((btn) => {
+      const regionId = btn.dataset.regionId;
+      const region = priceRegions.find(r => r.id === regionId);
+      const hasItems = region ? (region.sections.length + region.rows.length + region.seats.length) > 0 : false;
+      btn.disabled = !hasItems;
+    });
+  }
+
+  function updatePriceRegionStatus() {
+    const statusEl = document.getElementById("priceRegionStatus");
+    if (!statusEl) return;
+    if (!seats.length) {
+      statusEl.textContent = "❌";
+      statusEl.title = "Inga platser i layouten";
+      return;
+    }
+    const lookups = buildPriceRegionLookups();
+    const allCovered = seats.every(s => getSeatPriceRegionColor(s, lookups));
+    statusEl.textContent = allCovered ? "✅" : "❌";
+    statusEl.title = allCovered ? "Alla platser tillhör en prisregion" : "Det finns platser utan prisregion";
+  }
+
+  function openPriceRegionModal() {
+    if (priceRegionOverlay) priceRegionOverlay.style.display = "flex";
+    if (priceRegionName) {
+      priceRegionName.value = "";
+      setTimeout(() => priceRegionName.focus(), 50);
+    }
+  }
+
+  function closePriceRegionModal() {
+    if (priceRegionOverlay) priceRegionOverlay.style.display = "none";
+  }
+
+  function openExportModal() {
+    if (exportOverlay) exportOverlay.style.display = "flex";
+    if (exportName) {
+      const base = currentFileName ? currentFileName.replace(/\.[^/.]+$/, "") : "";
+      exportName.value = base || exportName.value || "";
+      setTimeout(() => exportName.focus(), 50);
+    }
+    if (exportVenueId) {
+      const meta = getLayoutMeta();
+      exportVenueId.value = meta.venueId || "";
+    }
+    if (exportTlc) exportTlc.checked = true;
+    if (exportTlt) exportTlt.checked = true;
+    if (exportTpr) exportTpr.checked = true;
+    if (exportCss) exportCss.checked = true;
+    if (exportSvg) exportSvg.checked = true;
+  }
+
+  function closeExportModal() {
+    if (exportOverlay) exportOverlay.style.display = "none";
+  }
+
+  function getExportBaseName() {
+    const raw = (exportName?.value || "").trim();
+    const fromFile = currentFileName ? currentFileName.replace(/\.[^/.]+$/, "") : "";
+    const base = raw || fromFile || "layout";
+    return base.replace(/[\\/:*?"<>|]/g, "_");
+  }
+
+  function buildTlcText(baseName, venueId) {
+    const safeVenueId = venueId || "";
+    return [
+      `LayoutConfigurationName=${baseName}.tlc`,
+      `LayoutName=${baseName}.tlt`,
+      `PriceRegionFile=${baseName}.tpr`,
+      `VenueId=${safeVenueId}`,
+      "SubVenueId="
+    ].join("\n");
+  }
+
+  function buildRangeId(region, index) {
+    const seed = `${region.id}|${region.name}|${index}`;
+    let hash = 0;
+    for (let i = 0; i < seed.length; i++) {
+      hash = (hash * 31 + seed.charCodeAt(i)) >>> 0;
+    }
+    const rangeId = (hash % 900000000) + 100000000; // 9 digits, non-zero start
+    return String(rangeId);
+  }
+
+  function updateTltVenueId(text, venueId) {
+    if (!venueId) return text;
+    const lines = (text || "").split(/\r?\n/);
+    for (let i = 0; i < lines.length; i++) {
+      if (lines[i].includes("|LayoutInit|")) {
+        if (lines[i].includes("VenueId=")) {
+          lines[i] = lines[i].replace(/VenueId=([^|]*)/i, `VenueId=${venueId}`);
+        } else {
+          lines[i] = `${lines[i]}|VenueId=${venueId}`;
+        }
+        break;
+      }
+    }
+    return lines.join("\n");
+  }
+
+  function buildTprText(baseName, venueId) {
+    const ts = buildTimestamp();
+    const layoutName = `${baseName}.tlt`;
+    const lines = [`${ts}|PriceRegionInit|VenueId=${venueId}|LayoutName=${layoutName}`];
+    priceRegions.forEach((region, idx) => {
+      const rangeId = buildRangeId(region, idx);
+      lines.push(`${ts}|RangeInit|RangeId=${rangeId}`);
+      lines.push(`${ts}|RangeSetType|RangeId=${rangeId}|RangeType=PriceRegion`);
+      lines.push(`${ts}|RangeSetName|RangeId=${rangeId}|Name=${region.name}`);
+      region.sections.forEach((sectionId) => {
+        lines.push(`${ts}|RangeAddTo|RangeId=${rangeId}|AddedSection=${sectionId}`);
+      });
+      region.rows.forEach((rowId) => {
+        lines.push(`${ts}|RangeAddTo|RangeId=${rangeId}|AddedRow=${rowId}`);
+      });
+      region.seats.forEach((seatId) => {
+        lines.push(`${ts}|RangeAddTo|RangeId=${rangeId}|AddedSeat=${seatId}`);
+      });
+    });
+    return lines.join("\n");
+  }
+
+  function buildCssText() {
+    const lines = [
+      "<style type=\"text/css\">",
+      "circle.seat { fill: #c9cbcd; stroke: #c9cbcd; fill-opacity: 1; }",
+      "circle.seat.available { stroke-width: 16px; fill-opacity: 1; }",
+      "circle.seat.available.reserved { stroke-width: 25px; fill-opacity: 0; stroke: #00804f; }",
+      "circle.seat.available.hovered { stroke-width: 16px; fill-opacity: 1; fill: #dff4ff; stroke: #0069a6; }",
+      "circle.seat.available.tapped  { stroke-width: 16px; fill-opacity: 1; fill: #dff4ff; stroke: #0069a6; }",
+      "circle.seat.available.pending { stroke-width: 25px; fill-opacity: 1; fill: #dff4ff; stroke: #0069a6; }",
+      "circle.seat.available.not-allowed { stroke-width: 16px; stroke: #d6334c; fill: #d6334c; cursor: not-allowed !important; }",
+      "circle.seat.available.not-enough-seats { stroke-width: 16px; stroke: #d6334c; fill: #d6334c; cursor: not-allowed !important; }",
+      ".unavailable circle.seat { fill: #c9cbcd; stroke: none; fill-opacity: 0.25; }"
+    ];
+    priceRegions.forEach((region, idx) => {
+      const color = normalizeColorToHex(region.color, "#c9cbcd");
+      const rangeId = buildRangeId(region, idx);
+      lines.push(`/* Colors for price region ${region.name} */`);
+      lines.push(`.pr-${rangeId}.available { stroke: ${color}; fill: ${color}; }`);
+      lines.push(`div.pr-${rangeId}, .c-pill.pr-${rangeId} { background-color: ${color}; }`);
+    });
+    lines.push("</style>");
+    return lines.join("\n");
+  }
+
+  function buildSvgText() {
+    return [
+      "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1200\" height=\"800\">",
+      "  <rect width=\"100%\" height=\"100%\" fill=\"#f3f6f9\" />",
+      "  <text x=\"50%\" y=\"50%\" text-anchor=\"middle\" fill=\"#7b8794\" font-size=\"20\" font-family=\"Arial, sans-serif\">",
+      "    SVG-export kommer senare",
+      "  </text>",
+      "</svg>"
+    ].join("\n");
+  }
+
+  function downloadTextFile(filename, text) {
+    const blob = new Blob([text], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  async function exportFiles() {
+    const baseName = getExportBaseName();
+    const metaVenueId = getLayoutMeta().venueId || "";
+    const venueId = (exportVenueId?.value || "").trim() || metaVenueId;
+    const files = [];
+    if (exportTlc?.checked) files.push({ name: `${baseName}.tlc`, text: buildTlcText(baseName, venueId) });
+    if (exportTlt?.checked) files.push({ name: `${baseName}.tlt`, text: updateTltVenueId(codePane.value || "", venueId) });
+    if (exportTpr?.checked) files.push({ name: `${baseName}.tpr`, text: buildTprText(baseName, venueId) });
+    if (exportCss?.checked) files.push({ name: `${baseName}.css`, text: buildCssText() });
+    if (exportSvg?.checked) files.push({ name: `${baseName}.svg`, text: buildSvgText() });
+
+    if (!files.length) {
+      alert("Välj minst en fil att exportera.");
+      return;
+    }
+
+    if (typeof window.showDirectoryPicker === "function") {
+      try {
+        const dir = await window.showDirectoryPicker();
+        for (const file of files) {
+          const handle = await dir.getFileHandle(file.name, { create: true });
+          const writable = await handle.createWritable();
+          await writable.write(file.text);
+          await writable.close();
+        }
+        return;
+      } catch (err) {
+        if (err?.name === "AbortError") return;
+        console.warn("Export via mappval misslyckades, fallback till nedladdning:", err);
+      }
+    }
+
+    files.forEach((file) => downloadTextFile(file.name, file.text));
+  }
+
+  function buildPriceRegionTargetsFromSelection() {
+    const selected = getSelectedSeats();
+    if (!selected.length) return { sections: [], rows: [], seats: [] };
+
+    const selectedIds = new Set(selected.map(s => s.seatId));
+    const seatsBySection = new Map();
+    const seatsByRow = new Map();
+    for (const s of seats) {
+      if (s.sectionId) {
+        if (!seatsBySection.has(s.sectionId)) seatsBySection.set(s.sectionId, []);
+        seatsBySection.get(s.sectionId).push(s);
+      }
+      if (s.rowId) {
+        if (!seatsByRow.has(s.rowId)) seatsByRow.set(s.rowId, []);
+        seatsByRow.get(s.rowId).push(s);
+      }
+    }
+
+    const covered = new Set();
+    const sections = [];
+    const rows = [];
+    const seatsOut = [];
+
+    for (const [sectionId, sectionSeats] of seatsBySection) {
+      let anySelected = false;
+      let allSelected = true;
+      for (const s of sectionSeats) {
+        const isSelected = selectedIds.has(s.seatId);
+        if (isSelected) anySelected = true;
+        if (!isSelected) allSelected = false;
+      }
+      if (anySelected && allSelected) {
+        sections.push(sectionId);
+        sectionSeats.forEach(s => covered.add(s.seatId));
+      }
+    }
+
+    for (const [rowId, rowSeats] of seatsByRow) {
+      let anySelected = false;
+      let allSelected = true;
+      for (const s of rowSeats) {
+        const isSelected = selectedIds.has(s.seatId);
+        if (isSelected) anySelected = true;
+        if (!isSelected) allSelected = false;
+      }
+      if (!anySelected || !allSelected) continue;
+      const alreadyCovered = rowSeats.every(s => covered.has(s.seatId));
+      if (alreadyCovered) continue;
+      rows.push(rowId);
+      rowSeats.forEach(s => covered.add(s.seatId));
+    }
+
+    for (const s of selected) {
+      if (!covered.has(s.seatId)) seatsOut.push(s.seatId);
+    }
+
+    return {
+      sections: sections.sort(),
+      rows: rows.sort(),
+      seats: seatsOut.sort()
+    };
+  }
+
+  function normalizePriceRegionTargets(region) {
+    const seatById = new Map(seats.map(s => [s.seatId, s]));
+    const sectionsSet = new Set(region.sections);
+    let rowsSet = new Set(region.rows);
+    region.rows = region.rows.filter((rowId) => {
+      const parts = String(rowId).split(".");
+      const sectionId = parts.length >= 2 ? `${parts[0]}.${parts[1]}` : "";
+      if (sectionId && sectionsSet.has(sectionId)) {
+        rowsSet.delete(rowId);
+        return false;
+      }
+      return true;
+    });
+    rowsSet = new Set(region.rows);
+    region.seats = region.seats.filter((seatId) => {
+      const seat = seatById.get(seatId);
+      if (!seat) return true;
+      if (sectionsSet.has(seat.sectionId)) return false;
+      if (rowsSet.has(seat.rowId)) return false;
+      return true;
+    });
+  }
+
+  function getPriceRegionSeatCount(region) {
+    const sectionsSet = new Set(region.sections);
+    const rowsSet = new Set(region.rows);
+    const seatsSet = new Set(region.seats);
+    const covered = new Set();
+    let count = 0;
+
+    for (const s of seats) {
+      if (sectionsSet.has(s.sectionId)) {
+        covered.add(s.seatId);
+        count += 1;
+      }
+    }
+
+    for (const s of seats) {
+      if (covered.has(s.seatId)) continue;
+      if (rowsSet.has(s.rowId)) {
+        covered.add(s.seatId);
+        count += 1;
+      }
+    }
+
+    for (const seatId of seatsSet) {
+      if (covered.has(seatId)) continue;
+      if (seats.some(s => s.seatId === seatId)) {
+        covered.add(seatId);
+        count += 1;
+      }
+    }
+
+    return count;
+  }
+
+  function buildPriceRegionLookups() {
+    return priceRegions.map(region => ({
+      id: region.id,
+      name: region.name,
+      color: region.color,
+      sections: new Set(region.sections),
+      rows: new Set(region.rows),
+      seats: new Set(region.seats)
+    }));
+  }
+
+  function getSeatPriceRegionColor(seat, lookups) {
+    for (const region of lookups) {
+      if (region.sections.has(seat.sectionId)) return region.color;
+      if (region.rows.has(seat.rowId)) return region.color;
+      if (region.seats.has(seat.seatId)) return region.color;
+    }
+    return null;
+  }
+
+  function getSeatPriceRegionName(seat, lookups) {
+    for (const region of lookups) {
+      if (region.sections.has(seat.sectionId)) return region.name;
+      if (region.rows.has(seat.rowId)) return region.name;
+      if (region.seats.has(seat.seatId)) return region.name;
+    }
+    return null;
+  }
+
+  function drawHexMarker(ctx, x, y, r, strokeWidth) {
+    ctx.beginPath();
+    for (let i = 0; i < 6; i++) {
+      const a = (Math.PI / 3) * i - Math.PI / 2;
+      const px = x + Math.cos(a) * r;
+      const py = y + Math.sin(a) * r;
+      if (i === 0) ctx.moveTo(px, py);
+      else ctx.lineTo(px, py);
+    }
+    ctx.closePath();
+    ctx.fill();
+    if (strokeWidth > 0) {
+      ctx.lineWidth = strokeWidth;
+      ctx.stroke();
+    }
+  }
+
+  function getRegionSeatIds(region) {
+    const ids = new Set();
+    const sectionSet = new Set(region.sections);
+    const rowSet = new Set(region.rows);
+    for (const s of seats) {
+      if (sectionSet.has(s.sectionId) || rowSet.has(s.rowId)) {
+        ids.add(s.seatId);
+      }
+    }
+    region.seats.forEach((seatId) => ids.add(seatId));
+    return ids;
+  }
+
+  function addSelectionToPriceRegion(regionId) {
+    const region = priceRegions.find(r => r.id === regionId);
+    if (!region) return;
+    const targets = buildPriceRegionTargetsFromSelection();
+    if (!targets.sections.length && !targets.rows.length && !targets.seats.length) return;
+
+    const mergeUnique = (current, incoming) => {
+      const set = new Set(current);
+      incoming.forEach(item => set.add(item));
+      return Array.from(set);
+    };
+
+    region.sections = mergeUnique(region.sections, targets.sections);
+    region.rows = mergeUnique(region.rows, targets.rows);
+    region.seats = mergeUnique(region.seats, targets.seats);
+    normalizePriceRegionTargets(region);
+    savePriceRegionsToStorage();
+    renderPriceRegionList();
+    updatePriceRegionUi();
+    if (showPriceRegions) renderCanvas();
   }
 
   openFileBtnTop?.addEventListener("click", () => {
@@ -2413,6 +3737,7 @@ codePane.addEventListener("input", () => {
     fileInfo.textContent = "Ny layout (ej sparad)";
     hasUnsavedChanges = true;
     updateSaveButton();
+    loadPriceRegionsFromStorage();
     closeNewLayoutModal();
     openSectionManager();
   }
@@ -2423,6 +3748,125 @@ codePane.addEventListener("input", () => {
     if (e.target === newLayoutOverlay) closeNewLayoutModal();
   });
   newLayoutStart?.addEventListener("click", handleStartNewLayout);
+
+  exportBtn?.addEventListener("click", openExportModal);
+  exportCancel?.addEventListener("click", closeExportModal);
+  exportOverlay?.addEventListener("click", (e) => {
+    if (e.target === exportOverlay) closeExportModal();
+  });
+  exportConfirm?.addEventListener("click", async () => {
+    await exportFiles();
+    closeExportModal();
+  });
+  exportName?.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      exportConfirm?.click();
+    }
+  });
+
+  createPriceRegionBtn?.addEventListener("click", openPriceRegionModal);
+  priceRegionCancel?.addEventListener("click", closePriceRegionModal);
+  priceRegionOverlay?.addEventListener("click", (e) => {
+    if (e.target === priceRegionOverlay) closePriceRegionModal();
+  });
+  priceRegionCreate?.addEventListener("click", () => {
+    const name = (priceRegionName?.value || "").trim();
+    if (!name) {
+      alert("Ange namn för prisregionen.");
+      return;
+    }
+    const id = `${Date.now()}${Math.floor(Math.random() * 1000)}`;
+    const color = generatePriceRegionColor(priceRegions.length);
+    priceRegions.push({ id, name, color, sections: [], rows: [], seats: [] });
+    savePriceRegionsToStorage();
+    renderPriceRegionList();
+    updatePriceRegionUi();
+    if (showPriceRegions) renderCanvas();
+    closePriceRegionModal();
+  });
+  priceRegionName?.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      priceRegionCreate?.click();
+    }
+  });
+  priceRegionList?.addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-role='price-region-add']");
+    if (btn) {
+      const regionId = btn.dataset.regionId;
+      if (regionId) addSelectionToPriceRegion(regionId);
+      return;
+    }
+    const markBtn = e.target.closest("[data-role='price-region-mark']");
+    if (markBtn) {
+      const regionId = markBtn.dataset.regionId;
+      const region = priceRegions.find(r => r.id === regionId);
+      if (!region) return;
+      const ids = getRegionSeatIds(region);
+      let selectionChanged = false;
+      for (const s of seats) {
+        const shouldSelect = ids.has(s.seatId);
+        if (s.selected !== shouldSelect) {
+          s.selected = shouldSelect;
+          selectionChanged = true;
+        }
+      }
+      if (selectionChanged) {
+        pushHistorySnapshot();
+        updateMoveButtonState();
+        renderCanvas();
+        saveSessionToLocalStorage();
+      }
+      return;
+    }
+    const clearBtn = e.target.closest("[data-role='price-region-clear']");
+    if (clearBtn) {
+      const regionId = clearBtn.dataset.regionId;
+      const region = priceRegions.find(r => r.id === regionId);
+      if (!region) return;
+      if (!confirm("Töm prisregionen?")) return;
+      region.sections = [];
+      region.rows = [];
+      region.seats = [];
+      savePriceRegionsToStorage();
+      renderPriceRegionList();
+      updatePriceRegionUi();
+      if (showPriceRegions) renderCanvas();
+      return;
+    }
+    const delBtn = e.target.closest("[data-role='price-region-delete']");
+    if (!delBtn) return;
+    const regionId = delBtn.dataset.regionId;
+    if (!regionId) return;
+    if (!confirm("Ta bort prisregionen?")) return;
+    const idx = priceRegions.findIndex(r => r.id === regionId);
+    if (idx === -1) return;
+    priceRegions.splice(idx, 1);
+    savePriceRegionsToStorage();
+    renderPriceRegionList();
+    updatePriceRegionUi();
+    if (showPriceRegions) renderCanvas();
+  });
+
+  priceRegionList?.addEventListener("input", (e) => {
+    const input = e.target.closest("[data-role='price-region-color']");
+    if (!input) return;
+    const regionId = input.dataset.regionId;
+    const region = priceRegions.find(r => r.id === regionId);
+    if (!region) return;
+    region.color = input.value;
+    savePriceRegionsToStorage();
+    renderPriceRegionList();
+    updatePriceRegionUi();
+    if (showPriceRegions) renderCanvas();
+  });
+
+  viewPriceRegionToggle?.addEventListener("change", (e) => {
+    showPriceRegions = e.target.checked;
+    renderCanvas();
+    saveSessionToLocalStorage();
+  });
 
   // Försök återanvända senaste handle direkt vid start (utan att öppna filen automatiskt)
   loadCurrentFileHandleFromDB().then((handle) => {
@@ -2465,6 +3909,7 @@ codePane.addEventListener("input", () => {
     }
 
     updateAlignButtons();
+    updatePriceRegionUi();
   }
 
   function updateAlignButtons() {
@@ -2545,6 +3990,8 @@ codePane.addEventListener("input", () => {
       ctx.restore();
     }
 
+    const priceRegionLookups = showPriceRegions ? buildPriceRegionLookups() : null;
+
     // Platser
     for (const s of seats) {
       if (
@@ -2553,11 +4000,12 @@ codePane.addEventListener("input", () => {
       ) continue;
 
       let baseColor = sectionColors.get(s.sectionId) || "#4a90e2";
-      if (s.attribute === "Wheelchair") {
-        baseColor = "#2ecc71";
+      if (showPriceRegions && priceRegionLookups) {
+        const prColor = getSeatPriceRegionColor(s, priceRegionLookups);
+        if (prColor) baseColor = prColor;
       }
       if (renderGrayscale) {
-        baseColor = s.attribute === "Wheelchair" ? "#7c8a98" : "#9ca8b7";
+        baseColor = "#9ca8b7";
       }
 
       // Fyrkantsläge (massor av platser)
@@ -2579,6 +4027,13 @@ codePane.addEventListener("input", () => {
             rectSizeWorld * 2,
             rectSizeWorld * 2
           );
+        }
+        if (s.attributes && s.attributes.length) {
+          ctx.save();
+          ctx.fillStyle = "rgba(0,0,0,0.7)";
+          ctx.strokeStyle = "rgba(255,255,255,0.85)";
+          drawHexMarker(ctx, s.vx, s.vy, rectSizeWorld * 0.55, 1 / scale);
+          ctx.restore();
         }
         continue;
       }
@@ -2621,6 +4076,14 @@ codePane.addEventListener("input", () => {
             ctx.fillText(label, s.vx, s.vy);
             ctx.restore();
           }
+        }
+
+        if (s.attributes && s.attributes.length) {
+          ctx.save();
+          ctx.fillStyle = "rgba(0,0,0,0.7)";
+          ctx.strokeStyle = "rgba(255,255,255,0.85)";
+          drawHexMarker(ctx, s.vx, s.vy, worldRadius * 0.45, 1 / scale);
+          ctx.restore();
         }
       }
 
@@ -3135,6 +4598,31 @@ function selectAllSeats() {
     if (!selected.length) return [];
 
     const groups = [];
+    if (selectionMode === "seat") {
+      // Keep multi-seat selections per section intact to avoid collapsing.
+      const bySection = new Map();
+      const singles = [];
+      for (const s of selected) {
+        if (s.sectionId) {
+          if (!bySection.has(s.sectionId)) bySection.set(s.sectionId, []);
+          bySection.get(s.sectionId).push(s);
+        } else {
+          singles.push(s);
+        }
+      }
+      for (const seatsArr of bySection.values()) {
+        if (seatsArr.length >= 2) {
+          const b = getSelectionBounds(seatsArr);
+          if (b) groups.push({ seats: seatsArr, bounds: b });
+        } else if (seatsArr[0]) {
+          singles.push(seatsArr[0]);
+        }
+      }
+      for (const s of singles) {
+        groups.push({ seats: [s], bounds: { minX: s.vx, maxX: s.vx, minY: s.vy, maxY: s.vy, centerX: s.vx, centerY: s.vy } });
+      }
+      return groups;
+    }
     if (selectionMode === "section") {
       const bySection = new Map();
       for (const s of selected) {
@@ -3684,18 +5172,168 @@ function selectAllSeats() {
     }
   });
 
+  const ATTRIBUTE_OPTIONS = [
+    { label: "Tillgänglighetsanpassad plats", value: "Wheelchair" },
+    { label: "Ledsagarplats", value: "AccompanyingPerson" },
+    { label: "Skymd sikt", value: "ObstructedView" },
+    { label: "Sikt delvis skymd", value: "SomewhatObstructedView" },
+    { label: "Synfält något begränsat p.g.a smal stolpe", value: "SomewhatObstructedViewPole" },
+    { label: "Synfält något begränsat p.g.a räcke", value: "SomewhatObstructedViewRail" },
+    { label: "Lyssnarplats", value: "ListeningLocations" },
+    { label: "Helt skymd sikt", value: "NoVisibility" },
+    { label: "Hörselslinga", value: "HearingLoop" },
+    { label: "Ej hörselslinga", value: "NoHearingLoop" },
+    { label: "Benutrymme något begränsat", value: "SomewhatRestrictedLegroom" },
+    { label: "Extra benutrymme", value: "ExtraLegroom" },
+    { label: "Sämre komfortnivå", value: "LessComfortable" },
+    { label: "Hög scenkant", value: "HighStageEdge" },
+    { label: "Något hög scenkant", value: "SomewhatHighStageEdge" },
+    { label: "Extra trappsteg", value: "ExtraStep" },
+    { label: "Singelplats", value: "SingleSeat" },
+    { label: "Singelplats vid räcke", value: "SingleSeatByRails" },
+    { label: "Aktiv sittplats", value: "ActiveSeat" },
+    { label: "Ljudvolymen kan upplevas hög", value: "VolumeMayBeLoud" }
+  ];
+
+  function closeSeatContextMenu() {
+    if (!seatContextMenu) return;
+    seatContextMenu.classList.remove("open");
+    seatContextMenu.setAttribute("aria-hidden", "true");
+  }
+
+  function openSeatContextMenu(x, y) {
+    if (!seatContextMenu) return;
+    seatContextMenu.style.left = `${x}px`;
+    seatContextMenu.style.top = `${y}px`;
+    seatContextMenu.classList.add("open");
+    seatContextMenu.setAttribute("aria-hidden", "false");
+    const padding = 8;
+    const rect = seatContextMenu.getBoundingClientRect();
+    let left = x;
+    let top = y;
+    if (left + rect.width > window.innerWidth - padding) {
+      left = window.innerWidth - rect.width - padding;
+    }
+    if (top + rect.height > window.innerHeight - padding) {
+      top = window.innerHeight - rect.height - padding;
+    }
+    if (left < padding) left = padding;
+    if (top < padding) top = padding;
+    seatContextMenu.style.left = `${left}px`;
+    seatContextMenu.style.top = `${top}px`;
+  }
+
+  function buildAttributeModalList() {
+    if (!attributeModalList) return;
+    attributeModalList.innerHTML = "";
+    for (const opt of ATTRIBUTE_OPTIONS) {
+      const label = document.createElement("label");
+      label.className = "attribute-option";
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.dataset.attributeValue = opt.value;
+      const text = document.createElement("span");
+      text.textContent = opt.label;
+      label.appendChild(checkbox);
+      label.appendChild(text);
+      attributeModalList.appendChild(label);
+    }
+  }
+
+  function openAttributeModal() {
+    const selected = getSelectedSeats();
+    if (!selected.length) return;
+    buildAttributeModalList();
+    const union = new Set();
+    for (const s of selected) {
+      const attrs = Array.isArray(s.attributes) ? s.attributes : [];
+      for (const attr of attrs) union.add(attr);
+    }
+    attributeModalList?.querySelectorAll("input[data-attribute-value]").forEach((input) => {
+      input.checked = union.has(input.dataset.attributeValue);
+    });
+    if (attributeModalOverlay) attributeModalOverlay.style.display = "flex";
+  }
+
+  function closeAttributeModal() {
+    if (attributeModalOverlay) attributeModalOverlay.style.display = "none";
+  }
+
+  function applyAttributesToSelection(attributes) {
+    const selected = getSelectedSeats();
+    if (!selected.length) return;
+    let changed = false;
+    for (const s of selected) {
+      const next = [...attributes];
+      s.attributes = next;
+      changed = true;
+    }
+    if (changed) {
+      updateCodeFromSeats();
+      renderCanvas();
+    }
+  }
+
+  attributeMenuItem?.addEventListener("click", () => {
+    closeSeatContextMenu();
+    openAttributeModal();
+  });
+
+  attributeModalClose?.addEventListener("click", closeAttributeModal);
+  attributeModalCancel?.addEventListener("click", closeAttributeModal);
+  attributeModalOverlay?.addEventListener("click", (e) => {
+    if (e.target === attributeModalOverlay) closeAttributeModal();
+  });
+
+  attributeModalSave?.addEventListener("click", () => {
+    if (!attributeModalList) return;
+    const selectedAttrs = [];
+    for (const opt of ATTRIBUTE_OPTIONS) {
+      const input = attributeModalList.querySelector(`input[data-attribute-value="${opt.value}"]`);
+      if (input && input.checked) selectedAttrs.push(opt.value);
+    }
+    applyAttributesToSelection(selectedAttrs);
+    closeAttributeModal();
+  });
+
+  document.addEventListener("click", (e) => {
+    if (!seatContextMenu || !seatContextMenu.classList.contains("open")) return;
+    if (seatContextMenu.contains(e.target)) return;
+    closeSeatContextMenu();
+  });
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      closeSeatContextMenu();
+      closeAttributeModal();
+    }
+  });
+
+  window.addEventListener("blur", closeSeatContextMenu);
+  window.addEventListener("resize", closeSeatContextMenu);
+
   canvas.addEventListener("contextmenu", (e) => {
-    if (currentTool !== "reshape") return;
     const rect = canvas.getBoundingClientRect();
     const canvasX = e.clientX - rect.left;
     const canvasY = e.clientY - rect.top;
     const { worldX, worldY } = screenToWorld(canvasX, canvasY);
+
+    if (currentTool === "reshape") {
+      const hit = hitTestSeat(worldX, worldY);
+      if (!hit || !hit.rowId) return;
+      const rows = getSelectedRows();
+      if (rows.size !== 1 || !rows.has(hit.rowId)) return;
+      reshapePivotSeatId = hit.seatId;
+      e.preventDefault();
+      return;
+    }
+
     const hit = hitTestSeat(worldX, worldY);
-    if (!hit || !hit.rowId) return;
-    const rows = getSelectedRows();
-    if (rows.size !== 1 || !rows.has(hit.rowId)) return;
-    reshapePivotSeatId = hit.seatId;
+    if (!hit || !hit.selected) return;
+    const selected = getSelectedSeats();
+    if (!selected.length) return;
     e.preventDefault();
+    openSeatContextMenu(e.clientX, e.clientY);
   });
 
   let selectionRectAdditive = false;
@@ -3865,7 +5503,11 @@ function selectAllSeats() {
       hoverSeat = hit || null;
 
       if (hoverSeat) {
-        const screenPos = worldToScreen(hoverSeat.vx, hoverSeat.vy);
+        const priceRegionLookups = buildPriceRegionLookups();
+        const priceRegionName = getSeatPriceRegionName(hoverSeat, priceRegionLookups);
+        const attributesText = (hoverSeat.attributes && hoverSeat.attributes.length)
+          ? hoverSeat.attributes.join(", ")
+          : "-";
         const tooltipLines = [];
         if (hoverSeat.sectionId || hoverSeat.sectionName) {
           tooltipLines.push(
@@ -3880,13 +5522,14 @@ function selectAllSeats() {
         tooltipLines.push(
           `<strong>Plats:</strong> ${hoverSeat.name}`
         );
-        if (hoverSeat.entryVia && hoverSeat.entryVia !== "-") {
-          tooltipLines.push(`<strong>Entry via:</strong> ${hoverSeat.entryVia}`);
-        }
+        const entryViaText = (hoverSeat.entryVia && hoverSeat.entryVia !== "-") ? hoverSeat.entryVia : "-";
+        tooltipLines.push(`<strong>Entré:</strong> ${entryViaText}`);
+        tooltipLines.push(`<strong>Prisregion:</strong> ${priceRegionName || "-"}`);
+        tooltipLines.push(`<strong>Attribut:</strong> ${attributesText}`);
 
         tooltipEl.innerHTML = tooltipLines.join("<br/>");
-        tooltipEl.style.left = (screenPos.x + 12) + "px";
-        tooltipEl.style.top = (screenPos.y + 12) + "px";
+        tooltipEl.style.left = (e.clientX + 8) + "px";
+        tooltipEl.style.top = (e.clientY + 8) + "px";
       }
 
       renderCanvas();
@@ -4326,6 +5969,10 @@ function selectAllSeats() {
     setTool("select");
   });
 
+  updateOutlinesBtn.addEventListener("click", () => {
+    updateOutlinesFromSeats();
+  });
+
   // --- Markeringsnivå-knappar ---
   function setSelectionMode(mode) {
     selectionMode = mode;
@@ -4363,10 +6010,6 @@ function selectAllSeats() {
     const val = parseFloat(e.target.value);
     setBackgroundScale(val);
   });
-  viewGrayToggle?.addEventListener("change", (e) => {
-    renderGrayscale = e.target.checked;
-    renderCanvas();
-  });
   viewHoverToggle?.addEventListener("change", (e) => {
     showHoverInfo = e.target.checked;
     if (!showHoverInfo) {
@@ -4374,15 +6017,18 @@ function selectAllSeats() {
       tooltipEl.style.display = "none";
     }
     renderCanvas();
+    saveSessionToLocalStorage();
   });
   viewSectionNamesToggle?.addEventListener("change", (e) => {
     showSectionNames = e.target.checked;
     renderCanvas();
+    saveSessionToLocalStorage();
   });
   [viewSeatLabelNone, viewSeatLabelRow, viewSeatLabelSeat].forEach((el) => {
     el?.addEventListener("change", (e) => {
       if (!e.target.checked) return;
       setSeatLabelMode(e.target.value || "none", false);
+      saveSessionToLocalStorage();
     });
   });
 
@@ -4428,69 +6074,17 @@ function selectAllSeats() {
     return `${nextMajor}.1`;
   }
 
-  function buildSectionDraftsFromSeats() {
-    const bySection = new Map();
-    const compareIdSegments = (idA, idB) => {
-      const aParts = String(idA).split(".").map((p) => parseInt(p, 10));
-      const bParts = String(idB).split(".").map((p) => parseInt(p, 10));
-      const len = Math.max(aParts.length, bParts.length);
-      for (let i = 0; i < len; i++) {
-        const av = aParts[i] ?? 0;
-        const bv = bParts[i] ?? 0;
-        if (av !== bv) return av - bv;
-      }
-      return 0;
-    };
-    seats.forEach((s) => {
-      if (!s.sectionId) return;
-      if (!bySection.has(s.sectionId)) {
-        bySection.set(s.sectionId, {
-          sectionId: s.sectionId,
-          sectionName: sectionNames.get(s.sectionId) || s.sectionName || s.sectionId,
-          color: sectionColors.get(s.sectionId) || "#14a0f4",
-          rows: new Map()
-        });
-      }
-      const draft = bySection.get(s.sectionId);
-      if (!draft.rows.has(s.rowId)) {
-        draft.rows.set(s.rowId, { id: s.rowId, name: s.rowName || s.rowId, seats: [] });
-      }
-      draft.rows.get(s.rowId).seats.push({ id: s.seatId, name: s.name || s.seatId });
-    });
-
-    // Convert maps to arrays and sort row/seat by id natural order
-    return Array.from(bySection.values()).map((draft) => ({
-      sectionId: draft.sectionId,
-      sectionName: draft.sectionName,
-      color: draft.color,
-      rows: Array.from(draft.rows.values()).map((row) => ({
-        id: row.id,
-        name: row.name,
-        seats: row.seats.sort((a, b) => compareIdSegments(a.id, b.id))
-      }))
-    })).sort((a, b) => a.sectionId.localeCompare(b.sectionId));
-  }
+  // buildSectionDraftsFromSeats borttagen i denna version (endast nya sektioner skapas i modalen)
 
   function resetSectionDrafts() {
-    sectionDrafts = buildSectionDraftsFromSeats();
-    sectionDrafts.forEach((d) => {
-      if (sectionRawText.has(d.sectionId)) {
-        const txt = sectionRawText.get(d.sectionId) || "";
-        const parsed = parseRowsText(txt);
-        d.rows = parsed.rows;
-        d.rawRowText = txt;
-      } else {
-        d.rawRowText = rowsToText(d.rows || []);
-      }
+    sectionDrafts = [];
+    sectionDrafts.push({
+      sectionId: computeNextSectionId(),
+      sectionName: "",
+      color: "#14a0f4",
+      rows: [newRow("Rad 1")],
+      rawRowText: ""
     });
-    if (!sectionDrafts.length) {
-      sectionDrafts.push({
-        sectionId: computeNextSectionId(),
-        sectionName: "",
-        color: "#14a0f4",
-        rows: [newRow("Rad 1")]
-      });
-    }
     activeSectionDraftId = sectionDrafts[0].sectionId;
     sectionDirty = false;
   }
@@ -4754,41 +6348,38 @@ function selectAllSeats() {
     });
   }
 
-  function renderSectionCards(filter = "") {
+  function renderSectionCards() {
     if (!sectionCardsEl) return;
     sectionCardsEl.innerHTML = "";
-    const lower = filter.trim().toLowerCase();
-    sectionDrafts
-      .filter(d => !lower || d.sectionId.toLowerCase().includes(lower) || (d.sectionName || "").toLowerCase().includes(lower))
-      .forEach((draft) => {
-        const card = document.createElement("div");
-        card.className = "section-card" + (draft.sectionId === activeSectionDraftId ? " section-card--active" : "");
-        card.dataset.sectionId = draft.sectionId;
+    sectionDrafts.forEach((draft) => {
+      const card = document.createElement("div");
+      card.className = "section-card" + (draft.sectionId === activeSectionDraftId ? " section-card--active" : "");
+      card.dataset.sectionId = draft.sectionId;
 
-        const colorDot = document.createElement("div");
-        colorDot.className = "section-card__color";
-        colorDot.style.background = draft.color || "#14a0f4";
+      const colorDot = document.createElement("div");
+      colorDot.className = "section-card__color";
+      colorDot.style.background = draft.color || "#14a0f4";
 
-        const body = document.createElement("div");
-        body.className = "section-card__body";
+      const body = document.createElement("div");
+      body.className = "section-card__body";
 
-        const title = document.createElement("div");
-        title.className = "section-card__name";
-        title.textContent = draft.sectionName || draft.sectionId;
+      const title = document.createElement("div");
+      title.className = "section-card__name";
+      title.textContent = draft.sectionName || draft.sectionId;
 
-        const meta = document.createElement("div");
-        meta.className = "section-card__meta";
-        const rowCount = draft.rows.length;
-        const seatCount = draft.rows.reduce((sum, r) => sum + (r.seats?.length || 0), 0);
-        meta.innerHTML = `<span>${rowCount} rader</span><span>${seatCount} platser</span>`;
+      const meta = document.createElement("div");
+      meta.className = "section-card__meta";
+      const rowCount = draft.rows.length;
+      const seatCount = draft.rows.reduce((sum, r) => sum + (r.seats?.length || 0), 0);
+      meta.innerHTML = `<span>${rowCount} rader</span><span>${seatCount} platser</span>`;
 
-        body.appendChild(title);
-        body.appendChild(meta);
+      body.appendChild(title);
+      body.appendChild(meta);
 
-        card.appendChild(colorDot);
-        card.appendChild(body);
-        sectionCardsEl.appendChild(card);
-      });
+      card.appendChild(colorDot);
+      card.appendChild(body);
+      sectionCardsEl.appendChild(card);
+    });
   }
 
   function getActiveDraft() {
@@ -4853,7 +6444,7 @@ function selectAllSeats() {
     sectionDrafts.push(newDraft);
     activeSectionDraftId = newDraft.sectionId;
     setSectionDirty(true);
-    renderSectionCards(sectionSearchInput?.value || "");
+    renderSectionCards();
     renderSectionDetail();
   }
 
@@ -4863,7 +6454,7 @@ function selectAllSeats() {
     draft.rows.push(newRow(`Rad ${draft.rows.length + 1}`));
     setSectionDirty(true);
     renderSectionDetail();
-    renderSectionCards(sectionSearchInput?.value || "");
+    renderSectionCards();
   }
 
   function handleRowRemove(rowId) {
@@ -4873,7 +6464,7 @@ function selectAllSeats() {
     if (!draft.rows.length) draft.rows = [newRow("Rad 1")];
     setSectionDirty(true);
     renderSectionDetail();
-    renderSectionCards(sectionSearchInput?.value || "");
+    renderSectionCards();
   }
 
   function handleSeatAdd(rowId) {
@@ -4884,7 +6475,7 @@ function selectAllSeats() {
     row.seats.push(newSeat(String(row.seats.length + 1)));
     setSectionDirty(true);
     renderSectionDetail();
-    renderSectionCards(sectionSearchInput?.value || "");
+    renderSectionCards();
   }
 
   function setRowSeatCount(rowId, targetCount) {
@@ -4904,7 +6495,7 @@ function selectAllSeats() {
     }
     setSectionDirty(true);
     renderSectionDetail();
-    renderSectionCards(sectionSearchInput?.value || "");
+    renderSectionCards();
   }
 
   function handleSeatRemove(rowId, seatId) {
@@ -4916,7 +6507,7 @@ function selectAllSeats() {
     if (!row.seats.length) row.seats.push(newSeat("1"));
     setSectionDirty(true);
     renderSectionDetail();
-    renderSectionCards(sectionSearchInput?.value || "");
+    renderSectionCards();
   }
 
   function splitRowIntoSegments(row) {
@@ -4968,7 +6559,7 @@ function selectAllSeats() {
           width: 100,
           entryVia: "-",
           goodness: 0,
-          attribute: "",
+          attributes: [],
           timestamp,
           selected: false,
           lineIndex: originalLines.length
@@ -5055,10 +6646,11 @@ function selectAllSeats() {
       activeDraft.color = sectionEditColor.value || activeDraft.color || "#14a0f4";
     }
 
+    let savedOk = false;
     const missingNames = sectionDrafts.filter(d => !d.sectionName || !d.sectionName.trim());
     if (missingNames.length) {
       alert("Alla sektioner måste ha namn innan du kan spara.");
-      return;
+      return false;
     }
 
     const validationErrors = [];
@@ -5076,7 +6668,7 @@ function selectAllSeats() {
     });
     if (validationErrors.length) {
       alert("Kan inte spara förrän radformatet är korrekt:\n" + validationErrors.join("\n"));
-      return;
+      return false;
     }
 
     let addedNew = false;
@@ -5097,6 +6689,28 @@ function selectAllSeats() {
     });
 
     if (anyChanged) {
+      // Säkerställ att varje rad har en RowAdd-rad (om något fallit bort)
+      const existingRowIds = new Set(
+        originalLines
+          .filter(l => l.includes("|RowAdd|"))
+          .map(l => {
+            const m = l.match(/RowId=([^|]+)/);
+            return m ? m[1] : null;
+          })
+          .filter(Boolean)
+      );
+      const rowsToAdd = new Map();
+      seats.forEach((s) => {
+        if (!s.rowId || existingRowIds.has(s.rowId)) return;
+        if (!rowsToAdd.has(s.rowId)) {
+          rowsToAdd.set(s.rowId, { rowId: s.rowId, rowName: s.rowName || s.rowId, ts: s.timestamp || buildTimestamp() });
+        }
+      });
+      rowsToAdd.forEach((row) => {
+        originalLines.push(`${row.ts}|RowAdd|RowId=${row.rowId}|Name=${row.rowName}`);
+        existingRowIds.add(row.rowId);
+      });
+
       rebuildSectionColors();
       const uniqueSections = new Set(seats.map(s => s.sectionId).filter(Boolean));
       const uniqueRows = new Set(seats.map(s => s.rowId).filter(Boolean));
@@ -5109,13 +6723,13 @@ function selectAllSeats() {
       updateSaveButton();
       pushHistorySnapshot();
       renderCanvas();
-      if (addedNew) {
-        zoomToFitAllSeats();
-      }
+      zoomToFitAllSeats();
     }
 
     setSectionDirty(false);
-    renderSectionCards(sectionSearchInput?.value || "");
+    renderSectionCards();
+    savedOk = true;
+    return savedOk;
   }
 
 // --- Kod-modal ---
@@ -5144,6 +6758,27 @@ function selectAllSeats() {
     hasUnsavedChanges = true;
     updateSaveButton();
     closeCodeModal();
+  });
+
+  // --- Right panel collapse ---
+  function toggleRightPanel(toggle) {
+    const card = toggle?.closest(".c-card");
+    const body = card?.querySelector(".c-card__body");
+    if (!card || !body) return;
+    const collapsed = card.classList.toggle("c-card--collapsed");
+    body.hidden = collapsed;
+    toggle.setAttribute("aria-expanded", collapsed ? "false" : "true");
+  }
+
+  const rightPanels = document.getElementById("right-panels");
+  rightPanels?.querySelectorAll(".c-card[data-collapsible='true']").forEach((card) => {
+    const toggle = card.querySelector(".c-card__toggle");
+    const body = card.querySelector(".c-card__body");
+    if (!toggle || !body) return;
+    const startCollapsed = card.getAttribute("data-collapsed") === "true";
+    card.classList.toggle("c-card--collapsed", startCollapsed);
+    body.hidden = startCollapsed;
+    toggle.setAttribute("aria-expanded", startCollapsed ? "false" : "true");
   });
 
   // --- Section manager events ---
@@ -5176,7 +6811,7 @@ function selectAllSeats() {
     }
     setSectionDirty(true);
     renderSectionDetail();
-    renderSectionCards(sectionSearchInput?.value || "");
+    renderSectionCards();
   }
 
   parseRowsBtn?.addEventListener("click", syncRowsFromText);
@@ -5193,12 +6828,8 @@ function selectAllSeats() {
     const card = e.target.closest(".section-card");
     if (!card) return;
     activeSectionDraftId = card.dataset.sectionId;
-    renderSectionCards(sectionSearchInput?.value || "");
+    renderSectionCards();
     renderSectionDetail();
-  });
-
-  sectionSearchInput?.addEventListener("input", (e) => {
-    renderSectionCards(e.target.value || "");
   });
 
   sectionEditId?.addEventListener("input", (e) => {
@@ -5207,7 +6838,7 @@ function selectAllSeats() {
     draft.sectionId = e.target.value;
     activeSectionDraftId = draft.sectionId;
     setSectionDirty(true);
-    renderSectionCards(sectionSearchInput?.value || "");
+    renderSectionCards();
   });
 
   sectionEditName?.addEventListener("input", (e) => {
@@ -5215,7 +6846,7 @@ function selectAllSeats() {
     if (!draft) return;
     draft.sectionName = e.target.value;
     setSectionDirty(true);
-    renderSectionCards(sectionSearchInput?.value || "");
+    renderSectionCards();
   });
 
   sectionEditColor?.addEventListener("input", (e) => {
@@ -5223,7 +6854,7 @@ function selectAllSeats() {
     if (!draft) return;
     draft.color = e.target.value;
     setSectionDirty(true);
-    renderSectionCards(sectionSearchInput?.value || "");
+    renderSectionCards();
   });
 
   addRowInlineBtn?.addEventListener("click", () => {
@@ -5247,7 +6878,7 @@ function selectAllSeats() {
     if (e.target.dataset.role === "row-name") {
       row.name = e.target.value;
       setSectionDirty(true);
-      renderSectionCards(sectionSearchInput?.value || "");
+      renderSectionCards();
     } else if (e.target.dataset.role === "seat-name") {
       const seatId = e.target.closest(".seat-chip")?.dataset.seatId;
       const seat = row.seats.find((s) => s.id === seatId);
@@ -5283,7 +6914,7 @@ function selectAllSeats() {
         row.seats.pop();
         setSectionDirty(true);
         renderSectionDetail();
-        renderSectionCards(sectionSearchInput?.value || "");
+        renderSectionCards();
       }
     }
     if (e.target.dataset.role === "row-seat-set") {
@@ -5314,7 +6945,7 @@ function selectAllSeats() {
       draft.rows.splice(rowIdx + 1, 0, newR);
       setSectionDirty(true);
       renderSectionDetail();
-      renderSectionCards(sectionSearchInput?.value || "");
+      renderSectionCards();
     }
     if (e.target.dataset.role === "row-remove") {
       if (exists) {
@@ -5339,13 +6970,61 @@ function selectAllSeats() {
     sectionDrafts.push(copy);
     activeSectionDraftId = copy.sectionId;
     setSectionDirty(true);
-    renderSectionCards(sectionSearchInput?.value || "");
+    renderSectionCards();
     renderSectionDetail();
   });
 
   sectionSaveBtn?.addEventListener("click", () => {
     saveActiveSection();
   });
+  sectionSaveCloseBtn?.addEventListener("click", () => {
+    const ok = saveActiveSection();
+    if (ok) closeSectionManager();
+  });
+
+  const THEME_STORAGE_KEY = "arenaDesignerTheme";
+  function applyTheme(theme) {
+    const root = document.documentElement;
+    if (theme === "dark") root.setAttribute("data-theme", "dark");
+    else root.removeAttribute("data-theme");
+    if (themeToggleBtn) {
+      themeToggleBtn.textContent = theme === "dark" ? "Light mode" : "Dark mode";
+    }
+  }
+
+  function readStoredTheme() {
+    try {
+      return localStorage.getItem(THEME_STORAGE_KEY);
+    } catch {
+      return null;
+    }
+  }
+
+  function writeStoredTheme(theme) {
+    try {
+      localStorage.setItem(THEME_STORAGE_KEY, theme);
+    } catch {
+      // Ignore storage failures (e.g., private mode).
+    }
+  }
+
+  function getPreferredTheme() {
+    const stored = readStoredTheme();
+    if (stored === "dark" || stored === "light") return stored;
+    if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+      return "dark";
+    }
+    return "light";
+  }
+
+  themeToggleBtn?.addEventListener("click", () => {
+    const isDark = document.documentElement.getAttribute("data-theme") === "dark";
+    const nextTheme = isDark ? "light" : "dark";
+    applyTheme(nextTheme);
+    writeStoredTheme(nextTheme);
+  });
+
+  applyTheme(getPreferredTheme());
 
 
   // --- Init ---
@@ -5367,20 +7046,30 @@ window.addEventListener("beforeunload", (e) => {
   updateBgOpacityDisplay();
   updateBgScaleDisplay();
   bgEnabledToggle.checked = backgroundState.enabled;
-  renderGrayscale = viewGrayToggle?.checked ?? false;
+  renderGrayscale = false;
   showHoverInfo = viewHoverToggle?.checked ?? true;
   showSectionNames = viewSectionNamesToggle?.checked ?? false;
   if (viewSeatLabelRow?.checked) seatLabelMode = "row";
   else if (viewSeatLabelSeat?.checked) seatLabelMode = "seat";
   else seatLabelMode = "none";
+  showPriceRegions = viewPriceRegionToggle?.checked ?? false;
 
-  setTool("select");
-  setSelectionMode("seat");
-  updateMoveButtonState();
-  updateSaveButton();
-  renderCanvas();
+    setTool("select");
+    setSelectionMode("seat");
+    updateMoveButtonState();
+    updateSaveButton();
+    loadPriceRegionsFromStorage();
+    renderCanvas();
+
+    // Om det finns sparad vyinfo i localStorage som ännu inte applicerats (t.ex. ingen session vald)
+    // se till att UI-speglas
+    if (viewHoverToggle) viewHoverToggle.checked = showHoverInfo;
+    if (viewSectionNamesToggle) viewSectionNamesToggle.checked = showSectionNames;
+    if (viewPriceRegionToggle) viewPriceRegionToggle.checked = showPriceRegions;
   </script>
 
 
   </body>
   </html>
+
+
