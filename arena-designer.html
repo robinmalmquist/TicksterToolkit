@@ -1761,8 +1761,8 @@
           </div>
 
           <div>
-            <div class="u-font--small" style="margin-bottom:0.25rem;">Rows (format: Row name: 1,10|20,30)</div>
-            <textarea id="sectionRowText" class="row-textarea" placeholder="Row A: 1,10&#10;Row B: 20,30"></textarea>
+            <div class="u-font--small" style="margin-bottom:0.25rem;">Rows</div>
+            <textarea id="sectionRowText" class="row-textarea" placeholder="1: 1,10 (gives you a row with seats named 1 - 10 and row number 1)&#10;2: 1,15|16,30 (gives you a row with seats 1 - 15, then a gap and then seats 16 - 30. Same RowId. Row number 2)&#10;3: 1,5||6,10 (gives you a row with seats 1 - 5, then a gap and then seats 6 - 10. Creates two separate RowIds. Row number 3)"></textarea>
             <div class="c-toolbar c-toolbar--horizontal" style="margin-top:0.35rem; gap:0.35rem;">
               <button id="parseRowsBtn" class="c-button c-button--ghost c-button--small">Update rows</button>
               <span class="section-hint">One row per line. Ranges use | and start,end.</span>
