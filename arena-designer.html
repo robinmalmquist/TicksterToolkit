@@ -3524,7 +3524,7 @@ codePane.addEventListener("input", () => {
           rows: [],
           seats: []
         };
-        if (name) region.name = name;
+        if (name && name !== "-") region.name = name;
         if (color) region.color = color;
         regionsById.set(rangeId, region);
       }
