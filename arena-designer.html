@@ -59,11 +59,16 @@
     /* Layout-root */
     #app {
       display: grid;
-      grid-template-columns: 240px 1fr 300px;
+      grid-template-columns: 200px 1fr 300px;
       grid-template-rows: 1fr;
       gap: 0.75rem;
       height: 100vh;
+      height: 100dvh;
       padding: 0.75rem;
+    }
+
+    #app > * {
+      min-height: 0;
     }
 
     /* ---------- Tickster-komponenter ---------- */
@@ -110,6 +115,16 @@
     .c-toolbar--horizontal {
       flex-direction: row;
       align-items: center;
+    }
+
+    .bg-toggle-group {
+      width: 100%;
+      gap: 0.4rem;
+    }
+
+    .bg-toggle-group .c-button {
+      flex: 1 1 0;
+      justify-content: center;
     }
 
     .c-button {
@@ -461,6 +476,26 @@
       flex-direction: column;
       gap: 0.75rem;
     }
+    #entryPointOverlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.35);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    }
+
+    #entryPointModal {
+      background: #fff;
+      border-radius: 12px;
+      padding: 1rem;
+      width: min(420px, 92vw);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
     #exportOverlay {
       position: fixed;
       inset: 0;
@@ -494,6 +529,7 @@
     }
     #newLayoutModal h3,
     #priceRegionModal h3,
+    #entryPointModal h3,
     #exportModal h3 {
       margin: 0;
       font-size: 1.1rem;
@@ -672,6 +708,7 @@
       padding: 0;
       display: flex;
       flex-direction: column;
+      overflow: auto;
     }
 
     #left-toolbar .c-card {
@@ -724,6 +761,7 @@
     #right-panels {
       padding: 0;
       border: none;
+      overflow: auto;
     }
 
     #right-panels .c-card {
@@ -826,10 +864,30 @@
       min-width: 0;
     }
 
-    .price-region-item__header-left > div {
+    .price-region-item__name {
+      flex: 1;
       min-width: 0;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      border: 1px solid transparent;
+      background: transparent;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #243743;
+      padding: 0.1rem 0.3rem;
+      border-radius: 6px;
+    }
+
+    .price-region-item__name:focus {
+      outline: none;
+      border-color: var(--tick-blue);
+      background: #fff;
+    }
+
+    .price-region-item__count {
+      font-size: 0.75rem;
+      color: #5b6673;
+      background: #eef2f7;
+      border-radius: 999px;
+      padding: 0.1rem 0.4rem;
       white-space: nowrap;
     }
 
@@ -928,10 +986,17 @@
       display: flex;
       align-items: center;
       gap: 0.5rem;
+      flex-wrap: wrap;
     }
 
     .bg-control input[type="range"] {
-      flex: 1;
+      flex: 1 1 100%;
+      min-width: 0;
+      width: 100%;
+    }
+
+    .bg-control .u-font--mono {
+      margin-left: auto;
     }
 
     /* Kod-modal */
@@ -1069,6 +1134,7 @@
       display: flex;
       flex-direction: column;
       min-width: 0;
+      min-height: 0;
       gap: 0.5rem;
     }
 
@@ -1313,6 +1379,7 @@
 
     #canvas-container {
       flex: 1 1 auto;
+      min-height: 0;
       background: #fff;
       border-radius: var(--radius-card);
       border: 1px solid var(--card-border);
@@ -1465,8 +1532,8 @@
         </div>
 
         <div id="selectionModeGroup">
-        <div class="c-card__header" style="margin-top:0.5rem;">
-          <div class="c-card__title">Selection Level</div>
+          <div class="c-card__header" style="margin-top:0.5rem;">
+            <div class="c-card__title">Selection Level</div>
           </div>
           <div class="c-toolbar">
             <button id="modeSectionBtn" class="tool-button c-button c-button--ghost c-button--small c-button--active">
@@ -1485,20 +1552,17 @@
           <div class="c-card__title">Background Image</div>
         </div>
         <div class="c-toolbar">
-          <button id="bgLoadBtn" class="c-button c-button--ghost c-button--small">Add background image</button>
-          <label class="bg-control u-font--small">
-            <input type="checkbox" id="bgEnabledToggle" />
-            Activate background image
-          </label>
+          <div class="c-toolbar c-toolbar--horizontal bg-toggle-group">
+            <button id="bgLoadBtn" class="c-button c-button--ghost c-button--small">Add Image</button>
+            <button id="bgToggleBtn" class="c-button c-button--ghost c-button--small">Show</button>
+          </div>
           <label class="bg-control u-font--small">
             Opacity
             <input type="range" id="bgOpacityRange" min="0" max="1" step="0.05" value="0.4" />
-            <span id="bgOpacityValue" class="u-font--mono">0.40</span>
           </label>
           <label class="bg-control u-font--small">
             Scale
             <input type="range" id="bgScaleRange" min="0.1" max="10" step="0.1" value="1" />
-            <span id="bgScaleValue" class="u-font--mono">1.0x</span>
           </label>
         </div>
 
@@ -1595,19 +1659,6 @@
 
       <div class="c-card" data-collapsible="true">
         <div class="c-card__header">
-          <div class="c-card__title">Price Regions <span id="priceRegionStatus" class="price-region-status">❌</span></div>
-          <button class="c-card__toggle" type="button" aria-expanded="true" aria-label="Toggle panel" onclick="toggleRightPanel(this)"></button>
-        </div>
-        <div class="c-card__body c-toolbar">
-          <button id="createPriceRegionBtn" class="c-button c-button--ghost c-button--small">Add price region</button>
-          <button id="loadPriceRegionBtn" class="c-button c-button--ghost c-button--small">Load price regions from file</button>
-          <input type="file" id="priceRegionFileInput" accept=".tpr,.txt" style="display:none" />
-          <div id="priceRegionList" class="price-region-list"></div>
-        </div>
-      </div>
-
-      <div class="c-card" data-collapsible="true">
-        <div class="c-card__header">
           <div class="c-card__title">Display</div>
           <button class="c-card__toggle" type="button" aria-expanded="true" aria-label="Toggle panel" onclick="toggleRightPanel(this)"></button>
         </div>
@@ -1640,6 +1691,30 @@
             </label>
           </div>
           <button id="openCodeModalBtn" class="c-button c-button--ghost c-button--small">Show source code</button>
+        </div>
+      </div>
+
+      <div class="c-card" data-collapsible="true" data-collapsed="true">
+        <div class="c-card__header">
+          <div class="c-card__title">Price Regions <span id="priceRegionStatus" class="price-region-status">❌</span></div>
+          <button class="c-card__toggle" type="button" aria-expanded="true" aria-label="Toggle panel" onclick="toggleRightPanel(this)"></button>
+        </div>
+        <div class="c-card__body c-toolbar">
+          <button id="createPriceRegionBtn" class="c-button c-button--ghost c-button--small">Add price region</button>
+          <button id="loadPriceRegionBtn" class="c-button c-button--ghost c-button--small">Load price regions from file</button>
+          <input type="file" id="priceRegionFileInput" accept=".tpr,.txt" style="display:none" />
+          <div id="priceRegionList" class="price-region-list"></div>
+        </div>
+      </div>
+
+      <div class="c-card" data-collapsible="true" data-collapsed="true">
+        <div class="c-card__header">
+          <div class="c-card__title">Entry Points</div>
+          <button class="c-card__toggle" type="button" aria-expanded="true" aria-label="Toggle panel" onclick="toggleRightPanel(this)"></button>
+        </div>
+        <div class="c-card__body c-toolbar">
+          <button id="createEntryPointBtn" class="c-button c-button--ghost c-button--small">Add entry point</button>
+          <div id="entryPointList" class="price-region-list"></div>
         </div>
       </div>
 
@@ -1757,6 +1832,19 @@
       <div class="new-layout-actions">
         <button id="priceRegionCancel" class="c-button c-button--ghost c-button--small">Cancel</button>
         <button id="priceRegionCreate" class="c-button c-button--primary c-button--small">Add</button>
+      </div>
+    </div>
+  </div>
+  <div id="entryPointOverlay">
+    <div id="entryPointModal">
+      <h3>New entry point</h3>
+      <div class="new-layout-field">
+        <label for="entryPointName">Name</label>
+        <input id="entryPointName" type="text" placeholder="Enter name" />
+      </div>
+      <div class="new-layout-actions">
+        <button id="entryPointCancel" class="c-button c-button--ghost c-button--small">Cancel</button>
+        <button id="entryPointCreate" class="c-button c-button--primary c-button--small">Add</button>
       </div>
     </div>
   </div>
@@ -1890,11 +1978,9 @@
 
   const bgFileInput = document.getElementById("bgFileInput");
   const bgLoadBtn = document.getElementById("bgLoadBtn");
-  const bgEnabledToggle = document.getElementById("bgEnabledToggle");
+  const bgToggleBtn = document.getElementById("bgToggleBtn");
   const bgOpacityRange = document.getElementById("bgOpacityRange");
-  const bgOpacityValue = document.getElementById("bgOpacityValue");
   const bgScaleRange = document.getElementById("bgScaleRange");
-  const bgScaleValue = document.getElementById("bgScaleValue");
   const viewHoverToggle = document.getElementById("viewHoverToggle");
   const viewSectionNamesToggle = document.getElementById("viewSectionNamesToggle");
   const viewPriceRegionToggle = document.getElementById("viewPriceRegionToggle");
@@ -1931,6 +2017,12 @@
   const priceRegionName = document.getElementById("priceRegionName");
   const priceRegionCancel = document.getElementById("priceRegionCancel");
   const priceRegionCreate = document.getElementById("priceRegionCreate");
+  const createEntryPointBtn = document.getElementById("createEntryPointBtn");
+  const entryPointList = document.getElementById("entryPointList");
+  const entryPointOverlay = document.getElementById("entryPointOverlay");
+  const entryPointName = document.getElementById("entryPointName");
+  const entryPointCancel = document.getElementById("entryPointCancel");
+  const entryPointCreate = document.getElementById("entryPointCreate");
   const sectionManagerOverlay = document.getElementById("sectionManagerOverlay");
   const sectionManagerClose = document.getElementById("sectionManagerClose");
   const sectionCardsEl = document.getElementById("sectionCards");
@@ -1951,6 +2043,7 @@
   const sectionPreviewCanvas = document.getElementById("sectionPreviewCanvas");
   const sectionRawText = new Map();
   const priceRegions = [];
+  const entryPoints = [];
 
   let seats = [];
   let outlines = [];
@@ -2376,6 +2469,9 @@
 
     rebuildSectionColors();
     updatePriceRegionStatus();
+    syncEntryPointsFromSeats();
+    renderEntryPointList();
+    updateEntryPointUi();
     const outlinesChangedOnLoad = syncOutlinesIntoOriginalLines();
     if (outlinesChangedOnLoad) {
       const newText = originalLines.join("\n");
@@ -2713,17 +2809,12 @@
   }
 
   // --- Bakgrundshantering ---
-  function updateBgOpacityDisplay() {
-    bgOpacityValue.textContent = backgroundState.opacity.toFixed(2);
-  }
-
-  function updateBgScaleDisplay() {
-    bgScaleValue.textContent = `${backgroundState.scale.toFixed(1)}x`
-  }
-
   function setBackgroundEnabled(enabled) {
     backgroundState.enabled = enabled;
-    bgEnabledToggle.checked = enabled;
+    if (bgToggleBtn) {
+      bgToggleBtn.textContent = enabled ? "Hide" : "Show";
+      bgToggleBtn.classList.toggle("c-button--active", enabled);
+    }
     saveSessionToLocalStorage();
     renderCanvas();
   }
@@ -2732,7 +2823,6 @@
     const clamped = Math.min(1, Math.max(0, val));
     backgroundState.opacity = clamped;
     bgOpacityRange.value = clamped;
-    updateBgOpacityDisplay();
     saveSessionToLocalStorage();
     renderCanvas();
   }
@@ -2741,7 +2831,6 @@
     const clamped = Math.min(10, Math.max(0.1, val));
     backgroundState.scale = clamped;
     bgScaleRange.value = clamped;
-    updateBgScaleDisplay();
     saveSessionToLocalStorage();
     renderCanvas();
   }
@@ -2947,6 +3036,7 @@ async function tryRestoreSessionFromLocalStorage() {
       fileInfo.textContent = "Recovered session \n(file not saved)";
     }
     loadPriceRegionsFromStorage();
+    loadEntryPointsFromStorage();
 
     // Återställ zoom/pan om vi har dem
     if (typeof data.translateX === "number") translateX = data.translateX;
@@ -2959,9 +3049,8 @@ async function tryRestoreSessionFromLocalStorage() {
       backgroundState.scale = typeof data.background.scale === "number" ? data.background.scale : backgroundState.scale;
       backgroundState.originX = typeof data.background.originX === "number" ? data.background.originX : backgroundState.originX;
       backgroundState.originY = typeof data.background.originY === "number" ? data.background.originY : backgroundState.originY;
-      updateBgOpacityDisplay();
-      updateBgScaleDisplay();
-      bgEnabledToggle.checked = backgroundState.enabled;
+      
+      setBackgroundEnabled(!!backgroundState.enabled);
       if (data.background.dataUrl) {
         await loadBackgroundFromDataUrl(data.background.dataUrl);
       }
@@ -3021,6 +3110,7 @@ codePane.addEventListener("input", () => {
     updateSaveButton();
     saveSessionToLocalStorage();
     loadPriceRegionsFromStorage();
+    loadEntryPointsFromStorage();
     saveCurrentFileHandleToDB(handle);
   }
 
@@ -3121,6 +3211,7 @@ codePane.addEventListener("input", () => {
     updateSaveButton();
     saveSessionToLocalStorage();
     loadPriceRegionsFromStorage();
+    loadEntryPointsFromStorage();
     clearCurrentFileHandleInDB();
     fileInput.value = "";
   }
@@ -3164,6 +3255,7 @@ codePane.addEventListener("input", () => {
     renderSectionDetail();
     renderCanvas();
     loadPriceRegionsFromStorage();
+    loadEntryPointsFromStorage();
   }
 
   function getLayoutMeta() {
@@ -3258,11 +3350,19 @@ codePane.addEventListener("input", () => {
       colorInput.value = normalizeColorToHex(region.color, "#888888");
       colorInput.dataset.role = "price-region-color";
       colorInput.dataset.regionId = region.id;
-      const name = document.createElement("div");
       const seatCount = getPriceRegionSeatCount(region);
-      name.textContent = `${region.name} (${seatCount})`;
+      const nameInput = document.createElement("input");
+      nameInput.type = "text";
+      nameInput.className = "price-region-item__name";
+      nameInput.value = region.name || "";
+      nameInput.dataset.role = "price-region-name";
+      nameInput.dataset.regionId = region.id;
+      const countBadge = document.createElement("span");
+      countBadge.className = "price-region-item__count";
+      countBadge.textContent = String(seatCount);
       headerLeft.appendChild(colorInput);
-      headerLeft.appendChild(name);
+      headerLeft.appendChild(nameInput);
+      headerLeft.appendChild(countBadge);
       header.appendChild(headerLeft);
 
       const meta = document.createElement("div");
@@ -3510,11 +3610,19 @@ codePane.addEventListener("input", () => {
         if (seatMatch) region.seats.push(seatMatch[1]);
         regionsById.set(rangeId, region);
       } else if (line.includes("<Outline|")) {
-        const outlineMatch = line.match(/<Outline\|([^|]+)\|([^|]+)\|[^|]*\|\[Poly\|[^|]*\|[^|]*\|(#?[0-9A-Fa-f]{6})/);
+        const outlineMatch = line.match(/<Outline\|([^|]+)\|([^|]+)\|[^|]*\|\[Poly\|[^|]*\|[^|]*\|(#?[0-9A-Fa-f]{6,8})/);
         if (!outlineMatch) continue;
         const rangeId = outlineMatch[1];
         const name = outlineMatch[2];
-        const color = outlineMatch[3];
+        let color = outlineMatch[3];
+        if (color) {
+          const raw = color.startsWith("#") ? color.slice(1) : color;
+          if (raw.length === 8) {
+            color = `#${raw.slice(2)}`;
+          } else {
+            color = `#${raw}`;
+          }
+        }
         const region = regionsById.get(rangeId) || {
           id: rangeId,
           rangeId,
@@ -3685,6 +3793,96 @@ codePane.addEventListener("input", () => {
     };
   }
 
+  function buildPriceRegionTargetsFromSeatSet(seatSet) {
+    if (!seatSet || seatSet.size === 0) return { sections: [], rows: [], seats: [] };
+
+    const seatsBySection = new Map();
+    const seatsByRow = new Map();
+    for (const s of seats) {
+      if (s.sectionId) {
+        if (!seatsBySection.has(s.sectionId)) seatsBySection.set(s.sectionId, []);
+        seatsBySection.get(s.sectionId).push(s);
+      }
+      if (s.rowId) {
+        if (!seatsByRow.has(s.rowId)) seatsByRow.set(s.rowId, []);
+        seatsByRow.get(s.rowId).push(s);
+      }
+    }
+
+    const covered = new Set();
+    const sections = [];
+    const rows = [];
+    const seatsOut = [];
+
+    for (const [sectionId, sectionSeats] of seatsBySection) {
+      let anySelected = false;
+      let allSelected = true;
+      for (const s of sectionSeats) {
+        const isSelected = seatSet.has(s.seatId);
+        if (isSelected) anySelected = true;
+        if (!isSelected) allSelected = false;
+      }
+      if (anySelected && allSelected) {
+        sections.push(sectionId);
+        sectionSeats.forEach(s => covered.add(s.seatId));
+      }
+    }
+
+    for (const [rowId, rowSeats] of seatsByRow) {
+      let anySelected = false;
+      let allSelected = true;
+      for (const s of rowSeats) {
+        const isSelected = seatSet.has(s.seatId);
+        if (isSelected) anySelected = true;
+        if (!isSelected) allSelected = false;
+      }
+      if (!anySelected || !allSelected) continue;
+      const alreadyCovered = rowSeats.every(s => covered.has(s.seatId));
+      if (alreadyCovered) continue;
+      rows.push(rowId);
+      rowSeats.forEach(s => covered.add(s.seatId));
+    }
+
+    seatSet.forEach((seatId) => {
+      if (!covered.has(seatId)) seatsOut.push(seatId);
+    });
+
+    return {
+      sections: sections.sort(),
+      rows: rows.sort(),
+      seats: seatsOut.sort()
+    };
+  }
+
+  function rebuildPriceRegionFromSeatSet(region, seatSet) {
+    const targets = buildPriceRegionTargetsFromSeatSet(seatSet);
+    region.sections = targets.sections;
+    region.rows = targets.rows;
+    region.seats = targets.seats;
+  }
+
+  function removeSeatsFromOtherPriceRegions(regionId, seatIds) {
+    if (!seatIds || seatIds.size === 0) return false;
+    let changed = false;
+    priceRegions.forEach((region) => {
+      if (region.id === regionId) return;
+      const currentSeatIds = getRegionSeatIds(region);
+      let removedAny = false;
+      const nextSeatIds = new Set();
+      currentSeatIds.forEach((seatId) => {
+        if (seatIds.has(seatId)) {
+          removedAny = true;
+        } else {
+          nextSeatIds.add(seatId);
+        }
+      });
+      if (!removedAny) return;
+      rebuildPriceRegionFromSeatSet(region, nextSeatIds);
+      changed = true;
+    });
+    return changed;
+  }
+
   function normalizePriceRegionTargets(region) {
     const seatById = new Map(seats.map(s => [s.seatId, s]));
     const sectionsSet = new Set(region.sections);
@@ -3805,6 +4003,8 @@ codePane.addEventListener("input", () => {
     if (!region) return;
     const targets = buildPriceRegionTargetsFromSelection();
     if (!targets.sections.length && !targets.rows.length && !targets.seats.length) return;
+    const selectedSeatIds = new Set(getSelectedSeats().map(s => s.seatId));
+    removeSeatsFromOtherPriceRegions(regionId, selectedSeatIds);
 
     const mergeUnique = (current, incoming) => {
       const set = new Set(current);
@@ -3820,6 +4020,248 @@ codePane.addEventListener("input", () => {
     renderPriceRegionList();
     updatePriceRegionUi();
     if (showPriceRegions) renderCanvas();
+  }
+
+  function buildEntryPointId() {
+    return `ep-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
+  }
+
+  function normalizeEntryPointName(raw) {
+    return String(raw || "").trim();
+  }
+
+  function getEntryPointStorageKey() {
+    const meta = getLayoutMeta();
+    const venuePart = meta.venueId || "unknown";
+    const layoutPart = meta.layoutName || "unsaved";
+    return `arenaDesignerEntryPoints:${venuePart}:${layoutPart}`;
+  }
+
+  function syncEntryPointsFromSeats() {
+    const names = new Set();
+    seats.forEach((s) => {
+      const name = normalizeEntryPointName(s.entryVia);
+      if (name && name !== "-") names.add(name);
+    });
+    names.forEach((name) => {
+      const exists = entryPoints.some(ep => ep.name === name);
+      if (!exists) entryPoints.push({ id: buildEntryPointId(), name });
+    });
+  }
+
+  function loadEntryPointsFromStorage() {
+    entryPoints.length = 0;
+    try {
+      const raw = localStorage.getItem(getEntryPointStorageKey());
+      if (raw) {
+        const data = JSON.parse(raw);
+        if (data && Array.isArray(data.entryPoints)) {
+          data.entryPoints.forEach((ep) => {
+            const name = normalizeEntryPointName(ep?.name);
+            if (name) entryPoints.push({ id: ep.id || buildEntryPointId(), name });
+          });
+        }
+      }
+    } catch (err) {
+      console.warn("Kunde inte lasa entrepunkter:", err);
+    }
+    syncEntryPointsFromSeats();
+    renderEntryPointList();
+    updateEntryPointUi();
+  }
+
+  function saveEntryPointsToStorage() {
+    try {
+      localStorage.setItem(getEntryPointStorageKey(), JSON.stringify({ entryPoints }));
+    } catch (err) {
+      console.warn("Kunde inte spara entrepunkter:", err);
+    }
+  }
+
+  function getEntryPointSeatIds(entryPoint) {
+    const ids = new Set();
+    seats.forEach((s) => {
+      if (s.entryVia === entryPoint.name) ids.add(s.seatId);
+    });
+    return ids;
+  }
+
+  function renderEntryPointList() {
+    if (!entryPointList) return;
+    entryPointList.innerHTML = "";
+    if (!entryPoints.length) {
+      const empty = document.createElement("div");
+      empty.className = "u-font--small";
+      empty.style.color = "var(--tick-grey)";
+      empty.textContent = "No entry points available.";
+      entryPointList.appendChild(empty);
+      return;
+    }
+    entryPoints.forEach((entryPoint) => {
+      const item = document.createElement("div");
+      item.className = "price-region-item";
+
+      const header = document.createElement("div");
+      header.className = "price-region-item__header";
+      const headerLeft = document.createElement("div");
+      headerLeft.className = "price-region-item__header-left";
+
+      const deleteBtn = document.createElement("button");
+      deleteBtn.type = "button";
+      deleteBtn.className = "price-region-item__delete";
+      deleteBtn.textContent = "x";
+      deleteBtn.dataset.role = "entry-point-delete";
+      deleteBtn.dataset.entryPointId = entryPoint.id;
+
+      const nameInput = document.createElement("input");
+      nameInput.type = "text";
+      nameInput.className = "price-region-item__name";
+      nameInput.value = entryPoint.name || "";
+      nameInput.dataset.role = "entry-point-name";
+      nameInput.dataset.entryPointId = entryPoint.id;
+      nameInput.dataset.prevName = entryPoint.name || "";
+
+      headerLeft.appendChild(nameInput);
+      header.appendChild(headerLeft);
+
+      const actions = document.createElement("div");
+      actions.className = "price-region-item__actions";
+      const addBtn = document.createElement("button");
+      addBtn.type = "button";
+      addBtn.className = "c-button c-button--ghost c-button--small";
+      addBtn.textContent = "Add";
+      addBtn.dataset.role = "entry-point-add";
+      addBtn.dataset.entryPointId = entryPoint.id;
+      const markBtn = document.createElement("button");
+      markBtn.type = "button";
+      markBtn.className = "c-button c-button--ghost c-button--small";
+      markBtn.textContent = "Select";
+      markBtn.dataset.role = "entry-point-mark";
+      markBtn.dataset.entryPointId = entryPoint.id;
+      const clearBtn = document.createElement("button");
+      clearBtn.type = "button";
+      clearBtn.className = "c-button c-button--ghost c-button--small";
+      clearBtn.textContent = "Clear";
+      clearBtn.dataset.role = "entry-point-clear";
+      clearBtn.dataset.entryPointId = entryPoint.id;
+      actions.appendChild(addBtn);
+      actions.appendChild(markBtn);
+      actions.appendChild(clearBtn);
+
+      item.appendChild(deleteBtn);
+      item.appendChild(header);
+      item.appendChild(actions);
+      entryPointList.appendChild(item);
+    });
+  }
+
+  function updateEntryPointUi() {
+    if (!entryPointList) return;
+    const hasSelection = getSelectedSeats().length > 0;
+    entryPointList.querySelectorAll("[data-role='entry-point-add']").forEach((btn) => {
+      btn.disabled = !hasSelection;
+    });
+    entryPointList.querySelectorAll("[data-role='entry-point-mark']").forEach((btn) => {
+      const entryPointId = btn.dataset.entryPointId;
+      const entryPoint = entryPoints.find(ep => ep.id === entryPointId);
+      const hasItems = entryPoint ? getEntryPointSeatIds(entryPoint).size > 0 : false;
+      btn.disabled = !hasItems;
+    });
+    entryPointList.querySelectorAll("[data-role='entry-point-clear']").forEach((btn) => {
+      const entryPointId = btn.dataset.entryPointId;
+      const entryPoint = entryPoints.find(ep => ep.id === entryPointId);
+      const hasItems = entryPoint ? getEntryPointSeatIds(entryPoint).size > 0 : false;
+      btn.disabled = !hasItems;
+    });
+  }
+
+  function openEntryPointModal() {
+    if (entryPointOverlay) entryPointOverlay.style.display = "flex";
+    if (entryPointName) {
+      entryPointName.value = "";
+      setTimeout(() => entryPointName.focus(), 50);
+    }
+  }
+
+  function closeEntryPointModal() {
+    if (entryPointOverlay) entryPointOverlay.style.display = "none";
+  }
+
+  function addSelectionToEntryPoint(entryPointId) {
+    const entryPoint = entryPoints.find(ep => ep.id === entryPointId);
+    if (!entryPoint) return;
+    const selected = getSelectedSeats();
+    if (!selected.length) return;
+    let changed = false;
+    selected.forEach((s) => {
+      if (s.entryVia !== entryPoint.name) {
+        s.entryVia = entryPoint.name;
+        changed = true;
+      }
+    });
+    if (!changed) return;
+    updateCodeFromSeats();
+    renderCanvas();
+    updateEntryPointUi();
+  }
+
+  function clearEntryPoint(entryPointId) {
+    const entryPoint = entryPoints.find(ep => ep.id === entryPointId);
+    if (!entryPoint) return;
+    let changed = false;
+    seats.forEach((s) => {
+      if (s.entryVia === entryPoint.name) {
+        s.entryVia = "-";
+        changed = true;
+      }
+    });
+    if (!changed) return;
+    updateCodeFromSeats();
+    renderCanvas();
+    updateEntryPointUi();
+  }
+
+  function renameEntryPoint(entryPointId, nextNameRaw, inputEl) {
+    const entryPoint = entryPoints.find(ep => ep.id === entryPointId);
+    if (!entryPoint) return;
+    const nextName = normalizeEntryPointName(nextNameRaw);
+    const prevName = inputEl?.dataset?.prevName || entryPoint.name;
+    if (!nextName) {
+      if (inputEl) inputEl.value = prevName;
+      return;
+    }
+    const duplicate = entryPoints.some(ep => ep.id !== entryPointId && ep.name === nextName);
+    if (duplicate) {
+      alert("That entry point name already exists.");
+      if (inputEl) inputEl.value = prevName;
+      return;
+    }
+    if (nextName === prevName) return;
+    entryPoint.name = nextName;
+    if (inputEl) inputEl.dataset.prevName = nextName;
+    seats.forEach((s) => {
+      if (s.entryVia === prevName) s.entryVia = nextName;
+    });
+    saveEntryPointsToStorage();
+    updateCodeFromSeats();
+    renderCanvas();
+    updateEntryPointUi();
+  }
+
+  function deleteEntryPoint(entryPointId) {
+    const entryPoint = entryPoints.find(ep => ep.id === entryPointId);
+    if (!entryPoint) return;
+    if (!confirm("Delete this entry point? Assigned seats will be cleared.")) return;
+    seats.forEach((s) => {
+      if (s.entryVia === entryPoint.name) s.entryVia = "-";
+    });
+    const idx = entryPoints.findIndex(ep => ep.id === entryPointId);
+    if (idx >= 0) entryPoints.splice(idx, 1);
+    saveEntryPointsToStorage();
+    renderEntryPointList();
+    updateEntryPointUi();
+    updateCodeFromSeats();
+    renderCanvas();
   }
 
   openFileBtnTop?.addEventListener("click", () => {
@@ -3872,6 +4314,7 @@ codePane.addEventListener("input", () => {
     hasUnsavedChanges = true;
     updateSaveButton();
     loadPriceRegionsFromStorage();
+    loadEntryPointsFromStorage();
     closeNewLayoutModal();
     openSectionManager();
   }
@@ -3949,6 +4392,35 @@ codePane.addEventListener("input", () => {
       priceRegionCreate?.click();
     }
   });
+  createEntryPointBtn?.addEventListener("click", openEntryPointModal);
+  entryPointCancel?.addEventListener("click", closeEntryPointModal);
+  entryPointOverlay?.addEventListener("click", (e) => {
+    if (e.target === entryPointOverlay) closeEntryPointModal();
+  });
+  entryPointCreate?.addEventListener("click", () => {
+    const name = normalizeEntryPointName(entryPointName?.value || "");
+    if (!name) {
+      alert("Enter a name for the entry point.");
+      return;
+    }
+    const duplicate = entryPoints.some(ep => ep.name === name);
+    if (duplicate) {
+      alert("That entry point name already exists.");
+      return;
+    }
+    const id = buildEntryPointId();
+    entryPoints.push({ id, name });
+    saveEntryPointsToStorage();
+    renderEntryPointList();
+    updateEntryPointUi();
+    closeEntryPointModal();
+  });
+  entryPointName?.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      entryPointCreate?.click();
+    }
+  });
   priceRegionList?.addEventListener("click", (e) => {
     const btn = e.target.closest("[data-role='price-region-add']");
     if (btn) {
@@ -4007,7 +4479,77 @@ codePane.addEventListener("input", () => {
     if (showPriceRegions) renderCanvas();
   });
 
+  entryPointList?.addEventListener("click", (e) => {
+    const addBtn = e.target.closest("[data-role='entry-point-add']");
+    if (addBtn) {
+      const entryPointId = addBtn.dataset.entryPointId;
+      if (entryPointId) addSelectionToEntryPoint(entryPointId);
+      return;
+    }
+    const markBtn = e.target.closest("[data-role='entry-point-mark']");
+    if (markBtn) {
+      const entryPointId = markBtn.dataset.entryPointId;
+      const entryPoint = entryPoints.find(ep => ep.id === entryPointId);
+      if (!entryPoint) return;
+      const ids = getEntryPointSeatIds(entryPoint);
+      let selectionChanged = false;
+      for (const s of seats) {
+        const shouldSelect = ids.has(s.seatId);
+        if (s.selected !== shouldSelect) {
+          s.selected = shouldSelect;
+          selectionChanged = true;
+        }
+      }
+      if (selectionChanged) {
+        pushHistorySnapshot();
+        updateMoveButtonState();
+        renderCanvas();
+        saveSessionToLocalStorage();
+      }
+      return;
+    }
+    const clearBtn = e.target.closest("[data-role='entry-point-clear']");
+    if (clearBtn) {
+      const entryPointId = clearBtn.dataset.entryPointId;
+      if (!entryPointId) return;
+      if (!confirm("Clear this entry point?")) return;
+      clearEntryPoint(entryPointId);
+      return;
+    }
+    const delBtn = e.target.closest("[data-role='entry-point-delete']");
+    if (!delBtn) return;
+    const entryPointId = delBtn.dataset.entryPointId;
+    if (!entryPointId) return;
+    deleteEntryPoint(entryPointId);
+  });
+
+  entryPointList?.addEventListener("change", (e) => {
+    const nameInput = e.target.closest("[data-role='entry-point-name']");
+    if (!nameInput) return;
+    const entryPointId = nameInput.dataset.entryPointId;
+    if (!entryPointId) return;
+    renameEntryPoint(entryPointId, nameInput.value, nameInput);
+  });
+
+  entryPointList?.addEventListener("keydown", (e) => {
+    if (e.key !== "Enter") return;
+    const nameInput = e.target.closest("[data-role='entry-point-name']");
+    if (!nameInput) return;
+    e.preventDefault();
+    nameInput.blur();
+  });
+
   priceRegionList?.addEventListener("input", (e) => {
+    const nameInput = e.target.closest("[data-role='price-region-name']");
+    if (nameInput) {
+      const regionId = nameInput.dataset.regionId;
+      const region = priceRegions.find(r => r.id === regionId);
+      if (!region) return;
+      region.name = (nameInput.value || "").trim();
+      savePriceRegionsToStorage();
+      if (showPriceRegions) renderCanvas();
+      return;
+    }
     const input = e.target.closest("[data-role='price-region-color']");
     if (!input) return;
     const regionId = input.dataset.regionId;
@@ -4068,6 +4610,7 @@ codePane.addEventListener("input", () => {
 
     updateAlignButtons();
     updatePriceRegionUi();
+    updateEntryPointUi();
   }
 
   function updateAlignButtons() {
@@ -6157,8 +6700,8 @@ function selectAllSeats() {
     };
     reader.readAsDataURL(file);
   });
-  bgEnabledToggle.addEventListener("change", (e) => {
-    setBackgroundEnabled(e.target.checked);
+  bgToggleBtn?.addEventListener("click", () => {
+    setBackgroundEnabled(!backgroundState.enabled);
   });
   bgOpacityRange.addEventListener("input", (e) => {
     const val = parseFloat(e.target.value);
@@ -7185,46 +7728,47 @@ function selectAllSeats() {
 
   // --- Init ---
 
-  window.addEventListener("load", () => {
-  // Försök återställa en tidigare session (om det finns)
-  tryRestoreSessionFromLocalStorage();
-});
+  window.addEventListener("load", async () => {
+    // Försök återställa en tidigare session (om det finns)
+    await tryRestoreSessionFromLocalStorage();
 
-window.addEventListener("beforeunload", (e) => {
-  saveSessionToLocalStorage();
-  if (!hasUnsavedChanges) return;
-
-  // Detta magiska returnValue krävs för att vissa browsers ska visa varningen
-  e.preventDefault();
-  e.returnValue = "";
-});
-
-
-  updateBgOpacityDisplay();
-  updateBgScaleDisplay();
-  bgEnabledToggle.checked = backgroundState.enabled;
-  if (!restoredSession) {
-    renderGrayscale = false;
-    showHoverInfo = viewHoverToggle?.checked ?? true;
-    showSectionNames = viewSectionNamesToggle?.checked ?? false;
-    if (viewSeatLabelRow?.checked) seatLabelMode = "row";
-    else if (viewSeatLabelSeat?.checked) seatLabelMode = "seat";
-    else seatLabelMode = "none";
-    showPriceRegions = viewPriceRegionToggle?.checked ?? false;
-  }
+    setBackgroundEnabled(!!backgroundState.enabled);
+    if (!restoredSession) {
+      renderGrayscale = false;
+      showHoverInfo = viewHoverToggle?.checked ?? true;
+      showSectionNames = viewSectionNamesToggle?.checked ?? false;
+      if (viewSeatLabelRow?.checked) seatLabelMode = "row";
+      else if (viewSeatLabelSeat?.checked) seatLabelMode = "seat";
+      else seatLabelMode = "none";
+      showPriceRegions = viewPriceRegionToggle?.checked ?? false;
+    }
 
     setTool("select");
     setSelectionMode("seat");
     updateMoveButtonState();
     updateSaveButton();
     loadPriceRegionsFromStorage();
+    loadEntryPointsFromStorage();
     renderCanvas();
 
-    // Om det finns sparad vyinfo i localStorage som ännu inte applicerats (t.ex. ingen session vald)
+    // Om det finns sparad vyinfo i localStorage som Бnnu inte applicerats (t.ex. ingen session vald)
     // se till att UI-speglas
     if (viewHoverToggle) viewHoverToggle.checked = showHoverInfo;
     if (viewSectionNamesToggle) viewSectionNamesToggle.checked = showSectionNames;
     if (viewPriceRegionToggle) viewPriceRegionToggle.checked = showPriceRegions;
+  });
+
+  window.addEventListener("beforeunload", (e) => {
+    saveSessionToLocalStorage();
+    if (!hasUnsavedChanges) return;
+
+    // Detta magiska returnValue krävs för att vissa browsers ska visa varningen
+    e.preventDefault();
+    e.returnValue = "";
+  });
+
+
+  
   </script>
 
 
