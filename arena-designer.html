@@ -591,7 +591,7 @@
       background: #fff;
       border-radius: 12px;
       padding: 1rem;
-      width: min(520px, 92vw);
+      width: min(900px, 94vw);
       box-shadow: 0 10px 30px rgba(0,0,0,0.12);
       display: flex;
       flex-direction: column;
@@ -601,6 +601,41 @@
       display: flex;
       flex-direction: column;
       gap: 0.4rem;
+    }
+    .help-modal__grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 0.75rem;
+    }
+    .help-panel__title {
+      font-size: 0.82rem;
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+    }
+    .help-placeholder {
+      color: var(--tick-grey);
+      font-style: italic;
+    }
+    .help-tool-list {
+      display: grid;
+      gap: 0.5rem;
+    }
+    .help-tool-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 0.75rem;
+    }
+    .help-tool {
+      display: grid;
+      gap: 0.1rem;
+    }
+    .help-tool__title {
+      font-weight: 600;
+      font-size: 0.8rem;
+    }
+    .help-tool__desc {
+      font-size: 0.78rem;
+      opacity: 0.9;
     }
     .export-options {
       display: grid;
@@ -2063,7 +2098,7 @@
 
             <div class="section-preview__header">
 
-              <span>WYSIWYG preview</span>
+              <span>Section preview</span>
 
               <span class="section-hint">Mirrors the input above.</span>
 
@@ -2178,14 +2213,73 @@
   <div id="helpOverlay">
     <div id="helpModal">
       <h3>Help</h3>
-      <div class="help-modal__section">
+      <div class="help-modal__section help-modal__grid">
         <div class="help-text">
-          <div class="u-font--small" style="margin-bottom:0.25rem; font-weight:600;">Shortcuts</div>
+          <div class="help-panel__title">Shortcuts</div>
           Pan: <strong>CTRL + drag</strong><br/>
           Zoom: <strong>CTRL + scroll</strong><br/>
           Multi-select: <strong>SHIFT + click</strong><br/>
           Box select: <strong>Drag without CTRL</strong><br/>
           Undo: <strong>CTRL + Z</strong>
+        </div>
+        <div class="help-text">
+          <div class="help-panel__title">Basic Work flow</div>
+          <div class="help-placeholder">Click 'Create new' to create a new layout. Name it and set a Venue Id. Select working folder (same structure as legacy Layout Editor recommended (e g GXFS/Venue/[VenueId]/Layouts)). Create sections as described in Sections Modal. Save and close when ready. Make adjustments needed using tools. Create price regions and Entry points, and assign seats to them. Entry points are not mandatory, but still recommended. Price regions panel will show a ✅ when all seats are assigned. This is crucial. Once satisfied press Export and export all files. Continue work in Boxy SVG.</div>
+        </div>
+      </div>
+      <div class="help-modal__section">
+        <div class="help-text">
+          <div class="help-panel__title">Tools</div>
+          <div class="help-tool-grid">
+            <div class="help-tool-list">
+              <div class="help-tool">
+                <div class="help-tool__title">Selection mode</div>
+                <div class="help-tool__desc">Section (S), Row (D), and Seat (F) decide what a click selects.</div>
+              </div>
+              <div class="help-tool">
+                <div class="help-tool__title">Select (C)</div>
+                <div class="help-tool__desc">Click or box-select seats, rows, or sections.</div>
+              </div>
+              <div class="help-tool">
+                <div class="help-tool__title">Move (V)</div>
+                <div class="help-tool__desc">Drag selected seats to reposition them.</div>
+              </div>
+              <div class="help-tool">
+                <div class="help-tool__title">Rotate (R)</div>
+                <div class="help-tool__desc">Rotate selected seats around the pivot.</div>
+              </div>
+              <div class="help-tool">
+                <div class="help-tool__title">Resize (Z)</div>
+                <div class="help-tool__desc">Scale selected seats using the resize handles.</div>
+              </div>
+              <div class="help-tool">
+                <div class="help-tool__title">Bend (B)</div>
+                <div class="help-tool__desc">Bend a selected row with an anchor handle.</div>
+              </div>
+            </div>
+            <div class="help-tool-list">
+              <div class="help-tool">
+                <div class="help-tool__title">Reshape row (E)</div>
+                <div class="help-tool__desc">On a selected row you can right click on any seat to create a temporary anchor point and then adjust the row from that anchor point by dragging the end seat.</div>
+              </div>
+              <div class="help-tool">
+                <div class="help-tool__title">Reset row (Q)</div>
+                <div class="help-tool__desc">Restore a row to a straight line from first to last seat on selected row.</div>
+              </div>
+              <div class="help-tool">
+                <div class="help-tool__title">Make table (T)</div>
+                <div class="help-tool__desc">Reshapes a row to mimic a table for customers wanting a table grid through the seating function.</div>
+              </div>
+              <div class="help-tool">
+                <div class="help-tool__title">Deselect (Ctrl+D)</div>
+                <div class="help-tool__desc">Clear the current selection.</div>
+              </div>
+              <div class="help-tool">
+                <div class="help-tool__title">Update outlines</div>
+                <div class="help-tool__desc">Recalculate section outlines from seats.</div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
       <div class="new-layout-actions">
@@ -5466,7 +5560,7 @@ codePane.addEventListener("input", () => {
     setLayoutActive(false);
   }
 
-  function handleStartNewLayout() {
+  async function handleStartNewLayout() {
     const rawName = (newProjectName?.value || "").trim();
     if (!rawName) {
       alert("Enter a project name.");
@@ -5474,16 +5568,58 @@ codePane.addEventListener("input", () => {
     }
     const venueIdVal = (newVenueId?.value || "").trim();
     const safeBase = rawName.replace(/[\\/:*?\"<>|]/g, "_");
+    const defaultFileName = safeBase ? `${safeBase}.tlt` : "layout.tlt";
 
     resetLayoutState(safeBase, venueIdVal);
     updateCodeFromSeats(); // tom layout -> initline finns
     clearCurrentFileHandleInDB();
 
+    let createdFile = false;
+    if (typeof window.showDirectoryPicker === "function") {
+      try {
+        const dir = await window.showDirectoryPicker();
+        if (dir) {
+          lastDirectoryHandle = dir;
+          let handle = null;
+          try {
+            const existing = await dir.getFileHandle(defaultFileName);
+            const overwrite = confirm(`"${defaultFileName}" already exists. Overwrite it?`);
+            if (overwrite) handle = existing;
+          } catch (err) {
+            if (err?.name === "NotFoundError") {
+              handle = await dir.getFileHandle(defaultFileName, { create: true });
+            } else {
+              throw err;
+            }
+          }
+          if (handle) {
+            const writable = await handle.createWritable();
+            await writable.write(codePane.value || "");
+            await writable.close();
+            currentFileHandle = handle;
+            currentFileName = handle.name || defaultFileName;
+            forceSaveAs = false;
+            fileInfo.textContent = `Saved ${currentFileName}`;
+            hasUnsavedChanges = false;
+            updateSaveButton();
+            saveCurrentFileHandleToDB(handle);
+            createdFile = true;
+          }
+        }
+      } catch (err) {
+        if (err?.name !== "AbortError") {
+          console.warn("Mappval for nytt projekt misslyckades:", err);
+        }
+      }
+    }
+
     // Markera som osparad så användaren sparar manuellt
-    currentFileName = safeBase ? `${safeBase}.TLT` : "";
-    fileInfo.textContent = "New layout (not saved)";
-    hasUnsavedChanges = true;
-    updateSaveButton();
+    if (!createdFile) {
+      currentFileName = defaultFileName;
+      fileInfo.textContent = "New layout (not saved)";
+      hasUnsavedChanges = true;
+      updateSaveButton();
+    }
     loadPriceRegionsFromStorage();
     loadEntryPointsFromStorage();
     setLayoutActive(true);
@@ -6022,8 +6158,8 @@ codePane.addEventListener("input", () => {
     if (!seats.length) {
       ctx.restore();
       ctx.fillStyle = "#777";
-      ctx.font = "12px system-ui";
-      ctx.fillText("Ingen layout laddad eller skapad.", 10, 20);
+      ctx.font = "24px Roboto";
+      ctx.fillText("No layout has been loaded or created. Click Open layout or Create new to get started.", 15, 30);
       lastVisibleSeatCount = 0;
       return;
     }
