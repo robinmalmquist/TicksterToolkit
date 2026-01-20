@@ -2133,7 +2133,7 @@
             Display section name
           </label>
           <div class="u-font--small" style="display:flex; flex-direction:column; gap:0.35rem;">
-            <div>Overlay</div>
+            <div>Overlay (O)</div>
             <label class="bg-control">
               <input type="radio" name="overlayMode" id="viewOverlayNone" value="none" checked />
               No overlay
@@ -2213,6 +2213,7 @@
       <div class="context-menu__list">
         <button id="editSeatsMenuItem" class="context-menu__item" type="button">Edit seat(s)</button>
         <button id="editRowsMenuItem" class="context-menu__item" type="button">Edit row(s)</button>
+        <button id="mergeRowsMenuItem" class="context-menu__item" type="button">Merge rows</button>
         <button id="equalizeRowsMenuItem" class="context-menu__item" type="button">Equalize row distance</button>
         <button id="editSectionsMenuItem" class="context-menu__item" type="button">Edit section</button>
         <button id="attributeMenuItem" class="context-menu__item" type="button">Attributes</button>
@@ -2636,6 +2637,7 @@
   const goodnessFromPointMenuItem = document.getElementById("goodnessFromPointMenuItem");
   const editSeatsMenuItem = document.getElementById("editSeatsMenuItem");
   const editRowsMenuItem = document.getElementById("editRowsMenuItem");
+  const mergeRowsMenuItem = document.getElementById("mergeRowsMenuItem");
   const equalizeRowsMenuItem = document.getElementById("equalizeRowsMenuItem");
   const editSectionsMenuItem = document.getElementById("editSectionsMenuItem");
   const attributeModalOverlay = document.getElementById("attributeModalOverlay");
@@ -7581,6 +7583,161 @@ function nudgeSelection(dxScreen, dyScreen) {
     return changed;
   }
 
+  function mergeSelectedRows() {
+    if (selectionMode !== "row") return false;
+    const rows = getSelectedRows();
+    if (rows.size < 2) return false;
+
+    let sectionId = null;
+    let sameSection = true;
+    rows.forEach((rowSeats) => {
+      const rowSection = rowSeats[0]?.sectionId || "";
+      if (!rowSection) sameSection = false;
+      if (!sectionId) sectionId = rowSection;
+      else if (sectionId !== rowSection) sameSection = false;
+    });
+    if (!sameSection || !sectionId) return false;
+
+    const rowInfos = [];
+    rows.forEach((rowSeats, rowId) => {
+      rowInfos.push({
+        rowId,
+        seats: rowSeats,
+        order: getRowSelectionOrder(rowSeats)
+      });
+    });
+    rowInfos.sort((a, b) => {
+      if (a.order !== b.order) return a.order - b.order;
+      return a.rowId.localeCompare(b.rowId);
+    });
+
+    const keepInfo = rowInfos[0];
+    if (!keepInfo) return false;
+    const keepRowId = keepInfo.rowId;
+    const keepRowSeats = keepInfo.seats;
+    const keepRowName = keepRowSeats[0]?.rowName || keepRowId;
+    const keepSectionName = keepRowSeats[0]?.sectionName || sectionNames.get(sectionId) || sectionId;
+
+    let maxSeatSuffix = 0;
+    keepRowSeats.forEach((seat) => {
+      const parts = seat.seatId ? seat.seatId.split(".") : [];
+      const last = parts[parts.length - 1];
+      const num = parseInt(last, 10);
+      if (Number.isFinite(num)) maxSeatSuffix = Math.max(maxSeatSuffix, num);
+    });
+    if (!maxSeatSuffix) maxSeatSuffix = keepRowSeats.length;
+    let nextSuffix = maxSeatSuffix + 1;
+
+    const seatIdMap = new Map();
+    const rowIdMap = new Map();
+    const rowsToRemove = new Set();
+    const orderedMovedSeats = [];
+
+    rowInfos.slice(1).forEach((info) => {
+      rowsToRemove.add(info.rowId);
+      rowIdMap.set(info.rowId, keepRowId);
+      const sorted = sortSeatsInRow(info.seats);
+      sorted.forEach((seat) => {
+        const oldId = seat.seatId;
+        const newId = `${keepRowId}.${nextSuffix++}`;
+        seatIdMap.set(oldId, newId);
+        seat.seatId = newId;
+        seat.rowId = keepRowId;
+        seat.rowName = keepRowName;
+        seat.sectionId = sectionId;
+        seat.sectionName = keepSectionName;
+        orderedMovedSeats.push(seat);
+      });
+    });
+
+    if (!orderedMovedSeats.length) return false;
+
+    const removedIndexes = [];
+    originalLines = originalLines.filter((line, idx) => {
+      if (line.includes("|RowAdd|")) {
+        const rowMatch = line.match(/RowId=([^|]+)/);
+        if (rowMatch && rowsToRemove.has(rowMatch[1])) {
+          removedIndexes.push(idx);
+          return false;
+        }
+      }
+      if (line.includes("|SeatAdd|")) {
+        const seatMatch = line.match(/SeatId=([^|]+)/);
+        if (seatMatch && seatIdMap.has(seatMatch[1])) {
+          removedIndexes.push(idx);
+          return false;
+        }
+      }
+      return true;
+    });
+    shiftOutlineLineIndexesAfterRemoval(removedIndexes);
+    rebuildSeatLineIndex();
+
+    const insertIndex = findRowInsertIndex(keepRowId, keepRowSeats);
+    const insertAt = insertIndex >= 0 ? insertIndex + 1 : originalLines.length;
+    const newLines = orderedMovedSeats.map(seat => buildSeatLine(seat));
+    shiftOutlineLineIndexes(insertAt, newLines.length);
+    originalLines.splice(insertAt, 0, ...newLines);
+
+    if (lastSelectedSeatId && seatIdMap.has(lastSelectedSeatId)) {
+      lastSelectedSeatId = seatIdMap.get(lastSelectedSeatId);
+    }
+
+    rebuildSeatLineIndex();
+
+    let priceRegionChanged = false;
+    if (seatIdMap.size || rowIdMap.size) {
+      const remapValues = (values, map) => {
+        if (!Array.isArray(values) || !values.length) return { next: values, changed: false };
+        const seen = new Set();
+        const next = [];
+        let changed = false;
+        values.forEach((val) => {
+          const mapped = map.get(val) || val;
+          if (mapped !== val) changed = true;
+          if (!seen.has(mapped)) {
+            seen.add(mapped);
+            next.push(mapped);
+          } else if (mapped !== val) {
+            changed = true;
+          }
+        });
+        return { next, changed };
+      };
+      priceRegions.forEach((region) => {
+        const seatRes = remapValues(region.seats, seatIdMap);
+        if (seatRes.changed) {
+          region.seats = seatRes.next;
+          priceRegionChanged = true;
+        }
+        const rowRes = remapValues(region.rows, rowIdMap);
+        if (rowRes.changed) {
+          region.rows = rowRes.next;
+          priceRegionChanged = true;
+        }
+      });
+    }
+
+    if (priceRegionChanged) {
+      savePriceRegionsToStorage();
+      renderPriceRegionList();
+      updatePriceRegionUi();
+    }
+    updatePriceRegionStatus();
+    updateCodeFromSeats();
+    const newText = originalLines.join("\n");
+    if (codePane.value !== newText) {
+      codePane.value = newText;
+    }
+    renderCanvas();
+    updateEntryPointUi();
+    hasUnsavedChanges = true;
+    updateSaveButton();
+    saveSessionToLocalStorage();
+    pushHistorySnapshot();
+    return true;
+  }
+
   function ensureBendDefaults() {
     if (currentTool !== "bend") return;
     const rows = getSelectedRows();
@@ -8021,8 +8178,21 @@ function nudgeSelection(dxScreen, dyScreen) {
     if (editRowsMenuItem) {
       editRowsMenuItem.disabled = selectionMode !== "row" || getSelectedRows().size === 0;
     }
+    const rows = getSelectedRows();
+    let sameSection = true;
+    let rowSectionId = "";
+    if (rows.size >= 2) {
+      rows.forEach((rowSeats) => {
+        const rowSection = rowSeats[0]?.sectionId || "";
+        if (!rowSection) sameSection = false;
+        if (!rowSectionId) rowSectionId = rowSection;
+        else if (rowSectionId !== rowSection) sameSection = false;
+      });
+    }
+    if (mergeRowsMenuItem) {
+      mergeRowsMenuItem.disabled = selectionMode !== "row" || rows.size < 2 || !sameSection;
+    }
     if (equalizeRowsMenuItem) {
-      const rows = getSelectedRows();
       equalizeRowsMenuItem.disabled = selectionMode !== "row" || rows.size < 2;
     }
     if (editSectionsMenuItem) {
@@ -8384,6 +8554,16 @@ function nudgeSelection(dxScreen, dyScreen) {
     const dist = Math.hypot(dx, dy);
     if (dist < 1e-3) return null;
     return { x: dx / dist, y: dy / dist };
+  }
+
+  function getRowSelectionOrder(rowSeats) {
+    if (!rowSeats || !rowSeats.length) return Infinity;
+    let minOrder = Infinity;
+    for (const seat of rowSeats) {
+      const order = typeof seat.selectedAt === "number" ? seat.selectedAt : Infinity;
+      if (order < minOrder) minOrder = order;
+    }
+    return minOrder;
   }
 
   function getSectionRowLayout(sectionId) {
@@ -8991,6 +9171,11 @@ function nudgeSelection(dxScreen, dyScreen) {
   editRowsMenuItem?.addEventListener("click", () => {
     closeSeatContextMenu();
     openRowEditModal();
+  });
+  mergeRowsMenuItem?.addEventListener("click", () => {
+    closeSeatContextMenu();
+    const changed = mergeSelectedRows();
+    if (!changed) return;
   });
   equalizeRowsMenuItem?.addEventListener("click", () => {
     closeSeatContextMenu();
@@ -9784,6 +9969,12 @@ function nudgeSelection(dxScreen, dyScreen) {
         if (seatLabelMode === "none") setSeatLabelMode("row");
         else if (seatLabelMode === "row") setSeatLabelMode("seat");
         else setSeatLabelMode("none");
+        break;
+      case "o":
+        e.preventDefault();
+        if (overlayMode === "none") setOverlayMode("price");
+        else if (overlayMode === "price") setOverlayMode("goodness");
+        else setOverlayMode("none");
         break;
       case "v":
         e.preventDefault();
