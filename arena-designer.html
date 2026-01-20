@@ -1920,6 +1920,16 @@
       background: #f1f5fb;
     }
 
+    .context-menu__item:disabled {
+      color: #9aa4b2;
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+
+    .context-menu__item:disabled:hover {
+      background: transparent;
+    }
+
     html[data-theme="dark"] .context-menu {
       background: #111827;
       border-color: #2b3442;
@@ -1929,6 +1939,11 @@
 
     html[data-theme="dark"] .context-menu__item:hover {
       background: #1f2937;
+    }
+
+    html[data-theme="dark"] .context-menu__item:disabled {
+      color: #6b7280;
+      opacity: 0.65;
     }
   </style>
 </head>
@@ -2214,6 +2229,7 @@
         <button id="editSeatsMenuItem" class="context-menu__item" type="button">Edit seat(s)</button>
         <button id="editRowsMenuItem" class="context-menu__item" type="button">Edit row(s)</button>
         <button id="mergeRowsMenuItem" class="context-menu__item" type="button">Merge rows</button>
+        <button id="splitRowMenuItem" class="context-menu__item" type="button">Split row at selection</button>
         <button id="equalizeRowsMenuItem" class="context-menu__item" type="button">Equalize row distance</button>
         <button id="editSectionsMenuItem" class="context-menu__item" type="button">Edit section</button>
         <button id="attributeMenuItem" class="context-menu__item" type="button">Attributes</button>
@@ -2638,6 +2654,7 @@
   const editSeatsMenuItem = document.getElementById("editSeatsMenuItem");
   const editRowsMenuItem = document.getElementById("editRowsMenuItem");
   const mergeRowsMenuItem = document.getElementById("mergeRowsMenuItem");
+  const splitRowMenuItem = document.getElementById("splitRowMenuItem");
   const equalizeRowsMenuItem = document.getElementById("equalizeRowsMenuItem");
   const editSectionsMenuItem = document.getElementById("editSectionsMenuItem");
   const attributeModalOverlay = document.getElementById("attributeModalOverlay");
@@ -7738,6 +7755,140 @@ function nudgeSelection(dxScreen, dyScreen) {
     return true;
   }
 
+  function splitRowAtSelection() {
+    if (selectionMode !== "seat") return false;
+    const selected = getSelectedSeats();
+    const info = getSplitRowSelectionInfo(selected);
+    if (!info) return false;
+
+    const rowParts = parseRowIdParts(info.rowId);
+    if (!Number.isFinite(rowParts.row)) return false;
+    const rowNumber = rowParts.row;
+    const newRowNumber = rowNumber + 1;
+    const sectionId = info.sectionId;
+    const newRowId = `${sectionId}.${newRowNumber}`;
+
+    const rowSeats = seats.filter(s => s.rowId === info.rowId);
+    if (!rowSeats.length) return false;
+
+    const seatsToMove = rowSeats.filter((seat) => {
+      const suffix = getSeatIdSuffix(seat.seatId);
+      return Number.isFinite(suffix) && suffix >= info.highSeatSuffix;
+    });
+    if (!seatsToMove.length) return false;
+    const rowName = rowSeats[0]?.rowName || info.rowId;
+    const sectionName = rowSeats[0]?.sectionName || sectionNames.get(sectionId) || sectionId;
+
+    const rowNumberById = new Map();
+    seats.forEach((seat) => {
+      if (seat.sectionId !== sectionId || !seat.rowId) return;
+      if (rowNumberById.has(seat.rowId)) return;
+      const parts = parseRowIdParts(seat.rowId);
+      if (Number.isFinite(parts.row)) rowNumberById.set(seat.rowId, parts.row);
+    });
+
+    const rowIdMap = new Map();
+    rowNumberById.forEach((num, rowId) => {
+      if (num >= newRowNumber) {
+        rowIdMap.set(rowId, `${sectionId}.${num + 1}`);
+      }
+    });
+
+    const seatIdMap = new Map();
+    seats.forEach((seat) => {
+      if (seat.sectionId !== sectionId || !seat.rowId) return;
+      const suffix = getSeatIdSuffix(seat.seatId);
+      if (!Number.isFinite(suffix)) return;
+      if (seat.rowId === info.rowId && suffix >= info.highSeatSuffix) {
+        seatIdMap.set(seat.seatId, `${newRowId}.${suffix}`);
+      } else if (rowIdMap.has(seat.rowId)) {
+        const mappedRowId = rowIdMap.get(seat.rowId);
+        seatIdMap.set(seat.seatId, `${mappedRowId}.${suffix}`);
+      }
+    });
+
+    seats.forEach((seat) => {
+      if (seat.sectionId !== sectionId || !seat.rowId) return;
+      const suffix = getSeatIdSuffix(seat.seatId);
+      if (!Number.isFinite(suffix)) return;
+      if (seat.rowId === info.rowId && suffix >= info.highSeatSuffix) {
+        const nextSeatId = seatIdMap.get(seat.seatId) || seat.seatId;
+        seat.rowId = newRowId;
+        seat.rowName = rowName;
+        seat.sectionName = sectionName;
+        seat.seatId = nextSeatId;
+      } else if (rowIdMap.has(seat.rowId)) {
+        const nextRowId = rowIdMap.get(seat.rowId);
+        const nextSeatId = seatIdMap.get(seat.seatId) || seat.seatId;
+        seat.rowId = nextRowId;
+        seat.sectionName = sectionName;
+        seat.seatId = nextSeatId;
+      }
+    });
+
+    rebuildSectionRowsInLines(sectionId);
+
+    if (lastSelectedSeatId && seatIdMap.has(lastSelectedSeatId)) {
+      lastSelectedSeatId = seatIdMap.get(lastSelectedSeatId);
+    }
+
+    let priceRegionChanged = false;
+    if (seatIdMap.size || rowIdMap.size) {
+      const remapValues = (values, map) => {
+        if (!Array.isArray(values) || !values.length) return { next: values, changed: false };
+        const seen = new Set();
+        const next = [];
+        let changed = false;
+        values.forEach((val) => {
+          const mapped = map.get(val) || val;
+          if (mapped !== val) changed = true;
+          if (!seen.has(mapped)) {
+            seen.add(mapped);
+            next.push(mapped);
+          } else if (mapped !== val) {
+            changed = true;
+          }
+        });
+        return { next, changed };
+      };
+      priceRegions.forEach((region) => {
+        const seatRes = remapValues(region.seats, seatIdMap);
+        if (seatRes.changed) {
+          region.seats = seatRes.next;
+          priceRegionChanged = true;
+        }
+        const rowRes = remapValues(region.rows, rowIdMap);
+        if (rowRes.changed) {
+          region.rows = rowRes.next;
+          priceRegionChanged = true;
+        }
+        if (Array.isArray(region.rows) && region.rows.includes(info.rowId) && !region.rows.includes(newRowId)) {
+          region.rows.push(newRowId);
+          priceRegionChanged = true;
+        }
+      });
+    }
+
+    if (priceRegionChanged) {
+      savePriceRegionsToStorage();
+      renderPriceRegionList();
+      updatePriceRegionUi();
+    }
+    updatePriceRegionStatus();
+    updateEntryPointUi();
+    updateCodeFromSeats();
+    const newText = originalLines.join("\n");
+    if (codePane.value !== newText) {
+      codePane.value = newText;
+    }
+    renderCanvas();
+    hasUnsavedChanges = true;
+    updateSaveButton();
+    saveSessionToLocalStorage();
+    pushHistorySnapshot();
+    return true;
+  }
+
   function ensureBendDefaults() {
     if (currentTool !== "bend") return;
     const rows = getSelectedRows();
@@ -8162,6 +8313,7 @@ function nudgeSelection(dxScreen, dyScreen) {
 
   function openSeatContextMenu(x, y) {
     if (!seatContextMenu) return;
+    const selectedSeats = getSelectedSeats();
     seatContextMenu.style.left = `${x}px`;
     seatContextMenu.style.top = `${y}px`;
     seatContextMenu.classList.add("open");
@@ -8170,10 +8322,10 @@ function nudgeSelection(dxScreen, dyScreen) {
       if (selectionMode === "section") deleteSelectionMenuItem.textContent = "Delete selected section(s)";
       else if (selectionMode === "row") deleteSelectionMenuItem.textContent = "Delete selected row(s)";
       else deleteSelectionMenuItem.textContent = "Delete selected seat(s)";
-      deleteSelectionMenuItem.disabled = getSelectedSeats().length === 0;
+      deleteSelectionMenuItem.disabled = selectedSeats.length === 0;
     }
     if (editSeatsMenuItem) {
-      editSeatsMenuItem.disabled = getSelectedSeats().length === 0;
+      editSeatsMenuItem.disabled = selectedSeats.length === 0;
     }
     if (editRowsMenuItem) {
       editRowsMenuItem.disabled = selectionMode !== "row" || getSelectedRows().size === 0;
@@ -8192,15 +8344,19 @@ function nudgeSelection(dxScreen, dyScreen) {
     if (mergeRowsMenuItem) {
       mergeRowsMenuItem.disabled = selectionMode !== "row" || rows.size < 2 || !sameSection;
     }
+    if (splitRowMenuItem) {
+      const splitInfo = selectionMode === "seat" ? getSplitRowSelectionInfo(selectedSeats) : null;
+      splitRowMenuItem.disabled = !splitInfo;
+    }
     if (equalizeRowsMenuItem) {
       equalizeRowsMenuItem.disabled = selectionMode !== "row" || rows.size < 2;
     }
     if (editSectionsMenuItem) {
-      const sections = new Set(getSelectedSeats().map(s => s.sectionId).filter(Boolean));
+      const sections = new Set(selectedSeats.map(s => s.sectionId).filter(Boolean));
       editSectionsMenuItem.disabled = selectionMode !== "section" || sections.size !== 1;
     }
     if (goodnessFromPointMenuItem) {
-      goodnessFromPointMenuItem.disabled = getSelectedSeats().length === 0;
+      goodnessFromPointMenuItem.disabled = selectedSeats.length === 0;
     }
     const padding = 8;
     const rect = seatContextMenu.getBoundingClientRect();
@@ -8564,6 +8720,122 @@ function nudgeSelection(dxScreen, dyScreen) {
       if (order < minOrder) minOrder = order;
     }
     return minOrder;
+  }
+
+  function getSeatIdSuffix(seatId) {
+    const parts = parseSeatIdParts(seatId);
+    return Number.isFinite(parts.seat) ? parts.seat : null;
+  }
+
+  function getSplitRowSelectionInfo(selectedSeats) {
+    if (!selectedSeats || selectedSeats.length !== 2) return null;
+    const [first, second] = selectedSeats;
+    if (!first || !second) return null;
+    if (!first.rowId || first.rowId !== second.rowId) return null;
+    if (!first.sectionId || first.sectionId !== second.sectionId) return null;
+    const firstNum = getSeatIdSuffix(first.seatId);
+    const secondNum = getSeatIdSuffix(second.seatId);
+    if (!Number.isFinite(firstNum) || !Number.isFinite(secondNum)) return null;
+    if (Math.abs(firstNum - secondNum) !== 1) return null;
+    const lowSeatSuffix = Math.min(firstNum, secondNum);
+    const highSeatSuffix = Math.max(firstNum, secondNum);
+    const lowSeatId = firstNum < secondNum ? first.seatId : second.seatId;
+    const highSeatId = firstNum > secondNum ? first.seatId : second.seatId;
+    return {
+      rowId: first.rowId,
+      sectionId: first.sectionId,
+      lowSeatSuffix,
+      highSeatSuffix,
+      lowSeatId,
+      highSeatId
+    };
+  }
+
+  function rebuildSectionRowsInLines(sectionId) {
+    if (!sectionId) return false;
+    const rowsById = new Map();
+    seats.forEach((seat) => {
+      if (seat.sectionId !== sectionId || !seat.rowId) return;
+      if (!rowsById.has(seat.rowId)) rowsById.set(seat.rowId, []);
+      rowsById.get(seat.rowId).push(seat);
+    });
+    if (!rowsById.size) return false;
+
+    const rowEntries = [];
+    rowsById.forEach((rowSeats, rowId) => {
+      const parts = parseRowIdParts(rowId);
+      const rowNum = Number.isFinite(parts.row) ? parts.row : null;
+      const rowName = rowSeats[0]?.rowName || rowId;
+      const sortedSeats = [...rowSeats].sort((a, b) => {
+        const aNum = getSeatIdSuffix(a.seatId);
+        const bNum = getSeatIdSuffix(b.seatId);
+        if (Number.isFinite(aNum) && Number.isFinite(bNum)) return aNum - bNum;
+        return String(a.seatId || "").localeCompare(String(b.seatId || ""));
+      });
+      rowEntries.push({ rowId, rowNum, rowName, seats: sortedSeats });
+    });
+    rowEntries.sort((a, b) => {
+      if (a.rowNum != null && b.rowNum != null) return a.rowNum - b.rowNum;
+      if (a.rowNum != null) return -1;
+      if (b.rowNum != null) return 1;
+      return a.rowId.localeCompare(b.rowId);
+    });
+
+    const rowTimestampById = new Map();
+    originalLines.forEach((line) => {
+      if (!line.includes("|RowAdd|")) return;
+      const rowMatch = line.match(/RowId=([^|]+)/);
+      if (!rowMatch) return;
+      const rowId = rowMatch[1];
+      if (!rowId.startsWith(`${sectionId}.`)) return;
+      const timestamp = line.split("|")[0] || "";
+      if (timestamp) rowTimestampById.set(rowId, timestamp);
+    });
+
+    const newLines = [];
+    rowEntries.forEach((entry) => {
+      const ts = rowTimestampById.get(entry.rowId) || buildTimestamp();
+      newLines.push(`${ts}|RowAdd|RowId=${entry.rowId}|Name=${entry.rowName}`);
+      entry.seats.forEach((seat) => {
+        newLines.push(buildSeatLine(seat));
+      });
+    });
+
+    const removedIndexes = [];
+    originalLines = originalLines.filter((line, idx) => {
+      if (line.includes("|RowAdd|")) {
+        const rowMatch = line.match(/RowId=([^|]+)/);
+        if (rowMatch && rowMatch[1].startsWith(`${sectionId}.`)) {
+          removedIndexes.push(idx);
+          return false;
+        }
+      }
+      if (line.includes("|SeatAdd|")) {
+        const seatMatch = line.match(/SeatId=([^|]+)/);
+        if (seatMatch && seatMatch[1].startsWith(`${sectionId}.`)) {
+          removedIndexes.push(idx);
+          return false;
+        }
+      }
+      return true;
+    });
+    shiftOutlineLineIndexesAfterRemoval(removedIndexes);
+
+    let insertAt = -1;
+    for (let i = 0; i < originalLines.length; i++) {
+      const line = originalLines[i];
+      if (!line.includes("|SectionAdd|")) continue;
+      const sectionMatch = line.match(/SectionId=([^|]+)/);
+      if (sectionMatch && sectionMatch[1] === sectionId) {
+        insertAt = i + 1;
+        break;
+      }
+    }
+    if (insertAt < 0) insertAt = originalLines.length;
+    shiftOutlineLineIndexes(insertAt, newLines.length);
+    originalLines.splice(insertAt, 0, ...newLines);
+    rebuildSeatLineIndex();
+    return true;
   }
 
   function getSectionRowLayout(sectionId) {
@@ -9176,6 +9448,10 @@ function nudgeSelection(dxScreen, dyScreen) {
     closeSeatContextMenu();
     const changed = mergeSelectedRows();
     if (!changed) return;
+  });
+  splitRowMenuItem?.addEventListener("click", () => {
+    closeSeatContextMenu();
+    splitRowAtSelection();
   });
   equalizeRowsMenuItem?.addEventListener("click", () => {
     closeSeatContextMenu();
