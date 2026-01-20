@@ -236,6 +236,7 @@
 
     #openFileBtnTop:not(:disabled),
     #saveBtn:not(:disabled),
+    #saveAsBtn:not(:disabled),
     #exportBtn:not(:disabled) {
       background: #0a5888;
       border-color: #0a5888;
@@ -244,6 +245,7 @@
 
     #openFileBtnTop:hover:not(:disabled),
     #saveBtn:hover:not(:disabled),
+    #saveAsBtn:hover:not(:disabled),
     #exportBtn:hover:not(:disabled) {
       background: #084b73;
       border-color: #084b73;
@@ -251,6 +253,7 @@
 
     #openFileBtnTop:disabled,
     #saveBtn:disabled,
+    #saveAsBtn:disabled,
     #exportBtn:disabled {
       background: #7b878f;
       border-color: #7b878f;
@@ -559,6 +562,26 @@
       flex-direction: column;
       gap: 0.75rem;
     }
+    #goodnessOverlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.35);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    }
+
+    #goodnessModal {
+      background: #fff;
+      border-radius: 12px;
+      padding: 1rem;
+      width: min(420px, 92vw);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
     #exportOverlay {
       position: fixed;
       inset: 0;
@@ -652,6 +675,7 @@
     #newLayoutModal h3,
     #priceRegionModal h3,
     #entryPointModal h3,
+    #goodnessModal h3,
     #exportModal h3 {
       margin: 0;
       font-size: 1.1rem;
@@ -1473,6 +1497,10 @@
       color: #fff;
     }
 
+    #saveAsBtn {
+      color: #fff;
+    }
+
     #top-bar input[type="file"] {
       display: none;
     }
@@ -1496,6 +1524,7 @@
     html[data-theme="dark"] #newLayoutModal,
     html[data-theme="dark"] #exportModal,
     html[data-theme="dark"] #helpModal,
+    html[data-theme="dark"] #goodnessModal,
     html[data-theme="dark"] #seatEditModal,
     html[data-theme="dark"] #rowEditModal,
     html[data-theme="dark"] #sectionEditModal,
@@ -1624,6 +1653,7 @@
     html[data-theme="dark"] #sectionManagerOverlay,
     html[data-theme="dark"] #exportOverlay,
     html[data-theme="dark"] #helpOverlay,
+    html[data-theme="dark"] #goodnessOverlay,
     html[data-theme="dark"] #seatEditOverlay,
     html[data-theme="dark"] #rowEditOverlay,
     html[data-theme="dark"] #sectionEditOverlay {
@@ -1636,6 +1666,7 @@
 
     html[data-theme="dark"] #exportModal h3,
     html[data-theme="dark"] #helpModal h3,
+    html[data-theme="dark"] #goodnessModal h3,
     html[data-theme="dark"] #seatEditModal h3,
     html[data-theme="dark"] #rowEditModal h3,
     html[data-theme="dark"] #sectionEditModal h3 {
@@ -1652,6 +1683,10 @@
     html[data-theme="dark"] #attributeModal footer {
       background: #0f141a;
       border-color: #2b3442;
+    }
+
+    html[data-theme="dark"] .goodness-hint {
+      color: #9aa5b1;
     }
 
     html[data-theme="dark"] .attribute-option {
@@ -1768,6 +1803,21 @@
       border: 1px solid var(--card-border);
       font-size: 0.78rem;
       text-align: center;
+    }
+
+    .goodness-settings {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+
+    .goodness-settings input {
+      width: 120px;
+      max-width: 100%;
+    }
+
+    .goodness-hint {
+      color: #6b7280;
     }
 
     #canvas-container {
@@ -1987,6 +2037,12 @@
 
             </button>
 
+            <button id="saveAsBtn" class="c-button c-button--primary c-button--icon-left" data-icon="" disabled>
+
+              Save layout as
+
+            </button>
+
             <button id="closeLayoutBtn" class="c-button c-button--ghost c-button--icon-left" data-icon="" disabled>
               Close
             </button>
@@ -2076,10 +2132,21 @@
             <input type="checkbox" id="viewSectionNamesToggle" />
             Display section name
           </label>
-          <label class="bg-control u-font--small">
-            <input type="checkbox" id="viewPriceRegionToggle" />
-            Display price regions
-          </label>
+          <div class="u-font--small" style="display:flex; flex-direction:column; gap:0.35rem;">
+            <div>Overlay</div>
+            <label class="bg-control">
+              <input type="radio" name="overlayMode" id="viewOverlayNone" value="none" checked />
+              No overlay
+            </label>
+            <label class="bg-control">
+              <input type="radio" name="overlayMode" id="viewOverlayPrice" value="price" />
+              Show price regions
+            </label>
+            <label class="bg-control">
+              <input type="radio" name="overlayMode" id="viewOverlayGoodness" value="goodness" />
+              Show goodness heatmap
+            </label>
+          </div>
           <div class="u-font--small" style="display:flex; flex-direction:column; gap:0.35rem;">
             <div>Seat Information (I)</div>
             <label class="bg-control">
@@ -2123,6 +2190,20 @@
         </div>
       </div>
 
+      <div class="c-card" data-collapsible="true" data-collapsed="true">
+        <div class="c-card__header">
+          <div class="c-card__title">Goodness</div>
+          <button class="c-card__toggle" type="button" aria-expanded="true" aria-label="Toggle panel" onclick="toggleRightPanel(this)"></button>
+        </div>
+        <div class="c-card__body c-toolbar">
+          <div class="goodness-settings u-font--small">
+            <label for="goodnessRangeCount">Ranking ranges</label>
+            <input id="goodnessRangeCount" type="number" min="1" max="25" step="1" value="3" />
+            <div id="goodnessRangeHint" class="goodness-hint">Each range spans 1000 (1-1000, 1001-2000, ...).</div>
+          </div>
+        </div>
+      </div>
+
 
     </aside>
   </div>
@@ -2132,8 +2213,10 @@
       <div class="context-menu__list">
         <button id="editSeatsMenuItem" class="context-menu__item" type="button">Edit seat(s)</button>
         <button id="editRowsMenuItem" class="context-menu__item" type="button">Edit row(s)</button>
-        <button id="editSectionsMenuItem" class="context-menu__item" type="button">Edit section(s)</button>
+        <button id="equalizeRowsMenuItem" class="context-menu__item" type="button">Equalize row distance</button>
+        <button id="editSectionsMenuItem" class="context-menu__item" type="button">Edit section</button>
         <button id="attributeMenuItem" class="context-menu__item" type="button">Attributes</button>
+        <button id="goodnessFromPointMenuItem" class="context-menu__item" type="button">Set goodness from point</button>
         <button id="deleteSelectionMenuItem" class="context-menu__item" type="button">Delete selected seat(s)</button>
       </div>
     </div>
@@ -2260,6 +2343,23 @@
       <div class="new-layout-actions">
         <button id="entryPointCancel" class="c-button c-button--ghost c-button--small">Cancel</button>
         <button id="entryPointCreate" class="c-button c-button--primary c-button--small">Add</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="goodnessOverlay">
+    <div id="goodnessModal">
+      <h3>Set goodness range</h3>
+      <div class="new-layout-field">
+        <div id="goodnessModalHint" class="u-font--small"></div>
+      </div>
+      <div class="new-layout-field">
+        <label for="goodnessRangeSelect">Range</label>
+        <select id="goodnessRangeSelect"></select>
+      </div>
+      <div class="new-layout-actions">
+        <button id="goodnessCancel" class="c-button c-button--ghost c-button--small">Cancel</button>
+        <button id="goodnessApply" class="c-button c-button--primary c-button--small">Apply</button>
       </div>
     </div>
   </div>
@@ -2423,14 +2523,19 @@
   <div id="sectionEditOverlay">
     <div id="sectionEditModal">
       <header>
-        <h3>Edit section(s)</h3>
+        <h3>Edit section</h3>
         <button id="sectionEditClose" class="c-button c-button--ghost c-button--small">Close</button>
       </header>
       <main>
         <div class="u-font--small" style="margin-bottom:0.5rem;">
-          Update section names.
+          Update section name and add rows.
         </div>
         <div id="sectionEditList" class="edit-list"></div>
+        <div class="u-font--small" style="margin:0.75rem 0 0.35rem;">
+          Add rows (appends after the last RowId in the section).
+        </div>
+        <button id="sectionAddRowBtn" class="c-button c-button--ghost c-button--small">Add row</button>
+        <div id="sectionNewRowsList" class="edit-list" style="margin-top:0.5rem;"></div>
       </main>
       <footer>
         <button id="sectionEditCancel" class="c-button c-button--ghost c-button--small">Cancel</button>
@@ -2499,6 +2604,7 @@
   const openFileBtnTop = document.getElementById("openFileBtnTop");
   const openSectionManagerBtn = document.getElementById("openSectionManagerBtn");
   const saveBtn = document.getElementById("saveBtn");
+  const saveAsBtn = document.getElementById("saveAsBtn");
   const closeLayoutBtn = document.getElementById("closeLayoutBtn");
   const fileInput = document.getElementById("fileInput");
   const fileInfo = document.getElementById("fileInfo");
@@ -2527,8 +2633,10 @@
   const seatContextMenu = document.getElementById("seatContextMenu");
   const deleteSelectionMenuItem = document.getElementById("deleteSelectionMenuItem");
   const attributeMenuItem = document.getElementById("attributeMenuItem");
+  const goodnessFromPointMenuItem = document.getElementById("goodnessFromPointMenuItem");
   const editSeatsMenuItem = document.getElementById("editSeatsMenuItem");
   const editRowsMenuItem = document.getElementById("editRowsMenuItem");
+  const equalizeRowsMenuItem = document.getElementById("equalizeRowsMenuItem");
   const editSectionsMenuItem = document.getElementById("editSectionsMenuItem");
   const attributeModalOverlay = document.getElementById("attributeModalOverlay");
   const attributeModalList = document.getElementById("attributeModalList");
@@ -2550,6 +2658,8 @@
   const sectionEditClose = document.getElementById("sectionEditClose");
   const sectionEditCancel = document.getElementById("sectionEditCancel");
   const sectionEditSave = document.getElementById("sectionEditSave");
+  const sectionAddRowBtn = document.getElementById("sectionAddRowBtn");
+  const sectionNewRowsList = document.getElementById("sectionNewRowsList");
 
   const bgFileInput = document.getElementById("bgFileInput");
   const bgLoadBtn = document.getElementById("bgLoadBtn");
@@ -2558,7 +2668,9 @@
   const bgScaleRange = document.getElementById("bgScaleRange");
   const viewHoverToggle = document.getElementById("viewHoverToggle");
   const viewSectionNamesToggle = document.getElementById("viewSectionNamesToggle");
-  const viewPriceRegionToggle = document.getElementById("viewPriceRegionToggle");
+  const viewOverlayNone = document.getElementById("viewOverlayNone");
+  const viewOverlayPrice = document.getElementById("viewOverlayPrice");
+  const viewOverlayGoodness = document.getElementById("viewOverlayGoodness");
   const viewSeatLabelNone = document.getElementById("viewSeatLabelNone");
   const viewSeatLabelRow = document.getElementById("viewSeatLabelRow");
   const viewSeatLabelSeat = document.getElementById("viewSeatLabelSeat");
@@ -2600,6 +2712,13 @@
   const entryPointName = document.getElementById("entryPointName");
   const entryPointCancel = document.getElementById("entryPointCancel");
   const entryPointCreate = document.getElementById("entryPointCreate");
+  const goodnessRangeCountInput = document.getElementById("goodnessRangeCount");
+  const goodnessRangeHint = document.getElementById("goodnessRangeHint");
+  const goodnessOverlay = document.getElementById("goodnessOverlay");
+  const goodnessRangeSelect = document.getElementById("goodnessRangeSelect");
+  const goodnessCancel = document.getElementById("goodnessCancel");
+  const goodnessApply = document.getElementById("goodnessApply");
+  const goodnessModalHint = document.getElementById("goodnessModalHint");
   const sectionManagerOverlay = document.getElementById("sectionManagerOverlay");
   const sectionManagerClose = document.getElementById("sectionManagerClose");
   const sectionCardsEl = document.getElementById("sectionCards");
@@ -2622,7 +2741,13 @@
   const sectionRawText = new Map();
   const priceRegions = [];
   const entryPoints = [];
+  const GOODNESS_RANGE_SIZE = 1000;
+  const GOODNESS_HEAT_START = "#f2a23b";
+  const GOODNESS_HEAT_END = "#2a6bd7";
+  const DEFAULT_GOODNESS_RANGE_COUNT = 3;
   let rowEditState = new Map();
+  let sectionEditTargetId = null;
+  let sectionEditRowCounter = 0;
 
   let seats = [];
   let outlines = [];
@@ -2650,6 +2775,21 @@
     renderCanvas();
   }
 
+  function setOverlayMode(mode, syncUI = true, persist = true) {
+    if (mode === "price") overlayMode = "price";
+    else if (mode === "goodness") overlayMode = "goodness";
+    else overlayMode = "none";
+    showPriceRegions = overlayMode === "price";
+    showGoodnessHeatmap = overlayMode === "goodness";
+    if (syncUI) {
+      if (viewOverlayNone) viewOverlayNone.checked = overlayMode === "none";
+      if (viewOverlayPrice) viewOverlayPrice.checked = overlayMode === "price";
+      if (viewOverlayGoodness) viewOverlayGoodness.checked = overlayMode === "goodness";
+    }
+    renderCanvas();
+    if (persist) saveSessionToLocalStorage();
+  }
+
   async function tryGetDirectoryHandle(handle) {
     if (!handle) return null;
     if (handle.kind === "directory") return handle;
@@ -2665,6 +2805,10 @@
   let showHoverInfo = true;
   let showSectionNames = false;
   let showPriceRegions = false;
+  let showGoodnessHeatmap = false;
+  let overlayMode = "none";
+  let goodnessRangeCount = DEFAULT_GOODNESS_RANGE_COUNT;
+  let goodnessAnchorPoint = null;
   let restoredSession = false;
   let sectionColors = new Map();
   let sectionDrafts = [];
@@ -3000,7 +3144,9 @@
         const rotation = parseFloat(kv["Rotation"] || "0");
         const width = parseFloat(kv["Width"] || "100");
         const entryVia = kv["EntryVia"] ?? "-";
-        const goodness = kv["Goodness"] ?? "0";
+        const goodnessRaw = kv["Goodness"];
+        const goodnessVal = parseFloat(goodnessRaw != null ? goodnessRaw : "0");
+        const goodness = Number.isFinite(goodnessVal) ? goodnessVal : 0;
         const attributesList = attributes;
 
         let sectionId = null;
@@ -3185,7 +3331,8 @@
     const widthStr = seat.width != null ? seat.width : 100;
     const rotationStr = seat.rotation != null ? seat.rotation : 0;
     const entryStr = seat.entryVia != null ? seat.entryVia : "-";
-    const goodStr = seat.goodness != null ? seat.goodness : 0;
+    const goodnessValue = Number(seat.goodness);
+    const goodStr = Number.isFinite(goodnessValue) ? formatNumber(goodnessValue) : "0";
     const cxStr = formatNumber(seat.centerX);
     const cyStr = formatNumber(seat.centerY);
 
@@ -3555,6 +3702,7 @@ function saveSessionToLocalStorage() {
         grayscale: !!renderGrayscale,
         hoverInfo: !!showHoverInfo,
         sectionNames: !!showSectionNames,
+        overlayMode: overlayMode || "none",
         priceRegions: !!showPriceRegions,
         seatLabelMode: seatLabelMode || "none"
       },
@@ -3664,6 +3812,7 @@ async function tryRestoreSessionFromLocalStorage() {
     }
     loadPriceRegionsFromStorage();
     loadEntryPointsFromStorage();
+    loadGoodnessSettingsFromStorage();
 
     // Återställ zoom/pan om vi har dem
     if (typeof data.translateX === "number") translateX = data.translateX;
@@ -3687,11 +3836,11 @@ async function tryRestoreSessionFromLocalStorage() {
       renderGrayscale = false;
       showHoverInfo = !!data.view.hoverInfo;
       showSectionNames = !!data.view.sectionNames;
-      showPriceRegions = !!data.view.priceRegions;
+      const overlay = data.view.overlayMode || (data.view.priceRegions ? "price" : "none");
+      setOverlayMode(overlay, true, false);
       seatLabelMode = data.view.seatLabelMode || "none";
       if (viewHoverToggle) viewHoverToggle.checked = showHoverInfo;
       if (viewSectionNamesToggle) viewSectionNamesToggle.checked = showSectionNames;
-      if (viewPriceRegionToggle) viewPriceRegionToggle.checked = showPriceRegions;
       setSeatLabelMode(seatLabelMode, true);
     }
 
@@ -3740,6 +3889,7 @@ codePane.addEventListener("input", () => {
     saveSessionToLocalStorage();
     loadPriceRegionsFromStorage();
     loadEntryPointsFromStorage();
+    loadGoodnessSettingsFromStorage();
     saveCurrentFileHandleToDB(handle);
   }
 
@@ -3769,10 +3919,10 @@ codePane.addEventListener("input", () => {
     }
   }
 
-  async function handleSaveViaPicker() {
+  async function handleSaveViaPicker(forceDialog = false, suggestedNameOverride = "") {
     const text = stripEmptyLines(codePane.value || "");
     try {
-      let handle = forceSaveAs ? null : currentFileHandle;
+      let handle = (forceSaveAs || forceDialog) ? null : currentFileHandle;
       const startDir = lastDirectoryHandle || await tryGetDirectoryHandle(currentFileHandle);
       if (!handle) {
         const pickerOpts = {
@@ -3782,13 +3932,13 @@ codePane.addEventListener("input", () => {
               accept: { "text/plain": [".tlt", ".txt"] }
             }
           ],
-          suggestedName: currentFileName || "layout.tlt",
+          suggestedName: suggestedNameOverride || currentFileName || "layout.tlt",
           excludeAcceptAllOption: false,
           startIn: startDir || undefined
         };
         handle = await window.showSaveFilePicker(pickerOpts);
       }
-      if (!handle) return;
+      if (!handle) return false;
       const writable = await handle.createWritable();
       await writable.write(text);
       await writable.close();
@@ -3800,23 +3950,26 @@ codePane.addEventListener("input", () => {
       hasUnsavedChanges = false;
       updateSaveButton();
       saveCurrentFileHandleToDB(handle);
+      saveSessionToLocalStorage();
+      return true;
     } catch (err) {
       if (err?.name === "AbortError") {
         console.warn("Spara avbrutet av användare.");
-        return;
+        return false;
       }
       console.warn("Spara via picker misslyckades, provar nedladdning:", err);
-      downloadFallback(text);
+      downloadFallback(text, suggestedNameOverride);
+      return true;
     }
   }
 
-  function downloadFallback(text) {
+  function downloadFallback(text, overrideName = "") {
     try {
       const blob = new Blob([text], { type: "text/plain" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = currentFileName || "layout.tlt";
+      a.download = overrideName || currentFileName || "layout.tlt";
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -3864,6 +4017,33 @@ codePane.addEventListener("input", () => {
     }
   }
 
+  async function saveFileAs() {
+    const suggestedName = currentFileName || "layout.tlt";
+    if (supportsSavePicker) {
+      const didSave = await handleSaveViaPicker(true, suggestedName);
+      if (didSave) {
+        savePriceRegionsToStorage();
+        saveEntryPointsToStorage();
+        saveGoodnessSettingsToStorage();
+      }
+      return;
+    }
+    const rawName = prompt("Enter file name.", suggestedName);
+    if (!rawName) return;
+    const trimmed = rawName.trim();
+    if (!trimmed) return;
+    const hasExt = /\.tlt$/i.test(trimmed) || /\.txt$/i.test(trimmed);
+    const finalName = hasExt ? trimmed : `${trimmed}.tlt`;
+    currentFileName = finalName;
+    currentFileHandle = null;
+    forceSaveAs = true;
+    clearCurrentFileHandleInDB();
+    downloadFallback(stripEmptyLines(codePane.value || ""), finalName);
+    savePriceRegionsToStorage();
+    saveEntryPointsToStorage();
+    saveGoodnessSettingsToStorage();
+  }
+
   function resetLayoutState(baseName = "", venueId = "") {
     seats = [];
     outlines = [];
@@ -3891,6 +4071,7 @@ codePane.addEventListener("input", () => {
     renderCanvas();
     loadPriceRegionsFromStorage();
     loadEntryPointsFromStorage();
+    loadGoodnessSettingsFromStorage();
   }
 
   function clearLayoutState() {
@@ -3913,6 +4094,8 @@ codePane.addEventListener("input", () => {
     restoredSession = false;
     seatCountEl.textContent = "0";
     sectionCountEl.textContent = "0";
+    goodnessAnchorPoint = null;
+    setGoodnessRangeCount(DEFAULT_GOODNESS_RANGE_COUNT, false);
     resetSectionDrafts();
     renderSectionCards();
     renderSectionDetail();
@@ -5432,6 +5615,82 @@ codePane.addEventListener("input", () => {
     }
   }
 
+  function getGoodnessStorageKey() {
+    const meta = getLayoutMeta();
+    const venuePart = meta.venueId || "unknown";
+    const layoutPart = meta.layoutName || "unsaved";
+    return `arenaDesignerGoodness:${venuePart}:${layoutPart}`;
+  }
+
+  function normalizeGoodnessRangeCount(value) {
+    const parsed = parseInt(value, 10);
+    if (!Number.isFinite(parsed)) return DEFAULT_GOODNESS_RANGE_COUNT;
+    return Math.max(1, Math.min(50, parsed));
+  }
+
+  function buildGoodnessRanges(count) {
+    const safeCount = normalizeGoodnessRangeCount(count);
+    const ranges = [];
+    for (let i = 0; i < safeCount; i++) {
+      const start = i * GOODNESS_RANGE_SIZE + 1;
+      const end = (i + 1) * GOODNESS_RANGE_SIZE;
+      ranges.push({ index: i + 1, start, end });
+    }
+    return ranges;
+  }
+
+  function updateGoodnessRangeHint() {
+    if (!goodnessRangeHint) return;
+    const ranges = buildGoodnessRanges(goodnessRangeCount);
+    const labels = ranges.slice(0, 3).map(r => `${r.start}-${r.end}`);
+    const suffix = ranges.length > 3 ? ", ..." : "";
+    goodnessRangeHint.textContent = `Each range spans ${GOODNESS_RANGE_SIZE} (${labels.join(", ")}${suffix}).`;
+  }
+
+  function renderGoodnessRangeOptions() {
+    if (!goodnessRangeSelect) return;
+    goodnessRangeSelect.innerHTML = "";
+    const ranges = buildGoodnessRanges(goodnessRangeCount);
+    ranges.forEach((r) => {
+      const opt = document.createElement("option");
+      opt.value = String(r.index);
+      opt.textContent = `Range ${r.index}: ${r.start}-${r.end}`;
+      goodnessRangeSelect.appendChild(opt);
+    });
+  }
+
+  function setGoodnessRangeCount(value, persist = true) {
+    goodnessRangeCount = normalizeGoodnessRangeCount(value);
+    if (goodnessRangeCountInput) goodnessRangeCountInput.value = String(goodnessRangeCount);
+    updateGoodnessRangeHint();
+    renderGoodnessRangeOptions();
+    if (persist) saveGoodnessSettingsToStorage();
+  }
+
+  function loadGoodnessSettingsFromStorage() {
+    try {
+      const raw = localStorage.getItem(getGoodnessStorageKey());
+      if (raw) {
+        const data = JSON.parse(raw);
+        if (data && data.rangeCount) {
+          setGoodnessRangeCount(data.rangeCount, false);
+        }
+      }
+    } catch (err) {
+      console.warn("Could not load goodness settings:", err);
+    }
+    updateGoodnessRangeHint();
+  }
+
+  function saveGoodnessSettingsToStorage() {
+    try {
+      localStorage.setItem(getGoodnessStorageKey(), JSON.stringify({ rangeCount: goodnessRangeCount }));
+    } catch (err) {
+      console.warn("Could not save goodness settings:", err);
+    }
+    saveSessionToLocalStorage();
+  }
+
   function getEntryPointSeatIds(entryPoint) {
     const ids = new Set();
     seats.forEach((s) => {
@@ -5541,6 +5800,54 @@ codePane.addEventListener("input", () => {
     if (entryPointOverlay) entryPointOverlay.style.display = "none";
   }
 
+  function updateGoodnessModalHint() {
+    if (!goodnessModalHint) return;
+    const count = getSelectedSeats().length;
+    goodnessModalHint.textContent = `${count} seat(s) selected. Range size: ${GOODNESS_RANGE_SIZE}.`;
+  }
+
+  function openGoodnessModal() {
+    const selected = getSelectedSeats();
+    if (!selected.length) return;
+    renderGoodnessRangeOptions();
+    updateGoodnessModalHint();
+    if (goodnessOverlay) goodnessOverlay.style.display = "flex";
+  }
+
+  function closeGoodnessModal() {
+    if (goodnessOverlay) goodnessOverlay.style.display = "none";
+    goodnessAnchorPoint = null;
+  }
+
+  function applyGoodnessFromPoint(rangeIndex) {
+    const selected = getSelectedSeats();
+    if (!selected.length) return false;
+    if (!goodnessAnchorPoint) {
+      alert("Pick a point on the canvas first.");
+      return false;
+    }
+    const safeIndex = Number.isFinite(rangeIndex)
+      ? Math.max(1, Math.min(normalizeGoodnessRangeCount(goodnessRangeCount), rangeIndex))
+      : 1;
+    const base = (safeIndex - 1) * GOODNESS_RANGE_SIZE + 1;
+    const step = selected.length > 1 ? (GOODNESS_RANGE_SIZE - 1) / (selected.length - 1) : 0;
+    const sorted = selected.slice().sort((a, b) => {
+      const da = Math.hypot(a.vx - goodnessAnchorPoint.x, a.vy - goodnessAnchorPoint.y);
+      const db = Math.hypot(b.vx - goodnessAnchorPoint.x, b.vy - goodnessAnchorPoint.y);
+      if (da !== db) return da - db;
+      return String(a.seatId).localeCompare(String(b.seatId));
+    });
+    sorted.forEach((seat, idx) => {
+      seat.goodness = base + step * idx;
+    });
+    updateCodeFromSeats();
+    renderCanvas();
+    hasUnsavedChanges = true;
+    updateSaveButton();
+    saveSessionToLocalStorage();
+    return true;
+  }
+
   function addSelectionToEntryPoint(entryPointId) {
     const entryPoint = entryPoints.find(ep => ep.id === entryPointId);
     if (!entryPoint) return;
@@ -5629,6 +5936,9 @@ codePane.addEventListener("input", () => {
     }
     saveFile();
   });
+  saveAsBtn?.addEventListener("click", () => {
+    saveFileAs();
+  });
 
   closeLayoutBtn?.addEventListener("click", closeLayout);
 
@@ -5662,6 +5972,7 @@ codePane.addEventListener("input", () => {
     closeSectionEditModal();
     closePriceRegionModal();
     closeEntryPointModal();
+    closeGoodnessModal();
     closeCodeModal();
     closeSectionManager();
     closeNewLayoutModal();
@@ -5739,6 +6050,7 @@ codePane.addEventListener("input", () => {
     }
     loadPriceRegionsFromStorage();
     loadEntryPointsFromStorage();
+    loadGoodnessSettingsFromStorage();
     setLayoutActive(true);
     closeNewLayoutModal();
     openSectionManager();
@@ -5851,6 +6163,21 @@ codePane.addEventListener("input", () => {
       e.preventDefault();
       entryPointCreate?.click();
     }
+  });
+  goodnessRangeCountInput?.addEventListener("change", (e) => {
+    setGoodnessRangeCount(e.target.value);
+  });
+  goodnessRangeCountInput?.addEventListener("blur", (e) => {
+    setGoodnessRangeCount(e.target.value);
+  });
+  goodnessCancel?.addEventListener("click", closeGoodnessModal);
+  goodnessOverlay?.addEventListener("click", (e) => {
+    if (e.target === goodnessOverlay) closeGoodnessModal();
+  });
+  goodnessApply?.addEventListener("click", () => {
+    const rangeIndex = parseInt(goodnessRangeSelect?.value || "1", 10);
+    const didApply = applyGoodnessFromPoint(Number.isFinite(rangeIndex) ? rangeIndex : 1);
+    if (didApply) closeGoodnessModal();
   });
   priceRegionList?.addEventListener("click", (e) => {
     const btn = e.target.closest("[data-role='price-region-add']");
@@ -5991,12 +6318,6 @@ codePane.addEventListener("input", () => {
     if (showPriceRegions) renderCanvas();
   });
 
-  viewPriceRegionToggle?.addEventListener("change", (e) => {
-    showPriceRegions = e.target.checked;
-    renderCanvas();
-    saveSessionToLocalStorage();
-  });
-
   // Försök återanvända senaste handle direkt vid start (utan att öppna filen automatiskt)
   loadCurrentFileHandleFromDB().then((handle) => {
     if (handle) {
@@ -6007,6 +6328,7 @@ codePane.addEventListener("input", () => {
 
   function updateSaveButton() {
     saveBtn.disabled = !layoutActive || !hasUnsavedChanges;
+    if (saveAsBtn) saveAsBtn.disabled = !layoutActive;
   }
 
   function updateMoveButtonState() {
@@ -6073,6 +6395,25 @@ codePane.addEventListener("input", () => {
       b: parseInt(h.slice(4, 6), 16)
     };
   }
+  function clampValue(value, min, max) {
+    if (value < min) return min;
+    if (value > max) return max;
+    return value;
+  }
+  function rgbToHex({ r, g, b }) {
+    const toHex = (v) => clampValue(Math.round(v), 0, 255).toString(16).padStart(2, "0");
+    return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+  }
+  function mixHexColors(startHex, endHex, t) {
+    const start = hexToRgb(startHex);
+    const end = hexToRgb(endHex);
+    const clamped = clampValue(t, 0, 1);
+    return rgbToHex({
+      r: start.r + (end.r - start.r) * clamped,
+      g: start.g + (end.g - start.g) * clamped,
+      b: start.b + (end.b - start.b) * clamped
+    });
+  }
   function getLabelTextColor(color) {
     if (!color) return "#fff";
     if (labelColorCache.has(color)) return labelColorCache.get(color);
@@ -6081,6 +6422,36 @@ codePane.addEventListener("input", () => {
     const txt = lum > 0.55 ? "#0f1d2a" : "#ffffff";
     labelColorCache.set(color, txt);
     return txt;
+  }
+
+  function computeGoodnessStats() {
+    let min = Infinity;
+    let max = -Infinity;
+    for (const s of seats) {
+      const value = Number(s.goodness);
+      if (!Number.isFinite(value) || value <= 0) continue;
+      if (value < min) min = value;
+      if (value > max) max = value;
+    }
+    if (min === Infinity) return null;
+    return { min, max };
+  }
+
+  function getGoodnessHeatColor(value, stats) {
+    if (!stats || !Number.isFinite(value) || value <= 0) return null;
+    if (stats.min === stats.max) return GOODNESS_HEAT_START;
+    const t = (value - stats.min) / (stats.max - stats.min);
+    return mixHexColors(GOODNESS_HEAT_START, GOODNESS_HEAT_END, t);
+  }
+
+  function getSelectionStrokePalette() {
+    const useRed = overlayMode === "none";
+    return {
+      outerColor: useRed ? "#ff3b30" : "#ffffff",
+      innerColor: "#111111",
+      outerWidth: 4,
+      innerWidth: 2
+    };
   }
 
   // --- Render ---
@@ -6124,6 +6495,8 @@ codePane.addEventListener("input", () => {
     }
 
     const priceRegionLookups = showPriceRegions ? buildPriceRegionLookups() : null;
+    const goodnessStats = showGoodnessHeatmap ? computeGoodnessStats() : null;
+    const selectionStroke = getSelectionStrokePalette();
 
     // Platser
     for (const s of seats) {
@@ -6133,7 +6506,10 @@ codePane.addEventListener("input", () => {
       ) continue;
 
       let baseColor = sectionColors.get(s.sectionId) || "#4a90e2";
-      if (showPriceRegions && priceRegionLookups) {
+      if (showGoodnessHeatmap && goodnessStats) {
+        const heatColor = getGoodnessHeatColor(Number(s.goodness), goodnessStats);
+        if (heatColor) baseColor = heatColor;
+      } else if (showPriceRegions && priceRegionLookups) {
         const prColor = getSeatPriceRegionColor(s, priceRegionLookups);
         if (prColor) baseColor = prColor;
       }
@@ -6152,8 +6528,16 @@ codePane.addEventListener("input", () => {
         );
 
         if (s.selected) {
-          ctx.strokeStyle = "#000";
-          ctx.lineWidth = 1 / scale;
+          ctx.lineWidth = selectionStroke.outerWidth / scale;
+          ctx.strokeStyle = selectionStroke.outerColor;
+          ctx.strokeRect(
+            s.vx - rectSizeWorld,
+            s.vy - rectSizeWorld,
+            rectSizeWorld * 2,
+            rectSizeWorld * 2
+          );
+          ctx.lineWidth = selectionStroke.innerWidth / scale;
+          ctx.strokeStyle = selectionStroke.innerColor;
           ctx.strokeRect(
             s.vx - rectSizeWorld,
             s.vy - rectSizeWorld,
@@ -6184,8 +6568,11 @@ codePane.addEventListener("input", () => {
       ctx.fill();
 
         if (s.selected) {
-          ctx.lineWidth = 3 / scale;
-          ctx.strokeStyle = "#000";
+          ctx.lineWidth = selectionStroke.outerWidth / scale;
+          ctx.strokeStyle = selectionStroke.outerColor;
+          ctx.stroke();
+          ctx.lineWidth = selectionStroke.innerWidth / scale;
+          ctx.strokeStyle = selectionStroke.innerColor;
           ctx.stroke();
       } else {
           ctx.lineWidth = 1.2 / scale;
@@ -6539,12 +6926,18 @@ function selectAllSeats() {
   function removeSeatsById(seatIds) {
     if (!seatIds || seatIds.size === 0) return false;
     seats = seats.filter(s => !seatIds.has(s.seatId));
-    originalLines = originalLines.filter((line) => {
+    const removedIndexes = [];
+    originalLines = originalLines.filter((line, idx) => {
       if (!line.includes("|SeatAdd|")) return true;
       const seatIdMatch = line.match(/SeatId=([^|]+)/);
       if (!seatIdMatch) return true;
-      return !seatIds.has(seatIdMatch[1]);
+      if (seatIds.has(seatIdMatch[1])) {
+        removedIndexes.push(idx);
+        return false;
+      }
+      return true;
     });
+    shiftOutlineLineIndexesAfterRemoval(removedIndexes);
     rebuildSeatLineIndex();
     return true;
   }
@@ -6559,17 +6952,25 @@ function selectAllSeats() {
       }
       return true;
     });
-    originalLines = originalLines.filter((line) => {
+    const removedIndexes = [];
+    originalLines = originalLines.filter((line, idx) => {
       if (line.includes("|RowAdd|")) {
         const rowMatch = line.match(/RowId=([^|]+)/);
-        if (rowMatch && rowIds.has(rowMatch[1])) return false;
+        if (rowMatch && rowIds.has(rowMatch[1])) {
+          removedIndexes.push(idx);
+          return false;
+        }
       }
       if (line.includes("|SeatAdd|")) {
         const seatMatch = line.match(/SeatId=([^|]+)/);
-        if (seatMatch && seatIds.has(seatMatch[1])) return false;
+        if (seatMatch && seatIds.has(seatMatch[1])) {
+          removedIndexes.push(idx);
+          return false;
+        }
       }
       return true;
     });
+    shiftOutlineLineIndexesAfterRemoval(removedIndexes);
     rebuildSeatLineIndex();
     return true;
   }
@@ -7102,6 +7503,84 @@ function nudgeSelection(dxScreen, dyScreen) {
     return changed;
   }
 
+  function equalizeRowDistanceForSelection() {
+    const rows = getSelectedRows();
+    if (rows.size < 2) return false;
+
+    const rowInfos = [];
+    let sumX = 0;
+    let sumY = 0;
+    let dirCount = 0;
+    let refDir = null;
+
+    for (const [rowId, rowSeats] of rows.entries()) {
+      if (!rowSeats || !rowSeats.length) continue;
+      const center = computeRowCenter(rowSeats);
+      const dir = computeRowDirection(rowSeats);
+      if (dir) {
+        if (!refDir) {
+          refDir = { ...dir };
+        } else if (dir.x * refDir.x + dir.y * refDir.y < 0) {
+          dir.x = -dir.x;
+          dir.y = -dir.y;
+        }
+        sumX += dir.x;
+        sumY += dir.y;
+        dirCount += 1;
+      }
+      rowInfos.push({ rowId, seats: rowSeats, center });
+    }
+
+    if (rowInfos.length < 2) return false;
+
+    let dirX = 1;
+    let dirY = 0;
+    if (dirCount > 0) {
+      dirX = sumX / dirCount;
+      dirY = sumY / dirCount;
+      const len = Math.hypot(dirX, dirY);
+      if (len > 1e-3) {
+        dirX /= len;
+        dirY /= len;
+      } else {
+        dirX = 1;
+        dirY = 0;
+      }
+    }
+    const normX = -dirY;
+    const normY = dirX;
+
+    rowInfos.forEach((info) => {
+      info.projection = info.center.x * normX + info.center.y * normY;
+    });
+    rowInfos.sort((a, b) => a.projection - b.projection);
+
+    const first = rowInfos[0].projection;
+    const last = rowInfos[rowInfos.length - 1].projection;
+    const span = last - first;
+    if (!Number.isFinite(span) || Math.abs(span) < 1e-6) return false;
+    const gap = span / (rowInfos.length - 1);
+    if (!Number.isFinite(gap)) return false;
+
+    let changed = false;
+    rowInfos.forEach((info, idx) => {
+      const target = first + gap * idx;
+      const delta = target - info.projection;
+      if (Math.abs(delta) < 1e-6) return;
+      const dx = normX * delta;
+      const dy = normY * delta;
+      info.seats.forEach((seat) => {
+        seat.vx += dx;
+        seat.vy += dy;
+        seat.centerX += dx;
+        seat.centerY += dy;
+      });
+      changed = true;
+    });
+
+    return changed;
+  }
+
   function ensureBendDefaults() {
     if (currentTool !== "bend") return;
     const rows = getSelectedRows();
@@ -7542,9 +8021,16 @@ function nudgeSelection(dxScreen, dyScreen) {
     if (editRowsMenuItem) {
       editRowsMenuItem.disabled = selectionMode !== "row" || getSelectedRows().size === 0;
     }
+    if (equalizeRowsMenuItem) {
+      const rows = getSelectedRows();
+      equalizeRowsMenuItem.disabled = selectionMode !== "row" || rows.size < 2;
+    }
     if (editSectionsMenuItem) {
       const sections = new Set(getSelectedSeats().map(s => s.sectionId).filter(Boolean));
-      editSectionsMenuItem.disabled = selectionMode !== "section" || sections.size === 0;
+      editSectionsMenuItem.disabled = selectionMode !== "section" || sections.size !== 1;
+    }
+    if (goodnessFromPointMenuItem) {
+      goodnessFromPointMenuItem.disabled = getSelectedSeats().length === 0;
     }
     const padding = 8;
     const rect = seatContextMenu.getBoundingClientRect();
@@ -7611,7 +8097,7 @@ function nudgeSelection(dxScreen, dyScreen) {
       const title = document.createElement("div");
       title.className = "edit-item__title";
       const rowLabel = seat.rowName || seat.rowId || "-";
-      title.textContent = `${seat.name || "-"} - ${seat.seatId} - ${rowLabel}`;
+      title.textContent = `Seat ${seat.name || "-"} on row ${rowLabel} | SeatId ${seat.seatId}`;
 
       const grid = document.createElement("div");
       grid.className = "edit-item__grid";
@@ -7762,7 +8248,7 @@ function nudgeSelection(dxScreen, dyScreen) {
 
       const title = document.createElement("div");
       title.className = "edit-item__title";
-      title.textContent = `${rowName} - ${rowId} - ${rowSeats.length} seats`;
+      title.textContent = `Row ${rowName} contains ${rowSeats.length} seats | RowId ${rowId}`;
 
       const grid = document.createElement("div");
       grid.className = "edit-item__grid";
@@ -7871,10 +8357,205 @@ function nudgeSelection(dxScreen, dyScreen) {
     return changed;
   }
 
+  function resetSectionEditDrafts() {
+    sectionEditRowCounter = 0;
+    if (sectionNewRowsList) sectionNewRowsList.innerHTML = "";
+  }
+
+  function computeRowCenter(rowSeats) {
+    if (!rowSeats || !rowSeats.length) return { x: 0, y: 0 };
+    let sumX = 0;
+    let sumY = 0;
+    rowSeats.forEach((seat) => {
+      sumX += seat.vx;
+      sumY += seat.vy;
+    });
+    return { x: sumX / rowSeats.length, y: sumY / rowSeats.length };
+  }
+
+  function computeRowDirection(rowSeats) {
+    if (!rowSeats || rowSeats.length < 2) return null;
+    const sorted = sortSeatsInRow(rowSeats);
+    const first = sorted[0];
+    const last = sorted[sorted.length - 1];
+    if (!first || !last) return null;
+    const dx = last.vx - first.vx;
+    const dy = last.vy - first.vy;
+    const dist = Math.hypot(dx, dy);
+    if (dist < 1e-3) return null;
+    return { x: dx / dist, y: dy / dist };
+  }
+
+  function getSectionRowLayout(sectionId) {
+    if (!sectionId) return null;
+    const rowsById = new Map();
+    seats.forEach((seat) => {
+      if (seat.sectionId !== sectionId) return;
+      if (!seat.rowId) return;
+      if (!rowsById.has(seat.rowId)) rowsById.set(seat.rowId, []);
+      rowsById.get(seat.rowId).push(seat);
+    });
+    if (!rowsById.size) return null;
+    const entries = [];
+    let maxRowNumber = 0;
+    rowsById.forEach((rowSeats, rowId) => {
+      const parts = parseRowIdParts(rowId);
+      const rowNum = Number.isFinite(parts.row) ? parts.row : null;
+      if (rowNum != null) maxRowNumber = Math.max(maxRowNumber, rowNum);
+      entries.push({ rowId, rowNum, seats: rowSeats });
+    });
+    entries.sort((a, b) => {
+      if (a.rowNum != null && b.rowNum != null) return a.rowNum - b.rowNum;
+      if (a.rowNum != null) return -1;
+      if (b.rowNum != null) return 1;
+      return a.rowId.localeCompare(b.rowId);
+    });
+    if (!maxRowNumber) maxRowNumber = entries.length;
+    const lastEntry = entries[entries.length - 1] || null;
+    const prevEntry = entries.length > 1 ? entries[entries.length - 2] : null;
+    return { rowsById, entries, maxRowNumber, lastEntry, prevEntry };
+  }
+
+  function inferRowNumberDirection(rowSeats) {
+    if (!rowSeats || rowSeats.length < 2) return "asc";
+    const sorted = sortSeatsInRow(rowSeats);
+    const firstNum = parseFloat(sorted[0]?.name);
+    const lastNum = parseFloat(sorted[sorted.length - 1]?.name);
+    if (Number.isFinite(firstNum) && Number.isFinite(lastNum) && firstNum !== lastNum) {
+      return lastNum > firstNum ? "asc" : "desc";
+    }
+    return "asc";
+  }
+
+  function getSectionRowDefaults(sectionId) {
+    const layout = getSectionRowLayout(sectionId);
+    if (!layout || !layout.lastEntry) {
+      return { seatCount: 10, startNumber: 1, direction: "asc" };
+    }
+    const seatCount = layout.lastEntry.seats.length || 10;
+    return {
+      seatCount,
+      startNumber: 1,
+      direction: inferRowNumberDirection(layout.lastEntry.seats)
+    };
+  }
+
+  function addSectionRowDraft() {
+    if (!sectionNewRowsList) return;
+    const defaults = getSectionRowDefaults(sectionEditTargetId);
+    sectionEditRowCounter += 1;
+
+    const item = document.createElement("div");
+    item.className = "edit-item";
+    item.dataset.draftId = `row-${sectionEditRowCounter}`;
+
+    const title = document.createElement("div");
+    title.className = "edit-item__title";
+    title.textContent = `New row ${sectionEditRowCounter}`;
+
+    const grid = document.createElement("div");
+    grid.className = "edit-item__grid";
+
+    const nameField = document.createElement("label");
+    nameField.className = "edit-field";
+    const nameLabel = document.createElement("span");
+    nameLabel.textContent = "Row name";
+    const nameInput = document.createElement("input");
+    nameInput.type = "text";
+    nameInput.placeholder = "e.g. 4";
+    nameInput.dataset.role = "section-row-name";
+    nameField.appendChild(nameLabel);
+    nameField.appendChild(nameInput);
+
+    const countField = document.createElement("label");
+    countField.className = "edit-field";
+    const countLabel = document.createElement("span");
+    countLabel.textContent = "Seat count";
+    const countInput = document.createElement("input");
+    countInput.type = "number";
+    countInput.min = "1";
+    countInput.step = "1";
+    countInput.value = String(defaults.seatCount || 1);
+    countInput.dataset.role = "section-row-count";
+    countField.appendChild(countLabel);
+    countField.appendChild(countInput);
+
+    const startField = document.createElement("label");
+    startField.className = "edit-field";
+    const startLabel = document.createElement("span");
+    startLabel.textContent = "Start number";
+    const startInput = document.createElement("input");
+    startInput.type = "number";
+    startInput.step = "1";
+    startInput.value = String(defaults.startNumber || 1);
+    startInput.dataset.role = "section-row-start";
+    startField.appendChild(startLabel);
+    startField.appendChild(startInput);
+
+    const dirField = document.createElement("label");
+    dirField.className = "edit-field";
+    const dirLabel = document.createElement("span");
+    dirLabel.textContent = "Direction";
+    const dirSelect = document.createElement("select");
+    dirSelect.dataset.role = "section-row-direction";
+    const ascOpt = document.createElement("option");
+    ascOpt.value = "asc";
+    ascOpt.textContent = "Ascending";
+    const descOpt = document.createElement("option");
+    descOpt.value = "desc";
+    descOpt.textContent = "Descending";
+    dirSelect.appendChild(ascOpt);
+    dirSelect.appendChild(descOpt);
+    dirSelect.value = defaults.direction || "asc";
+    dirField.appendChild(dirLabel);
+    dirField.appendChild(dirSelect);
+
+    grid.appendChild(nameField);
+    grid.appendChild(countField);
+    grid.appendChild(startField);
+    grid.appendChild(dirField);
+
+    item.appendChild(title);
+    item.appendChild(grid);
+    sectionNewRowsList.appendChild(item);
+  }
+
+  function collectSectionRowDrafts() {
+    if (!sectionNewRowsList) return { drafts: [], errors: [] };
+    const drafts = [];
+    const errors = [];
+    const items = sectionNewRowsList.querySelectorAll(".edit-item");
+    items.forEach((item, idx) => {
+      const nameInput = item.querySelector("input[data-role='section-row-name']");
+      const countInput = item.querySelector("input[data-role='section-row-count']");
+      const startInput = item.querySelector("input[data-role='section-row-start']");
+      const dirSelect = item.querySelector("select[data-role='section-row-direction']");
+
+      const seatCount = parseInt(countInput?.value, 10);
+      if (!Number.isFinite(seatCount) || seatCount <= 0) {
+        errors.push(`Row ${idx + 1}: seat count must be 1 or more.`);
+        return;
+      }
+      const startNumberRaw = parseInt(startInput?.value, 10);
+      const startNumber = Number.isFinite(startNumberRaw) ? startNumberRaw : 1;
+      const direction = dirSelect?.value === "desc" ? "desc" : "asc";
+      drafts.push({
+        name: (nameInput?.value || "").trim(),
+        seatCount,
+        startNumber,
+        direction
+      });
+    });
+    return { drafts, errors };
+  }
+
   function buildSectionEditList() {
     if (!sectionEditList) return;
     const selected = getSelectedSeats();
     sectionEditList.innerHTML = "";
+    sectionEditTargetId = null;
+    resetSectionEditDrafts();
+    if (sectionAddRowBtn) sectionAddRowBtn.disabled = true;
     if (!selected.length) return;
     const sections = new Map();
     selected.forEach((seat) => {
@@ -7888,45 +8569,52 @@ function nudgeSelection(dxScreen, dyScreen) {
       }
       sections.get(seat.sectionId).seatCount += 1;
     });
-    sections.forEach((section) => {
-      const item = document.createElement("div");
-      item.className = "edit-item";
-      item.dataset.sectionId = section.sectionId;
-      item.dataset.nameOriginal = section.name || "";
+    if (sections.size !== 1) return;
+    const section = Array.from(sections.values())[0];
+    sectionEditTargetId = section.sectionId;
+    if (sectionAddRowBtn) sectionAddRowBtn.disabled = false;
 
-      const title = document.createElement("div");
-      title.className = "edit-item__title";
-      title.textContent = `${section.name || section.sectionId} - ${section.sectionId} - ${section.seatCount} seats`;
+    const item = document.createElement("div");
+    item.className = "edit-item";
+    item.dataset.sectionId = section.sectionId;
+    item.dataset.nameOriginal = section.name || "";
 
-      const grid = document.createElement("div");
-      grid.className = "edit-item__grid";
+    const title = document.createElement("div");
+    title.className = "edit-item__title";
+    title.textContent = `${section.name || section.sectionId} - ${section.sectionId} - ${section.seatCount} seats`;
 
-      const nameField = document.createElement("label");
-      nameField.className = "edit-field";
-      const nameLabel = document.createElement("span");
-      nameLabel.textContent = "Section name";
-      const nameInput = document.createElement("input");
-      nameInput.type = "text";
-      nameInput.value = section.name || "";
-      nameInput.dataset.role = "section-name";
-      nameField.appendChild(nameLabel);
-      nameField.appendChild(nameInput);
+    const grid = document.createElement("div");
+    grid.className = "edit-item__grid";
 
-      grid.appendChild(nameField);
+    const nameField = document.createElement("label");
+    nameField.className = "edit-field";
+    const nameLabel = document.createElement("span");
+    nameLabel.textContent = "Section name";
+    const nameInput = document.createElement("input");
+    nameInput.type = "text";
+    nameInput.value = section.name || "";
+    nameInput.dataset.role = "section-name";
+    nameField.appendChild(nameLabel);
+    nameField.appendChild(nameInput);
 
-      item.appendChild(title);
-      item.appendChild(grid);
-      sectionEditList.appendChild(item);
-    });
+    grid.appendChild(nameField);
+
+    item.appendChild(title);
+    item.appendChild(grid);
+    sectionEditList.appendChild(item);
   }
 
   function openSectionEditModal() {
     buildSectionEditList();
+    if (!sectionEditTargetId) return;
     if (sectionEditOverlay) sectionEditOverlay.style.display = "flex";
   }
 
   function closeSectionEditModal() {
     if (sectionEditOverlay) sectionEditOverlay.style.display = "none";
+    sectionEditTargetId = null;
+    if (sectionAddRowBtn) sectionAddRowBtn.disabled = true;
+    resetSectionEditDrafts();
   }
 
   function updateRowName(rowId, nextName) {
@@ -8028,6 +8716,20 @@ function nudgeSelection(dxScreen, dyScreen) {
     });
   }
 
+  function shiftOutlineLineIndexesAfterRemoval(removedIndexes) {
+    if (!removedIndexes || !removedIndexes.length) return;
+    const sorted = [...removedIndexes].sort((a, b) => a - b);
+    outlines.forEach((o) => {
+      if (typeof o.lineIndex !== "number") return;
+      let shift = 0;
+      for (const idx of sorted) {
+        if (idx < o.lineIndex) shift += 1;
+        else break;
+      }
+      if (shift) o.lineIndex -= shift;
+    });
+  }
+
   function addSeatsToRow(rowId, rowSeats, addCount, rowNameOverride) {
     if (!addCount || addCount <= 0) return false;
     const sorted = sortSeatsInRow(rowSeats);
@@ -8044,6 +8746,7 @@ function nudgeSelection(dxScreen, dyScreen) {
       dirY = dy / dist;
     }
     const spacing = computeRowSpacing(sorted);
+    const baseGoodness = Number(base.goodness);
     let changed = false;
     const insertIndex = findRowInsertIndex(rowId, rowSeats);
     const newSeats = [];
@@ -8073,7 +8776,7 @@ function nudgeSelection(dxScreen, dyScreen) {
         rotation: base.rotation || 0,
         width: base.width || 100,
         entryVia: base.entryVia || "-",
-        goodness: base.goodness || "0",
+        goodness: Number.isFinite(baseGoodness) ? baseGoodness : 0,
         attributes: [],
         timestamp: buildTimestamp(),
         selected: true,
@@ -8092,6 +8795,117 @@ function nudgeSelection(dxScreen, dyScreen) {
       changed = true;
     }
     return changed;
+  }
+
+  function addRowsToSection(sectionId, rowDrafts) {
+    if (!sectionId || !rowDrafts || !rowDrafts.length) return false;
+    const layout = getSectionRowLayout(sectionId);
+    if (!layout || !layout.lastEntry || !layout.lastEntry.seats.length) return false;
+
+    const lastEntry = layout.lastEntry;
+    const prevEntry = layout.prevEntry;
+    const lastSorted = sortSeatsInRow(lastEntry.seats);
+    const baseSeat = lastSorted[0] || lastEntry.seats[0];
+    if (!baseSeat) return false;
+
+    let dirX = 1;
+    let dirY = 0;
+    const dirSource = lastSorted.length > 1
+      ? lastSorted
+      : (prevEntry && prevEntry.seats.length > 1 ? sortSeatsInRow(prevEntry.seats) : null);
+    if (dirSource && dirSource.length > 1) {
+      const first = dirSource[0];
+      const last = dirSource[dirSource.length - 1];
+      const dx = last.vx - first.vx;
+      const dy = last.vy - first.vy;
+      const dist = Math.hypot(dx, dy);
+      if (dist > 1e-3) {
+        dirX = dx / dist;
+        dirY = dy / dist;
+      }
+    }
+
+    let seatSpacing = computeRowSpacing(lastSorted);
+    if (lastSorted.length < 2) {
+      const baseWidth = baseSeat.width || 100;
+      seatSpacing = baseWidth * 1.2;
+    }
+    if (!Number.isFinite(seatSpacing) || seatSpacing <= 0) seatSpacing = 120;
+
+    let rowOffsetX = 0;
+    let rowOffsetY = 0;
+    if (prevEntry && prevEntry.seats.length) {
+      const prevCenter = computeRowCenter(prevEntry.seats);
+      const lastCenter = computeRowCenter(lastEntry.seats);
+      rowOffsetX = lastCenter.x - prevCenter.x;
+      rowOffsetY = lastCenter.y - prevCenter.y;
+    }
+    if (Math.hypot(rowOffsetX, rowOffsetY) < 1e-3) {
+      const defaultRowSpacing = 180;
+      rowOffsetX = -dirY * defaultRowSpacing;
+      rowOffsetY = dirX * defaultRowSpacing;
+    }
+
+    let nextRowNumber = layout.maxRowNumber || 0;
+    const sectionName = sectionNames.get(sectionId) || baseSeat.sectionName || sectionId;
+    const baseGoodness = Number(baseSeat.goodness);
+
+    const insertIndex = findRowInsertIndex(lastEntry.rowId, lastEntry.seats);
+    const insertAt = insertIndex >= 0 ? insertIndex + 1 : originalLines.length;
+    const newLines = [];
+    const newSeats = [];
+
+    rowDrafts.forEach((draft, idx) => {
+      if (!draft || !draft.seatCount || draft.seatCount <= 0) return;
+      nextRowNumber += 1;
+      const rowId = `${sectionId}.${nextRowNumber}`;
+      const rowName = (draft.name || "").trim() || String(nextRowNumber);
+      const direction = draft.direction === "desc" ? "desc" : "asc";
+      const step = direction === "desc" ? -1 : 1;
+      const startNumber = Number.isFinite(draft.startNumber) ? draft.startNumber : 1;
+      const rowStartX = baseSeat.vx + rowOffsetX * (idx + 1);
+      const rowStartY = baseSeat.vy + rowOffsetY * (idx + 1);
+      const timestamp = buildTimestamp();
+
+      newLines.push(`${timestamp}|RowAdd|RowId=${rowId}|Name=${rowName}`);
+
+      for (let i = 0; i < draft.seatCount; i++) {
+        const seatId = `${rowId}.${i + 1}`;
+        const seatName = String(startNumber + i * step);
+        const x = rowStartX + dirX * seatSpacing * i;
+        const y = rowStartY + dirY * seatSpacing * i;
+        const seat = {
+          seatId,
+          name: seatName,
+          sectionId,
+          rowId,
+          sectionName,
+          rowName,
+          centerX: x,
+          centerY: y,
+          vx: x,
+          vy: y,
+          radius: baseSeat.radius || 10,
+          rotation: baseSeat.rotation || 0,
+          width: baseSeat.width || 100,
+          entryVia: baseSeat.entryVia || "-",
+          goodness: Number.isFinite(baseGoodness) ? baseGoodness : 0,
+          attributes: [],
+          timestamp,
+          selected: true,
+          lineIndex: -1
+        };
+        newSeats.push(seat);
+        newLines.push(buildSeatLine(seat));
+      }
+    });
+
+    if (!newLines.length) return false;
+    shiftOutlineLineIndexes(insertAt, newLines.length);
+    originalLines.splice(insertAt, 0, ...newLines);
+    seats.push(...newSeats);
+    rebuildSeatLineIndex();
+    return true;
   }
 
   function buildAttributeModalList() {
@@ -8166,6 +8980,10 @@ function nudgeSelection(dxScreen, dyScreen) {
     closeSeatContextMenu();
     openAttributeModal();
   });
+  goodnessFromPointMenuItem?.addEventListener("click", () => {
+    closeSeatContextMenu();
+    openGoodnessModal();
+  });
   editSeatsMenuItem?.addEventListener("click", () => {
     closeSeatContextMenu();
     openSeatEditModal();
@@ -8173,6 +8991,17 @@ function nudgeSelection(dxScreen, dyScreen) {
   editRowsMenuItem?.addEventListener("click", () => {
     closeSeatContextMenu();
     openRowEditModal();
+  });
+  equalizeRowsMenuItem?.addEventListener("click", () => {
+    closeSeatContextMenu();
+    const changed = equalizeRowDistanceForSelection();
+    if (changed) {
+      pushHistorySnapshot();
+      hasUnsavedChanges = true;
+      updateCodeFromSeats();
+      updateSaveButton();
+      renderCanvas();
+    }
   });
   editSectionsMenuItem?.addEventListener("click", () => {
     closeSeatContextMenu();
@@ -8278,28 +9107,47 @@ function nudgeSelection(dxScreen, dyScreen) {
   sectionEditOverlay?.addEventListener("click", (e) => {
     if (e.target === sectionEditOverlay) closeSectionEditModal();
   });
+  sectionAddRowBtn?.addEventListener("click", () => {
+    if (!sectionEditTargetId) return;
+    addSectionRowDraft();
+  });
   sectionEditSave?.addEventListener("click", () => {
     if (!sectionEditList) return;
     let changed = false;
-    sectionEditList.querySelectorAll(".edit-item").forEach((item) => {
-      const sectionId = item.dataset.sectionId;
-      if (!sectionId) return;
-      const nameInput = item.querySelector("input[data-role='section-name']");
+    let seatsChanged = false;
+    const sectionItem = sectionEditList.querySelector(".edit-item");
+    const sectionId = sectionItem?.dataset.sectionId || sectionEditTargetId;
+    if (sectionId) {
+      const nameInput = sectionItem?.querySelector("input[data-role='section-name']");
       const nextName = (nameInput?.value || "").trim() || sectionId;
-      if (nextName !== (item.dataset.nameOriginal || "")) {
+      if (nextName !== (sectionItem?.dataset?.nameOriginal || "")) {
         changed = updateSectionName(sectionId, nextName) || changed;
       }
-    });
+    }
+    const { drafts, errors } = collectSectionRowDrafts();
+    if (errors.length) {
+      alert(errors.join("\n"));
+      return;
+    }
+    if (sectionId && drafts.length) {
+      seatsChanged = addRowsToSection(sectionId, drafts);
+      changed = seatsChanged || changed;
+    }
     if (changed) {
-      syncOutlinesIntoOriginalLines();
+      if (seatsChanged) {
+        updateCountsAfterSeatChange();
+        updatePriceRegionStatus();
+        updateEntryPointUi();
+      }
+      updateCodeFromSeats();
       const newText = originalLines.join("\n");
       if (codePane.value !== newText) {
         codePane.value = newText;
       }
+      renderCanvas();
       hasUnsavedChanges = true;
       updateSaveButton();
       saveSessionToLocalStorage();
-      renderCanvas();
       pushHistorySnapshot();
     }
     closeSectionEditModal();
@@ -8386,6 +9234,7 @@ function nudgeSelection(dxScreen, dyScreen) {
       closeSeatEditModal();
       closeRowEditModal();
       closeSectionEditModal();
+      closeGoodnessModal();
     }
   });
 
@@ -8408,11 +9257,10 @@ function nudgeSelection(dxScreen, dyScreen) {
       return;
     }
 
-    const hit = hitTestSeat(worldX, worldY);
-    if (!hit || !hit.selected) return;
     const selected = getSelectedSeats();
     if (!selected.length) return;
     e.preventDefault();
+    goodnessAnchorPoint = { x: worldX, y: worldY };
     openSeatContextMenu(e.clientX, e.clientY);
   });
 
@@ -9108,6 +9956,12 @@ function nudgeSelection(dxScreen, dyScreen) {
     renderCanvas();
     saveSessionToLocalStorage();
   });
+  [viewOverlayNone, viewOverlayPrice, viewOverlayGoodness].forEach((el) => {
+    el?.addEventListener("change", (e) => {
+      if (!e.target.checked) return;
+      setOverlayMode(e.target.value, false, true);
+    });
+  });
   [viewSeatLabelNone, viewSeatLabelRow, viewSeatLabelSeat].forEach((el) => {
     el?.addEventListener("change", (e) => {
       if (!e.target.checked) return;
@@ -9201,6 +10055,7 @@ function nudgeSelection(dxScreen, dyScreen) {
   }
 
   setAlignGroupingMode(readAlignGroupingMode(), false);
+  setGoodnessRangeCount(DEFAULT_GOODNESS_RANGE_COUNT, false);
 
   alignGroupingSelect?.addEventListener("change", (e) => {
     setAlignGroupingMode(e.target.value);
@@ -9750,8 +10605,16 @@ function nudgeSelection(dxScreen, dyScreen) {
              line.includes(`SeatId=${sectionId}.`) ||
              line.includes(`<Outline|${outlineCode}|`);
     };
-    originalLines = originalLines.filter(line => !matchSection(line));
+    const removedIndexes = [];
+    originalLines = originalLines.filter((line, idx) => {
+      if (matchSection(line)) {
+        removedIndexes.push(idx);
+        return false;
+      }
+      return true;
+    });
     outlines = outlines.filter(o => o.sectionId !== sectionId);
+    shiftOutlineLineIndexesAfterRemoval(removedIndexes);
 
     // Bygg om index-map
     seatIdToLineIndex = new Map();
@@ -10204,7 +11067,10 @@ function nudgeSelection(dxScreen, dyScreen) {
       if (viewSeatLabelRow?.checked) seatLabelMode = "row";
       else if (viewSeatLabelSeat?.checked) seatLabelMode = "seat";
       else seatLabelMode = "none";
-      showPriceRegions = viewPriceRegionToggle?.checked ?? false;
+      const initialOverlay = viewOverlayGoodness?.checked
+        ? "goodness"
+        : (viewOverlayPrice?.checked ? "price" : "none");
+      setOverlayMode(initialOverlay, true, false);
     }
 
     setTool("select");
@@ -10219,7 +11085,9 @@ function nudgeSelection(dxScreen, dyScreen) {
     // se till att UI-speglas
     if (viewHoverToggle) viewHoverToggle.checked = showHoverInfo;
     if (viewSectionNamesToggle) viewSectionNamesToggle.checked = showSectionNames;
-    if (viewPriceRegionToggle) viewPriceRegionToggle.checked = showPriceRegions;
+    if (viewOverlayNone) viewOverlayNone.checked = overlayMode === "none";
+    if (viewOverlayPrice) viewOverlayPrice.checked = overlayMode === "price";
+    if (viewOverlayGoodness) viewOverlayGoodness.checked = overlayMode === "goodness";
   });
 
   window.addEventListener("beforeunload", (e) => {
