@@ -793,14 +793,43 @@
 
     .section-editor__footer {
       display: flex;
-      justify-content: space-between;
-      align-items: center;
+      flex-direction: column;
+      align-items: stretch;
       gap: 0.5rem;
     }
 
     .section-hint {
       font-size: 0.8rem;
       color: #5b6673;
+    }
+
+    .section-help {
+      background: rgba(219,224,228,0.4);
+      border-radius: 8px;
+      padding: 0.6rem 0.7rem;
+    }
+
+    .section-help__title {
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+    }
+
+    .section-help__status {
+      font-weight: 600;
+      margin-bottom: 0.35rem;
+    }
+
+    .section-help__status:empty {
+      display: none;
+    }
+
+    .section-help__line {
+      display: block;
+      font-family: var(--font-mono);
+    }
+
+    .section-editor__footer .c-toolbar {
+      align-self: flex-end;
     }
 
     .row-textarea {
@@ -1574,6 +1603,15 @@
       color: #e5e7eb;
     }
 
+    html[data-theme="dark"] .section-help {
+      background: rgba(31,41,55,0.65);
+      color: #cbd5f5;
+    }
+
+    html[data-theme="dark"] .section-help__status {
+      color: #e5e7eb;
+    }
+
     html[data-theme="dark"] #info-panel span,
     html[data-theme="dark"] .c-pill,
     html[data-theme="dark"] .c-pill__code {
@@ -1688,10 +1726,48 @@
       background: transparent;
     }
 
+    html[data-theme="dark"] .align-grouping label {
+      color: #cbd5f5;
+    }
+
     #alignBar {
       width: 100%;
       flex-wrap: wrap;
       gap: 0.35rem;
+    }
+
+    .align-grouping {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    .align-grouping label {
+      font-size: 0.78rem;
+      color: var(--tick-grey-dark);
+    }
+
+    .align-grouping select {
+      padding: 0.25rem 0.55rem;
+      border-radius: 8px;
+      border: 1px solid var(--card-border);
+      background: #fff;
+      font-size: 0.78rem;
+    }
+
+    .align-rotate {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    .align-rotate input {
+      width: 64px;
+      padding: 0.25rem 0.5rem;
+      border-radius: 8px;
+      border: 1px solid var(--card-border);
+      font-size: 0.78rem;
+      text-align: center;
     }
 
     #canvas-container {
@@ -1943,6 +2019,18 @@
           <button id="alignRightBtn" class="c-button c-button--ghost c-button--small" title="Align right">Align Right</button>
           <button id="alignCenterHBtn" class="c-button c-button--ghost c-button--small" title="Center horizontally">Center H</button>
           <button id="alignCenterVBtn" class="c-button c-button--ghost c-button--small" title="Center vertically">Center V</button>
+          <div class="align-grouping">
+            <label for="alignGroupingSelect" class="u-font--small">Grouping</label>
+            <select id="alignGroupingSelect">
+              <option value="group">As group</option>
+              <option value="individual">Individual</option>
+            </select>
+          </div>
+          <div class="align-rotate">
+            <button id="rotateCcwBtn" class="c-button c-button--ghost c-button--small" title="Rotate counter-clockwise">Rotate CCW</button>
+            <input id="rotateDegreesInput" type="number" inputmode="decimal" step="1" placeholder="deg" />
+            <button id="rotateCwBtn" class="c-button c-button--ghost c-button--small" title="Rotate clockwise">Rotate CW</button>
+          </div>
         </div>
 
       </div>
@@ -2083,7 +2171,7 @@
 
           <div>
             <div class="u-font--small" style="margin-bottom:0.25rem;">Rows</div>
-            <textarea id="sectionRowText" class="row-textarea" placeholder="1: 1,10 (gives you a row with seats named 1 - 10 and row number 1)&#10;2: 1,15|16,30 (gives you a row with seats 1 - 15, then a gap and then seats 16 - 30. Same RowId. Row number 2)&#10;3: 1,5||6,10 (gives you a row with seats 1 - 5, then a gap and then seats 6 - 10. Creates two separate RowIds. Row number 3)"></textarea>
+            <textarea id="sectionRowText" class="row-textarea" placeholder="Enter rows (see tips below)."></textarea>
             <div class="c-toolbar c-toolbar--horizontal" style="margin-top:0.35rem; gap:0.35rem;">
               <button id="parseRowsBtn" class="c-button c-button--ghost c-button--small">Update rows</button>
               <span class="section-hint">One row per line. Ranges use | and start,end.</span>
@@ -2113,11 +2201,17 @@
           <div class="section-editor__rows" id="sectionRowsEditor"></div>
 
           <div class="section-editor__footer">
-            <div class="section-hint" id="sectionEditHint">New section — you can add rows and seats.</div>
             <div class="c-toolbar c-toolbar--horizontal">
               <button id="sectionManagerClose" class="c-button c-button--ghost c-button--small">Close</button>
               <button id="sectionSaveCloseBtn" class="c-button c-button--secondary c-button--small">Save and close</button>
               <button id="sectionSaveBtn" class="c-button c-button--primary c-button--small">Save section</button>
+            </div>
+            <div class="section-hint section-help" id="sectionEditHint">
+              <div class="section-help__status" id="sectionEditStatus"></div>
+              <div class="section-help__title">Row examples</div>
+              <span class="section-help__line">1: 1,10 (gives you a row with seats named 1 - 10 and row number 1)</span>
+              <span class="section-help__line">2: 1,15|16,30 (gives you a row with seats 1 - 15, then a gap and then seats 16 - 30. Same RowId. Row number 2)</span>
+              <span class="section-help__line">3: 1,5||6,10 (gives you a row with seats 1 - 5, then a gap and then seats 6 - 10. Creates two separate RowIds. Row number 3)</span>
             </div>
           </div>
         </div>
@@ -2397,6 +2491,10 @@
   const alignRightBtn = document.getElementById("alignRightBtn");
   const alignCenterHBtn = document.getElementById("alignCenterHBtn");
   const alignCenterVBtn = document.getElementById("alignCenterVBtn");
+  const alignGroupingSelect = document.getElementById("alignGroupingSelect");
+  const rotateCcwBtn = document.getElementById("rotateCcwBtn");
+  const rotateCwBtn = document.getElementById("rotateCwBtn");
+  const rotateDegreesInput = document.getElementById("rotateDegreesInput");
 
   const openFileBtnTop = document.getElementById("openFileBtnTop");
   const openSectionManagerBtn = document.getElementById("openSectionManagerBtn");
@@ -2514,6 +2612,7 @@
   const sectionSaveBtn = document.getElementById("sectionSaveBtn");
   const sectionSaveCloseBtn = document.getElementById("sectionSaveCloseBtn");
   const sectionEditHint = document.getElementById("sectionEditHint");
+  const sectionEditStatus = document.getElementById("sectionEditStatus");
   const sectionDuplicateBtn = document.getElementById("sectionDuplicateBtn");
   const sectionDirtyFlag = document.getElementById("sectionDirtyFlag");
   const sectionRowText = document.getElementById("sectionRowText");
@@ -2637,6 +2736,9 @@
   // Verktyg & markeringsläge
   let currentTool = "select";   // "select" | "move" | "rotate" | "resize" | "bend" | "reshape"
   let selectionMode = "section";   // "section" | "row" | "seat"
+  let selectionOrderCounter = 1;
+  let lastSelectedSeatId = null;
+  let alignGroupingMode = "group";
 
   // Smart rendering / prestanda
   let lastVisibleSeatCount = 0;
@@ -2784,6 +2886,8 @@
   function parseTlt(text) {
     seats = [];
     outlines = [];
+    selectionOrderCounter = 1;
+    lastSelectedSeatId = null;
     sectionNames = new Map();
     originalLines = text.split(/\r?\n/);
     seatIdToLineIndex = new Map();
@@ -2931,6 +3035,7 @@
           attributes: attributesList,
           timestamp,
           selected: false,
+          selectedAt: null,
           lineIndex
         };
 
@@ -3024,6 +3129,7 @@
       }
     }
 
+    rebuildSelectionOrderFromSelection();
     renderCanvas();
 
     // Markera ändringar & kod om positionerna ändrats
@@ -3664,7 +3770,7 @@ codePane.addEventListener("input", () => {
   }
 
   async function handleSaveViaPicker() {
-    const text = codePane.value || "";
+    const text = stripEmptyLines(codePane.value || "");
     try {
       let handle = forceSaveAs ? null : currentFileHandle;
       const startDir = lastDirectoryHandle || await tryGetDirectoryHandle(currentFileHandle);
@@ -3754,13 +3860,15 @@ codePane.addEventListener("input", () => {
     if (supportsSavePicker) {
       await handleSaveViaPicker();
     } else {
-      downloadFallback(codePane.value || "");
+      downloadFallback(stripEmptyLines(codePane.value || ""));
     }
   }
 
   function resetLayoutState(baseName = "", venueId = "") {
     seats = [];
     outlines = [];
+    selectionOrderCounter = 1;
+    lastSelectedSeatId = null;
     const initTs = buildTimestamp();
     originalLines = [`${initTs}|LayoutInit|VenueId=${venueId}`];
     seatIdToLineIndex = new Map();
@@ -3788,6 +3896,8 @@ codePane.addEventListener("input", () => {
   function clearLayoutState() {
     seats = [];
     outlines = [];
+    selectionOrderCounter = 1;
+    lastSelectedSeatId = null;
     originalLines = [];
     seatIdToLineIndex = new Map();
     sectionNames = new Map();
@@ -4094,6 +4204,13 @@ codePane.addEventListener("input", () => {
     ].join("\n");
   }
 
+  function stripEmptyLines(text) {
+    return String(text || "")
+      .split(/\r?\n/)
+      .filter((line) => line.trim())
+      .join("\n");
+  }
+
   function isValidRangeId(rangeId) {
     return /^[1-9]\d{7,9}$/.test(String(rangeId || ""));
   }
@@ -4112,7 +4229,7 @@ codePane.addEventListener("input", () => {
 
   function updateTltVenueId(text, venueId) {
     if (!venueId) return text;
-    const lines = (text || "").split(/\r?\n/);
+    const lines = String(text || "").split(/\r?\n/);
     for (let i = 0; i < lines.length; i++) {
       if (lines[i].includes("|LayoutInit|")) {
         if (lines[i].includes("VenueId=")) {
@@ -4938,8 +5055,8 @@ codePane.addEventListener("input", () => {
     const venueId = (exportVenueId?.value || "").trim() || metaVenueId;
     const files = [];
     if (exportTlc?.checked) files.push({ name: `${baseName}.tlc`, text: buildTlcText(baseName, venueId) });
-    if (exportTlt?.checked) files.push({ name: `${baseName}.tlt`, text: updateTltVenueId(codePane.value || "", venueId) });
-    if (exportTpr?.checked) files.push({ name: `${baseName}.tpr`, text: buildTprText(baseName, venueId) });
+    if (exportTlt?.checked) files.push({ name: `${baseName}.tlt`, text: stripEmptyLines(updateTltVenueId(codePane.value || "", venueId)) });
+    if (exportTpr?.checked) files.push({ name: `${baseName}.tpr`, text: stripEmptyLines(buildTprText(baseName, venueId)) });
     if (exportCss?.checked) files.push({ name: `${baseName}.css`, text: buildCssText() });
     if (exportSvg?.checked) files.push({ name: `${baseName}.svg`, text: await buildSvgText(baseName) });
 
@@ -5934,6 +6051,9 @@ codePane.addEventListener("input", () => {
     alignRightBtn.disabled = !enabled;
     alignCenterHBtn.disabled = !enabled;
     alignCenterVBtn.disabled = !enabled;
+    const hasSelection = seats.some(s => s.selected);
+    if (rotateCcwBtn) rotateCcwBtn.disabled = !hasSelection;
+    if (rotateCwBtn) rotateCwBtn.disabled = !hasSelection;
   }
 
   // Hjälpfunktioner för färgkontrast på etiketter
@@ -6314,13 +6434,18 @@ function selectAllSeats() {
   if (!seats || seats.length === 0) return;
 
   let changed = false;
+  let lastAdded = null;
   for (const s of seats) {
     if (!s.selected) {
       s.selected = true;
+      s.selectedAt = selectionOrderCounter++;
       changed = true;
+      lastAdded = s;
     }
   }
   if (!changed) return;
+
+  if (lastAdded) lastSelectedSeatId = lastAdded.seatId;
 
   // Aktivera Move-verktyget (det är bara knappen som ska bli aktiverbar)
   moveToolBtn.disabled = false;
@@ -6337,6 +6462,78 @@ function selectAllSeats() {
   // --- Markeringsdata ---
   function getSelectedSeats() {
     return seats.filter(s => s.selected);
+  }
+
+  function clearSelectionSeats(seatsToClear) {
+    for (const s of seatsToClear) {
+      s.selected = false;
+      s.selectedAt = null;
+    }
+  }
+
+  function markSeatsSelected(seatsToSelect, anchorSeatId) {
+    if (!seatsToSelect || seatsToSelect.length === 0) return;
+    const order = selectionOrderCounter++;
+    for (const s of seatsToSelect) {
+      s.selected = true;
+      s.selectedAt = order;
+    }
+    if (anchorSeatId) {
+      lastSelectedSeatId = anchorSeatId;
+    } else {
+      const lastSeat = seatsToSelect[seatsToSelect.length - 1];
+      lastSelectedSeatId = lastSeat ? lastSeat.seatId : null;
+    }
+  }
+
+  function refreshSelectionAnchorFromOrder() {
+    let anchor = null;
+    let bestOrder = -Infinity;
+    for (const s of seats) {
+      if (!s.selected) continue;
+      const order = typeof s.selectedAt === "number" ? s.selectedAt : 0;
+      if (!anchor || order >= bestOrder) {
+        anchor = s;
+        bestOrder = order;
+      }
+    }
+    lastSelectedSeatId = anchor ? anchor.seatId : null;
+    if (Number.isFinite(bestOrder) && bestOrder >= selectionOrderCounter) {
+      selectionOrderCounter = bestOrder + 1;
+    }
+  }
+
+  function rebuildSelectionOrderFromSelection() {
+    let order = 1;
+    let anchor = null;
+    for (const s of seats) {
+      if (s.selected) {
+        s.selectedAt = order++;
+        anchor = s;
+      } else {
+        s.selectedAt = null;
+      }
+    }
+    selectionOrderCounter = order;
+    lastSelectedSeatId = anchor ? anchor.seatId : null;
+  }
+
+  function getSelectionAnchorSeat(selectedSeats) {
+    if (!selectedSeats || !selectedSeats.length) return null;
+    if (lastSelectedSeatId) {
+      const anchor = selectedSeats.find(s => s.seatId === lastSelectedSeatId);
+      if (anchor) return anchor;
+    }
+    let best = selectedSeats[0];
+    let bestOrder = typeof best.selectedAt === "number" ? best.selectedAt : 0;
+    for (const s of selectedSeats) {
+      const order = typeof s.selectedAt === "number" ? s.selectedAt : 0;
+      if (order >= bestOrder) {
+        best = s;
+        bestOrder = order;
+      }
+    }
+    return best;
   }
 
   function removeSeatsById(seatIds) {
@@ -6411,7 +6608,8 @@ function selectAllSeats() {
     }
 
     if (!removed) return;
-    seats.forEach(s => { s.selected = false; });
+    clearSelectionSeats(seats);
+    lastSelectedSeatId = null;
     rebuildSeatLineIndex();
     prunePriceRegionsToExistingSeats();
     updateCountsAfterSeatChange();
@@ -6697,31 +6895,17 @@ function selectAllSeats() {
     if (!selected.length) return [];
 
     const groups = [];
-    if (selectionMode === "seat") {
-      // Keep multi-seat selections per section intact to avoid collapsing.
-      const bySection = new Map();
-      const singles = [];
-      for (const s of selected) {
-        if (s.sectionId) {
-          if (!bySection.has(s.sectionId)) bySection.set(s.sectionId, []);
-          bySection.get(s.sectionId).push(s);
-        } else {
-          singles.push(s);
-        }
+    const pushGroup = (seatsArr) => {
+      const b = getSelectionBounds(seatsArr);
+      if (!b) return;
+      let order = 0;
+      for (const s of seatsArr) {
+        const value = typeof s.selectedAt === "number" ? s.selectedAt : 0;
+        if (value > order) order = value;
       }
-      for (const seatsArr of bySection.values()) {
-        if (seatsArr.length >= 2) {
-          const b = getSelectionBounds(seatsArr);
-          if (b) groups.push({ seats: seatsArr, bounds: b });
-        } else if (seatsArr[0]) {
-          singles.push(seatsArr[0]);
-        }
-      }
-      for (const s of singles) {
-        groups.push({ seats: [s], bounds: { minX: s.vx, maxX: s.vx, minY: s.vy, maxY: s.vy, centerX: s.vx, centerY: s.vy } });
-      }
-      return groups;
-    }
+      groups.push({ seats: seatsArr, bounds: b, order });
+    };
+
     if (selectionMode === "section") {
       const bySection = new Map();
       for (const s of selected) {
@@ -6730,8 +6914,7 @@ function selectAllSeats() {
         bySection.get(s.sectionId).push(s);
       }
       for (const seatsArr of bySection.values()) {
-        const b = getSelectionBounds(seatsArr);
-        if (b) groups.push({ seats: seatsArr, bounds: b });
+        pushGroup(seatsArr);
       }
     } else if (selectionMode === "row") {
       const byRow = new Map();
@@ -6741,63 +6924,108 @@ function selectAllSeats() {
         byRow.get(s.rowId).push(s);
       }
       for (const seatsArr of byRow.values()) {
-        const b = getSelectionBounds(seatsArr);
-        if (b) groups.push({ seats: seatsArr, bounds: b });
+        pushGroup(seatsArr);
       }
     } else {
-      // Seat-läge: behandla varje plats som egen grupp
       for (const s of selected) {
-        groups.push({ seats: [s], bounds: { minX: s.vx, maxX: s.vx, minY: s.vy, maxY: s.vy, centerX: s.vx, centerY: s.vy } });
+        groups.push({
+          seats: [s],
+          bounds: { minX: s.vx, maxX: s.vx, minY: s.vy, maxY: s.vy, centerX: s.vx, centerY: s.vy },
+          order: typeof s.selectedAt === "number" ? s.selectedAt : 0
+        });
       }
     }
     return groups;
   }
 
   function alignSelectedSeats(mode) {
+    const selected = getSelectedSeats();
+    if (selected.length < 2) return false;
+
     const groups = getAlignGroups();
-    if (!groups.length) return false;
-    // Kräver minst 2 grupper för meningsfull align
     if (groups.length < 2) return false;
 
-    // Samla övergripande bounds från gruppers bounding box
-    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-    for (const g of groups) {
-      minX = Math.min(minX, g.bounds.minX);
-      minY = Math.min(minY, g.bounds.minY);
-      maxX = Math.max(maxX, g.bounds.maxX);
-      maxY = Math.max(maxY, g.bounds.maxY);
+    const anchorSeat = getSelectionAnchorSeat(selected);
+    let anchorGroup = null;
+    if (anchorSeat) {
+      anchorGroup = groups.find(g => g.seats.some(s => s.seatId === anchorSeat.seatId)) || null;
     }
-    const overall = {
-      minX,
-      minY,
-      maxX,
-      maxY,
-      centerX: (minX + maxX) / 2,
-      centerY: (minY + maxY) / 2
-    };
+    if (!anchorGroup) {
+      anchorGroup = groups.reduce((best, g) => (g.order >= best.order ? g : best), groups[0]);
+    }
+    if (!anchorGroup) return false;
 
-    let changed = false;
-    for (const g of groups) {
+    const target = anchorGroup.bounds;
+
+    if (alignGroupingMode === "group") {
+      const movableSeats = [];
+      for (const g of groups) {
+        if (g === anchorGroup) continue;
+        movableSeats.push(...g.seats);
+      }
+      if (!movableSeats.length) return false;
+      const movableBounds = getSelectionBounds(movableSeats);
+      if (!movableBounds) return false;
+
       let deltaX = 0;
       let deltaY = 0;
       switch (mode) {
         case "top":
-          deltaY = overall.minY - g.bounds.minY;
+          deltaY = target.minY - movableBounds.minY;
           break;
         case "bottom":
-          deltaY = overall.maxY - g.bounds.maxY;
+          deltaY = target.maxY - movableBounds.maxY;
           break;
         case "left":
-          deltaX = overall.minX - g.bounds.minX;
+          deltaX = target.minX - movableBounds.minX;
           break;
         case "right":
-          deltaX = overall.maxX - g.bounds.maxX;
+          deltaX = target.maxX - movableBounds.maxX;
           break;
         case "centerH":
-          deltaX = overall.centerX - g.bounds.centerX;
+          deltaX = target.centerX - movableBounds.centerX;
           break;
         case "centerV":
-          deltaY = overall.centerY - g.bounds.centerY;
+          deltaY = target.centerY - movableBounds.centerY;
+          break;
+        default:
+          break;
+      }
+      if (deltaX !== 0 || deltaY !== 0) {
+        for (const s of movableSeats) {
+          s.vx += deltaX;
+          s.vy += deltaY;
+          s.centerX += deltaX;
+          s.centerY += deltaY;
+        }
+        return true;
+      }
+      return false;
+    }
+
+    let changed = false;
+    for (const g of groups) {
+      if (g === anchorGroup) continue;
+      let deltaX = 0;
+      let deltaY = 0;
+      switch (mode) {
+        case "top":
+          deltaY = target.minY - g.bounds.minY;
+          break;
+        case "bottom":
+          deltaY = target.maxY - g.bounds.maxY;
+          break;
+        case "left":
+          deltaX = target.minX - g.bounds.minX;
+          break;
+        case "right":
+          deltaX = target.maxX - g.bounds.maxX;
+          break;
+        case "centerH":
+          deltaX = target.centerX - g.bounds.centerX;
+          break;
+        case "centerV":
+          deltaY = target.centerY - g.bounds.centerY;
           break;
         default:
           break;
@@ -6814,8 +7042,7 @@ function selectAllSeats() {
     }
     return changed;
   }
-
-  function nudgeSelection(dxScreen, dyScreen) {
+function nudgeSelection(dxScreen, dyScreen) {
     const selected = getSelectedSeats();
     if (!selected.length) return false;
     const dxWorld = dxScreen / scale;
@@ -6946,11 +7173,13 @@ function selectAllSeats() {
   function selectByRect(rectWorld, additive) {
     const { minX, maxX, minY, maxY } = rectWorld;
 
-    if (!additive) {
-      for (const s of seats) s.selected = false;
-    }
-
     let selectionChanged = false;
+    if (!additive) {
+      const hadSelection = seats.some(s => s.selected);
+      clearSelectionSeats(seats);
+      lastSelectedSeatId = null;
+      selectionChanged = hadSelection;
+    }
 
     if (selectionMode === "seat") {
       for (const s of seats) {
@@ -6960,6 +7189,7 @@ function selectAllSeats() {
         ) {
           if (!s.selected) {
             s.selected = true;
+            s.selectedAt = selectionOrderCounter++;
             selectionChanged = true;
           }
         }
@@ -6979,6 +7209,7 @@ function selectAllSeats() {
         if (rowsInside.has(s.rowId)) {
           if (!s.selected) {
             s.selected = true;
+            s.selectedAt = selectionOrderCounter++;
             selectionChanged = true;
           }
         }
@@ -6998,6 +7229,7 @@ function selectAllSeats() {
         if (sectInside.has(s.sectionId)) {
           if (!s.selected) {
             s.selected = true;
+            s.selectedAt = selectionOrderCounter++;
             selectionChanged = true;
           }
         }
@@ -7005,13 +7237,13 @@ function selectAllSeats() {
     }
 
     if (selectionChanged) {
-      pushHistorySnapshot();     // <-- nu ångrar Ctrl+Z även detta
+      refreshSelectionAnchorFromOrder();
+      pushHistorySnapshot();     // markering i historiken
       updateMoveButtonState();
       renderCanvas();
     }
   }
-
-  // --- Zoom ---
+// --- Zoom ---
   canvas.addEventListener("wheel", (e) => {
     if (!e.ctrlKey) return;
     e.preventDefault();
@@ -7204,36 +7436,28 @@ function selectAllSeats() {
         const group = getGroupForSeat(hit);
 
         if (!additiveClick) {
-          // ersätt markering
-          for (const s of seats) {
-            if (s.selected) {
-              s.selected = false;
-              selectionChanged = true;
-            }
-          }
-          for (const s of group) {
-            if (!s.selected) {
-              s.selected = true;
-              selectionChanged = true;
-            }
+          // ersatt markering
+          const hadSelection = seats.some(s => s.selected);
+          clearSelectionSeats(seats);
+          lastSelectedSeatId = null;
+          if (group.length) {
+            markSeatsSelected(group, hit.seatId);
+            selectionChanged = true;
+          } else if (hadSelection) {
+            selectionChanged = true;
           }
         } else {
           // toggla grupp
           const groupSelected = group.every(s => s.selected);
           if (groupSelected) {
-            for (const s of group) {
-              if (s.selected) {
-                s.selected = false;
-                selectionChanged = true;
-              }
+            clearSelectionSeats(group);
+            selectionChanged = true;
+            if (group.some(s => s.seatId === lastSelectedSeatId)) {
+              refreshSelectionAnchorFromOrder();
             }
           } else {
-            for (const s of group) {
-              if (!s.selected) {
-                s.selected = true;
-                selectionChanged = true;
-              }
-            }
+            markSeatsSelected(group, hit.seatId);
+            selectionChanged = true;
           }
         }
 
@@ -8814,8 +9038,12 @@ function selectAllSeats() {
     for (const s of seats) {
       if (s.selected) {
         s.selected = false;
+        s.selectedAt = null;
         changed = true;
       }
+    }
+    if (changed) {
+      lastSelectedSeatId = null;
     }
     if (changed) {
       pushHistorySnapshot();    // ångra deselect
@@ -8889,6 +9117,57 @@ function selectAllSeats() {
   });
 
   // --- Align-knappar ---
+  function rotateSelectionByDegrees(degrees) {
+    if (!Number.isFinite(degrees) || degrees === 0) return false;
+    const selected = getSelectedSeats();
+    if (!selected.length) return false;
+    const bounds = getSelectionBounds(selected);
+    if (!bounds) return false;
+
+    const radians = (degrees * Math.PI) / 180;
+    const cosA = Math.cos(radians);
+    const sinA = Math.sin(radians);
+    const cx = bounds.centerX;
+    const cy = bounds.centerY;
+
+    for (const s of selected) {
+      const dx = s.vx - cx;
+      const dy = s.vy - cy;
+      const rotatedX = cx + dx * cosA - dy * sinA;
+      const rotatedY = cy + dx * sinA + dy * cosA;
+      s.vx = rotatedX;
+      s.vy = rotatedY;
+      s.centerX = rotatedX;
+      s.centerY = rotatedY;
+    }
+    return true;
+  }
+
+  function readRotationDegrees() {
+    const raw = (rotateDegreesInput?.value || "").trim();
+    const value = parseFloat(raw);
+    if (!Number.isFinite(value)) {
+      alert("Enter rotation degrees.");
+      return null;
+    }
+    return value;
+  }
+
+
+  function handleRotate(direction) {
+    const value = readRotationDegrees();
+    if (!Number.isFinite(value) || value === 0) return;
+    const degrees = direction === "ccw" ? -Math.abs(value) : Math.abs(value);
+    const didRotate = rotateSelectionByDegrees(degrees);
+    if (didRotate) {
+      pushHistorySnapshot();
+      hasUnsavedChanges = true;
+      updateCodeFromSeats();
+      updateSaveButton();
+      renderCanvas();
+    }
+  }
+
   function handleAlign(mode) {
     const didAlign = alignSelectedSeats(mode);
     if (didAlign) {
@@ -8899,12 +9178,41 @@ function selectAllSeats() {
       renderCanvas();
     }
   }
+  const ALIGN_GROUPING_KEY = "arenaDesignerAlignGrouping";
+
+  function readAlignGroupingMode() {
+    try {
+      const stored = localStorage.getItem(ALIGN_GROUPING_KEY);
+      if (stored === "individual" || stored === "group") return stored;
+    } catch (_) {}
+    return "group";
+  }
+
+  function writeAlignGroupingMode(mode) {
+    try {
+      localStorage.setItem(ALIGN_GROUPING_KEY, mode);
+    } catch (_) {}
+  }
+
+  function setAlignGroupingMode(mode, persist = true) {
+    alignGroupingMode = mode === "individual" ? "individual" : "group";
+    if (alignGroupingSelect) alignGroupingSelect.value = alignGroupingMode;
+    if (persist) writeAlignGroupingMode(alignGroupingMode);
+  }
+
+  setAlignGroupingMode(readAlignGroupingMode(), false);
+
+  alignGroupingSelect?.addEventListener("change", (e) => {
+    setAlignGroupingMode(e.target.value);
+  });
   alignTopBtn.addEventListener("click", () => handleAlign("top"));
   alignBottomBtn.addEventListener("click", () => handleAlign("bottom"));
   alignLeftBtn.addEventListener("click", () => handleAlign("left"));
   alignRightBtn.addEventListener("click", () => handleAlign("right"));
   alignCenterHBtn.addEventListener("click", () => handleAlign("centerH"));
   alignCenterVBtn.addEventListener("click", () => handleAlign("centerV"));
+  rotateCcwBtn?.addEventListener("click", () => handleRotate("ccw"));
+  rotateCwBtn?.addEventListener("click", () => handleRotate("cw"));
 
   // --- Sektion: helpers & modal ---
   function newSeat(name = "1") {
@@ -9268,10 +9576,10 @@ function selectAllSeats() {
 
     const existingSeats = seats.some((s) => s.sectionId === draft.sectionId);
     sectionEditId.disabled = existingSeats;
-    if (sectionEditHint) {
-      sectionEditHint.textContent = existingSeats
-        ? "Editing existing section — name can be changed. Structural changes are limited."
-        : "New section — you can add rows and seats.";
+    if (sectionEditStatus) {
+      sectionEditStatus.textContent = existingSeats
+        ? "Editing existing section - name can be changed. Structural changes are limited."
+        : "";
     }
 
     renderRowsPreview(draft);
