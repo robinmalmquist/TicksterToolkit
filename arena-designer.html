@@ -9914,6 +9914,9 @@ function nudgeSelection(dxScreen, dyScreen) {
         const entryViaText = (hoverSeat.entryVia && hoverSeat.entryVia !== "-") ? hoverSeat.entryVia : "-";
         tooltipLines.push(`<strong>Entry:</strong> ${entryViaText}`);
         tooltipLines.push(`<strong>Price region:</strong> ${priceRegionName || "-"}`);
+        const goodnessValue = Number(hoverSeat.goodness);
+        const goodnessText = Number.isFinite(goodnessValue) ? formatNumber(goodnessValue) : "0";
+        tooltipLines.push(`<strong>Goodness:</strong> ${goodnessText}`);
         tooltipLines.push(`<strong>Attributes:</strong> ${attributesText}`);
 
         tooltipEl.innerHTML = tooltipLines.join("<br/>");
