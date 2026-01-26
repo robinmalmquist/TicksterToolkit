@@ -3751,11 +3751,12 @@
     }
     const outlinesChanged = syncOutlinesIntoOriginalLines();
     changed = changed || outlinesChanged;
-    if (!changed) return;
     const newText = originalLines.join("\n");
     if (codePane.value !== newText) {
       codePane.value = newText;
+      changed = true;
     }
+    if (!changed) return;
     hasUnsavedChanges = true;
     updateSaveButton();
     saveSessionToLocalStorage(); 
