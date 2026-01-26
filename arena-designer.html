@@ -911,11 +911,14 @@
       display: flex;
       flex-direction: column;
       overflow: auto;
+      height: 100%;
     }
 
     #left-toolbar .c-card {
-      flex: 1;
+      flex: 1 1 auto;
       gap: 0.75rem;
+      margin-bottom: 0;
+      min-height: 0;
     }
 
     #toolButtons {
@@ -2045,19 +2048,19 @@
         <div class="c-toolbar">
           <div class="c-toolbar c-toolbar--horizontal bg-toggle-group">
             <button id="bgLoadBtn" class="c-button c-button--ghost c-button--small">Add</button>
-            <button id="bgToggleBtn" class="c-button c-button--ghost c-button--small">Show</button>
+            <button id="bgToggleBtn" class="c-button c-button--ghost c-button--small" disabled>Show</button>
           </div>
           <div class="c-toolbar c-toolbar--horizontal bg-toggle-group">
-            <button id="bgMoveBtn" class="c-button c-button--ghost c-button--small">Move</button>
-            <button id="bgDeleteBtn" class="c-button c-button--ghost c-button--small" style="max-width: 50px">Delete</button>
+            <button id="bgMoveBtn" class="c-button c-button--ghost c-button--small" disabled>Move</button>
+            <button id="bgDeleteBtn" class="c-button c-button--ghost c-button--small" style="max-width: 50px" disabled>Delete</button>
           </div>
           <label class="bg-control u-font--small">
             Opacity
-            <input type="range" id="bgOpacityRange" min="0" max="1" step="0.05" value="0.4" />
+            <input type="range" id="bgOpacityRange" min="0" max="1" step="0.05" value="0.4" disabled />
           </label>
           <label class="bg-control u-font--small">
             Scale
-            <input type="range" id="bgScaleRange" min="0.1" max="20" step="0.1" value="1" />
+            <input type="range" id="bgScaleRange" min="0.1" max="20" step="0.1" value="1" disabled />
           </label>
         </div>
 
@@ -2984,7 +2987,7 @@
 
   // Smart rendering / prestanda
   let lastVisibleSeatCount = 0;
-  const RECT_DOT_THRESHOLD = 1500; // över detta: små fyrkanter
+  const RECT_DOT_THRESHOLD = 2500; // över detta: små fyrkanter
   const HOVER_VISIBLE_LIMIT = 4000; // över detta: ingen tooltip/hover-info
 
   let hoverSeat = null;
@@ -3643,24 +3646,33 @@
 
   // --- Bakgrundshantering ---
   function setBackgroundEnabled(enabled) {
-    backgroundState.enabled = enabled;
-    if (bgToggleBtn) {
-      bgToggleBtn.textContent = enabled ? "Hide" : "Show";
-      bgToggleBtn.classList.toggle("c-button--active", enabled);
-    }
+    const hasImage = !!backgroundState.img;
+    backgroundState.enabled = hasImage && !!enabled;
+    updateBackgroundMoveButtons();
     saveSessionToLocalStorage();
     renderCanvas();
   }
 
   function updateBackgroundMoveButtons() {
     const hasImage = !!backgroundState.img;
+    if (bgToggleBtn) {
+      bgToggleBtn.disabled = !hasImage;
+      bgToggleBtn.textContent = backgroundState.enabled ? "Hide" : "Show";
+      bgToggleBtn.classList.toggle("c-button--active", backgroundState.enabled && hasImage);
+    }
     if (bgMoveBtn) {
       bgMoveBtn.disabled = !hasImage;
       bgMoveBtn.textContent = backgroundMoveMode ? "Lock" : "Move";
-      bgMoveBtn.classList.toggle("c-button--active", backgroundMoveMode);
+      bgMoveBtn.classList.toggle("c-button--active", backgroundMoveMode && hasImage);
     }
     if (bgDeleteBtn) {
       bgDeleteBtn.disabled = !hasImage;
+    }
+    if (bgOpacityRange) {
+      bgOpacityRange.disabled = !hasImage;
+    }
+    if (bgScaleRange) {
+      bgScaleRange.disabled = !hasImage;
     }
   }
 
@@ -4011,6 +4023,7 @@ codePane.addEventListener("input", () => {
   async function loadTltFromHandle(handle) {
     const file = await handle.getFile();
     const text = await file.text();
+    clearBackgroundImage();
     parseTlt(text);
     codePane.value = text;
     currentFileHandle = handle;
@@ -4120,6 +4133,7 @@ codePane.addEventListener("input", () => {
   async function openFileFromInput(file) {
     if (!file) return;
     const text = await file.text();
+    clearBackgroundImage();
     parseTlt(text);
     codePane.value = text;
     currentFileName = file.name || "";
@@ -4180,6 +4194,7 @@ codePane.addEventListener("input", () => {
   }
 
   function resetLayoutState(baseName = "", venueId = "") {
+    clearBackgroundImage();
     seats = [];
     outlines = [];
     selectionOrderCounter = 1;
@@ -4210,6 +4225,7 @@ codePane.addEventListener("input", () => {
   }
 
   function clearLayoutState() {
+    clearBackgroundImage();
     seats = [];
     outlines = [];
     selectionOrderCounter = 1;
@@ -4276,6 +4292,7 @@ codePane.addEventListener("input", () => {
     if (layoutActive) {
       updateSaveButton();
       updateMoveButtonState();
+      updateBackgroundMoveButtons();
     }
   }
 
