@@ -4,6 +4,9 @@
   <meta charset="UTF-8" />
   <title>Arena Designer</title>
   <style>
+
+    @import url('https://fonts.googleapis.com/css2?family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap');
+
     * { box-sizing: border-box; }
 
     :root {
@@ -38,7 +41,7 @@
       --radius-card: 10px;
       --radius-pill: 5px;
       --transition-fast: 0.15s ease-out;
-      --font-main: "Roboto", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-main: "Ubuntu", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
       --font-mono: "Roboto Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Courier New", monospace;
     }
 
@@ -132,6 +135,7 @@
       background: #f7f9fc;
       padding: 0.4rem 0.9rem;
       font-size: 0.85rem;
+      font-family: "Ubuntu", -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
       cursor: pointer;
       color: var(--tick-grey-dark);
       transition: background var(--transition-fast), border-color var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast);
@@ -2205,6 +2209,10 @@
               <input type="radio" name="seatLabelMode" id="viewSeatLabelSeat" value="seat" />
               Display seat number
             </label>
+            <label class="bg-control">
+              <input type="radio" name="seatLabelMode" id="viewSeatLabelSeatId" value="seatId" />
+              Display seat ID
+            </label>
           </div>
           <button id="openCodeModalBtn" class="c-button c-button--ghost c-button--small">Show source code</button>
         </div>
@@ -2288,19 +2296,8 @@
           <div id="sectionCards" class="section-cards"></div>
         </aside>
         <div class="section-editor">
-        <div class="section-editor__grid">
-            <label class="section-editor__field">
-              <div class="u-font--small" style="margin-bottom:0.25rem;">Name</div>
-              <input id="sectionEditName" type="text" placeholder="e.g. Section A" />
-            </label>
-          <label class="section-editor__field">
-            <div class="u-font--small" style="margin-bottom:0.25rem;">Section ID</div>
-            <input id="sectionEditId" type="text" placeholder="1.1" />
-          </label>
-            <label class="section-editor__field" style="display:none;">
-              <div class="u-font--small" style="margin-bottom:0.25rem;">Color</div>
-              <input id="sectionEditColor" type="color" value="#14a0f4" />
-            </label>
+          <div style="display:none;">
+            <input id="sectionEditColor" type="color" value="#14a0f4" />
           </div>
 
           <div class="section-row-generator">
@@ -2370,6 +2367,7 @@
               <span class="section-help__line">3: 1,5||6,10 (gives you a row with seats 1 - 5, then a gap and then seats 6 - 10. Creates two separate RowIds. Row number 3)</span>
               <span class="section-help__line">4: 1,4---5,7 (adds three empty seats between 4 and 5 within the same RowId)</span>
               <span class="section-help__line">5: 1,4|---|5,7 (adds three empty seats and starts a new RowId)</span>
+              <span class="section-help__line">6: list(1-2-4-7) (manual seat order; "-" inside list() separates seat numbers)</span>
             </div>
           </div>
         </div>
@@ -2750,6 +2748,7 @@
   const viewSeatLabelNone = document.getElementById("viewSeatLabelNone");
   const viewSeatLabelRow = document.getElementById("viewSeatLabelRow");
   const viewSeatLabelSeat = document.getElementById("viewSeatLabelSeat");
+  const viewSeatLabelSeatId = document.getElementById("viewSeatLabelSeatId");
   const openCodeModalBtn = document.getElementById("openCodeModalBtn");
   const codeModalOverlay = document.getElementById("codeModalOverlay");
   const codeModalClose = document.getElementById("codeModalClose");
@@ -2856,6 +2855,7 @@
       if (mode === "none" && viewSeatLabelNone) viewSeatLabelNone.checked = true;
       if (mode === "row" && viewSeatLabelRow) viewSeatLabelRow.checked = true;
       if (mode === "seat" && viewSeatLabelSeat) viewSeatLabelSeat.checked = true;
+      if (mode === "seatId" && viewSeatLabelSeatId) viewSeatLabelSeatId.checked = true;
     }
     renderCanvas();
   }
@@ -2972,7 +2972,7 @@
 
   // Smart rendering / prestanda
   let lastVisibleSeatCount = 0;
-  const RECT_DOT_THRESHOLD = 2500; // över detta: små fyrkanter
+  const RECT_DOT_THRESHOLD = 1500; // över detta: små fyrkanter
   const HOVER_VISIBLE_LIMIT = 4000; // över detta: ingen tooltip/hover-info
 
   let hoverSeat = null;
@@ -3759,6 +3759,7 @@ function saveSessionToLocalStorage() {
     const readSeatLabelMode = () => {
       if (viewSeatLabelRow?.checked) return "row";
       if (viewSeatLabelSeat?.checked) return "seat";
+      if (viewSeatLabelSeatId?.checked) return "seatId";
       return "none";
     };
     seatLabelMode = readSeatLabelMode();
@@ -6678,7 +6679,21 @@ codePane.addEventListener("input", () => {
         }
 
         if (seatLabelMode !== "none") {
-          const label = seatLabelMode === "seat" ? (s.name || "") : (s.rowName || s.rowId || s.row || "");
+          let label = "";
+          if (seatLabelMode === "seat") {
+            label = s.name || "";
+          } else if (seatLabelMode === "seatId") {
+            const seatId = s.seatId || "";
+            const suffix = getSeatIdSuffix(seatId);
+            if (Number.isFinite(suffix)) {
+              label = String(suffix);
+            } else if (seatId) {
+              const parts = seatId.split(".");
+              label = parts[parts.length - 1] || seatId;
+            }
+          } else {
+            label = s.rowName || s.rowId || s.row || "";
+          }
           if (label) {
             const fontPx = Math.max(26, Math.min(48, 33 / Math.max(scale, 0.001)));
             const textColor = getLabelTextColor(baseColor);
@@ -6733,7 +6748,7 @@ codePane.addEventListener("input", () => {
         if (!name) continue;
         const fontSize = 20 / Math.max(scale, 0.001);
         ctx.lineWidth = 3 / Math.max(scale, 0.001);
-        ctx.font = `${fontSize}px "Segoe UI", system-ui, sans-serif`;
+        ctx.font = `${fontSize}px "Ubuntu", system-ui, sans-serif`;
         ctx.strokeText(name, cx, cy);
         ctx.fillText(name, cx, cy);
       }
@@ -6762,7 +6777,7 @@ codePane.addEventListener("input", () => {
     if (!seats.length) {
       ctx.restore();
       ctx.fillStyle = "#777";
-      ctx.font = "24px Roboto";
+      ctx.font = "24px Ubuntu";
       ctx.fillText("No layout has been loaded or created. Click Open layout or Create new to get started.", 15, 30);
       lastVisibleSeatCount = 0;
       return;
@@ -10168,6 +10183,9 @@ function nudgeSelection(dxScreen, dyScreen) {
         tooltipLines.push(
           `<strong>Seat:</strong> ${hoverSeat.name}`
         );
+        tooltipLines.push(
+          `<strong>SeatId:</strong> ${hoverSeat.seatId || "-"}`
+        );
         const entryViaText = (hoverSeat.entryVia && hoverSeat.entryVia !== "-") ? hoverSeat.entryVia : "-";
         tooltipLines.push(`<strong>Entry:</strong> ${entryViaText}`);
         tooltipLines.push(`<strong>Price region:</strong> ${priceRegionName || "-"}`);
@@ -10504,6 +10522,7 @@ function nudgeSelection(dxScreen, dyScreen) {
         e.preventDefault();
         if (seatLabelMode === "none") setSeatLabelMode("row");
         else if (seatLabelMode === "row") setSeatLabelMode("seat");
+        else if (seatLabelMode === "seat") setSeatLabelMode("seatId");
         else setSeatLabelMode("none");
         break;
       case "o":
@@ -10689,7 +10708,7 @@ function nudgeSelection(dxScreen, dyScreen) {
       setOverlayMode(e.target.value, false, true);
     });
   });
-  [viewSeatLabelNone, viewSeatLabelRow, viewSeatLabelSeat].forEach((el) => {
+  [viewSeatLabelNone, viewSeatLabelRow, viewSeatLabelSeat, viewSeatLabelSeatId].forEach((el) => {
     el?.addEventListener("change", (e) => {
       if (!e.target.checked) return;
       setSeatLabelMode(e.target.value || "none", false);
@@ -10844,26 +10863,45 @@ function nudgeSelection(dxScreen, dyScreen) {
     const errors = [];
     const blocks = [];
     let parts = [];
-    let rangeStart = null;
-    let rangeEnd = null;
-    let rangeDirection = 0;
     let gapRun = 0;
     let hasSeat = false;
     let pendingRowBreak = false;
+    let run = [];
 
     const isEmptyCell = (value) => value == null || String(value).trim() === "";
     const isGapCell = (value) => {
       const text = String(value).trim();
       return text === "-";
     };
-    const flushRange = () => {
-      if (rangeStart == null) return;
-      if (rangeStart === rangeEnd) parts.push(String(rangeStart));
-      else parts.push(`${rangeStart},${rangeEnd}`);
-      rangeStart = null;
-      rangeEnd = null;
-      rangeDirection = 0;
+    const flushRun = () => {
+      if (!run.length) return;
+      if (run.length === 1) {
+        parts.push(String(run[0]));
+        hasSeat = true;
+        run = [];
+        return;
+      }
+      let direction = 0;
+      for (let i = 1; i < run.length; i++) {
+        const diff = run[i] - run[i - 1];
+        if (diff === 1) {
+          if (direction === 0) direction = 1;
+          else if (direction !== 1) { direction = null; break; }
+        } else if (diff === -1) {
+          if (direction === 0) direction = -1;
+          else if (direction !== -1) { direction = null; break; }
+        } else {
+          direction = null;
+          break;
+        }
+      }
+      if (direction === 1 || direction === -1) {
+        parts.push(`${run[0]},${run[run.length - 1]}`);
+      } else {
+        parts.push(`list(${run.join("-")})`);
+      }
       hasSeat = true;
+      run = [];
     };
     const flushGaps = () => {
       if (!gapRun) return;
@@ -10871,21 +10909,20 @@ function nudgeSelection(dxScreen, dyScreen) {
       gapRun = 0;
     };
     const finishBlock = () => {
-      flushRange();
+      flushRun();
       flushGaps();
       if (parts.length && hasSeat) {
         blocks.push(parts.join(""));
       }
       parts = [];
-      rangeStart = null;
-      rangeEnd = null;
       gapRun = 0;
       hasSeat = false;
+      run = [];
     };
 
     seatCells.forEach((value) => {
       if (isEmptyCell(value)) {
-        flushRange();
+        flushRun();
         gapRun += 1;
         pendingRowBreak = true;
         return;
@@ -10895,7 +10932,7 @@ function nudgeSelection(dxScreen, dyScreen) {
         pendingRowBreak = false;
       }
       if (isGapCell(value)) {
-        flushRange();
+        flushRun();
         gapRun += 1;
         return;
       }
@@ -10905,36 +10942,7 @@ function nudgeSelection(dxScreen, dyScreen) {
         return;
       }
       if (gapRun) flushGaps();
-      if (rangeStart == null) {
-        rangeStart = num;
-        rangeEnd = num;
-        rangeDirection = 0;
-        return;
-      }
-      if (rangeDirection === 0 && num === rangeEnd + 1) {
-        rangeEnd = num;
-        rangeDirection = 1;
-        return;
-      }
-      if (rangeDirection === 0 && num === rangeEnd - 1) {
-        rangeEnd = num;
-        rangeDirection = -1;
-        return;
-      }
-      if (rangeDirection === 1 && num === rangeEnd + 1) {
-        rangeEnd = num;
-        return;
-      }
-      if (rangeDirection === -1 && num === rangeEnd - 1) {
-        rangeEnd = num;
-        return;
-      }
-      errors.push(`Sheet "${sheetName}" row ${rowIndex}: seat "${num}" is not consecutive. Use '-' or a blank cell for gaps.`);
-      flushRange();
-      parts.push("-");
-      rangeStart = num;
-      rangeEnd = num;
-      rangeDirection = 0;
+      run.push(num);
     });
     finishBlock();
 
@@ -11144,14 +11152,8 @@ function nudgeSelection(dxScreen, dyScreen) {
 
   function resetSectionDrafts() {
     sectionDrafts = [];
-    sectionDrafts.push({
-      sectionId: computeNextSectionId(),
-      sectionName: "",
-      color: "#14a0f4",
-      rows: [newRow("Row 1")],
-      rawRowText: ""
-    });
-    activeSectionDraftId = sectionDrafts[0].sectionId;
+    activeSectionDraftId = null;
+    sectionRawText.clear();
     sectionDirty = false;
   }
 
@@ -11192,12 +11194,32 @@ function nudgeSelection(dxScreen, dyScreen) {
         intervals.forEach((seg, idx) => {
           const compactSeg = seg.replace(/\s+/g, "");
           if (!compactSeg) return;
-          const tokens = compactSeg.match(/\d+\s*,\s*\d+|\d+|-+/g) || [];
+          const tokens = compactSeg.match(/list\([^\)]*\)|\d+\s*,\s*\d+|\d+|-+/g) || [];
           if (!tokens.length || tokens.join("") !== compactSeg) {
             errors.push(`Invalid row syntax "${seg}" in row "${rowName}" (line ${lineIdx + 1})`);
             return;
           }
           tokens.forEach((token) => {
+            if (token.startsWith("list(") && token.endsWith(")")) {
+              const inner = token.slice(5, -1);
+              if (!inner || !/^\d+(?:[-,;]\d+)*$/.test(inner)) {
+                errors.push(`Invalid list syntax "${token}" in row "${rowName}" (line ${lineIdx + 1})`);
+                return;
+              }
+              const values = inner.split(/[-,;]/).filter(Boolean);
+              values.forEach((value) => {
+                const n = Number(value);
+                if (Number.isFinite(n) && Number.isInteger(n)) {
+                  const seatObj = newSeat(String(n));
+                  items.push({ ...seatObj, pos: slotCursor });
+                  seatsArr.push(seatObj);
+                  slotCursor += 1;
+                } else {
+                  errors.push(`Invalid list value "${value}" in row "${rowName}" (line ${lineIdx + 1})`);
+                }
+              });
+              return;
+            }
             if (token.startsWith("-")) {
               for (let g = 0; g < token.length; g++) {
                 items.push({
@@ -11279,8 +11301,8 @@ function nudgeSelection(dxScreen, dyScreen) {
     const marginY = 18;
     const seatSize = 16;
     const gapSize = 14;
-    const labelFont = "10px 'Segoe UI', sans-serif";
-    const seatFont = "9px 'Segoe UI', sans-serif";
+    const labelFont = "10px 'Ubuntu', sans-serif";
+    const seatFont = "9px 'Ubuntu', sans-serif";
 
     let maxOffset = 0;
     lines.forEach(([, rows]) => {
@@ -11461,7 +11483,14 @@ function nudgeSelection(dxScreen, dyScreen) {
 
       const title = document.createElement("div");
       title.className = "section-card__name";
-      title.textContent = draft.sectionName || draft.sectionId;
+      const name = (draft.sectionName || "").trim();
+      const id = (draft.sectionId || "").trim();
+      if (name && id) {
+        title.textContent = `${name} (${id})`;
+      } else {
+        title.textContent = name || id || "Unnamed section";
+      }
+      title.title = "Click to rename section";
 
       const meta = document.createElement("div");
       meta.className = "section-card__meta";
@@ -11482,12 +11511,41 @@ function nudgeSelection(dxScreen, dyScreen) {
     return sectionDrafts.find((d) => d.sectionId === activeSectionDraftId) || null;
   }
 
+  function setSectionEditorEnabled(enabled) {
+    const controls = [
+      sectionRowGenCount,
+      sectionRowGenStart,
+      sectionRowGenOrder,
+      sectionRowGenBtn,
+      sectionRowText,
+      parseRowsBtn
+    ];
+    controls.forEach((control) => {
+      if (control) control.disabled = !enabled;
+    });
+  }
+
+  function clearSectionDetail() {
+    setSectionEditorEnabled(false);
+    if (sectionRowText) sectionRowText.value = "";
+    if (sectionRowErrors) sectionRowErrors.textContent = "";
+    if (sectionEditStatus) sectionEditStatus.textContent = "";
+    if (sectionRowsEditor) sectionRowsEditor.innerHTML = "";
+    if (sectionPreviewCanvas) {
+      const ctx = sectionPreviewCanvas.getContext("2d");
+      if (ctx) ctx.clearRect(0, 0, sectionPreviewCanvas.width, sectionPreviewCanvas.height);
+    }
+  }
+
   function renderSectionDetail() {
     const draft = getActiveDraft();
-    if (!draft || !sectionEditId || !sectionEditName || !sectionEditColor || !sectionRowsEditor) return;
-    sectionEditId.value = draft.sectionId || "";
-    sectionEditName.value = draft.sectionName || "";
-    sectionEditColor.value = draft.color || "#14a0f4";
+    if (!sectionRowsEditor) return;
+    if (!draft) {
+      clearSectionDetail();
+      return;
+    }
+    setSectionEditorEnabled(true);
+    if (sectionEditColor) sectionEditColor.value = draft.color || "#14a0f4";
     const rawTxt = draft.rawRowText || sectionRawText.get(draft.sectionId) || rowsToText(draft.rows || []);
     if (sectionRowText && document.activeElement !== sectionRowText) {
       sectionRowText.value = rawTxt;
@@ -11507,7 +11565,6 @@ function nudgeSelection(dxScreen, dyScreen) {
     }
 
     const existingSeats = seats.some((s) => s.sectionId === draft.sectionId);
-    sectionEditId.disabled = existingSeats;
     if (sectionEditStatus) {
       sectionEditStatus.textContent = existingSeats
         ? "Editing existing section - name can be changed. Structural changes are limited."
@@ -11530,12 +11587,36 @@ function nudgeSelection(dxScreen, dyScreen) {
     if (sectionManagerOverlay) sectionManagerOverlay.style.display = "none";
   }
 
-  function addNewDraftFromTemplate() {
+  function promptForSectionName(defaultValue = "") {
+    const raw = prompt("Section name:", defaultValue);
+    if (raw == null) return null;
+    const name = raw.trim();
+    if (!name) {
+      alert("Section name is required.");
+      return null;
+    }
+    return name;
+  }
+
+  function renameDraftSection(draft) {
+    if (!draft) return;
+    const current = (draft.sectionName || draft.sectionId || "").trim();
+    const nextName = promptForSectionName(current);
+    if (nextName == null) return;
+    if (nextName === current) return;
+    draft.sectionName = nextName;
+    setSectionDirty(true);
+  }
+
+  function addNewDraftFromTemplate(sectionName) {
+    const name = (sectionName || "").trim();
+    if (!name) return;
     const newDraft = {
       sectionId: computeNextSectionId(),
-      sectionName: "",
+      sectionName: name,
       color: "#14a0f4",
-      rows: [newRow("Row 1")]
+      rows: [newRow("Row 1")],
+      rawRowText: ""
     };
     sectionDrafts.push(newDraft);
     activeSectionDraftId = newDraft.sectionId;
@@ -11744,9 +11825,7 @@ function nudgeSelection(dxScreen, dyScreen) {
 
   function saveActiveSection() {
     const activeDraft = getActiveDraft();
-    if (activeDraft && sectionEditId && sectionEditName && sectionEditColor) {
-      activeDraft.sectionId = (sectionEditId.value || activeDraft.sectionId || "").trim();
-      activeDraft.sectionName = (sectionEditName.value || activeDraft.sectionName || "").trim();
+    if (activeDraft && sectionEditColor) {
       activeDraft.color = sectionEditColor.value || activeDraft.color || "#14a0f4";
     }
 
@@ -11912,7 +11991,9 @@ function nudgeSelection(dxScreen, dyScreen) {
   });
 
   sectionCreateBtn?.addEventListener("click", () => {
-    addNewDraftFromTemplate();
+    const name = promptForSectionName("");
+    if (!name) return;
+    addNewDraftFromTemplate(name);
   });
 
   function generateRowLabelText() {
@@ -11977,7 +12058,12 @@ function nudgeSelection(dxScreen, dyScreen) {
   sectionCardsEl?.addEventListener("click", (e) => {
     const card = e.target.closest(".section-card");
     if (!card) return;
-    activeSectionDraftId = card.dataset.sectionId;
+    const draft = sectionDrafts.find((d) => d.sectionId === card.dataset.sectionId);
+    if (!draft) return;
+    activeSectionDraftId = draft.sectionId;
+    if (e.target.closest(".section-card__name")) {
+      renameDraftSection(draft);
+    }
     renderSectionCards();
     renderSectionDetail();
   });
@@ -12191,6 +12277,7 @@ function nudgeSelection(dxScreen, dyScreen) {
       showSectionNames = viewSectionNamesToggle?.checked ?? false;
       if (viewSeatLabelRow?.checked) seatLabelMode = "row";
       else if (viewSeatLabelSeat?.checked) seatLabelMode = "seat";
+      else if (viewSeatLabelSeatId?.checked) seatLabelMode = "seatId";
       else seatLabelMode = "none";
       const initialOverlay = viewOverlayGoodness?.checked
         ? "goodness"
