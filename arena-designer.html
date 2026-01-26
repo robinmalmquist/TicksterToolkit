@@ -2047,13 +2047,17 @@
             <button id="bgLoadBtn" class="c-button c-button--ghost c-button--small">Add</button>
             <button id="bgToggleBtn" class="c-button c-button--ghost c-button--small">Show</button>
           </div>
+          <div class="c-toolbar c-toolbar--horizontal bg-toggle-group">
+            <button id="bgMoveBtn" class="c-button c-button--ghost c-button--small">Move</button>
+            <button id="bgDeleteBtn" class="c-button c-button--ghost c-button--small" style="max-width: 50px">Delete</button>
+          </div>
           <label class="bg-control u-font--small">
             Opacity
             <input type="range" id="bgOpacityRange" min="0" max="1" step="0.05" value="0.4" />
           </label>
           <label class="bg-control u-font--small">
             Scale
-            <input type="range" id="bgScaleRange" min="0.1" max="10" step="0.1" value="1" />
+            <input type="range" id="bgScaleRange" min="0.1" max="20" step="0.1" value="1" />
           </label>
         </div>
 
@@ -2738,6 +2742,8 @@
   const bgFileInput = document.getElementById("bgFileInput");
   const bgLoadBtn = document.getElementById("bgLoadBtn");
   const bgToggleBtn = document.getElementById("bgToggleBtn");
+  const bgMoveBtn = document.getElementById("bgMoveBtn");
+  const bgDeleteBtn = document.getElementById("bgDeleteBtn");
   const bgOpacityRange = document.getElementById("bgOpacityRange");
   const bgScaleRange = document.getElementById("bgScaleRange");
   const viewHoverToggle = document.getElementById("viewHoverToggle");
@@ -2846,6 +2852,12 @@
     originX: 0,
     originY: 0
   };
+  let backgroundMoveMode = false;
+  let isDraggingBackground = false;
+  let backgroundDragStartWorldX = 0;
+  let backgroundDragStartWorldY = 0;
+  let backgroundDragOriginX = 0;
+  let backgroundDragOriginY = 0;
   let seatLabelMode = "none";
   let lastDirectoryHandle = null;
 
@@ -3640,6 +3652,36 @@
     renderCanvas();
   }
 
+  function updateBackgroundMoveButtons() {
+    const hasImage = !!backgroundState.img;
+    if (bgMoveBtn) {
+      bgMoveBtn.disabled = !hasImage;
+      bgMoveBtn.textContent = backgroundMoveMode ? "Lock" : "Move";
+      bgMoveBtn.classList.toggle("c-button--active", backgroundMoveMode);
+    }
+    if (bgDeleteBtn) {
+      bgDeleteBtn.disabled = !hasImage;
+    }
+  }
+
+  function setBackgroundMoveMode(enabled) {
+    backgroundMoveMode = !!enabled && !!backgroundState.img;
+    if (!backgroundMoveMode) {
+      isDraggingBackground = false;
+    }
+    updateBackgroundMoveButtons();
+  }
+
+  function clearBackgroundImage() {
+    backgroundState.dataUrl = "";
+    backgroundState.img = null;
+    backgroundState.originX = NaN;
+    backgroundState.originY = NaN;
+    setBackgroundEnabled(false);
+    setBackgroundMoveMode(false);
+    updateBackgroundMoveButtons();
+  }
+
   function setBackgroundOpacity(val) {
     const clamped = Math.min(1, Math.max(0, val));
     backgroundState.opacity = clamped;
@@ -3649,7 +3691,7 @@
   }
 
   function setBackgroundScale(val) {
-    const clamped = Math.min(10, Math.max(0.1, val));
+    const clamped = Math.min(20, Math.max(0.1, val));
     backgroundState.scale = clamped;
     bgScaleRange.value = clamped;
     saveSessionToLocalStorage();
@@ -3661,7 +3703,11 @@
       if (!dataUrl) {
         backgroundState.dataUrl = "";
         backgroundState.img = null;
+        backgroundState.originX = NaN;
+        backgroundState.originY = NaN;
         setBackgroundEnabled(false);
+        setBackgroundMoveMode(false);
+        updateBackgroundMoveButtons();
         saveSessionToLocalStorage();
         renderCanvas();
         resolve();
@@ -3681,6 +3727,7 @@
           }
         }
         setBackgroundEnabled(true);
+        updateBackgroundMoveButtons();
         saveSessionToLocalStorage();
         renderCanvas();
         resolve();
@@ -8286,6 +8333,16 @@ function nudgeSelection(dxScreen, dyScreen) {
     const rect = canvas.getBoundingClientRect();
     const canvasX = e.clientX - rect.left;
     const canvasY = e.clientY - rect.top;
+    const { worldX, worldY } = screenToWorld(canvasX, canvasY);
+
+    if (backgroundMoveMode && backgroundState.img) {
+      isDraggingBackground = true;
+      backgroundDragStartWorldX = worldX;
+      backgroundDragStartWorldY = worldY;
+      backgroundDragOriginX = backgroundState.originX;
+      backgroundDragOriginY = backgroundState.originY;
+      return;
+    }
 
     // CTRL = pan
     if (e.ctrlKey && currentTool !== "rotate") {
@@ -8297,8 +8354,6 @@ function nudgeSelection(dxScreen, dyScreen) {
       canvasContainer.classList.add("panning");
       return;
     }
-
-    const { worldX, worldY } = screenToWorld(canvasX, canvasY);
 
     if (currentTool === "rotate") {
       const selectedSeats = getSelectedSeats();
@@ -10005,6 +10060,13 @@ function nudgeSelection(dxScreen, dyScreen) {
     const canvasY = e.clientY - rect.top;
     const { worldX, worldY } = screenToWorld(canvasX, canvasY);
 
+    if (isDraggingBackground) {
+      backgroundState.originX = backgroundDragOriginX + (worldX - backgroundDragStartWorldX);
+      backgroundState.originY = backgroundDragOriginY + (worldY - backgroundDragStartWorldY);
+      renderCanvas();
+      return;
+    }
+
     // Pan
     if (isPanning) {
       const dx = e.clientX - panStartX;
@@ -10206,6 +10268,11 @@ function nudgeSelection(dxScreen, dyScreen) {
   });
 
   canvas.addEventListener("mouseup", (e) => {
+    if (isDraggingBackground) {
+      isDraggingBackground = false;
+      saveSessionToLocalStorage();
+      return;
+    }
     if (isPanning) {
       isPanning = false;
       canvasContainer.classList.remove("panning");
@@ -10315,6 +10382,10 @@ function nudgeSelection(dxScreen, dyScreen) {
 
   canvas.addEventListener("mouseleave", () => {
     hoverSeat = null;
+    if (isDraggingBackground) {
+      isDraggingBackground = false;
+      saveSessionToLocalStorage();
+    }
     if (isPanning) {
       isPanning = false;
       canvasContainer.classList.remove("panning");
@@ -10679,6 +10750,12 @@ function nudgeSelection(dxScreen, dyScreen) {
   });
   bgToggleBtn?.addEventListener("click", () => {
     setBackgroundEnabled(!backgroundState.enabled);
+  });
+  bgMoveBtn?.addEventListener("click", () => {
+    setBackgroundMoveMode(!backgroundMoveMode);
+  });
+  bgDeleteBtn?.addEventListener("click", () => {
+    clearBackgroundImage();
   });
   bgOpacityRange.addEventListener("input", (e) => {
     const val = parseFloat(e.target.value);
