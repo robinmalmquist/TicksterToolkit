@@ -10846,6 +10846,7 @@ function nudgeSelection(dxScreen, dyScreen) {
     let parts = [];
     let rangeStart = null;
     let rangeEnd = null;
+    let rangeDirection = 0;
     let gapRun = 0;
     let hasSeat = false;
     let pendingRowBreak = false;
@@ -10861,6 +10862,7 @@ function nudgeSelection(dxScreen, dyScreen) {
       else parts.push(`${rangeStart},${rangeEnd}`);
       rangeStart = null;
       rangeEnd = null;
+      rangeDirection = 0;
       hasSeat = true;
     };
     const flushGaps = () => {
@@ -10906,9 +10908,24 @@ function nudgeSelection(dxScreen, dyScreen) {
       if (rangeStart == null) {
         rangeStart = num;
         rangeEnd = num;
+        rangeDirection = 0;
         return;
       }
-      if (num === rangeEnd + 1) {
+      if (rangeDirection === 0 && num === rangeEnd + 1) {
+        rangeEnd = num;
+        rangeDirection = 1;
+        return;
+      }
+      if (rangeDirection === 0 && num === rangeEnd - 1) {
+        rangeEnd = num;
+        rangeDirection = -1;
+        return;
+      }
+      if (rangeDirection === 1 && num === rangeEnd + 1) {
+        rangeEnd = num;
+        return;
+      }
+      if (rangeDirection === -1 && num === rangeEnd - 1) {
         rangeEnd = num;
         return;
       }
@@ -10917,6 +10934,7 @@ function nudgeSelection(dxScreen, dyScreen) {
       parts.push("-");
       rangeStart = num;
       rangeEnd = num;
+      rangeDirection = 0;
     });
     finishBlock();
 
