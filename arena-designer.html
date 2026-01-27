@@ -10597,6 +10597,9 @@ function nudgeSelection(dxScreen, dyScreen) {
       return;
     }
 
+    // Om man skriver i textfält: inga fler genvägar
+    if (isTextInput) return;
+
     if (key === "h") {
       e.preventDefault();
       if (helpOverlay && helpOverlay.style.display === "flex") {
@@ -10616,9 +10619,6 @@ function nudgeSelection(dxScreen, dyScreen) {
       }
       return;
     }
-    // Om man skriver i textfält: inga fler genvägar
-    if (isTextInput) return;
-
     // Piltangenter: nudge
     if (e.key === "ArrowUp" || e.key === "ArrowDown" || e.key === "ArrowLeft" || e.key === "ArrowRight") {
       e.preventDefault();
