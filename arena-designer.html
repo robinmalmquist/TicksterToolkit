@@ -2326,6 +2326,7 @@
         <button id="mergeRowsMenuItem" class="context-menu__item" type="button">Merge rows</button>
         <button id="splitRowMenuItem" class="context-menu__item" type="button">Split row at selection</button>
         <button id="equalizeRowsMenuItem" class="context-menu__item" type="button">Equalize row distance</button>
+        <button id="mimicRowShapeMenuItem" class="context-menu__item" type="button">Mimic shape of first selected row</button>
         <button id="editSectionsMenuItem" class="context-menu__item" type="button">Edit section</button>
         <button id="attributeMenuItem" class="context-menu__item" type="button">Attributes</button>
         <button id="goodnessFromPointMenuItem" class="context-menu__item" type="button">Set goodness from point</button>
@@ -2565,13 +2566,13 @@
                 </div>
                 <div class="help-tool">
                   <div class="help-tool__title">Bend (B)</div>
-                  <div class="help-tool__desc">Bend a selected row with an anchor handle.</div>
+                  <div class="help-tool__desc">Bend a selected row with an anchor handle. End points are also adjustable. Hold down shift while dragging to bend from row center. Scroll up/down to adjust bend sharpness. Double click handle to reset row. </div>
                 </div>
               </div>
               <div class="help-tool-list">
                 <div class="help-tool">
                   <div class="help-tool__title">Reshape row (E)</div>
-                  <div class="help-tool__desc">On a selected row you can right click on any seat to create a temporary anchor point and then adjust the row from that anchor point by dragging the end seat.</div>
+                  <div class="help-tool__desc">On a selected row you can right click on any seat to create a temporary anchor point and then adjust the row from that anchor point by dragging the end seat. Hold down shift while dragging to rotate from anchor point.</div>
                 </div>
                 <div class="help-tool">
                   <div class="help-tool__title">Reset row (Q)</div>
@@ -2785,6 +2786,7 @@
   const mergeRowsMenuItem = document.getElementById("mergeRowsMenuItem");
   const splitRowMenuItem = document.getElementById("splitRowMenuItem");
   const equalizeRowsMenuItem = document.getElementById("equalizeRowsMenuItem");
+  const mimicRowShapeMenuItem = document.getElementById("mimicRowShapeMenuItem");
   const editSectionsMenuItem = document.getElementById("editSectionsMenuItem");
   const attributeModalOverlay = document.getElementById("attributeModalOverlay");
   const attributeModalList = document.getElementById("attributeModalList");
@@ -3024,6 +3026,7 @@
   let isBendingSelection = false;
   let bendStartSnapshot = null;
   let bendControlPoint = null; // anchor for quadratic bend
+  let bendTension = 0;
   let bendRowsData = null;
   let hasBentDuringDrag = false;
   let bendDragTarget = null;     // "anchor" | "start" | "end"
@@ -7001,10 +7004,36 @@ codePane.addEventListener("input", () => {
           ctx.lineWidth = 2 / scale;
           ctx.setLineDash([6 / scale, 4 / scale]);
           ctx.beginPath();
-          ctx.moveTo(p0.x, p0.y);
           if (anchor) {
-            ctx.quadraticCurveTo(anchor.x, anchor.y, p2.x, p2.y);
+            const tension = Math.max(-4, Math.min(1, Number.isFinite(bendTension) ? bendTension : 0));
+            const len0 = Math.hypot(anchor.x - p0.x, anchor.y - p0.y);
+            const len1 = Math.hypot(p2.x - anchor.x, p2.y - anchor.y);
+            const polyTotal = len0 + len1 || 1e-6;
+            const steps = 40;
+            if (tension <= 0) {
+              const weight = Math.max(0.01, Math.exp(tension));
+              const arc = buildRationalQuadArcTable(p0, anchor, p2, weight);
+              for (let i = 0; i <= steps; i++) {
+                const tNorm = i / steps;
+                const t = tAtArcLength(arc.total * tNorm, arc);
+                const pt = rationalQuadPoint(t, p0, anchor, p2, weight);
+                if (i === 0) ctx.moveTo(pt.x, pt.y);
+                else ctx.lineTo(pt.x, pt.y);
+              }
+            } else {
+              const arc = buildBezierArcTable(p0, anchor, p2);
+              for (let i = 0; i <= steps; i++) {
+                const tNorm = i / steps;
+                const t = tAtArcLength(arc.total * tNorm, arc);
+                const quadPt = bezierPoint(t, p0, anchor, p2);
+                const polyPt = polylinePoint(p0, anchor, p2, polyTotal * tNorm, len0, len1);
+                const pt = lerpPoint(quadPt, polyPt, tension);
+                if (i === 0) ctx.moveTo(pt.x, pt.y);
+                else ctx.lineTo(pt.x, pt.y);
+              }
+            }
           } else {
+            ctx.moveTo(p0.x, p0.y);
             ctx.lineTo(p2.x, p2.y);
           }
           ctx.stroke();
@@ -7380,6 +7409,26 @@ function selectSeatsWithoutGoodness() {
     });
   }
 
+  function getSeatDistanceRatios(rowSeats) {
+    const sorted = sortSeatsInRow(rowSeats);
+    const tMap = new Map();
+    if (!sorted.length) return tMap;
+    let total = 0;
+    for (let i = 1; i < sorted.length; i++) {
+      total += Math.hypot(sorted[i].vx - sorted[i - 1].vx, sorted[i].vy - sorted[i - 1].vy);
+    }
+    let dist = 0;
+    tMap.set(sorted[0], 0);
+    if (total <= 0) {
+      return tMap;
+    }
+    for (let i = 1; i < sorted.length; i++) {
+      dist += Math.hypot(sorted[i].vx - sorted[i - 1].vx, sorted[i].vy - sorted[i - 1].vy);
+      tMap.set(sorted[i], dist / total);
+    }
+    return tMap;
+  }
+
   function computeRowEndpoints(rowSeats) {
     const sorted = sortSeatsInRow(rowSeats);
     const first = sorted[0];
@@ -7421,6 +7470,57 @@ function selectSeatsWithoutGoodness() {
     const x = uu * p0.x + 2 * u * t * p1.x + tt * p2.x;
     const y = uu * p0.y + 2 * u * t * p1.y + tt * p2.y;
     return { x, y };
+  }
+
+  function lerpPoint(a, b, t) {
+    return { x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t };
+  }
+
+  function polylinePoint(p0, p1, p2, targetLen, len0, len1) {
+    const total = len0 + len1;
+    if (total <= 0) return { x: p0.x, y: p0.y };
+    if (len0 <= 0) {
+      const t = len1 > 0 ? targetLen / len1 : 0;
+      return lerpPoint(p1, p2, Math.max(0, Math.min(1, t)));
+    }
+    if (len1 <= 0) {
+      const t = len0 > 0 ? targetLen / len0 : 0;
+      return lerpPoint(p0, p1, Math.max(0, Math.min(1, t)));
+    }
+    if (targetLen <= len0) {
+      const t = targetLen / len0;
+      return lerpPoint(p0, p1, Math.max(0, Math.min(1, t)));
+    }
+    const t = (targetLen - len0) / len1;
+    return lerpPoint(p1, p2, Math.max(0, Math.min(1, t)));
+  }
+
+  function rationalQuadPoint(t, p0, p1, p2, w) {
+    const u = 1 - t;
+    const b0 = u * u;
+    const b1 = 2 * u * t * w;
+    const b2 = t * t;
+    const denom = b0 + b1 + b2 || 1e-6;
+    const x = (b0 * p0.x + b1 * p1.x + b2 * p2.x) / denom;
+    const y = (b0 * p0.y + b1 * p1.y + b2 * p2.y) / denom;
+    return { x, y };
+  }
+
+  function buildRationalQuadArcTable(p0, p1, p2, w, steps = 160) {
+    const table = [];
+    let prev = p0;
+    let length = 0;
+    table.push({ t: 0, len: 0 });
+    for (let i = 1; i <= steps; i++) {
+      const t = i / steps;
+      const pt = rationalQuadPoint(t, p0, p1, p2, w);
+      const dx = pt.x - prev.x;
+      const dy = pt.y - prev.y;
+      length += Math.hypot(dx, dy);
+      table.push({ t, len: length });
+      prev = pt;
+    }
+    return { table, total: length };
   }
 
   function cubicPoint(t, p0, p1, p2, p3) {
@@ -7500,17 +7600,40 @@ function selectSeatsWithoutGoodness() {
         { x: controlPoint.x, y: controlPoint.y },
         { x: last.vx, y: last.vy }
       ];
-      const arc = buildBezierArcTable(pts[0], pts[1], pts[2]);
-      const segmentLen = arc.total / (n - 1);
-      for (let i = 0; i < n; i++) {
-        const targetLen = segmentLen * i;
-        const t = tAtArcLength(targetLen, arc);
-        const pt = bezierPoint(t, pts[0], pts[1], pts[2]);
-        const seat = order[i];
-        seat.vx = pt.x;
-        seat.vy = pt.y;
-        seat.centerX = pt.x;
-        seat.centerY = pt.y;
+      const tension = Math.max(-4, Math.min(1, Number.isFinite(bendTension) ? bendTension : 0));
+      const len0 = Math.hypot(pts[1].x - pts[0].x, pts[1].y - pts[0].y);
+      const len1 = Math.hypot(pts[2].x - pts[1].x, pts[2].y - pts[1].y);
+      const polyTotal = len0 + len1 || 1e-6;
+      if (tension <= 0) {
+        const weight = Math.max(0.01, Math.exp(tension));
+        const arc = buildRationalQuadArcTable(pts[0], pts[1], pts[2], weight);
+        for (let i = 0; i < n; i++) {
+          const tNorm = (n - 1) === 0 ? 0 : i / (n - 1);
+          const targetLen = arc.total * tNorm;
+          const t = tAtArcLength(targetLen, arc);
+          const pt = rationalQuadPoint(t, pts[0], pts[1], pts[2], weight);
+          const seat = order[i];
+          seat.vx = pt.x;
+          seat.vy = pt.y;
+          seat.centerX = pt.x;
+          seat.centerY = pt.y;
+        }
+      } else {
+        const arc = buildBezierArcTable(pts[0], pts[1], pts[2]);
+        for (let i = 0; i < n; i++) {
+          const tNorm = (n - 1) === 0 ? 0 : i / (n - 1);
+          const targetQuadLen = arc.total * tNorm;
+          const t = tAtArcLength(targetQuadLen, arc);
+          const quadPt = bezierPoint(t, pts[0], pts[1], pts[2]);
+          const targetPolyLen = polyTotal * tNorm;
+          const polyPt = polylinePoint(pts[0], pts[1], pts[2], targetPolyLen, len0, len1);
+          const pt = lerpPoint(quadPt, polyPt, tension);
+          const seat = order[i];
+          seat.vx = pt.x;
+          seat.vy = pt.y;
+          seat.centerX = pt.x;
+          seat.centerY = pt.y;
+        }
       }
     }
   }
@@ -7528,10 +7651,12 @@ function selectSeatsWithoutGoodness() {
     return changed;
   }
 
-  function applyReshapeDrag(target, newX, newY) {
+  function applyReshapeDrag(target, newX, newY, shiftSnap = false) {
     if (!reshapeRowSeats || !reshapeRowSeats.length || !reshapeSnapshotById) return;
     const sorted = sortSeatsInRow(reshapeRowSeats);
     if (!sorted.length) return;
+
+    const cumulative = shiftSnap ? getRowCumulativeDistances(sorted, reshapeSnapshotById) : null;
 
     const pivotIndex = reshapePivotSeatId
       ? sorted.findIndex(s => s.seatId === reshapePivotSeatId)
@@ -7546,6 +7671,27 @@ function selectSeatsWithoutGoodness() {
         ? reshapeSnapshotById.get(sorted[pivotIndex].seatId) || endSnap
         : endSnap;
       const segLen = pivotIndex >= 0 ? pivotIndex : sorted.length - 1;
+      let endX = newX;
+      let endY = newY;
+      if (shiftSnap) {
+        const dx = newX - anchorSnap.vx;
+        const dy = newY - anchorSnap.vy;
+        const angle = Math.atan2(dy, dx);
+        const dist = Math.hypot(dx, dy);
+        const snapStep = (5 * Math.PI) / 180;
+        const snapped = Math.round(angle / snapStep) * snapStep;
+        const anchorIndex = pivotIndex >= 0 ? pivotIndex : (sorted.length - 1);
+        const totalDist = cumulative
+          ? Math.abs(cumulative[0] - cumulative[anchorIndex])
+          : dist;
+        endX = anchorSnap.vx + Math.cos(snapped) * totalDist;
+        endY = anchorSnap.vy + Math.sin(snapped) * totalDist;
+      }
+      const dirX = endX - anchorSnap.vx;
+      const dirY = endY - anchorSnap.vy;
+      const dirLen = Math.hypot(dirX, dirY) || 1e-6;
+      const dirUnitX = dirX / dirLen;
+      const dirUnitY = dirY / dirLen;
       for (let i = 0; i < sorted.length; i++) {
         if (pivotIndex >= 0 && i > pivotIndex) {
           const snap = reshapeSnapshotById.get(sorted[i].seatId);
@@ -7557,9 +7703,18 @@ function selectSeatsWithoutGoodness() {
           }
           continue;
         }
-        const t = segLen === 0 ? 0 : i / segLen;
-        const x = newX + (anchorSnap.vx - newX) * t;
-        const y = newY + (anchorSnap.vy - newY) * t;
+        let x;
+        let y;
+        if (shiftSnap && cumulative) {
+          const anchorIndex = pivotIndex >= 0 ? pivotIndex : (sorted.length - 1);
+          const distFromAnchor = Math.abs(cumulative[i] - cumulative[anchorIndex]);
+          x = anchorSnap.vx + dirUnitX * distFromAnchor;
+          y = anchorSnap.vy + dirUnitY * distFromAnchor;
+        } else {
+          const t = segLen === 0 ? 0 : i / segLen;
+          x = endX + (anchorSnap.vx - endX) * t;
+          y = endY + (anchorSnap.vy - endY) * t;
+        }
         sorted[i].vx = x;
         sorted[i].vy = y;
         sorted[i].centerX = x;
@@ -7571,6 +7726,28 @@ function selectSeatsWithoutGoodness() {
         : startSnap;
       const startIndex = pivotIndex >= 0 ? pivotIndex : 0;
       const segLen = pivotIndex >= 0 ? (sorted.length - 1 - pivotIndex) : (sorted.length - 1);
+      let endX = newX;
+      let endY = newY;
+      if (shiftSnap) {
+        const dx = newX - anchorSnap.vx;
+        const dy = newY - anchorSnap.vy;
+        const angle = Math.atan2(dy, dx);
+        const dist = Math.hypot(dx, dy);
+        const snapStep = (5 * Math.PI) / 180;
+        const snapped = Math.round(angle / snapStep) * snapStep;
+        const anchorIndex = pivotIndex >= 0 ? pivotIndex : 0;
+        const endIndex = sorted.length - 1;
+        const totalDist = cumulative
+          ? Math.abs(cumulative[endIndex] - cumulative[anchorIndex])
+          : dist;
+        endX = anchorSnap.vx + Math.cos(snapped) * totalDist;
+        endY = anchorSnap.vy + Math.sin(snapped) * totalDist;
+      }
+      const dirX = endX - anchorSnap.vx;
+      const dirY = endY - anchorSnap.vy;
+      const dirLen = Math.hypot(dirX, dirY) || 1e-6;
+      const dirUnitX = dirX / dirLen;
+      const dirUnitY = dirY / dirLen;
       for (let i = 0; i < sorted.length; i++) {
         if (i < startIndex) {
           const snap = reshapeSnapshotById.get(sorted[i].seatId);
@@ -7582,15 +7759,39 @@ function selectSeatsWithoutGoodness() {
           }
           continue;
         }
-        const t = segLen === 0 ? 0 : (i - startIndex) / segLen;
-        const x = anchorSnap.vx + (newX - anchorSnap.vx) * t;
-        const y = anchorSnap.vy + (newY - anchorSnap.vy) * t;
+        let x;
+        let y;
+        if (shiftSnap && cumulative) {
+          const anchorIndex = pivotIndex >= 0 ? pivotIndex : 0;
+          const distFromAnchor = Math.abs(cumulative[i] - cumulative[anchorIndex]);
+          x = anchorSnap.vx + dirUnitX * distFromAnchor;
+          y = anchorSnap.vy + dirUnitY * distFromAnchor;
+        } else {
+          const t = segLen === 0 ? 0 : (i - startIndex) / segLen;
+          x = anchorSnap.vx + (endX - anchorSnap.vx) * t;
+          y = anchorSnap.vy + (endY - anchorSnap.vy) * t;
+        }
         sorted[i].vx = x;
         sorted[i].vy = y;
         sorted[i].centerX = x;
         sorted[i].centerY = y;
       }
     }
+  }
+
+  function getRowCumulativeDistances(sorted, snapshotMap) {
+    const cumulative = new Array(sorted.length).fill(0);
+    for (let i = 1; i < sorted.length; i++) {
+      const prev = snapshotMap.get(sorted[i - 1].seatId);
+      const curr = snapshotMap.get(sorted[i].seatId);
+      if (!prev || !curr) {
+        cumulative[i] = cumulative[i - 1];
+        continue;
+      }
+      const d = Math.hypot(curr.vx - prev.vx, curr.vy - prev.vy);
+      cumulative[i] = cumulative[i - 1] + d;
+    }
+    return cumulative;
   }
 
   function getAlignGroups() {
@@ -7956,6 +8157,112 @@ function nudgeSelection(dxScreen, dyScreen) {
     return changed;
   }
 
+  function buildRowShapeTemplate(rowSeats) {
+    if (!rowSeats || rowSeats.length < 2) return null;
+    const sorted = sortSeatsInRow(rowSeats);
+    const first = sorted[0];
+    const last = sorted[sorted.length - 1];
+    const dx = last.vx - first.vx;
+    const dy = last.vy - first.vy;
+    const length = Math.hypot(dx, dy);
+    if (!Number.isFinite(length) || length < 1e-6) return null;
+    const dir = { x: dx / length, y: dy / length };
+    const perp = { x: -dir.y, y: dir.x };
+    const points = sorted.map((seat) => {
+      const relX = seat.vx - first.vx;
+      const relY = seat.vy - first.vy;
+      const t = (relX * dir.x + relY * dir.y) / length;
+      const offset = relX * perp.x + relY * perp.y;
+      return { t, offset };
+    }).sort((a, b) => a.t - b.t);
+    return { points, length };
+  }
+
+  function getOffsetAt(points, t) {
+    if (!points || points.length === 0) return 0;
+    if (t <= points[0].t) return points[0].offset;
+    const last = points[points.length - 1];
+    if (t >= last.t) return last.offset;
+    for (let i = 1; i < points.length; i++) {
+      const prev = points[i - 1];
+      const next = points[i];
+      if (t <= next.t) {
+        const span = next.t - prev.t || 1e-6;
+        const f = (t - prev.t) / span;
+        return prev.offset + (next.offset - prev.offset) * f;
+      }
+    }
+    return last.offset;
+  }
+
+  function applyRowShapeTemplate(template, rowSeats) {
+    if (!template || !rowSeats || rowSeats.length < 2) return false;
+    const sorted = sortSeatsInRow(rowSeats);
+    const tMap = getSeatDistanceRatios(sorted);
+    const first = sorted[0];
+    const last = sorted[sorted.length - 1];
+    const dx = last.vx - first.vx;
+    const dy = last.vy - first.vy;
+    const length = Math.hypot(dx, dy);
+    if (!Number.isFinite(length) || length < 1e-6) return false;
+    const dir = { x: dx / length, y: dy / length };
+    const perp = { x: -dir.y, y: dir.x };
+    const scale = template.length > 1e-6 ? (length / template.length) : 1;
+    let changed = false;
+    for (const seat of sorted) {
+      let t = tMap.get(seat);
+      if (!Number.isFinite(t)) {
+        const relX = seat.vx - first.vx;
+        const relY = seat.vy - first.vy;
+        t = (relX * dir.x + relY * dir.y) / length;
+      }
+      if (!Number.isFinite(t)) t = 0;
+      t = Math.max(0, Math.min(1, t));
+      const offset = getOffsetAt(template.points, t) * scale;
+      const baseX = first.vx + dir.x * (t * length);
+      const baseY = first.vy + dir.y * (t * length);
+      const newX = baseX + perp.x * offset;
+      const newY = baseY + perp.y * offset;
+      if (Math.abs(seat.vx - newX) > 1e-6 || Math.abs(seat.vy - newY) > 1e-6) {
+        seat.vx = newX;
+        seat.vy = newY;
+        seat.centerX = newX;
+        seat.centerY = newY;
+        changed = true;
+      }
+    }
+    return changed;
+  }
+
+  function mimicShapeOfFirstSelectedRow() {
+    if (selectionMode !== "row") return false;
+    const rows = getSelectedRows();
+    if (rows.size < 2) return false;
+    const ordered = [];
+    rows.forEach((rowSeats, rowId) => {
+      const minSelected = rowSeats.reduce((acc, seat) => {
+        const val = Number.isFinite(seat.selectedAt) ? seat.selectedAt : Infinity;
+        return Math.min(acc, val);
+      }, Infinity);
+      ordered.push({ rowId, rowSeats, minSelected });
+    });
+    ordered.sort((a, b) => {
+      if (a.minSelected !== b.minSelected) return a.minSelected - b.minSelected;
+      return String(a.rowId).localeCompare(String(b.rowId));
+    });
+    const source = ordered[0];
+    const template = buildRowShapeTemplate(source?.rowSeats || []);
+    if (!template) return false;
+    let changed = false;
+    for (let i = 1; i < ordered.length; i++) {
+      const entry = ordered[i];
+      if (!entry.rowSeats || entry.rowSeats.length < 2) continue;
+      const didApply = applyRowShapeTemplate(template, entry.rowSeats);
+      if (didApply) changed = true;
+    }
+    return changed;
+  }
+
   function mergeSelectedRows() {
     if (selectionMode !== "row") return false;
     const rows = getSelectedRows();
@@ -8263,6 +8570,18 @@ function nudgeSelection(dxScreen, dyScreen) {
     }
   }
 
+  function getRowAxisVectors(rowData) {
+    if (!rowData) return null;
+    const dx = rowData.last.vx - rowData.first.vx;
+    const dy = rowData.last.vy - rowData.first.vy;
+    const len = Math.hypot(dx, dy);
+    if (!Number.isFinite(len) || len === 0) return null;
+    const dir = { x: dx / len, y: dy / len };
+    const perp = { x: -dir.y, y: dir.x };
+    const mid = { x: (rowData.first.vx + rowData.last.vx) / 2, y: (rowData.first.vy + rowData.last.vy) / 2 };
+    return { mid, dir, perp };
+  }
+
   function getResizeHandles(bounds) {
     const { minX, maxX, minY, maxY, centerX, centerY } = bounds;
     return [
@@ -8389,6 +8708,23 @@ function nudgeSelection(dxScreen, dyScreen) {
   }
 // --- Zoom ---
   canvas.addEventListener("wheel", (e) => {
+    if (currentTool === "bend" && !e.ctrlKey) {
+      const rows = getSelectedRows();
+      if (rows.size !== 1) return;
+      const rowSeats = rows.values().next().value;
+      if (!rowSeats || rowSeats.length < 2) return;
+      const rowData = computeRowEndpoints(rowSeats);
+      if (!bendControlPoint) ensureBendDefaults();
+      e.preventDefault();
+      const direction = e.deltaY < 0 ? -1 : 1;
+      const step = 0.05 * direction;
+      bendTension = Math.max(-4, Math.min(1, bendTension + step));
+      applyRowBend(rowData, rowSeats[0]?.rowId || "");
+      updateCodeFromSeats();
+      pushHistorySnapshot();
+      renderCanvas();
+      return;
+    }
     if (!e.ctrlKey) return;
     e.preventDefault();
 
@@ -8484,15 +8820,20 @@ function nudgeSelection(dxScreen, dyScreen) {
       const endScreen = worldToScreen(endSeat.vx, endSeat.vy);
       const distStart = Math.hypot(startScreen.x - canvasX, startScreen.y - canvasY);
       const distEnd = Math.hypot(endScreen.x - canvasX, endScreen.y - canvasY);
+      const anchorPoint = bendControlPoint || {
+        x: (startSeat.vx + endSeat.vx) / 2,
+        y: (startSeat.vy + endSeat.vy) / 2
+      };
+      const anchorScreen = worldToScreen(anchorPoint.x, anchorPoint.y);
+      const distAnchor = Math.hypot(anchorScreen.x - canvasX, anchorScreen.y - canvasY);
 
       bendDragTarget = null;
       if (distStart <= hitRadius) {
         bendDragTarget = "start";
       } else if (distEnd <= hitRadius) {
         bendDragTarget = "end";
-      } else {
+      } else if (distAnchor <= hitRadius) {
         bendDragTarget = "anchor";
-        bendControlPoint = { x: worldX, y: worldY };
       }
 
       if (!bendDragTarget) return;
@@ -8532,7 +8873,7 @@ function nudgeSelection(dxScreen, dyScreen) {
       reshapeSnapshotById = new Map(reshapeStartSnapshot.map(s => [s.seatId, s]));
       reshapeRowSeats = rowSeats;
       isReshapingRow = true;
-      applyReshapeDrag(reshapeDragTarget, worldX, worldY);
+      applyReshapeDrag(reshapeDragTarget, worldX, worldY, e.shiftKey);
       renderCanvas();
       return;
     }
@@ -8716,6 +9057,10 @@ function nudgeSelection(dxScreen, dyScreen) {
     }
     if (equalizeRowsMenuItem) {
       equalizeRowsMenuItem.disabled = selectionMode !== "row" || rows.size < 2;
+    }
+    if (mimicRowShapeMenuItem) {
+      const validRows = [...rows.values()].filter(r => r.length >= 2);
+      mimicRowShapeMenuItem.disabled = selectionMode !== "row" || validRows.length < 2;
     }
     if (editSectionsMenuItem) {
       const sections = new Set(selectedSeats.map(s => s.sectionId).filter(Boolean));
@@ -9872,6 +10217,17 @@ function nudgeSelection(dxScreen, dyScreen) {
       renderCanvas();
     }
   });
+  mimicRowShapeMenuItem?.addEventListener("click", () => {
+    closeSeatContextMenu();
+    const changed = mimicShapeOfFirstSelectedRow();
+    if (changed) {
+      pushHistorySnapshot();
+      hasUnsavedChanges = true;
+      updateCodeFromSeats();
+      updateSaveButton();
+      renderCanvas();
+    }
+  });
   editSectionsMenuItem?.addEventListener("click", () => {
     closeSeatContextMenu();
     openSectionEditModal();
@@ -10214,7 +10570,14 @@ function nudgeSelection(dxScreen, dyScreen) {
         rowData.last.centerX = worldX;
         rowData.last.centerY = worldY;
       } else if (bendDragTarget === "anchor") {
-        bendControlPoint = { x: worldX, y: worldY };
+        const axes = getRowAxisVectors(rowData);
+        if (e.shiftKey && axes) {
+          const { mid, perp } = axes;
+          const offset = (worldX - mid.x) * perp.x + (worldY - mid.y) * perp.y;
+          bendControlPoint = { x: mid.x + perp.x * offset, y: mid.y + perp.y * offset };
+        } else {
+          bendControlPoint = { x: worldX, y: worldY };
+        }
       }
 
       hasBentDuringDrag = true;
@@ -10225,7 +10588,7 @@ function nudgeSelection(dxScreen, dyScreen) {
 
     // Reshape-drag
     if (isReshapingRow && reshapeRowSeats && reshapeDragTarget && reshapeSnapshotById) {
-      applyReshapeDrag(reshapeDragTarget, worldX, worldY);
+      applyReshapeDrag(reshapeDragTarget, worldX, worldY, e.shiftKey);
       renderCanvas();
       return;
     }
