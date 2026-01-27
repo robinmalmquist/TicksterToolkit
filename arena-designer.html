@@ -643,10 +643,20 @@
       border-radius: 12px;
       padding: 1rem;
       width: min(900px, 94vw);
+      height: min(80vh, 720px);
       box-shadow: 0 10px 30px rgba(0,0,0,0.12);
       display: flex;
       flex-direction: column;
       gap: 0.75rem;
+    }
+    .help-modal__content {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      overflow-y: auto;
+      flex: 1 1 auto;
+      min-height: 0;
+      padding-right: 0.2rem;
     }
     .help-modal__section {
       display: flex;
@@ -2487,75 +2497,104 @@
 
   <div id="helpOverlay">
     <div id="helpModal">
-      <div class="help-modal__section help-modal__grid">
-        <div class="help-text">
-          <div class="help-panel__title">Shortcuts</div>
-          Pan: <strong>CTRL + drag</strong><br/>
-          Zoom: <strong>CTRL + scroll</strong><br/>
-          Multi-select: <strong>SHIFT + click</strong><br/>
-          Box select: <strong>Drag without CTRL</strong><br/>
-          Undo: <strong>CTRL + Z</strong>
+      <div class="help-modal__content">
+        <div class="help-modal__section help-modal__grid">
+          <div class="help-text">
+            <div class="help-panel__title">Shortcuts</div>
+            Pan: <strong>CTRL + drag</strong><br/>
+            Zoom: <strong>CTRL + scroll</strong><br/>
+            Multi-select: <strong>SHIFT + click</strong><br/>
+            Box select: <strong>Drag without CTRL</strong><br/>
+            Undo: <strong>CTRL + Z</strong>
+          </div>
+          <div class="help-text">
+            <div class="help-panel__title">Basic Work flow</div>
+            <div class="help-placeholder">Click 'Create new' to create a new layout. Name it and set a Venue Id. Select working folder (same structure as legacy Layout Editor recommended (e g GXFS/Venue/[VenueId]/Layouts)). Create sections as described in Sections Modal. Save and close when ready. Make adjustments needed using tools. Create price regions and Entry points, and assign seats to them. Entry points are not mandatory, but still recommended. Price regions panel will show a ✅ when all seats are assigned. This is crucial. Once satisfied press Export and export all files. Continue work in Boxy SVG.</div>
+          </div>
         </div>
-        <div class="help-text">
-          <div class="help-panel__title">Basic Work flow</div>
-          <div class="help-placeholder">Click 'Create new' to create a new layout. Name it and set a Venue Id. Select working folder (same structure as legacy Layout Editor recommended (e g GXFS/Venue/[VenueId]/Layouts)). Create sections as described in Sections Modal. Save and close when ready. Make adjustments needed using tools. Create price regions and Entry points, and assign seats to them. Entry points are not mandatory, but still recommended. Price regions panel will show a ✅ when all seats are assigned. This is crucial. Once satisfied press Export and export all files. Continue work in Boxy SVG.</div>
-        </div>
-      </div>
-      <div class="help-modal__section">
-        <div class="help-text">
-          <div class="help-panel__title">Tools</div>
-          <div class="help-tool-grid">
-            <div class="help-tool-list">
-              <div class="help-tool">
-                <div class="help-tool__title">Selection mode</div>
-                <div class="help-tool__desc">Section (S), Row (D), and Seat (F) decide what a click selects.</div>
+        <div class="help-modal__section">
+          <div class="help-text">
+            <div class="help-panel__title">Tools</div>
+            <div class="help-tool-grid">
+              <div class="help-tool-list">
+                <div class="help-tool">
+                  <div class="help-tool__title">Selection mode</div>
+                  <div class="help-tool__desc">Section (S), Row (D), and Seat (F) decide what a click selects.</div>
+                </div>
+                <div class="help-tool">
+                  <div class="help-tool__title">Select (C)</div>
+                  <div class="help-tool__desc">Click or box-select seats, rows, or sections.</div>
+                </div>
+                <div class="help-tool">
+                  <div class="help-tool__title">Move (V)</div>
+                  <div class="help-tool__desc">Drag selected seats to reposition them.</div>
+                </div>
+                <div class="help-tool">
+                  <div class="help-tool__title">Rotate (R)</div>
+                  <div class="help-tool__desc">Rotate selected seats around the pivot.</div>
+                </div>
+                <div class="help-tool">
+                  <div class="help-tool__title">Resize (Z)</div>
+                  <div class="help-tool__desc">Scale selected seats using the resize handles.</div>
+                </div>
+                <div class="help-tool">
+                  <div class="help-tool__title">Bend (B)</div>
+                  <div class="help-tool__desc">Bend a selected row with an anchor handle.</div>
+                </div>
               </div>
-              <div class="help-tool">
-                <div class="help-tool__title">Select (C)</div>
-                <div class="help-tool__desc">Click or box-select seats, rows, or sections.</div>
-              </div>
-              <div class="help-tool">
-                <div class="help-tool__title">Move (V)</div>
-                <div class="help-tool__desc">Drag selected seats to reposition them.</div>
-              </div>
-              <div class="help-tool">
-                <div class="help-tool__title">Rotate (R)</div>
-                <div class="help-tool__desc">Rotate selected seats around the pivot.</div>
-              </div>
-              <div class="help-tool">
-                <div class="help-tool__title">Resize (Z)</div>
-                <div class="help-tool__desc">Scale selected seats using the resize handles.</div>
-              </div>
-              <div class="help-tool">
-                <div class="help-tool__title">Bend (B)</div>
-                <div class="help-tool__desc">Bend a selected row with an anchor handle.</div>
-              </div>
-            </div>
-            <div class="help-tool-list">
-              <div class="help-tool">
-                <div class="help-tool__title">Reshape row (E)</div>
-                <div class="help-tool__desc">On a selected row you can right click on any seat to create a temporary anchor point and then adjust the row from that anchor point by dragging the end seat.</div>
-              </div>
-              <div class="help-tool">
-                <div class="help-tool__title">Reset row (Q)</div>
-                <div class="help-tool__desc">Restore a row to a straight line from first to last seat on selected row.</div>
-              </div>
-              <div class="help-tool">
-                <div class="help-tool__title">Make table (T)</div>
-                <div class="help-tool__desc">Reshapes a row to mimic a table for customers wanting a table grid through the seating function.</div>
-              </div>
-              <div class="help-tool">
-                <div class="help-tool__title">Deselect (Ctrl+D)</div>
-                <div class="help-tool__desc">Clear the current selection.</div>
-              </div>
-              <div class="help-tool">
-                <div class="help-tool__title">Update outlines</div>
-                <div class="help-tool__desc">Recalculate section outlines from seats.</div>
+              <div class="help-tool-list">
+                <div class="help-tool">
+                  <div class="help-tool__title">Reshape row (E)</div>
+                  <div class="help-tool__desc">On a selected row you can right click on any seat to create a temporary anchor point and then adjust the row from that anchor point by dragging the end seat.</div>
+                </div>
+                <div class="help-tool">
+                  <div class="help-tool__title">Reset row (Q)</div>
+                  <div class="help-tool__desc">Restore a row to a straight line from first to last seat on selected row.</div>
+                </div>
+                <div class="help-tool">
+                  <div class="help-tool__title">Make table (T)</div>
+                  <div class="help-tool__desc">Reshapes a row to mimic a table for customers wanting a table grid through the seating function.</div>
+                </div>
+                <div class="help-tool">
+                  <div class="help-tool__title">Deselect (Ctrl+D)</div>
+                  <div class="help-tool__desc">Clear the current selection.</div>
+                </div>
+                <div class="help-tool">
+                  <div class="help-tool__title">Update outlines</div>
+                  <div class="help-tool__desc">Recalculate section outlines from seats.</div>
+                </div>
               </div>
             </div>
           </div>
         </div>
+
+        <div class="help-modal__section help-modal__grid">
+          <div class="help-text">
+          <div class="help-panel__title">Price Regions</div>
+            <div class="help-placeholder">Using the panel to the right, you can add price regions and set a preferred color to each one of them. Then you simply make a selection and click "Add" in order to add these seats to a specific price region. <br />Clicking "Select" makes a selection of every seat within that price region. <br />Clicking "Clear" removes every seat from that specific price region.</div>
+          </div>
+          <div class="help-text">
+            <div class="help-panel__title">Entry Points</div>
+            <div class="help-placeholder">In the same way price regions are created and managed, you also manage your Entry Points. Create them in the Entry Points Panel and then add seats to their correct entry point.<br /><br /></div>
+            <div class="help-panel__title">Goodness</div>
+            <div class="help-placeholder">To set goddness we first make sure to set a number of available ranking ranges in the panel to the left. After that you can make a selection, right click on the canvas where the seat with best goodness is and select "Set goodness from point". Here you select what range the selection should have. Lower is better.</div>
+          </div>
+        </div>
+
+        <div class="help-modal__section help-modal__grid">
+          <div class="help-text">
+          <div class="help-panel__title">Create Sections</div>
+            <div class="help-placeholder">Using the panel to the right, you can add price regions and set a preferred color to each one of them. Then you simply make a selection and click "Add" in order to add these seats to a specific price region. <br />Clicking "Select" makes a selection of every seat within that price region. <br />Clicking "Clear" removes every seat from that specific price region.</div>
+          </div>
+          <div class="help-text">
+            <div class="help-panel__title">Import Sections</div>
+            <div class="help-placeholder">In the same way price regions are created and managed, you also manage your Entry Points. Create them in the Entry Points Panel and then add seats to their correct entry point.<br /><br /></div>
+            <div class="help-panel__title">Goodness</div>
+            <div class="help-placeholder">To set goddness we first make sure to set a number of available ranking ranges in the panel to the left. After that you can make a selection, right click on the canvas where the seat with best goodness is and select "Set goodness from point". Here you select what range the selection should have. Lower is better.</div>
+          </div>
+        </div>
       </div>
+
       <div class="new-layout-actions">
         <button id="helpClose" class="c-button c-button--ghost c-button--small">Close</button>
       </div>
@@ -10558,6 +10597,25 @@ function nudgeSelection(dxScreen, dyScreen) {
       return;
     }
 
+    if (key === "h") {
+      e.preventDefault();
+      if (helpOverlay && helpOverlay.style.display === "flex") {
+        closeHelpModal();
+      } else {
+        openHelpModal();
+      }
+      return;
+    }
+
+    if (key === "m") {
+      e.preventDefault();
+      if (sectionManagerOverlay && sectionManagerOverlay.style.display === "flex") {
+        sectionManagerClose?.click();
+      } else {
+        openSectionManager();
+      }
+      return;
+    }
     // Om man skriver i textfält: inga fler genvägar
     if (isTextInput) return;
 
