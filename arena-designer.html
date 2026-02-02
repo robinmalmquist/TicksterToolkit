@@ -7,6 +7,7 @@
   <style>
 
     @import url('https://fonts.googleapis.com/css2?family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Ubuntu+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap');
 
     * { box-sizing: border-box; }
 
@@ -43,7 +44,7 @@
       --radius-pill: 5px;
       --transition-fast: 0.15s ease-out;
       --font-main: "Ubuntu", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-      --font-mono: "Roboto Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Courier New", monospace;
+      --font-mono: "Ubuntu Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Courier New", monospace;
     }
 
     html, body {
@@ -192,6 +193,22 @@
       font-size: 0.9rem;
     }
 
+    .c-select {
+      border-radius: var(--radius-pill);
+      border: 1px solid #cdd3e0;
+      background: #f7f9fc;
+      padding: 0.25rem 0.7rem;
+      font-size: 0.78rem;
+      font-family: "Ubuntu", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--tick-grey-dark);
+      cursor: pointer;
+    }
+
+    .c-select--small {
+      padding: 0.25rem 0.6rem;
+      font-size: 0.75rem;
+    }
+
     .c-button--active {
       box-shadow: 0 0 0 1px rgba(20,160,244,0.6);
       border-color: var(--tick-blue);
@@ -201,7 +218,7 @@
 
     #newLayoutBtn:not(:disabled),
     #openSectionManagerBtn:not(:disabled),
-    #sectionCreateBtn:not(:disabled) {
+    #altSectionCreateBtn:not(:disabled) {
       background: #00804f;
       border-color: #00804f;
       color: #fff;
@@ -209,13 +226,14 @@
 
     #newLayoutBtn:hover:not(:disabled),
     #openSectionManagerBtn:hover:not(:disabled),
-    #sectionCreateBtn:not(:disabled) {
+    #altSectionCreateBtn:hover:not(:disabled) {
       background: #006a41;
       border-color: #006a41;
     }
 
     #newLayoutBtn:disabled,
-    #openSectionManagerBtn:disabled {
+    #openSectionManagerBtn:disabled,
+    #altSectionCreateBtn:disabled {
       background: #768680;
       border-color: #768680;
       color: #fff;
@@ -290,18 +308,6 @@
     .u-font--small   { font-size: 0.8rem; }
     .u-font--smaller { font-size: 0.75rem; }
     .u-font--mono    { font-family: var(--font-mono); }
-
-    /* Sektion-manager modal */
-    #sectionManagerOverlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(12, 28, 48, 0.65);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 30;
-      padding: 1rem;
-    }
 
     .section-manager {
       width: min(1440px, 98vw);
@@ -419,6 +425,12 @@
       gap: 0.1rem;
     }
 
+    .section-card__header {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
     .section-card__name {
       font-weight: 600;
       font-size: 0.9rem;
@@ -426,6 +438,28 @@
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
+      flex: 1;
+    }
+
+    .section-card__rename {
+      border: 1px solid #cbd4df;
+      background: #f7f9fc;
+      color: #243743;
+      width: 26px;
+      height: 26px;
+      border-radius: 6px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.85rem;
+      cursor: pointer;
+      padding: 0;
+      flex: 0 0 auto;
+    }
+
+    .section-card__rename:hover {
+      background: #edf5ff;
+      border-color: var(--tick-blue);
     }
 
     .section-card__meta {
@@ -448,24 +482,95 @@
       min-height: 0;
     }
 
-    .section-editor__grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    #altSectionManagerOverlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(12, 28, 48, 0.65);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 30;
+      padding: 1rem;
+    }
+
+    .section-manager--alt .section-manager__body {
+      overflow: hidden;
+    }
+
+    .section-editor--alt {
+      overflow: hidden;
       gap: 0.6rem;
     }
 
-    .section-editor__split {
-      display: grid;
-      grid-template-columns: minmax(200px, .7fr) minmax(300px, 1.3fr);
-      gap: 0.75rem;
-      align-items: start;
+    .alt-section-toolbar {
+      display: flex;
+      flex-direction: row;
+      gap: 0.8rem;
+      flex-wrap: wrap;
+      justify-content: flex-start;
+      align-items: flex-start;
+      width: 100%;
     }
 
-    @media (max-width: 1100px) {
-      .section-editor__split {
-        grid-template-columns: 1fr;
-      }
+    .alt-section-toolbar__group {
+      display: grid;
+      grid-template-rows: repeat(2, min-content);
+      grid-auto-flow: column;
+      grid-auto-columns: max-content;
+      column-gap: 0.45rem;
+      row-gap: 0.35rem;
+      align-items: start;
+      flex: 1 1 0;
     }
+
+    .alt-section-toolbar__group--tools {
+      flex: 0 0 auto;
+    }
+
+    .alt-section-toolbar__divider {
+      width: 1px;
+      align-self: stretch;
+      background: #d6dee8;
+      opacity: 0.8;
+    }
+
+    .alt-section-canvas-wrap {
+      flex: 1;
+      min-height: 320px;
+      background: #f8fbff;
+      border: 1px solid #d0d9e8;
+      border-radius: 10px;
+      padding: 0.65rem;
+      display: flex;
+      align-items: stretch;
+      overflow-x: scroll;
+      overflow-y: auto;
+      position: relative;
+    }
+
+    .alt-section-canvas {
+      width: 100%;
+      height: 100%;
+      border-radius: 8px;
+      background: linear-gradient(180deg, #ffffff, #f0f5fb);
+      border: 1px solid #d8e1ed;
+      box-shadow: inset 0 1px 2px rgba(0,0,0,0.04);
+    }
+
+    .alt-seat-tooltip {
+      position: fixed;
+      pointer-events: none;
+      background: #0f172a;
+      color: #f8fafc;
+      font-size: 0.72rem;
+      padding: 0.2rem 0.4rem;
+      border-radius: 6px;
+      box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+      opacity: 0;
+      transition: opacity 0.08s ease-out;
+      z-index: 45;
+    }
+
     .section-editor__actions-row {
       display: flex;
       align-items: center;
@@ -480,85 +585,6 @@
       margin-left: auto;
     }
 
-    .section-row-generator {
-      background: #f7f9fe;
-      border: 1px solid #dde5f3;
-      border-radius: 10px;
-      padding: 0.6rem 0.75rem;
-      display: flex;
-      flex-direction: column;
-      gap: 0.4rem;
-    }
-
-    .section-row-generator__grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-      gap: 0.5rem;
-      align-items: end;
-    }
-
-    .section-row-generator__actions {
-      display: flex;
-      align-items: flex-end;
-      height: 100%;
-    }
-
-    .section-editor__field input,
-    .section-editor__field select {
-      width: 100%;
-      padding: 0.45rem 0.6rem;
-      border-radius: 8px;
-      border: 1px solid #cdd3e0;
-      font-size: 0.9rem;
-    }
-
-    .section-editor__rows {
-      flex: 1;
-      background: #f8fbff;
-      border: 1px dashed #d0d9e8;
-      border-radius: 10px;
-      padding: 0.6rem;
-      overflow: auto;
-      display: none;
-      flex-direction: column;
-      gap: 0.5rem;
-      height: 0;
-      padding: 0;
-      border: 0;
-    }
-
-    .section-preview {
-      background: #f8fbff;
-      border: 1px solid #d0d9e8;
-      border-radius: 10px;
-      padding: 0.6rem 0.8rem;
-      display: flex;
-      flex-direction: column;
-      gap: 0.4rem;
-      flex: 0 0 auto;
-      min-height: 180px;
-      max-height: 220px;
-    }
-
-    .section-preview__header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      font-size: 0.9rem;
-      font-weight: 600;
-      color: #2e3c47;
-    }
-
-    .section-preview__canvas {
-      width: 100%;
-      height: 100%;
-      min-height: 400px;
-      max-height: 210px;
-      border-radius: 8px;
-      background: linear-gradient(180deg, #ffffff, #f0f5fb);
-      border: 1px solid #d8e1ed;
-      box-shadow: inset 0 1px 2px rgba(0,0,0,0.04);
-    }
 
     /* Ny layout-modal */
     #newLayoutOverlay {
@@ -768,180 +794,9 @@
       gap: 0.5rem;
     }
 
-    .row-card {
-      background: #fff;
-      border: 1px solid #e1e6ef;
-      border-radius: 10px;
-      padding: 0.55rem 0.6rem;
-      display: flex;
-      flex-direction: column;
-      gap: 0.4rem;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.03);
-    }
-
-    .row-card__header {
-      display: flex;
-      align-items: center;
-      gap: 0.4rem;
-    }
-
-    .row-card__name {
-      flex: 1;
-      padding: 0.35rem 0.5rem;
-      border-radius: 8px;
-      border: 1px solid #d3dae5;
-      font-size: 0.88rem;
-    }
-
-    .row-card__actions {
-      display: flex;
-      gap: 0.35rem;
-      align-items: center;
-    }
-
-    .row-card__controls {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 0.35rem;
-      flex-wrap: wrap;
-    }
-
-    .row-card__counter {
-      display: flex;
-      align-items: center;
-      gap: 0.35rem;
-      font-size: 0.84rem;
-      color: #243743;
-    }
-
-    .row-card__index {
-      width: 48px;
-      padding: 0.3rem 0.4rem;
-      border-radius: 8px;
-      border: 1px solid #d3dae5;
-      text-align: center;
-      font-size: 0.9rem;
-    }
-
-    .row-card__line {
-      display: flex;
-      align-items: center;
-      gap: 0.35rem;
-      flex-wrap: wrap;
-    }
-
-    .row-card__chips {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.25rem;
-    }
-
-    .seat-chip {
-      background: #f1f5fb;
-      border: 1px solid #d6deed;
-      border-radius: 50%;
-      width: 30px;
-      height: 30px;
-      font-size: 0.82rem;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.2rem;
-      cursor: default;
-      padding: 0;
-    }
-
-    .seat-chip input {
-      border: none;
-      background: transparent;
-      width: 20px;
-      font-size: 0.82rem;
-      text-align: center;
-      color: #243743;
-    }
-
-    .seat-chip input:focus {
-      outline: none;
-    }
-
-    .seat-chip__remove {
-      border: none;
-      background: transparent;
-      color: #c12e44;
-      cursor: pointer;
-      font-size: 0.85rem;
-      padding: 0;
-    }
-
-    .seat-chip--gap {
-      background: #fff7e6;
-      border-style: dashed;
-      color: #c27c2c;
-      width: 28px;
-      height: 28px;
-      justify-content: center;
-      font-weight: 700;
-    }
-
-    .section-editor__footer {
-      display: flex;
-      flex-direction: column;
-      align-items: stretch;
-      gap: 0.5rem;
-    }
-
     .section-hint {
       font-size: 0.8rem;
       color: #5b6673;
-    }
-
-    .section-help {
-      background: rgba(219,224,228,0.4);
-      border-radius: 8px;
-      padding: 0.6rem 0.7rem;
-    }
-
-    .section-help__title {
-      font-weight: 600;
-      margin-bottom: 0.25rem;
-    }
-
-    .section-help__status {
-      font-weight: 600;
-      margin-bottom: 0.35rem;
-    }
-
-    .section-help__status:empty {
-      display: none;
-    }
-
-    .section-help__line {
-      display: block;
-      font-family: var(--font-mono);
-    }
-
-    .section-editor__footer .c-toolbar {
-      align-self: flex-end;
-    }
-
-    .row-textarea {
-      width: 100%;
-      min-height: 400px;
-      border: 1px solid #cdd3e0;
-      border-radius: 10px;
-      padding: 0.55rem;
-      font-family: var(--font-mono);
-      font-size: 0.9rem;
-      resize: vertical;
-      background: #f8fbff;
-    }
-
-    .section-errors {
-      color: #c12e44;
-      font-size: 0.82rem;
-      margin-top: 0.35rem;
-      white-space: pre-line;
     }
 
     /* ---------- Vänster verktygspalett ---------- */
@@ -1605,24 +1460,16 @@
     html[data-theme="dark"] #sectionEditModal,
     html[data-theme="dark"] .section-manager,
     html[data-theme="dark"] .section-list,
-    html[data-theme="dark"] .section-editor,
-    html[data-theme="dark"] .section-preview,
-    html[data-theme="dark"] .section-row-generator {
+    html[data-theme="dark"] .section-editor {
       background: #151b23;
       border-color: #2b3442;
       box-shadow: 0 8px 20px rgba(0,0,0,0.45);
     }
 
-    html[data-theme="dark"] .section-row-generator {
-      background: #0f141a;
-      box-shadow: none;
-    }
-
     html[data-theme="dark"] .section-manager__body,
     html[data-theme="dark"] #codeModal main,
     html[data-theme="dark"] #codeModal footer,
-    html[data-theme="dark"] .section-cards,
-    html[data-theme="dark"] .row-textarea {
+    html[data-theme="dark"] .section-cards {
       background: #0f141a;
       border-color: #2b3442;
     }
@@ -1639,8 +1486,7 @@
       box-shadow: 0 0 0 1px rgba(255,255,255,0.04), 0 10px 24px rgba(0,0,0,0.6);
     }
 
-    html[data-theme="dark"] .section-card,
-    html[data-theme="dark"] .row-card {
+    html[data-theme="dark"] .section-card {
       background: #111827;
       border-color: #2b3442;
       box-shadow: 0 4px 14px rgba(0,0,0,0.35);
@@ -1652,11 +1498,6 @@
       box-shadow: 0 0 0 1px rgba(59,130,246,0.35);
     }
 
-    html[data-theme="dark"] .section-preview__canvas {
-      background: linear-gradient(180deg, #0f172a, #0b1117);
-      border-color: #2b3442;
-      box-shadow: inset 0 1px 2px rgba(0,0,0,0.45);
-    }
 
     html[data-theme="dark"] .c-button {
       background: #1f2937;
@@ -1685,21 +1526,9 @@
     html[data-theme="dark"] input,
     html[data-theme="dark"] select,
     html[data-theme="dark"] textarea,
-    html[data-theme="dark"] .row-card__name,
-    html[data-theme="dark"] .row-card__index,
     html[data-theme="dark"] .section-list__search {
       background: #0f141a;
       border-color: #2b3442;
-      color: #e5e7eb;
-    }
-
-    html[data-theme="dark"] .seat-chip {
-      background: #0f172a;
-      border-color: #2b3442;
-      color: #e5e7eb;
-    }
-
-    html[data-theme="dark"] .seat-chip input {
       color: #e5e7eb;
     }
 
@@ -1713,14 +1542,6 @@
       color: #e5e7eb;
     }
 
-    html[data-theme="dark"] .section-help {
-      background: rgba(31,41,55,0.65);
-      color: #cbd5f5;
-    }
-
-    html[data-theme="dark"] .section-help__status {
-      color: #e5e7eb;
-    }
 
     html[data-theme="dark"] #info-panel span,
     html[data-theme="dark"] .c-pill,
@@ -1731,7 +1552,7 @@
     }
 
     html[data-theme="dark"] #codeModalOverlay,
-    html[data-theme="dark"] #sectionManagerOverlay,
+    html[data-theme="dark"] #altSectionManagerOverlay,
     html[data-theme="dark"] #exportOverlay,
     html[data-theme="dark"] #helpOverlay,
     html[data-theme="dark"] #goodnessOverlay,
@@ -2155,7 +1976,6 @@
               Manage sections
 
             </button>
-
             <button id="exportBtn" class="c-button c-button--primary">Export</button>
             <input type="file" id="fileInput" accept=".tlt,.txt" />
 
@@ -2334,91 +2154,66 @@
       </div>
     </div>
   <input type="file" id="bgFileInput" accept="image/*" style="display:none" />
-  <div id="sectionManagerOverlay">
-    <div class="section-manager">
+  <div id="altSectionManagerOverlay">
+    <div class="section-manager section-manager--alt">
       <header class="section-manager__header">
         <div class="section-manager__title">Sections</div>
         <div class="c-toolbar c-toolbar--horizontal" style="gap:0.35rem;">
-          <span id="sectionDirtyFlag" class="section-hint">Unsaved changes</span>
+          <span id="altSectionDirtyFlag" class="section-hint">Unsaved changes</span>
         </div>
       </header>
       <div class="section-manager__body">
         <aside class="section-list">
           <div class="section-list__header">
-            <button id="sectionImportExcelBtn" class="c-button c-button--primary" title="Import from Excel" style="width:100%; padding:0.7rem 0.9rem; font-weight:600; margin-bottom:0.5rem;">Import from Excel file</button>
-            <input type="file" id="sectionImportExcelInput" accept=".xlsx,.xls" style="display:none" />
-            <button id="sectionCreateBtn" class="c-button c-button--primary" title="New section" style="width:100%; padding:0.7rem 0.9rem; font-weight:600;">+ New section</button>
+            <button id="altSectionImportExcelBtn" class="c-button c-button--primary" title="Import from Excel" style="width:100%; padding:0.7rem 0.9rem; font-weight:600; margin-bottom:0.5rem;">Import from Excel file</button>
+            <input type="file" id="altSectionImportExcelInput" accept=".xlsx,.xls" style="display:none" />
+            <button id="altSectionCreateBtn" class="c-button c-button--primary" title="New section" style="width:100%; padding:0.7rem 0.9rem; font-weight:600;">+ New section</button>
           </div>
-          <div id="sectionCards" class="section-cards"></div>
+          <div id="altSectionCards" class="section-cards"></div>
         </aside>
-        <div class="section-editor">
-          <div style="display:none;">
-            <input id="sectionEditColor" type="color" value="#14a0f4" />
-          </div>
-
-          <div class="section-row-generator">
-            <div class="section-row-generator__grid">
-              <label class="section-editor__field">
-                <div class="u-font--small" style="margin-bottom:0.25rem;">How many rows?</div>
-                <input id="sectionRowGenCount" type="number" min="1" step="1" value="10" />
-              </label>
-              <label class="section-editor__field">
-                <div class="u-font--small" style="margin-bottom:0.25rem;">Start number</div>
-                <input id="sectionRowGenStart" type="number" step="1" value="1" />
-              </label>
-              <label class="section-editor__field">
-                <div class="u-font--small" style="margin-bottom:0.25rem;">Order</div>
-                <select id="sectionRowGenOrder">
-                  <option value="asc">Ascending</option>
-                  <option value="desc">Descending</option>
-                </select>
-              </label>
-              <div class="section-row-generator__actions">
-                <button id="sectionRowGenBtn" class="c-button c-button--secondary c-button--small">Generate row labels</button>
-              </div>
+        <div class="section-editor section-editor--alt">
+          <div class="alt-section-toolbar">
+            <div class="alt-section-toolbar__group alt-section-toolbar__group--tools">
+              <button id="altToolSelectBtn" class="c-button c-button--ghost c-button--small c-button--active">Select (S)</button>
+              <button id="altToolDrawBtn" class="c-button c-button--ghost c-button--small">Draw (D)</button>
+            </div>
+            <div class="alt-section-toolbar__divider" aria-hidden="true"></div>
+            <div class="alt-section-toolbar__group">
+              <button id="altGapNewBtn" class="c-button c-button--ghost c-button--small">New RowId</button>
+              <button id="altSetStartRowBtn" class="c-button c-button--ghost c-button--small">Set start row</button>
+              <button id="altReverseRowOrderBtn" class="c-button c-button--ghost c-button--small">Reverse row order</button>
+              <button id="altSetRowsManualBtn" class="c-button c-button--ghost c-button--small">Set rows manually</button>
+              <button id="altDuplicateRowBtn" class="c-button c-button--ghost c-button--small">Duplicate row</button>
+              <button id="altAddRowBtn" class="c-button c-button--ghost c-button--small">Add row</button>
+            </div>
+            <div class="alt-section-toolbar__divider" aria-hidden="true"></div>
+            <div class="alt-section-toolbar__group">
+              <button id="altAddSeatBtn" class="c-button c-button--ghost c-button--small">Add seat</button>
+              <button id="altRemoveSeatBtn" class="c-button c-button--ghost c-button--small">Remove seat</button>
+              <button id="altSetStartSeatBtn" class="c-button c-button--ghost c-button--small">Set start seat</button>
+              <button id="altReverseSeatOrderBtn" class="c-button c-button--ghost c-button--small">Reverse seat order</button>
+              <select id="altSeatNumberingMode" class="c-select c-select--small">
+                <option value="row">Start each row at 1</option>
+                <option value="continuous">Continous seat numbering</option>
+              </select>
             </div>
           </div>
-
-          <div class="section-editor__split">
-            <div>
-              <textarea id="sectionRowText" class="row-textarea" placeholder="Enter rows (see tips below)."></textarea>
-              <div id="sectionRowErrors" class="section-errors"></div>
-            </div>
-
-              <canvas id="sectionPreviewCanvas" class="section-preview__canvas"></canvas>
-
+          <div class="alt-section-canvas-wrap" id="altSectionCanvasWrap">
+            <canvas id="altSectionCanvas" class="alt-section-canvas"></canvas>
           </div>
-
-          
           <div class="section-editor__actions-row">
-            <div class="c-toolbar c-toolbar--horizontal" style="gap:0.35rem;">
-              <button id="parseRowsBtn" class="c-button c-button--ghost c-button--small">Update section preview</button>
-            </div>
+            <div></div>
             <div class="section-editor__actions-right c-toolbar c-toolbar--horizontal">
-              <button id="sectionManagerClose" class="c-button c-button--ghost c-button--small">Close</button>
-              <button id="sectionSaveCloseBtn" class="c-button c-button--secondary c-button--small">Save and close</button>
-              <button id="sectionSaveBtn" class="c-button c-button--primary c-button--small">Save section</button>
-            </div>
-          </div>
-
-          <div class="section-editor__rows" id="sectionRowsEditor"></div>
-
-          <div class="section-editor__footer">
-            <div class="section-hint section-help" id="sectionEditHint">
-              <div class="section-help__status" id="sectionEditStatus"></div>
-              <div class="section-help__title">Row examples</div>
-              <span class="section-help__line">1: 1,10 (gives you a row with seats named 1 - 10 and row number 1)</span>
-              <span class="section-help__line">2: 1,15|16,30 (gives you a row with seats 1 - 15, then a gap and then seats 16 - 30. Same RowId. Row number 2)</span>
-              <span class="section-help__line">3: 1,5||6,10 (gives you a row with seats 1 - 5, then a gap and then seats 6 - 10. Creates two separate RowIds. Row number 3)</span>
-              <span class="section-help__line">4: 1,4---5,7 (adds three empty seats between 4 and 5 within the same RowId)</span>
-              <span class="section-help__line">5: 1,4|---|5,7 (adds three empty seats and starts a new RowId)</span>
-              <span class="section-help__line">6: list(1-2-4-7) (manual seat order; "-" inside list() separates seat numbers)</span>
+              <button id="altSectionManagerClose" class="c-button c-button--ghost c-button--small">Close</button>
+              <button id="altSectionSaveCloseBtn" class="c-button c-button--secondary c-button--small">Save and close</button>
+              <button id="altSectionSaveBtn" class="c-button c-button--primary c-button--small">Save section</button>
             </div>
           </div>
         </div>
       </div>
     </div>
   </div>
+  <div id="altSeatTooltip" class="alt-seat-tooltip">Sista plats: 1</div>
 
   <div id="newLayoutOverlay">
     <div id="newLayoutModal">
@@ -2875,31 +2670,31 @@
   const goodnessCancel = document.getElementById("goodnessCancel");
   const goodnessApply = document.getElementById("goodnessApply");
   const goodnessModalHint = document.getElementById("goodnessModalHint");
-  const sectionManagerOverlay = document.getElementById("sectionManagerOverlay");
-  const sectionManagerClose = document.getElementById("sectionManagerClose");
-  const sectionCardsEl = document.getElementById("sectionCards");
-  const sectionImportExcelBtn = document.getElementById("sectionImportExcelBtn");
-  const sectionImportExcelInput = document.getElementById("sectionImportExcelInput");
-  const sectionCreateBtn = document.getElementById("sectionCreateBtn");
-  const sectionEditId = document.getElementById("sectionEditId");
-  const sectionEditName = document.getElementById("sectionEditName");
-  const sectionEditColor = document.getElementById("sectionEditColor");
-  const sectionRowGenCount = document.getElementById("sectionRowGenCount");
-  const sectionRowGenStart = document.getElementById("sectionRowGenStart");
-  const sectionRowGenOrder = document.getElementById("sectionRowGenOrder");
-  const sectionRowGenBtn = document.getElementById("sectionRowGenBtn");
-  const sectionRowsEditor = document.getElementById("sectionRowsEditor");
-  const addRowInlineBtn = document.getElementById("addRowInlineBtn");
-  const sectionSaveBtn = document.getElementById("sectionSaveBtn");
-  const sectionSaveCloseBtn = document.getElementById("sectionSaveCloseBtn");
-  const sectionEditHint = document.getElementById("sectionEditHint");
-  const sectionEditStatus = document.getElementById("sectionEditStatus");
-  const sectionDuplicateBtn = document.getElementById("sectionDuplicateBtn");
-  const sectionDirtyFlag = document.getElementById("sectionDirtyFlag");
-  const sectionRowText = document.getElementById("sectionRowText");
-  const parseRowsBtn = document.getElementById("parseRowsBtn");
-  const sectionRowErrors = document.getElementById("sectionRowErrors");
-  const sectionPreviewCanvas = document.getElementById("sectionPreviewCanvas");
+  const altSectionManagerOverlay = document.getElementById("altSectionManagerOverlay");
+  const altSectionManagerClose = document.getElementById("altSectionManagerClose");
+  const altSectionCardsEl = document.getElementById("altSectionCards");
+  const altSectionImportExcelBtn = document.getElementById("altSectionImportExcelBtn");
+  const altSectionImportExcelInput = document.getElementById("altSectionImportExcelInput");
+  const altSectionCreateBtn = document.getElementById("altSectionCreateBtn");
+  const altSectionDirtyFlag = document.getElementById("altSectionDirtyFlag");
+  const altSectionCanvasWrap = document.getElementById("altSectionCanvasWrap");
+  const altSectionCanvas = document.getElementById("altSectionCanvas");
+  const altSeatTooltip = document.getElementById("altSeatTooltip");
+  const altToolSelectBtn = document.getElementById("altToolSelectBtn");
+  const altToolDrawBtn = document.getElementById("altToolDrawBtn");
+  const altGapNewBtn = document.getElementById("altGapNewBtn");
+  const altReverseSeatOrderBtn = document.getElementById("altReverseSeatOrderBtn");
+  const altSetStartSeatBtn = document.getElementById("altSetStartSeatBtn");
+  const altAddSeatBtn = document.getElementById("altAddSeatBtn");
+  const altRemoveSeatBtn = document.getElementById("altRemoveSeatBtn");
+  const altSetStartRowBtn = document.getElementById("altSetStartRowBtn");
+  const altReverseRowOrderBtn = document.getElementById("altReverseRowOrderBtn");
+  const altSetRowsManualBtn = document.getElementById("altSetRowsManualBtn");
+  const altDuplicateRowBtn = document.getElementById("altDuplicateRowBtn");
+  const altAddRowBtn = document.getElementById("altAddRowBtn");
+  const altSeatNumberingModeSelect = document.getElementById("altSeatNumberingMode");
+  const altSectionSaveBtn = document.getElementById("altSectionSaveBtn");
+  const altSectionSaveCloseBtn = document.getElementById("altSectionSaveCloseBtn");
   const sectionRawText = new Map();
   const priceRegions = [];
   const entryPoints = [];
@@ -2910,6 +2705,19 @@
   let rowEditState = new Map();
   let sectionEditTargetId = null;
   let sectionEditRowCounter = 0;
+  let altSectionTool = "select";
+  let altRowLines = [];
+  let altActiveLineIndex = null;
+  let altIsDrawing = false;
+  let altDrawStart = null;
+  let altDrawEnd = null;
+  let altDrawLineIndex = null;
+  const ALT_SEAT_RADIUS = 6;
+  const ALT_SEAT_SPACING = 16;
+  const ALT_ROW_HEIGHT = 24;
+  const ALT_ROW_GAP = 6;
+  const ALT_MAX_SLOTS = 100;
+  let altSeatNumberingMode = "row";
 
   let seats = [];
   let outlines = [];
@@ -4286,8 +4094,8 @@ codePane.addEventListener("input", () => {
     seatCountEl.textContent = "0";
     sectionCountEl.textContent = "0";
     resetSectionDrafts();
-    renderSectionCards();
-    renderSectionDetail();
+    renderAltSectionCards();
+    renderAltSectionDetail();
     renderCanvas();
     loadPriceRegionsFromStorage();
     loadEntryPointsFromStorage();
@@ -4318,8 +4126,8 @@ codePane.addEventListener("input", () => {
     goodnessAnchorPoint = null;
     setGoodnessRangeCount(DEFAULT_GOODNESS_RANGE_COUNT, false);
     resetSectionDrafts();
-    renderSectionCards();
-    renderSectionDetail();
+    renderAltSectionCards();
+    renderAltSectionDetail();
     priceRegions.length = 0;
     renderPriceRegionList();
     updatePriceRegionUi();
@@ -6275,7 +6083,7 @@ codePane.addEventListener("input", () => {
     loadGoodnessSettingsFromStorage();
     setLayoutActive(true);
     closeNewLayoutModal();
-    openSectionManager();
+    openAltSectionManager();
   }
 
   newLayoutBtn?.addEventListener("click", openNewLayoutModal);
@@ -11003,10 +10811,10 @@ function nudgeSelection(dxScreen, dyScreen) {
     if (key === "m") {
       if (openSectionManagerBtn?.disabled) return;
       e.preventDefault();
-      if (sectionManagerOverlay && sectionManagerOverlay.style.display === "flex") {
-        sectionManagerClose?.click();
+      if (altSectionManagerOverlay && altSectionManagerOverlay.style.display === "flex") {
+        altSectionManagerClose?.click();
       } else {
-        openSectionManager();
+        openAltSectionManager();
       }
       return;
     }
@@ -11415,7 +11223,6 @@ function nudgeSelection(dxScreen, dyScreen) {
     const errors = [];
     const blocks = [];
     let parts = [];
-    let gapRun = 0;
     let hasSeat = false;
     let pendingRowBreak = false;
     let run = [];
@@ -11427,47 +11234,14 @@ function nudgeSelection(dxScreen, dyScreen) {
     };
     const flushRun = () => {
       if (!run.length) return;
-      if (run.length === 1) {
-        parts.push(String(run[0]));
-        hasSeat = true;
-        run = [];
-        return;
-      }
-      let direction = 0;
-      for (let i = 1; i < run.length; i++) {
-        const diff = run[i] - run[i - 1];
-        if (diff === 1) {
-          if (direction === 0) direction = 1;
-          else if (direction !== 1) { direction = null; break; }
-        } else if (diff === -1) {
-          if (direction === 0) direction = -1;
-          else if (direction !== -1) { direction = null; break; }
-        } else {
-          direction = null;
-          break;
-        }
-      }
-      if (direction === 1 || direction === -1) {
-        parts.push(`${run[0]},${run[run.length - 1]}`);
-      } else {
-        parts.push(`list(${run.join("-")})`);
-      }
+      parts.push(`list(${run.join("-")})`);
       hasSeat = true;
       run = [];
     };
-    const flushGaps = () => {
-      if (!gapRun) return;
-      parts.push("-".repeat(gapRun));
-      gapRun = 0;
-    };
     const finishBlock = () => {
       flushRun();
-      flushGaps();
-      if (parts.length && hasSeat) {
-        blocks.push(parts.join(""));
-      }
+      if (parts.length && hasSeat) blocks.push(parts.join(""));
       parts = [];
-      gapRun = 0;
       hasSeat = false;
       run = [];
     };
@@ -11475,7 +11249,7 @@ function nudgeSelection(dxScreen, dyScreen) {
     seatCells.forEach((value) => {
       if (isEmptyCell(value)) {
         flushRun();
-        gapRun += 1;
+        parts.push("-");
         pendingRowBreak = true;
         return;
       }
@@ -11485,7 +11259,7 @@ function nudgeSelection(dxScreen, dyScreen) {
       }
       if (isGapCell(value)) {
         flushRun();
-        gapRun += 1;
+        parts.push("-");
         return;
       }
       const num = Number(value);
@@ -11493,15 +11267,11 @@ function nudgeSelection(dxScreen, dyScreen) {
         errors.push(`Sheet "${sheetName}" row ${rowIndex}: invalid seat value "${value}".`);
         return;
       }
-      if (gapRun) flushGaps();
       run.push(num);
     });
     finishBlock();
 
-    let joined = blocks.join("||");
-    if (joined.includes("||")) {
-      joined = joined.replace(/(-+)\|\|/g, "|$1|");
-    }
+    const joined = blocks.join("||");
     return {
       text: joined ? `${rowName}: ${joined}` : "",
       errors
@@ -11695,8 +11465,8 @@ function nudgeSelection(dxScreen, dyScreen) {
       });
       activeSectionDraftId = sectionDrafts[0].sectionId;
       setSectionDirty(true);
-      renderSectionCards();
-      renderSectionDetail();
+      renderAltSectionCards();
+      renderAltSectionDetail();
     }
   }
 
@@ -11707,18 +11477,19 @@ function nudgeSelection(dxScreen, dyScreen) {
     activeSectionDraftId = null;
     sectionRawText.clear();
     sectionDirty = false;
+    altRowLines = [];
+    altActiveLineIndex = null;
   }
 
   function setSectionDirty(isDirty) {
     sectionDirty = isDirty;
-    if (sectionDirtyFlag) {
-    sectionDirtyFlag.textContent = isDirty ? "Unsaved changes" : "Saved";
-      sectionDirtyFlag.style.color = isDirty ? "#c12e44" : "#5b6673";
+    if (altSectionDirtyFlag) {
+      altSectionDirtyFlag.textContent = isDirty ? "Unsaved changes" : "Saved";
+      altSectionDirtyFlag.style.color = isDirty ? "#c12e44" : "#5b6673";
     }
-  }
-
-  function rowsToText(rows) {
-    return rows.map((row) => row.rawTextLine || "").filter(Boolean).join("\n");
+    if (altSeatNumberingModeSelect) {
+      altSeatNumberingModeSelect.disabled = !getActiveDraft();
+    }
   }
 
   function parseRowsText(text) {
@@ -11834,193 +11605,273 @@ function nudgeSelection(dxScreen, dyScreen) {
     return { rows: parsed.length ? parsed : [newRow("Row 1")], errors };
   }
 
-  function renderSectionPreview(draft) {
-    if (!sectionPreviewCanvas) return;
-    const ctxPrev = sectionPreviewCanvas.getContext("2d");
-    if (!ctxPrev) return;
+  function getActiveDraft() {
+    return sectionDrafts.find((d) => d.sectionId === activeSectionDraftId) || null;
+  }
 
-    // GruppЫra rader per radbrytning (rowLine)
-    const groups = new Map();
-    draft.rows.forEach((row, idx) => {
-      const key = Number.isFinite(row.rowLine) ? row.rowLine : idx;
-      if (!groups.has(key)) groups.set(key, []);
-      groups.get(key).push(row);
-    });
-    const lines = Array.from(groups.entries()).sort((a, b) => a[0] - b[0]);
-    const slotSize = 24;
-    const rowHeight = 28;
-    const marginX = 46;
-    const marginY = 18;
-    const seatSize = 16;
-    const gapSize = 14;
-    const labelFont = "10px 'Ubuntu', sans-serif";
-    const seatFont = "9px 'Ubuntu', sans-serif";
+  function createAltId() {
+    return crypto.randomUUID ? crypto.randomUUID() : String(Math.random());
+  }
 
-    let maxOffset = 0;
-    lines.forEach(([, rows]) => {
-      rows.forEach((row) => {
-        const items = row.items && row.items.length ? row.items : row.seats.map((s, i) => ({ ...s, pos: i }));
-        items.forEach((it) => {
-          if (Number.isFinite(it.pos) && it.pos > maxOffset) maxOffset = it.pos;
-        });
-      });
-    });
-    const contentWidth = marginX * 2 + (maxOffset + 1) * slotSize;
-    const contentHeight = marginY * 2 + lines.length * rowHeight;
-    const cssWidth = sectionPreviewCanvas.clientWidth || 900;
-    const targetHeight = sectionPreviewCanvas.clientHeight || 240;
-    const scaleX = contentWidth > 0 ? Math.min(1, cssWidth / contentWidth) : 1;
-    const scaleY = contentHeight > 0 ? Math.min(1, targetHeight / contentHeight) : 1;
-    const scale = Math.min(scaleX, scaleY);
-    const dpr = window.devicePixelRatio || 1;
-    const finalWidth = cssWidth;
-    sectionPreviewCanvas.width = finalWidth * dpr;
-    sectionPreviewCanvas.height = targetHeight * dpr;
-    sectionPreviewCanvas.style.height = `${targetHeight}px`;
-    sectionPreviewCanvas.style.width = "100%";
+  function createAltBlock() {
+    return {
+      id: createAltId(),
+      rowId: createAltId(),
+      startSeat: 1,
+      direction: 1,
+      lastDirection: { x: 1, y: 0 },
+      manualStartSeat: false
+    };
+  }
 
-    ctxPrev.save();
-    ctxPrev.scale(dpr * scale, dpr * scale);
-    const clearW = finalWidth / scale;
-    const clearH = targetHeight / scale;
-    ctxPrev.clearRect(0, 0, clearW, clearH);
-    ctxPrev.fillStyle = "#f7faff";
-    ctxPrev.fillRect(0, 0, clearW, clearH);
-
-    const labelColor = "#2e3c47";
-    // Färginställningar för tydliga nummer
-    const seatHex = draft.color || "#14a0f4";
-    const seatFill = "#ffffff";
-    const seatStroke = seatHex;
-    const textColor = "#0f1d2a";
-
-    ctxPrev.lineWidth = 1;
-    ctxPrev.textBaseline = "middle";
-
-    lines.forEach(([, rows], lineIdx) => {
-      const baseY = marginY + lineIdx * rowHeight;
-      const displayRowNumber = (rows[0].name || "").replace(/^(Rad|Row)\s*/i, "").trim() || `${lineIdx + 1}`;
-
-      // Rad-etikett
-      ctxPrev.fillStyle = labelColor;
-      ctxPrev.font = labelFont;
-      ctxPrev.textAlign = "left";
-      ctxPrev.fillText(displayRowNumber, 16, baseY);
-
-      // Samla alla chips pЪ linjen
-      const chips = [];
-      rows.forEach((row) => {
-        const items = row.items && row.items.length ? row.items : row.seats.map((s, i) => ({ ...s, pos: i }));
-        items.forEach((it) => chips.push({ offset: it.pos ?? 0, seat: it }));
-      });
-      chips.sort((a, b) => a.offset - b.offset);
-
-      let lastOffset = -1;
-      chips.forEach(({ seat, offset }) => {
-        const gapCount = offset - (lastOffset + 1);
-        for (let g = 0; g < gapCount; g++) {
-          const gx = marginX + (lastOffset + 1 + g) * slotSize;
-          const gy = baseY;
-          const gapHalf = gapSize / 2;
-          ctxPrev.strokeStyle = "#cbd7e6";
-          ctxPrev.setLineDash([4, 4]);
-          ctxPrev.strokeRect(gx - gapHalf, gy - gapHalf, gapSize, gapSize);
-          ctxPrev.setLineDash([]);
-        }
-
-        const x = marginX + offset * slotSize;
-        const y = baseY;
-        if (seat.isGap) {
-          const gapHalf = gapSize / 2;
-          ctxPrev.strokeStyle = "#cbd7e6";
-          ctxPrev.setLineDash([4, 4]);
-          ctxPrev.strokeRect(x - gapHalf, y - gapHalf, gapSize, gapSize);
-          ctxPrev.setLineDash([]);
+  function recalculateAltRowStartSeats() {
+    let runningSeat = 1;
+    altRowLines.forEach((line) => {
+      if (!line.blocks.length) return;
+      if (altSeatNumberingMode === "row") {
+        runningSeat = 1;
+      }
+      line.blocks.forEach((block) => {
+        if (block.manualStartSeat) {
+          runningSeat = block.startSeat;
         } else {
-          const seatHalf = seatSize / 2;
-          ctxPrev.fillStyle = seatFill;
-          ctxPrev.strokeStyle = seatStroke;
-          ctxPrev.fillRect(x - seatHalf, y - seatHalf, seatSize, seatSize);
-          ctxPrev.strokeRect(x - seatHalf, y - seatHalf, seatSize, seatSize);
-
-          ctxPrev.fillStyle = textColor;
-          ctxPrev.textAlign = "center";
-          ctxPrev.font = seatFont;
-          ctxPrev.fillText(seat.name || "", x, y + 0.5);
+          block.startSeat = runningSeat;
         }
-        lastOffset = offset;
+        const count = getAltSeatCount(line, block.id);
+        runningSeat = block.startSeat + Math.max(0, count);
       });
     });
-    ctxPrev.restore();
   }
 
-  function hydrateDraftRowsFromRaw(draft) {
-    const rawText = (draft.sectionId && sectionRawText.get(draft.sectionId)) ?? draft.rawRowText ?? "";
-    if (!rawText.trim()) return { ok: true };
-    const parsed = parseRowsText(rawText);
-    if (parsed.errors.length) {
-      return { ok: false, errors: parsed.errors, rawText };
+  function buildAltLines(rowCount) {
+    const count = Math.max(1, Math.floor(rowCount || 0));
+    const lines = [];
+    for (let i = 0; i < count; i++) {
+      const block = createAltBlock();
+      lines.push({
+        lineIndex: i,
+        name: `${i + 1}`,
+        blocks: [block],
+        activeBlockId: block.id,
+        slots: []
+      });
     }
-    draft.rows = parsed.rows;
-    draft.rawRowText = rawText;
-    if (draft.sectionId) sectionRawText.set(draft.sectionId, rawText);
-    return { ok: true };
+    return lines;
   }
 
-  function renderRowsPreview(draft) {
-    sectionRowsEditor.innerHTML = "";
-    const groups = new Map();
-    draft.rows.forEach((row, idx) => {
-      const key = Number.isFinite(row.rowLine) ? row.rowLine : idx;
-      if (!groups.has(key)) groups.set(key, []);
-      groups.get(key).push(row);
+  function buildAltLinesFromDraft(draft) {
+    const rows = draft?.rows || [];
+    if (!rows.length) return [];
+    const maxLine = rows.reduce((max, row) => {
+      const idx = Number.isFinite(row.rowLine) ? row.rowLine : 0;
+      return Math.max(max, idx);
+    }, 0);
+    const lineCount = maxLine + 1;
+    const lines = [];
+    for (let i = 0; i < lineCount; i++) {
+      lines.push({
+        lineIndex: i,
+        name: `${i + 1}`,
+        blocks: [],
+        activeBlockId: null,
+        slots: []
+      });
+    }
+    rows.forEach((row) => {
+      const lineIndex = Number.isFinite(row.rowLine) ? row.rowLine : 0;
+      const line = lines[lineIndex];
+      if (!line) return;
+      if (row.name && line.name !== row.name) line.name = row.name;
+      const block = createAltBlock();
+      block.rowId = row.id || block.rowId;
+      line.blocks.push(block);
+      if (!line.activeBlockId) line.activeBlockId = block.id;
+
+      const fallbackSeats = row.seats || [];
+      const items = row.items && row.items.length
+        ? row.items
+        : fallbackSeats.map((seat, idx) => ({ ...seat, pos: idx }));
+      items.forEach((item) => {
+        const pos = Number.isFinite(item.pos) ? item.pos : 0;
+        const slot = item.isGap
+          ? { type: "gap", blockId: block.id, pos }
+          : { type: "seat", blockId: block.id, name: item.name || "", pos };
+        line.slots[pos] = slot;
+      });
     });
+    return lines;
+  }
 
-    Array.from(groups.entries()).sort((a, b) => a[0] - b[0]).forEach(([lineIdx, rows]) => {
-      const rowEl = document.createElement("div");
-      rowEl.className = "row-card";
-      const displayRowNumber = (rows[0].name || "").replace(/^(Rad|Row)\s*/i, "").trim() || `${lineIdx + 1}`;
+  function getAltActiveLine() {
+    if (!altRowLines.length || altActiveLineIndex == null) return null;
+    return altRowLines[altActiveLineIndex] || null;
+  }
 
-      // samla chips med offset och lägg in gap-chip när det saknas offset (dubbla pipes)
-      const chips = [];
-      rows.forEach((row) => {
-        const items = row.items && row.items.length ? row.items : row.seats.map((s, i) => ({ ...s, pos: i }));
-        items.forEach((it) => chips.push({ offset: it.pos ?? 0, seat: it }));
-      });
-      chips.sort((a, b) => a.offset - b.offset);
-      let lastOffset = -1;
-      const chipHtml = [];
-      chips.forEach(({ seat, offset }) => {
-        const gapCount = offset - (lastOffset + 1);
-        for (let g = 0; g < gapCount; g++) {
-          chipHtml.push(`
-            <span class="seat-chip seat-chip--gap" title="Tomt utrymme">
-              <span>·</span>
-            </span>
-          `);
-        }
-        chipHtml.push(`
-          <span class="seat-chip ${seat.isGap ? "seat-chip--gap" : ""}">
-            ${seat.isGap ? `<span title="Tomt utrymme">·</span>` : `<input data-role="seat-name" value="${seat.name || ""}" />`}
-          </span>
-        `);
-        lastOffset = offset;
-      });
-      rowEl.innerHTML = `
-        <div class="row-card__line">
-          <strong style="min-width:60px;display:inline-block;">${displayRowNumber}</strong>
-          <span class="u-font--small" style="display:flex;flex-wrap:wrap;gap:0.25rem;align-items:center;">
-            ${chipHtml.join("")}
-          </span>
-        </div>
-      `;
-      sectionRowsEditor.appendChild(rowEl);
+  function getAltActiveBlock(line) {
+    if (!line) return null;
+    return line.blocks.find(b => b.id === line.activeBlockId) || line.blocks[0] || null;
+  }
+
+  function setAltTool(tool) {
+    altSectionTool = tool === "draw" ? "draw" : "select";
+    if (altToolSelectBtn) altToolSelectBtn.classList.toggle("c-button--active", altSectionTool === "select");
+    if (altToolDrawBtn) altToolDrawBtn.classList.toggle("c-button--active", altSectionTool === "draw");
+  }
+
+  function setAltActiveLine(index) {
+    if (index == null || index < 0 || index >= altRowLines.length) {
+      altActiveLineIndex = null;
+      return;
+    }
+    altActiveLineIndex = index;
+    const line = altRowLines[index];
+    if (line && !line.activeBlockId && line.blocks[0]) {
+      line.activeBlockId = line.blocks[0].id;
+    }
+  }
+
+  function getAltCanvasMetrics() {
+    if (!altSectionCanvas) return null;
+    const wrapEl = altSectionCanvasWrap || altSectionCanvas.parentElement;
+    const wrapRect = wrapEl?.getBoundingClientRect();
+    const rect = altSectionCanvas.getBoundingClientRect();
+    const wrapStyle = wrapEl ? getComputedStyle(wrapEl) : null;
+    const padX = wrapStyle ? (parseFloat(wrapStyle.paddingLeft) + parseFloat(wrapStyle.paddingRight)) : 0;
+    const padY = wrapStyle ? (parseFloat(wrapStyle.paddingTop) + parseFloat(wrapStyle.paddingBottom)) : 0;
+    const viewportWidth = Math.max(200, (wrapEl?.clientWidth || wrapRect?.width || rect.width || 900) - padX);
+    const viewportHeight = Math.max(200, (wrapEl?.clientHeight || wrapRect?.height || rect.height || 520) - padY);
+    const dpr = window.devicePixelRatio || 1;
+    const rowCount = Math.max(1, altRowLines.length || 1);
+    const padding = 16;
+    const labelWidth = 44;
+    const rowHeight = ALT_ROW_HEIGHT;
+    const rowGap = ALT_ROW_GAP;
+    const contentHeight = padding * 2 + rowCount * rowHeight + Math.max(0, rowCount - 1) * rowGap;
+    const height = Math.max(viewportHeight, contentHeight);
+    const contentWidth = padding * 2 + labelWidth + (ALT_MAX_SLOTS - 1) * ALT_SEAT_SPACING + ALT_SEAT_RADIUS * 2;
+    const width = Math.max(viewportWidth, contentWidth);
+    altSectionCanvas.width = width * dpr;
+    altSectionCanvas.height = height * dpr;
+    altSectionCanvas.style.width = `${width}px`;
+    altSectionCanvas.style.height = `${height}px`;
+    const ctx = altSectionCanvas.getContext("2d");
+    if (!ctx) return null;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    return {
+      ctx,
+      width,
+      height,
+      padding,
+      labelWidth,
+      rowHeight,
+      rowGap,
+      seatStartX: padding + labelWidth,
+      seatEndX: padding + labelWidth + (ALT_MAX_SLOTS - 1) * ALT_SEAT_SPACING
+    };
+  }
+
+  function getAltLineIndexFromY(y, metrics) {
+    if (!metrics) return null;
+    const rel = y - metrics.padding;
+    if (rel < 0) return null;
+    const rowBlock = metrics.rowHeight + metrics.rowGap;
+    const idx = Math.floor(rel / rowBlock);
+    if (idx < 0 || idx >= altRowLines.length) return null;
+    const offset = rel - idx * rowBlock;
+    if (offset > metrics.rowHeight) return null;
+    return idx;
+  }
+
+  function clampAltPointToRowBand(point, lineIndex, metrics) {
+    if (!metrics) return point;
+    const rowBlock = metrics.rowHeight + metrics.rowGap;
+    const top = metrics.padding + lineIndex * rowBlock;
+    const bottom = top + metrics.rowHeight;
+    const x = Math.min(metrics.seatEndX, Math.max(metrics.seatStartX, point.x));
+    const y = Math.min(bottom - ALT_SEAT_RADIUS, Math.max(top + ALT_SEAT_RADIUS, point.y));
+    return { x, y };
+  }
+
+  function getAltSlotPosition(slot, lineIndex, slotIndex, metrics) {
+    const rowBlock = metrics.rowHeight + (metrics.rowGap || 0);
+    const centerY = metrics.padding + lineIndex * rowBlock + metrics.rowHeight / 2;
+    const x = metrics.seatStartX + slotIndex * ALT_SEAT_SPACING;
+    return { x, y: centerY };
+  }
+
+  function buildAltSeatPoints(start, end) {
+    const dx = end.x - start.x;
+    const dy = 0;
+    const len = Math.hypot(dx, dy);
+    const count = Math.max(1, Math.floor(len / ALT_SEAT_SPACING) + 1);
+    const points = [];
+    if (count === 1) {
+      points.push({ x: start.x, y: start.y });
+      return points;
+    }
+    for (let i = 0; i < count; i++) {
+      const t = i / (count - 1);
+      points.push({ x: start.x + dx * t, y: start.y + dy * t });
+    }
+    return points;
+  }
+
+  function renumberAltBlockSeats(line, block) {
+    const seats = [];
+    line.slots.forEach((slot, idx) => {
+      if (slot && slot.type === "seat" && slot.blockId === block.id) {
+        seats.push({ slot, idx });
+      }
+    });
+    if (!seats.length) return;
+    const direction = block.direction === -1 ? -1 : 1;
+    seats.sort((a, b) => direction === -1 ? b.idx - a.idx : a.idx - b.idx);
+    seats.forEach((entry, idx) => {
+      entry.slot.name = String(block.startSeat + idx);
     });
   }
 
-  function renderSectionCards() {
-    if (!sectionCardsEl) return;
-    sectionCardsEl.innerHTML = "";
+  function syncAltDraftFromLines(draft) {
+    if (!draft || !draft.altRowLines) return;
+    const rows = [];
+    draft.altRowLines.forEach((line) => {
+      line.blocks.forEach((block) => {
+        const rowId = block.rowId || createAltId();
+        block.rowId = rowId;
+        const row = {
+          id: rowId,
+          name: line.name,
+          rowLine: line.lineIndex,
+          seats: [],
+          items: []
+        };
+        line.slots.forEach((slot, idx) => {
+          if (!slot) return;
+          if (slot.type === "seat" && slot.blockId === block.id) {
+            const seatObj = newSeat(slot.name || "");
+            row.seats.push(seatObj);
+            row.items.push({ ...seatObj, pos: idx });
+          }
+          if (slot.type === "gap" && slot.blockId === block.id) {
+            row.items.push({
+              id: createAltId(),
+              name: "",
+              isGap: true,
+              pos: idx
+            });
+          }
+        });
+        rows.push(row);
+      });
+    });
+    draft.rows = rows;
+    draft.rawRowText = "";
+    if (draft.sectionId) sectionRawText.set(draft.sectionId, "");
+  }
+
+  function renderAltSectionCards() {
+    if (!altSectionCardsEl) return;
+    altSectionCardsEl.innerHTML = "";
     sectionDrafts.forEach((draft) => {
       const card = document.createElement("div");
       card.className = "section-card" + (draft.sectionId === activeSectionDraftId ? " section-card--active" : "");
@@ -12033,6 +11884,9 @@ function nudgeSelection(dxScreen, dyScreen) {
       const body = document.createElement("div");
       body.className = "section-card__body";
 
+      const header = document.createElement("div");
+      header.className = "section-card__header";
+
       const title = document.createElement("div");
       title.className = "section-card__name";
       const name = (draft.sectionName || "").trim();
@@ -12042,7 +11896,14 @@ function nudgeSelection(dxScreen, dyScreen) {
       } else {
         title.textContent = name || id || "Unnamed section";
       }
-      title.title = "Click to rename section";
+      title.title = "Section name";
+
+      const renameBtn = document.createElement("button");
+      renameBtn.className = "section-card__rename";
+      renameBtn.type = "button";
+      renameBtn.title = "Rename section";
+      renameBtn.setAttribute("aria-label", "Rename section");
+      renameBtn.textContent = "✎";
 
       const meta = document.createElement("div");
       meta.className = "section-card__meta";
@@ -12050,93 +11911,156 @@ function nudgeSelection(dxScreen, dyScreen) {
       const seatCount = draft.rows.reduce((sum, r) => sum + (r.seats?.length || 0), 0);
       meta.innerHTML = `<span>${rowCount} rows</span><span>${seatCount} seats</span>`;
 
-      body.appendChild(title);
+      header.appendChild(title);
+      header.appendChild(renameBtn);
+      body.appendChild(header);
       body.appendChild(meta);
 
       card.appendChild(colorDot);
       card.appendChild(body);
-      sectionCardsEl.appendChild(card);
+      altSectionCardsEl.appendChild(card);
     });
   }
 
-  function getActiveDraft() {
-    return sectionDrafts.find((d) => d.sectionId === activeSectionDraftId) || null;
+  function clearAltSectionDetail() {
+    altRowLines = [];
+    altActiveLineIndex = null;
+    if (!altSectionCanvas) return;
+    const ctx = altSectionCanvas.getContext("2d");
+    if (ctx) ctx.clearRect(0, 0, altSectionCanvas.width, altSectionCanvas.height);
+    setAltTooltip("", 0, 0, false);
   }
 
-  function setSectionEditorEnabled(enabled) {
-    const controls = [
-      sectionRowGenCount,
-      sectionRowGenStart,
-      sectionRowGenOrder,
-      sectionRowGenBtn,
-      sectionRowText,
-      parseRowsBtn
-    ];
-    controls.forEach((control) => {
-      if (control) control.disabled = !enabled;
-    });
-  }
+  function renderAltSectionCanvas() {
+    if (!altSectionCanvas) return;
+    const metrics = getAltCanvasMetrics();
+    if (!metrics) return;
+    const { ctx, width, height, padding, rowHeight, labelWidth } = metrics;
+    ctx.clearRect(0, 0, width, height);
+    ctx.fillStyle = "#f7faff";
+    ctx.fillRect(0, 0, width, height);
 
-  function clearSectionDetail() {
-    setSectionEditorEnabled(false);
-    if (sectionRowText) sectionRowText.value = "";
-    if (sectionRowErrors) sectionRowErrors.textContent = "";
-    if (sectionEditStatus) sectionEditStatus.textContent = "";
-    if (sectionRowsEditor) sectionRowsEditor.innerHTML = "";
-    if (sectionPreviewCanvas) {
-      const ctx = sectionPreviewCanvas.getContext("2d");
-      if (ctx) ctx.clearRect(0, 0, sectionPreviewCanvas.width, sectionPreviewCanvas.height);
+    const lineCount = Math.max(1, altRowLines.length || 1);
+    const rowBlock = rowHeight + metrics.rowGap;
+    const maxSlots = ALT_MAX_SLOTS;
+    for (let i = 0; i < lineCount; i++) {
+      const top = padding + i * rowBlock;
+      const bottom = top + rowHeight;
+      const isActive = altActiveLineIndex === i;
+      drawAltRowBox(ctx, padding, top, width - padding * 2, rowHeight, 8, isActive);
+      ctx.fillStyle = "#2e3c47";
+      ctx.font = "12px 'Ubuntu', sans-serif";
+      ctx.textAlign = "left";
+      ctx.textBaseline = "middle";
+      const line = altRowLines[i];
+      const rawLabel = line ? (line.name || `${i + 1}`) : `${i + 1}`;
+      const label = rawLabel.replace(/^(Row|Rad)\s*/i, "") || `${i + 1}`;
+      ctx.fillText(label, padding + 4, top + rowHeight / 2);
+
+      if (line) {
+        const activeBlock = getAltActiveBlock(line);
+        for (let idx = 0; idx < maxSlots; idx++) {
+          const slot = line.slots[idx] ?? null;
+          const pos = getAltSlotPosition(slot, i, idx, metrics);
+          if (slot) {
+            slot.renderX = pos.x;
+            slot.renderY = pos.y;
+          }
+          if (slot && slot.type === "seat") {
+            const isActiveSeat = activeBlock && slot.blockId === activeBlock.id;
+            ctx.fillStyle = isActiveSeat ? "#14a0f4" : "#ffffff";
+            ctx.strokeStyle = isActiveSeat ? "#0c6ba5" : "#9fb0c4";
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.arc(pos.x, pos.y, ALT_SEAT_RADIUS, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            ctx.fillStyle = isActiveSeat ? "#ffffff" : "#2e3c47";
+            ctx.font = "9px 'Ubuntu', sans-serif";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText(slot.name || "", pos.x, pos.y + 0.5);
+          } else {
+            ctx.strokeStyle = "#aeb9c8";
+            ctx.beginPath();
+            ctx.arc(pos.x, pos.y, ALT_SEAT_RADIUS - 1, 0, Math.PI * 2);
+            ctx.stroke();
+          }
+        }
+      }
     }
+
+    if (altIsDrawing && altDrawStart && altDrawEnd && altDrawLineIndex != null) {
+      const points = buildAltSeatPoints(altDrawStart, altDrawEnd);
+      ctx.strokeStyle = "#14a0f4";
+      ctx.setLineDash([4, 4]);
+      ctx.beginPath();
+      ctx.moveTo(altDrawStart.x, altDrawStart.y);
+      ctx.lineTo(altDrawEnd.x, altDrawStart.y);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      points.forEach((pt) => {
+        ctx.fillStyle = "#14a0f4";
+        ctx.beginPath();
+        ctx.arc(pt.x, pt.y, ALT_SEAT_RADIUS - 1, 0, Math.PI * 2);
+        ctx.fill();
+      });
+    }
+
+    updateAltControls();
   }
 
-  function renderSectionDetail() {
+  function renderAltSectionDetail() {
     const draft = getActiveDraft();
-    if (!sectionRowsEditor) return;
     if (!draft) {
-      clearSectionDetail();
+      clearAltSectionDetail();
+      updateAltControls();
       return;
     }
-    setSectionEditorEnabled(true);
-    if (sectionEditColor) sectionEditColor.value = draft.color || "#14a0f4";
-    const rawTxt = draft.rawRowText || sectionRawText.get(draft.sectionId) || rowsToText(draft.rows || []);
-    if (sectionRowText && document.activeElement !== sectionRowText) {
-      sectionRowText.value = rawTxt;
-    }
-    draft.rawRowText = rawTxt;
-    // Säkerställ att rows matchar den text som visas
-    if (rawTxt && rawTxt.trim()) {
-      const parsed = parseRowsText(rawTxt);
-      if (!parsed.errors.length) {
-        draft.rows = parsed.rows;
+    if (!draft.altRowLines) {
+      draft.altRowLines = buildAltLinesFromDraft(draft);
+      if (!draft.altRowLines.length) {
+        draft.altRowLines = buildAltLines(1);
       }
-      if (sectionRowErrors) {
-        sectionRowErrors.textContent = parsed.errors.join("\n");
-      }
-    } else if (sectionRowErrors) {
-      sectionRowErrors.textContent = "";
     }
-
-    const existingSeats = seats.some((s) => s.sectionId === draft.sectionId);
-    if (sectionEditStatus) {
-      sectionEditStatus.textContent = existingSeats
-        ? "Editing existing section - name can be changed. Structural changes are limited."
-        : "";
+    altRowLines = draft.altRowLines;
+    if (altActiveLineIndex == null || altActiveLineIndex >= altRowLines.length) {
+      altActiveLineIndex = altRowLines.length ? 0 : null;
     }
-
-    renderRowsPreview(draft);
-    renderSectionPreview(draft);
+    renderAltSectionCanvas();
   }
 
-  function openSectionManager() {
+  function openAltSectionManager() {
     resetSectionDrafts();
-    renderSectionCards();
-    renderSectionDetail();
+    altRowLines = [];
+    altActiveLineIndex = null;
+    altIsDrawing = false;
+    altDrawStart = null;
+    altDrawEnd = null;
+    altDrawLineIndex = null;
+    setAltTooltip("", 0, 0, false);
+    setAltTool("select");
+    altSeatNumberingMode = altSeatNumberingModeSelect?.value === "continuous" ? "continuous" : "row";
+    renderAltSectionCards();
+    renderAltSectionDetail();
     setSectionDirty(false);
-    if (sectionManagerOverlay) sectionManagerOverlay.style.display = "flex";
+    if (altSectionManagerOverlay) altSectionManagerOverlay.style.display = "flex";
   }
 
-  function closeSectionManager() {
-    if (sectionManagerOverlay) sectionManagerOverlay.style.display = "none";
+  function closeAltSectionManager() {
+    if (altSectionManagerOverlay) altSectionManagerOverlay.style.display = "none";
+    setAltTooltip("", 0, 0, false);
+  }
+
+  function promptForRowCount(defaultValue = "10") {
+    const raw = prompt("How many rows should the section have?", defaultValue);
+    if (raw == null) return null;
+    const count = parseInt(raw, 10);
+    if (!Number.isFinite(count) || count <= 0) {
+      alert("Row count must be a positive number.");
+      return null;
+    }
+    return count;
   }
 
   function promptForSectionName(defaultValue = "") {
@@ -12160,87 +12084,446 @@ function nudgeSelection(dxScreen, dyScreen) {
     setSectionDirty(true);
   }
 
-  function addNewDraftFromTemplate(sectionName) {
+  function addNewAltDraft(sectionName, rowCount) {
     const name = (sectionName || "").trim();
     if (!name) return;
     const newDraft = {
       sectionId: computeNextSectionId(),
       sectionName: name,
       color: "#14a0f4",
-      rows: [newRow("Row 1")],
+      rows: [],
       rawRowText: ""
     };
+    newDraft.altRowLines = buildAltLines(rowCount);
+    syncAltDraftFromLines(newDraft);
     sectionDrafts.push(newDraft);
     activeSectionDraftId = newDraft.sectionId;
+    altRowLines = newDraft.altRowLines;
+    altActiveLineIndex = altRowLines.length ? 0 : null;
     setSectionDirty(true);
-    renderSectionCards();
-    renderSectionDetail();
+    renderAltSectionCards();
+    renderAltSectionDetail();
   }
 
-  function handleRowAdd() {
-    const draft = getActiveDraft();
-    if (!draft) return;
-    draft.rows.push(newRow(`Row ${draft.rows.length + 1}`));
-    setSectionDirty(true);
-    renderSectionDetail();
-    renderSectionCards();
+  function updateAltControls() {
+    const hasDraft = !!getActiveDraft();
+    const hasLine = hasDraft && altRowLines.length && altActiveLineIndex != null;
+    const line = hasLine ? altRowLines[altActiveLineIndex] : null;
+    const block = getAltActiveBlock(line);
+    const hasBlock = !!block;
+    if (altToolSelectBtn) altToolSelectBtn.disabled = !hasDraft;
+    if (altToolDrawBtn) altToolDrawBtn.disabled = !hasDraft;
+    if (altGapNewBtn) altGapNewBtn.disabled = !hasBlock;
+    if (altReverseSeatOrderBtn) altReverseSeatOrderBtn.disabled = !hasBlock;
+    if (altSetStartSeatBtn) altSetStartSeatBtn.disabled = !hasBlock;
+    if (altAddSeatBtn) altAddSeatBtn.disabled = !hasBlock;
+    if (altRemoveSeatBtn) altRemoveSeatBtn.disabled = !hasBlock;
+    if (altSetStartRowBtn) altSetStartRowBtn.disabled = !hasDraft;
+    if (altReverseRowOrderBtn) altReverseRowOrderBtn.disabled = !hasDraft;
+    if (altSetRowsManualBtn) altSetRowsManualBtn.disabled = !hasDraft;
+    if (altDuplicateRowBtn) altDuplicateRowBtn.disabled = !hasLine;
+    if (altAddRowBtn) altAddRowBtn.disabled = !hasDraft;
+    if (altSeatNumberingModeSelect) altSeatNumberingModeSelect.disabled = !hasDraft;
   }
 
-  function handleRowRemove(rowId) {
-    const draft = getActiveDraft();
-    if (!draft) return;
-    draft.rows = draft.rows.filter((r) => r.id !== rowId);
-    if (!draft.rows.length) draft.rows = [newRow("Row 1")];
-    setSectionDirty(true);
-    renderSectionDetail();
-    renderSectionCards();
+  function getAltCanvasPoint(e) {
+    if (!altSectionCanvas) return { x: 0, y: 0 };
+    const rect = altSectionCanvas.getBoundingClientRect();
+    return {
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top
+    };
   }
 
-  function handleSeatAdd(rowId) {
-    const draft = getActiveDraft();
-    if (!draft) return;
-    const row = draft.rows.find((r) => r.id === rowId);
-    if (!row) return;
-    row.seats.push(newSeat(String(row.seats.length + 1)));
-    setSectionDirty(true);
-    renderSectionDetail();
-    renderSectionCards();
+  function getAltRowCenterY(lineIndex, metrics) {
+    if (!metrics) return 0;
+    const rowBlock = metrics.rowHeight + metrics.rowGap;
+    return metrics.padding + lineIndex * rowBlock + metrics.rowHeight / 2;
   }
 
-  function setRowSeatCount(rowId, targetCount) {
-    const draft = getActiveDraft();
-    if (!draft) return;
-    const row = draft.rows.find((r) => r.id === rowId);
-    if (!row) return;
-    const count = Math.max(1, Math.floor(targetCount || 0));
-    if (count === row.seats.length) return;
-    if (count > row.seats.length) {
-      const start = row.seats.length;
-      for (let i = start; i < count; i++) {
-        row.seats.push(newSeat(String(i + 1)));
-      }
-    } else {
-      row.seats = row.seats.slice(0, count);
+  function getAltSlotIndexFromX(x, metrics) {
+    if (!metrics) return 0;
+    const raw = (x - metrics.seatStartX) / ALT_SEAT_SPACING;
+    const idx = Math.round(raw);
+    return Math.max(0, Math.min(ALT_MAX_SLOTS - 1, idx));
+  }
+
+  function getAltLastSlotIndex(line, blockId = null) {
+    if (!line || !line.slots) return -1;
+    let last = -1;
+    for (let i = 0; i < line.slots.length; i++) {
+      const slot = line.slots[i];
+      if (!slot) continue;
+      if (blockId && slot.blockId !== blockId) continue;
+      last = i;
     }
-    setSectionDirty(true);
-    renderSectionDetail();
-    renderSectionCards();
+    return last;
   }
 
-  function handleSeatRemove(rowId, seatId) {
+  function getAltSeatCount(line, blockId) {
+    if (!line || !line.slots) return 0;
+    let count = 0;
+    for (let i = 0; i < line.slots.length; i++) {
+      const slot = line.slots[i];
+      if (slot && slot.type === "seat" && slot.blockId === blockId) count += 1;
+    }
+    return count;
+  }
+
+  function setAltTooltip(text, x, y, show) {
+    if (!altSeatTooltip) return;
+    if (!show) {
+      altSeatTooltip.style.opacity = "0";
+      return;
+    }
+    altSeatTooltip.textContent = text;
+    altSeatTooltip.style.left = `${x + 12}px`;
+    altSeatTooltip.style.top = `${y + 12}px`;
+    altSeatTooltip.style.opacity = "1";
+  }
+
+  function drawAltRowBox(ctx, x, y, width, height, radius, active) {
+    const r = Math.min(radius, height / 2, width / 2);
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.lineTo(x + width - r, y);
+    ctx.quadraticCurveTo(x + width, y, x + width, y + r);
+    ctx.lineTo(x + width, y + height - r);
+    ctx.quadraticCurveTo(x + width, y + height, x + width - r, y + height);
+    ctx.lineTo(x + r, y + height);
+    ctx.quadraticCurveTo(x, y + height, x, y + height - r);
+    ctx.lineTo(x, y + r);
+    ctx.quadraticCurveTo(x, y, x + r, y);
+    ctx.closePath();
+    ctx.strokeStyle = active ? "#6ba9d6" : "#d6dee8";
+    ctx.lineWidth = active ? 1.4 : 1;
+    ctx.setLineDash(active ? [] : [4, 4]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.restore();
+  }
+
+  function findAltSeatHit(x, y, metrics) {
+    for (let lineIndex = 0; lineIndex < altRowLines.length; lineIndex++) {
+      const line = altRowLines[lineIndex];
+      if (!line) continue;
+      for (let idx = 0; idx < line.slots.length; idx++) {
+        const slot = line.slots[idx];
+        if (!slot || slot.type !== "seat") continue;
+        const pos = getAltSlotPosition(slot, lineIndex, idx, metrics);
+        const dist = Math.hypot(pos.x - x, pos.y - y);
+        if (dist <= ALT_SEAT_RADIUS + 3) {
+          return { lineIndex, blockId: slot.blockId };
+        }
+      }
+    }
+    return null;
+  }
+
+  function commitAltChange() {
     const draft = getActiveDraft();
     if (!draft) return;
-    const row = draft.rows.find((r) => r.id === rowId);
-    if (!row) return;
-    row.seats = row.seats.filter((s) => s.id !== seatId);
-    if (!row.seats.length) row.seats.push(newSeat("1"));
+    draft.altRowLines = altRowLines;
+    if (altSeatNumberingModeSelect) {
+      altSeatNumberingModeSelect.value = altSeatNumberingMode;
+    }
+    recalculateAltRowStartSeats();
+    altRowLines.forEach((line) => {
+      line.blocks.forEach((block) => renumberAltBlockSeats(line, block));
+    });
+    syncAltDraftFromLines(draft);
     setSectionDirty(true);
-    renderSectionDetail();
-    renderSectionCards();
+    renderAltSectionCards();
+    renderAltSectionDetail();
   }
 
-  function splitRowIntoSegments(row) {
-    return [row.seats];
+  function applyAltGap(sameBlock) {
+    const line = getAltActiveLine();
+    const block = getAltActiveBlock(line);
+    if (!line || !block) return;
+    const hasSeats = line.slots.some(slot => slot && slot.type === "seat" && slot.blockId === block.id);
+    if (!hasSeats) {
+      alert("Draw seats on the row before adding gaps.");
+      return;
+    }
+    const seatCount = getAltSeatCount(line, block.id);
+    if (sameBlock) {
+      let insertIndex = getAltLastSlotIndex(line, block.id);
+      insertIndex = insertIndex < 0 ? line.slots.length : insertIndex + 1;
+      while (line.slots[insertIndex]) insertIndex += 1;
+      line.slots[insertIndex] = { type: "gap", blockId: block.id };
+    } else {
+      const nextBlock = createAltBlock();
+      nextBlock.direction = block.direction;
+      nextBlock.startSeat = block.startSeat + seatCount;
+      nextBlock.lastDirection = block.lastDirection;
+      line.blocks.push(nextBlock);
+      line.activeBlockId = nextBlock.id;
+    }
+    commitAltChange();
+  }
+
+  function applyAltReverseSeatOrder() {
+    const line = getAltActiveLine();
+    const block = getAltActiveBlock(line);
+    if (!line || !block) return;
+    block.direction *= -1;
+    renumberAltBlockSeats(line, block);
+    commitAltChange();
+  }
+
+  function applyAltSetStartSeat() {
+    const line = getAltActiveLine();
+    const block = getAltActiveBlock(line);
+    if (!line || !block) return;
+    const input = prompt("Start seat number:", String(block.startSeat));
+    if (input == null) return;
+    const next = parseInt(input, 10);
+    if (!Number.isFinite(next)) {
+      alert("Start seat must be a valid number.");
+      return;
+    }
+    block.startSeat = next;
+    block.manualStartSeat = true;
+    renumberAltBlockSeats(line, block);
+    commitAltChange();
+  }
+
+  function applyAltSetStartRow() {
+    if (!altRowLines.length) return;
+    const current = altRowLines[0]?.name || "1";
+    const input = prompt("Start row number:", current);
+    if (input == null) return;
+    const start = parseInt(input, 10);
+    if (!Number.isFinite(start)) {
+      alert("Row start must be a valid number.");
+      return;
+    }
+    altRowLines.forEach((line, idx) => {
+      line.name = String(start + idx);
+    });
+    commitAltChange();
+  }
+
+  function applyAltReverseRowOrder() {
+    if (!altRowLines.length) return;
+    const names = altRowLines.map((line, idx) => line.name || String(idx + 1)).reverse();
+    altRowLines.forEach((line, idx) => {
+      line.name = names[idx] || String(idx + 1);
+    });
+    commitAltChange();
+  }
+
+  function applyAltSetRowsManually() {
+    if (!altRowLines.length) return;
+    const current = altRowLines.map((line, idx) => line.name || String(idx + 1)).join(", ");
+    const input = prompt("Enter row names separated by comma or new line:", current);
+    if (input == null) return;
+    const names = input.split(/[\n,]+/).map(s => s.trim()).filter(Boolean);
+    if (!names.length) {
+      alert("You must enter at least one row name.");
+      return;
+    }
+    if (names.length !== altRowLines.length) {
+      const diff = names.length - altRowLines.length;
+      const action = diff > 0 ? `add ${diff} row${diff === 1 ? "" : "s"}` : `remove ${Math.abs(diff)} row${diff === -1 ? "" : "s"}`;
+      if (!confirm(`You entered ${names.length} names but there are ${altRowLines.length} rows. This will ${action}. Continue?`)) {
+        return;
+      }
+      if (diff > 0) {
+        const baseIndex = altRowLines.length;
+        for (let i = 0; i < diff; i++) {
+          const block = createAltBlock();
+          altRowLines.push({
+            lineIndex: baseIndex + i,
+            name: "",
+            blocks: [block],
+            activeBlockId: block.id,
+            slots: []
+          });
+        }
+      } else if (diff < 0) {
+        altRowLines = altRowLines.slice(0, names.length);
+        if (altActiveLineIndex != null && altActiveLineIndex >= altRowLines.length) {
+          altActiveLineIndex = altRowLines.length ? altRowLines.length - 1 : null;
+        }
+      }
+    }
+    altRowLines.forEach((line, idx) => {
+      line.lineIndex = idx;
+      line.name = names[idx] || line.name || String(idx + 1);
+    });
+    commitAltChange();
+  }
+
+  function applyAltDuplicateRow() {
+    if (altActiveLineIndex == null || !altRowLines.length) return;
+    const source = altRowLines[altActiveLineIndex];
+    if (!source) return;
+    const isLineEmpty = (line) => !line || !line.slots.some(slot => slot);
+    let targetIndex = -1;
+    for (let i = altActiveLineIndex + 1; i < altRowLines.length; i++) {
+      if (isLineEmpty(altRowLines[i])) {
+        targetIndex = i;
+        break;
+      }
+    }
+    if (targetIndex < 0) {
+      alert("No empty row available below to duplicate into.");
+      return;
+    }
+    const target = altRowLines[targetIndex];
+    const blockMap = new Map();
+    const newBlocks = source.blocks.map((block) => {
+      const clone = createAltBlock();
+      clone.direction = block.direction;
+      clone.startSeat = block.startSeat;
+      clone.manualStartSeat = block.manualStartSeat;
+      clone.lastDirection = { x: block.lastDirection?.x ?? 1, y: block.lastDirection?.y ?? 0 };
+      blockMap.set(block.id, clone.id);
+      return clone;
+    });
+    const newSlots = [];
+    source.slots.forEach((slot, idx) => {
+      if (!slot) return;
+      const nextSlot = {
+        type: slot.type,
+        blockId: blockMap.get(slot.blockId) || newBlocks[0]?.id,
+        name: slot.name || ""
+      };
+      newSlots[idx] = nextSlot;
+    });
+    target.blocks = newBlocks.length ? newBlocks : [createAltBlock()];
+    target.activeBlockId = target.blocks[0].id;
+    target.slots = newSlots;
+    setAltActiveLine(targetIndex);
+    commitAltChange();
+  }
+
+  function getAltNextRowName() {
+    const fallback = String(altRowLines.length + 1);
+    if (!altRowLines.length) return fallback;
+    const lastName = String(altRowLines[altRowLines.length - 1]?.name || "").trim();
+    const numeric = Number(lastName);
+    if (Number.isFinite(numeric) && String(numeric) === lastName) {
+      return String(numeric + 1);
+    }
+    return fallback;
+  }
+
+  function applyAltAddRow() {
+    if (!altRowLines.length) return;
+    const block = createAltBlock();
+    const nextIndex = altRowLines.length;
+    altRowLines.push({
+      lineIndex: nextIndex,
+      name: getAltNextRowName(),
+      blocks: [block],
+      activeBlockId: block.id,
+      slots: []
+    });
+    altRowLines.forEach((line, idx) => {
+      line.lineIndex = idx;
+    });
+    setAltActiveLine(nextIndex);
+    commitAltChange();
+  }
+
+  function applyAltAddSeat() {
+    const line = getAltActiveLine();
+    const block = getAltActiveBlock(line);
+    if (!line || !block) return;
+    const metrics = getAltCanvasMetrics();
+    if (!metrics) return;
+    const lineIndex = line.lineIndex ?? altActiveLineIndex ?? 0;
+    const centerY = getAltRowCenterY(lineIndex, metrics);
+    let insertIndex = getAltLastSlotIndex(line, block.id);
+    insertIndex = insertIndex < 0 ? 0 : insertIndex + 1;
+    while (line.slots[insertIndex] && insertIndex < ALT_MAX_SLOTS) insertIndex += 1;
+    if (insertIndex >= ALT_MAX_SLOTS) {
+      alert(`Row is full (max ${ALT_MAX_SLOTS} seats).`);
+      return;
+    }
+    const slotX = metrics.seatStartX + insertIndex * ALT_SEAT_SPACING;
+    const clamped = clampAltPointToRowBand({ x: slotX, y: centerY }, lineIndex, metrics);
+    line.slots[insertIndex] = {
+      type: "seat",
+      blockId: block.id,
+      name: "",
+      x: clamped.x,
+      y: clamped.y
+    };
+    renumberAltBlockSeats(line, block);
+    commitAltChange();
+  }
+
+  function applyAltRemoveSeat() {
+    const line = getAltActiveLine();
+    const block = getAltActiveBlock(line);
+    if (!line || !block) return;
+    for (let i = line.slots.length - 1; i >= 0; i--) {
+      const slot = line.slots[i];
+      if (slot && slot.type === "seat" && slot.blockId === block.id) {
+        line.slots[i] = null;
+        renumberAltBlockSeats(line, block);
+        commitAltChange();
+        return;
+      }
+    }
+  }
+
+  function finalizeAltDraw() {
+    if (!altIsDrawing) return;
+    const lineIndex = altDrawLineIndex;
+    const line = lineIndex != null ? altRowLines[lineIndex] : null;
+    const block = getAltActiveBlock(line);
+    const metrics = getAltCanvasMetrics();
+    if (!line || !block || !metrics) {
+      altIsDrawing = false;
+      altDrawStart = null;
+      altDrawEnd = null;
+      altDrawLineIndex = null;
+      setAltTooltip("", 0, 0, false);
+      return;
+    }
+    const start = clampAltPointToRowBand(altDrawStart, lineIndex, metrics);
+    const end = clampAltPointToRowBand(altDrawEnd, lineIndex, metrics);
+    const centerY = getAltRowCenterY(lineIndex, metrics);
+    start.y = centerY;
+    end.y = centerY;
+    const points = buildAltSeatPoints(start, end);
+    const isRightToLeft = end.x < start.x;
+    block.direction = isRightToLeft ? -1 : 1;
+    const leftX = Math.min(start.x, end.x);
+    let startIndex = getAltSlotIndexFromX(leftX, metrics);
+    points.forEach((pt, idx) => {
+      let slotIndex = startIndex + idx;
+      if (slotIndex >= ALT_MAX_SLOTS) return;
+      while (line.slots[slotIndex] && slotIndex < ALT_MAX_SLOTS) slotIndex += 1;
+      if (slotIndex >= ALT_MAX_SLOTS) return;
+      const slotX = metrics.seatStartX + slotIndex * ALT_SEAT_SPACING;
+      line.slots[slotIndex] = {
+        type: "seat",
+        blockId: block.id,
+        name: "",
+        x: slotX,
+        y: centerY
+      };
+    });
+    const dx = end.x - start.x;
+    const dy = 0;
+    const len = Math.hypot(dx, dy);
+    if (len > 1e-6) {
+      block.lastDirection = { x: dx / len, y: dy / len };
+    }
+    renumberAltBlockSeats(line, block);
+    altIsDrawing = false;
+    altDrawStart = null;
+    altDrawEnd = null;
+    altDrawLineIndex = null;
+    setAltTooltip("", 0, 0, false);
+    commitAltChange();
   }
 
   function materializeNewSection(draft) {
@@ -12376,12 +12659,6 @@ function nudgeSelection(dxScreen, dyScreen) {
   }
 
   function saveActiveSection() {
-    const activeDraft = getActiveDraft();
-    if (activeDraft && sectionEditColor) {
-      activeDraft.color = sectionEditColor.value || activeDraft.color || "#14a0f4";
-    }
-
-    let savedOk = false;
     const missingNames = sectionDrafts.filter(d => !d.sectionName || !d.sectionName.trim());
     if (missingNames.length) {
       alert("All sections must have names before you can save.");
@@ -12390,24 +12667,6 @@ function nudgeSelection(dxScreen, dyScreen) {
     const duplicateNames = getDuplicateDraftSectionNames(sectionDrafts);
     if (duplicateNames.length) {
       alert("Section names must be unique. Duplicates: " + duplicateNames.join(", "));
-      return false;
-    }
-
-    const validationErrors = [];
-    sectionDrafts.forEach((draft) => {
-      const res = hydrateDraftRowsFromRaw(draft);
-      if (!res.ok) {
-        validationErrors.push(`${draft.sectionName || draft.sectionId || "Section"}: ${res.errors.join("; ")}`);
-        if (draft.sectionId === activeSectionDraftId && sectionRowErrors) {
-          sectionRowErrors.textContent = res.errors.join("\n");
-          if (sectionRowText && document.activeElement !== sectionRowText) {
-            sectionRowText.value = res.rawText ?? sectionRowText.value;
-          }
-        }
-      }
-    });
-    if (validationErrors.length) {
-      alert("Cannot save until the row format is correct:\n" + validationErrors.join("\n"));
       return false;
     }
 
@@ -12465,9 +12724,9 @@ function nudgeSelection(dxScreen, dyScreen) {
     }
 
     setSectionDirty(false);
-    renderSectionCards();
-    savedOk = true;
-    return savedOk;
+    renderAltSectionCards();
+    renderAltSectionDetail();
+    return true;
   }
 
 // --- Kod-modal ---
@@ -12520,254 +12779,159 @@ function nudgeSelection(dxScreen, dyScreen) {
   });
 
   // --- Section manager events ---
-  openSectionManagerBtn?.addEventListener("click", openSectionManager);
-  sectionManagerClose?.addEventListener("click", () => {
+  openSectionManagerBtn?.addEventListener("click", openAltSectionManager);
+  altSectionManagerClose?.addEventListener("click", () => {
     if (!sectionDirty) {
-      closeSectionManager();
+      closeAltSectionManager();
       return;
     }
-    if (confirm("Close without saving?")) closeSectionManager();
+    if (confirm("Close without saving?")) closeAltSectionManager();
   });
-  sectionManagerOverlay?.addEventListener("click", (e) => {
-    if (e.target === sectionManagerOverlay) closeSectionManager();
+  altSectionManagerOverlay?.addEventListener("click", (e) => {
+    if (e.target !== altSectionManagerOverlay) return;
+    if (!sectionDirty) {
+      closeAltSectionManager();
+      return;
+    }
+    if (confirm("You have unsaved changes. Close anyway?")) {
+      closeAltSectionManager();
+    }
   });
-
-  sectionImportExcelBtn?.addEventListener("click", () => {
-    if (sectionImportExcelInput) sectionImportExcelInput.click();
+  altSectionImportExcelBtn?.addEventListener("click", () => {
+    if (altSectionImportExcelInput) altSectionImportExcelInput.click();
   });
-  sectionImportExcelInput?.addEventListener("change", async (e) => {
+  altSectionImportExcelInput?.addEventListener("change", async (e) => {
     const file = e.target.files && e.target.files[0];
     if (!file) return;
     await importSectionsFromExcelFile(file);
-    sectionImportExcelInput.value = "";
+    altSectionImportExcelInput.value = "";
+    renderAltSectionCards();
+    renderAltSectionDetail();
   });
-
-  sectionCreateBtn?.addEventListener("click", () => {
+  altSectionCreateBtn?.addEventListener("click", () => {
     const name = promptForSectionName("");
     if (!name) return;
-    addNewDraftFromTemplate(name);
+    const rowCount = promptForRowCount("10");
+    if (!rowCount) return;
+    addNewAltDraft(name, rowCount);
   });
-
-  function generateRowLabelText() {
-    if (!sectionRowText) return;
-    const count = parseInt(sectionRowGenCount?.value || "", 10);
-    if (!Number.isFinite(count) || count <= 0) {
-      alert("Row count must be a positive number.");
-      return;
-    }
-    const start = parseInt(sectionRowGenStart?.value || "1", 10);
-    if (!Number.isFinite(start)) {
-      alert("Start number must be a valid number.");
-      return;
-    }
-    const direction = sectionRowGenOrder?.value === "desc" ? -1 : 1;
-    const lines = [];
-    for (let i = 0; i < count; i++) {
-      lines.push(`${start + i * direction}: `);
-    }
-    const nextText = lines.join("\n");
-    if (sectionRowText.value.trim() && !confirm("Replace the current row text?")) {
-      return;
-    }
-    sectionRowText.value = nextText;
-    const draft = getActiveDraft();
-    if (draft) {
-      draft.rawRowText = nextText;
-      if (draft.sectionId) sectionRawText.set(draft.sectionId, nextText);
-    }
-    if (sectionRowErrors) sectionRowErrors.textContent = "";
-    setSectionDirty(true);
-  }
-
-  sectionRowGenBtn?.addEventListener("click", generateRowLabelText);
-
-  function syncRowsFromText() {
-    const draft = getActiveDraft();
-    if (!draft) return;
-    const rawText = sectionRowText?.value || "";
-    const parsed = parseRowsText(rawText);
-    draft.rows = parsed.rows;
-    draft.rawRowText = rawText;
-    if (draft.sectionId) sectionRawText.set(draft.sectionId, rawText);
-    if (sectionRowErrors) {
-      sectionRowErrors.textContent = parsed.errors.join("\n");
-    }
-    setSectionDirty(true);
-    renderSectionDetail();
-    renderSectionCards();
-  }
-
-  parseRowsBtn?.addEventListener("click", syncRowsFromText);
-  sectionRowText?.addEventListener("input", () => {
-    // Låt användaren skriva fritt; rensa bara felmeddelande tills man klickar "Uppdatera rader"
-    const draft = getActiveDraft();
-    if (draft && sectionRowText) {
-      draft.rawRowText = sectionRowText.value;
-    }
-    if (sectionRowErrors) sectionRowErrors.textContent = "";
-  });
-
-  sectionCardsEl?.addEventListener("click", (e) => {
+  altSectionCardsEl?.addEventListener("click", (e) => {
     const card = e.target.closest(".section-card");
     if (!card) return;
     const draft = sectionDrafts.find((d) => d.sectionId === card.dataset.sectionId);
     if (!draft) return;
+    const renameRequested = !!e.target.closest(".section-card__rename");
     activeSectionDraftId = draft.sectionId;
-    if (e.target.closest(".section-card__name")) {
+    if (renameRequested) {
       renameDraftSection(draft);
     }
-    renderSectionCards();
-    renderSectionDetail();
+    renderAltSectionCards();
+    renderAltSectionDetail();
   });
-
-  sectionEditId?.addEventListener("input", (e) => {
+  altSectionSaveBtn?.addEventListener("click", () => {
     const draft = getActiveDraft();
-    if (!draft) return;
-    draft.sectionId = e.target.value;
-    activeSectionDraftId = draft.sectionId;
-    setSectionDirty(true);
-    renderSectionCards();
-  });
-
-  sectionEditName?.addEventListener("input", (e) => {
-    const draft = getActiveDraft();
-    if (!draft) return;
-    draft.sectionName = e.target.value;
-    setSectionDirty(true);
-    renderSectionCards();
-  });
-
-  sectionEditColor?.addEventListener("input", (e) => {
-    const draft = getActiveDraft();
-    if (!draft) return;
-    draft.color = e.target.value;
-    setSectionDirty(true);
-    renderSectionCards();
-  });
-
-  addRowInlineBtn?.addEventListener("click", () => {
-    const draft = getActiveDraft();
-    if (!draft) return;
-    const exists = seats.some((s) => s.sectionId === draft.sectionId);
-    if (exists) {
-      alert("Structural changes to existing sections are limited. Create a new section for larger changes.");
-      return;
-    }
-    handleRowAdd();
-  });
-
-  sectionRowsEditor?.addEventListener("input", (e) => {
-    const rowEl = e.target.closest(".row-card");
-    const draft = getActiveDraft();
-    if (!rowEl || !draft) return;
-    const rowId = rowEl.dataset.rowId;
-    const row = draft.rows.find((r) => r.id === rowId);
-    if (!row) return;
-    if (e.target.dataset.role === "row-name") {
-      row.name = e.target.value;
-      setSectionDirty(true);
-      renderSectionCards();
-    } else if (e.target.dataset.role === "seat-name") {
-      const seatId = e.target.closest(".seat-chip")?.dataset.seatId;
-      const seat = row.seats.find((s) => s.id === seatId);
-      if (seat) {
-        seat.name = e.target.value;
-        setSectionDirty(true);
-      }
-    }
-  });
-
-  sectionRowsEditor?.addEventListener("click", (e) => {
-    const rowEl = e.target.closest(".row-card");
-    const draft = getActiveDraft();
-    if (!rowEl || !draft) return;
-    const rowId = rowEl.dataset.rowId;
-    const exists = seats.some((s) => s.sectionId === draft.sectionId);
-
-    if (e.target.dataset.role === "row-seat-inc") {
-      if (exists) {
-        alert("Structural changes to existing sections are limited. Create a new section for larger changes.");
-        return;
-      }
-      handleSeatAdd(rowId);
-    }
-    if (e.target.dataset.role === "row-seat-dec") {
-      if (exists) {
-        alert("Structural changes to existing sections are limited. Create a new section for larger changes.");
-        return;
-      }
-      const draft = getActiveDraft();
-      const row = draft?.rows.find(r => r.id === rowId);
-      if (row && row.seats.length > 1) {
-        row.seats.pop();
-        setSectionDirty(true);
-        renderSectionDetail();
-        renderSectionCards();
-      }
-    }
-    if (e.target.dataset.role === "row-seat-set") {
-      if (exists) {
-        alert("Structural changes to existing sections are limited. Create a new section for larger changes.");
-        return;
-      }
-      const current = getActiveDraft()?.rows.find(r => r.id === rowId)?.seats.length || 0;
-      const input = prompt("Enter the number of seats in the row:", String(current));
-      if (input !== null) {
-        const n = parseInt(input, 10);
-        if (Number.isFinite(n) && n > 0) {
-          setRowSeatCount(rowId, n);
-        }
-      }
-    }
-    if (e.target.dataset.role === "row-new-id") {
-      if (exists) {
-        alert("Structural changes to existing sections are limited. Create a new section for larger changes.");
-        return;
-      }
-      const draft = getActiveDraft();
-      if (!draft) return;
-      const row = draft.rows.find(r => r.id === rowId);
-      if (!row) return;
-      const rowIdx = draft.rows.findIndex(r => r.id === rowId);
-      const newR = newRow(row.name || `Row ${draft.rows.length + 1}`);
-      draft.rows.splice(rowIdx + 1, 0, newR);
-      setSectionDirty(true);
-      renderSectionDetail();
-      renderSectionCards();
-    }
-    if (e.target.dataset.role === "row-remove") {
-      if (exists) {
-      alert("You cannot remove rows from existing sections in this version.");
-        return;
-      }
-      handleRowRemove(rowId);
-    }
-    if (e.target.dataset.role === "seat-remove") {
-      if (exists) return;
-      const seatId = e.target.closest(".seat-chip")?.dataset.seatId;
-      if (seatId) handleSeatRemove(rowId, seatId);
-    }
-  });
-
-  sectionDuplicateBtn?.addEventListener("click", () => {
-    const draft = getActiveDraft();
-    if (!draft) return;
-    const copy = JSON.parse(JSON.stringify(draft));
-    copy.sectionId = computeNextSectionId();
-    copy.sectionName = `${draft.sectionName || draft.sectionId} (kopia)`;
-    sectionDrafts.push(copy);
-    activeSectionDraftId = copy.sectionId;
-    setSectionDirty(true);
-    renderSectionCards();
-    renderSectionDetail();
-  });
-
-  sectionSaveBtn?.addEventListener("click", () => {
+    if (draft) syncAltDraftFromLines(draft);
     saveActiveSection();
   });
-  sectionSaveCloseBtn?.addEventListener("click", () => {
+  altSectionSaveCloseBtn?.addEventListener("click", () => {
+    const draft = getActiveDraft();
+    if (draft) syncAltDraftFromLines(draft);
     const ok = saveActiveSection();
-    if (ok) closeSectionManager();
+    if (ok) closeAltSectionManager();
+  });
+
+  altToolSelectBtn?.addEventListener("click", () => setAltTool("select"));
+  altToolDrawBtn?.addEventListener("click", () => setAltTool("draw"));
+  altGapNewBtn?.addEventListener("click", () => applyAltGap(false));
+  altReverseSeatOrderBtn?.addEventListener("click", applyAltReverseSeatOrder);
+  altSetStartSeatBtn?.addEventListener("click", applyAltSetStartSeat);
+  altAddSeatBtn?.addEventListener("click", applyAltAddSeat);
+  altRemoveSeatBtn?.addEventListener("click", applyAltRemoveSeat);
+  altSetStartRowBtn?.addEventListener("click", applyAltSetStartRow);
+  altReverseRowOrderBtn?.addEventListener("click", applyAltReverseRowOrder);
+  altSetRowsManualBtn?.addEventListener("click", applyAltSetRowsManually);
+  altDuplicateRowBtn?.addEventListener("click", applyAltDuplicateRow);
+  altAddRowBtn?.addEventListener("click", applyAltAddRow);
+  altSeatNumberingModeSelect?.addEventListener("change", (e) => {
+    altSeatNumberingMode = e.target.value === "continuous" ? "continuous" : "row";
+    commitAltChange();
+  });
+
+  altSectionCanvas?.addEventListener("mousedown", (e) => {
+    const draft = getActiveDraft();
+    if (!draft) return;
+    const metrics = getAltCanvasMetrics();
+    if (!metrics) return;
+    const point = getAltCanvasPoint(e);
+    if (altSectionTool === "draw") {
+      const lineIndex = getAltLineIndexFromY(point.y, metrics);
+      if (lineIndex == null) {
+        renderAltSectionCanvas();
+        return;
+      }
+      setAltActiveLine(lineIndex);
+      const clamped = clampAltPointToRowBand(point, lineIndex, metrics);
+      clamped.y = getAltRowCenterY(lineIndex, metrics);
+      altIsDrawing = true;
+      altDrawStart = clamped;
+      altDrawEnd = clamped;
+      altDrawLineIndex = lineIndex;
+      renderAltSectionCanvas();
+      return;
+    }
+    if (altSectionTool === "select") {
+      const hit = findAltSeatHit(point.x, point.y, metrics);
+      if (hit) {
+        setAltActiveLine(hit.lineIndex);
+        const line = altRowLines[hit.lineIndex];
+        if (line) line.activeBlockId = hit.blockId;
+      } else {
+        const lineIndex = getAltLineIndexFromY(point.y, metrics);
+        if (lineIndex != null) setAltActiveLine(lineIndex);
+      }
+      renderAltSectionCanvas();
+    }
+  });
+  altSectionCanvas?.addEventListener("mousemove", (e) => {
+    if (!altIsDrawing) return;
+    const metrics = getAltCanvasMetrics();
+    if (!metrics) return;
+    const point = getAltCanvasPoint(e);
+    if (altDrawLineIndex == null) return;
+    const clamped = clampAltPointToRowBand(point, altDrawLineIndex, metrics);
+    clamped.y = getAltRowCenterY(altDrawLineIndex, metrics);
+    altDrawEnd = clamped;
+    const line = altRowLines[altDrawLineIndex];
+    const block = getAltActiveBlock(line);
+    if (line && block) {
+      const existingSeats = line.slots.filter(slot => slot && slot.type === "seat" && slot.blockId === block.id).length;
+      const previewPoints = buildAltSeatPoints(altDrawStart, altDrawEnd);
+      const total = existingSeats + previewPoints.length;
+      const nextDirection = altDrawEnd.x < altDrawStart.x ? -1 : 1;
+      const lastSeat = block.startSeat + Math.max(0, total - 1);
+      setAltTooltip(`Sista plats: ${lastSeat}`, e.clientX, e.clientY, true);
+    }
+    renderAltSectionCanvas();
+  });
+  altSectionCanvas?.addEventListener("mouseleave", () => {
+    if (altIsDrawing) renderAltSectionCanvas();
+    setAltTooltip("", 0, 0, false);
+  });
+  window.addEventListener("mouseup", () => {
+    finalizeAltDraw();
+  });
+  window.addEventListener("keydown", (e) => {
+    if (!altSectionManagerOverlay || altSectionManagerOverlay.style.display !== "flex") return;
+    const tag = (e.target && e.target.tagName) ? e.target.tagName.toLowerCase() : "";
+    if (tag === "input" || tag === "textarea" || tag === "select" || e.isComposing) return;
+    if (e.key === "s" || e.key === "S") {
+      e.preventDefault();
+      setAltTool("select");
+    }
+    if (e.key === "d" || e.key === "D") {
+      e.preventDefault();
+      setAltTool("draw");
+    }
   });
 
   const THEME_STORAGE_KEY = "arenaDesignerTheme";
@@ -12867,3 +13031,7 @@ function nudgeSelection(dxScreen, dyScreen) {
 
   </body>
   </html>
+
+
+
+
