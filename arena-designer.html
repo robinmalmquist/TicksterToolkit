@@ -1666,6 +1666,10 @@
     html[data-theme="dark"] .align-grouping label {
       color: #cbd5f5;
     }
+    html[data-theme="dark"] .align-divider {
+      background: #3a4653;
+      opacity: 0.8;
+    }
 
     #alignBar {
       width: 100%;
@@ -1690,6 +1694,14 @@
       border: 1px solid var(--card-border);
       background: #fff;
       font-size: 0.78rem;
+    }
+
+    .align-divider {
+      width: 2px;
+      align-self: stretch;
+      background: #d6dee8;
+      opacity: 0.9;
+      margin: 0 0.35rem;
     }
 
     .align-rotate {
@@ -1998,8 +2010,6 @@
           <button id="alignRightBtn" class="c-button c-button--ghost c-button--small" title="Align right">Align Right</button>
           <button id="alignCenterHBtn" class="c-button c-button--ghost c-button--small" title="Center horizontally">Center H</button>
           <button id="alignCenterVBtn" class="c-button c-button--ghost c-button--small" title="Center vertically">Center V</button>
-          <button id="flipVBtn" class="c-button c-button--ghost c-button--small" title="Flip vertically">Flip V</button>
-          <button id="flipHBtn" class="c-button c-button--ghost c-button--small" title="Flip horizontally">Flip H</button>
           <div class="align-grouping">
             <label for="alignGroupingSelect" class="u-font--small">Align as</label>
             <select id="alignGroupingSelect">
@@ -2007,11 +2017,15 @@
               <option value="individual">Individual</option>
             </select>
           </div>
+          <div class="align-divider" aria-hidden="true"></div>
           <div class="align-rotate">
             <button id="rotateCcwBtn" class="c-button c-button--ghost c-button--small" title="Rotate counter-clockwise">Rotate CCW</button>
             <input id="rotateDegreesInput" type="number" inputmode="decimal" step="1" placeholder="deg" />
             <button id="rotateCwBtn" class="c-button c-button--ghost c-button--small" title="Rotate clockwise">Rotate CW</button>
           </div>
+          <div class="align-divider" aria-hidden="true"></div>
+          <button id="flipHBtn" class="c-button c-button--ghost c-button--small" title="Flip horizontally">Flip H</button>
+          <button id="flipVBtn" class="c-button c-button--ghost c-button--small" title="Flip vertically">Flip V</button>
         </div>
 
       </div>
