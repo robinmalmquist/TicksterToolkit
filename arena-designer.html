@@ -6648,9 +6648,9 @@ codePane.addEventListener("input", () => {
             const textColor = getLabelTextColor(baseColor);
             ctx.save();
             ctx.fillStyle = textColor;
-            ctx.strokeStyle = "rgba(255,255,255,0.7)";
-            ctx.lineWidth = 2 / Math.max(scale, 0.001);
-            ctx.font = `${fontPx}px "Roboto Mono", "Segoe UI", system-ui, sans-serif`;
+            ctx.strokeStyle = "rgba(0,0,0,0.0)";
+            ctx.lineWidth = 0 / Math.max(scale, 0.001);
+            ctx.font = `${fontPx}px "Ubuntu Mono", "Segoe UI", system-ui, sans-serif`;
             ctx.textAlign = "center";
             ctx.textBaseline = "middle";
             ctx.strokeText(label, s.vx, s.vy);
