@@ -2253,6 +2253,8 @@
               <button id="altSetRowsManualBtn" class="c-button c-button--ghost c-button--small">Set rows manually</button>
               <button id="altDuplicateRowBtn" class="c-button c-button--ghost c-button--small">Duplicate row</button>
               <button id="altAddRowBtn" class="c-button c-button--ghost c-button--small">Add row</button>
+              <button id="altClearRowBtn" class="c-button c-button--ghost c-button--small">Clear current row</button>
+              <button id="altClearAllRowsBtn" class="c-button c-button--ghost c-button--small">Clear all rows</button>
             </div>
             <div class="alt-section-toolbar__divider" aria-hidden="true"></div>
             <div class="alt-section-toolbar__group">
@@ -2774,6 +2776,8 @@
   const altSetRowsManualBtn = document.getElementById("altSetRowsManualBtn");
   const altDuplicateRowBtn = document.getElementById("altDuplicateRowBtn");
   const altAddRowBtn = document.getElementById("altAddRowBtn");
+  const altClearRowBtn = document.getElementById("altClearRowBtn");
+  const altClearAllRowsBtn = document.getElementById("altClearAllRowsBtn");
   const altSeatNumberingModeSelect = document.getElementById("altSeatNumberingMode");
   const altContinuousControls = document.getElementById("altContinuousControls");
   const altContinuousStartSeatInput = document.getElementById("altContinuousStartSeat");
@@ -12469,6 +12473,8 @@ function nudgeSelection(dxScreen, dyScreen) {
     if (altSetRowsManualBtn) altSetRowsManualBtn.disabled = !hasDraft;
     if (altDuplicateRowBtn) altDuplicateRowBtn.disabled = !hasLine;
     if (altAddRowBtn) altAddRowBtn.disabled = !hasDraft;
+    if (altClearRowBtn) altClearRowBtn.disabled = !hasLine;
+    if (altClearAllRowsBtn) altClearAllRowsBtn.disabled = !hasDraft;
     if (altSeatNumberingModeSelect) altSeatNumberingModeSelect.disabled = !hasDraft;
     updateAltContinuousControls();
   }
@@ -12766,6 +12772,37 @@ function nudgeSelection(dxScreen, dyScreen) {
     target.activeBlockId = target.blocks[0].id;
     target.slots = newSlots;
     setAltActiveLine(targetIndex);
+    commitAltChange();
+  }
+
+  function resetAltLine(line) {
+    if (!line) return;
+    const block = createAltBlock();
+    line.blocks = [block];
+    line.activeBlockId = block.id;
+    line.slots = [];
+  }
+
+  function applyAltClearCurrentRow() {
+    if (altActiveLineIndex == null || !altRowLines.length) return;
+    const line = altRowLines[altActiveLineIndex];
+    if (!line) return;
+    resetAltLine(line);
+    if (altSeatNumberingMode === "continuous") {
+      const nextStart = computeAltContinuousStartFromLines(altRowLines);
+      setAltContinuousStartSeat(nextStart, true);
+    }
+    commitAltChange();
+  }
+
+  function applyAltClearAllRows() {
+    if (!altRowLines.length) return;
+    if (!confirm("Clear all rows? This will remove all seats and gaps.")) return;
+    altRowLines.forEach((line) => resetAltLine(line));
+    if (altSeatNumberingMode === "continuous") {
+      const nextStart = computeAltContinuousStartFromLines(altRowLines);
+      setAltContinuousStartSeat(nextStart, true);
+    }
     commitAltChange();
   }
 
@@ -13266,6 +13303,8 @@ function nudgeSelection(dxScreen, dyScreen) {
   altSetRowsManualBtn?.addEventListener("click", applyAltSetRowsManually);
   altDuplicateRowBtn?.addEventListener("click", applyAltDuplicateRow);
   altAddRowBtn?.addEventListener("click", applyAltAddRow);
+  altClearRowBtn?.addEventListener("click", applyAltClearCurrentRow);
+  altClearAllRowsBtn?.addEventListener("click", applyAltClearAllRows);
   altSeatNumberingModeSelect?.addEventListener("change", (e) => {
     altSeatNumberingMode = e.target.value === "continuous" ? "continuous" : "row";
     if (altSeatNumberingMode === "continuous") {
