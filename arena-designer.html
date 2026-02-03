@@ -4440,7 +4440,7 @@ codePane.addEventListener("input", () => {
   }
 
   function updateExportOptionsAvailability() {
-    const tooltip = "Prisregioner måste skapas och tilldelas alla platser innan export av TPR/CSS/SVG.";
+    const tooltip = "Price regions must be created and assigned to all seats before exporting TPR/CSS/SVG.";
     const hasRegions = priceRegions.length > 0;
     const lookups = buildPriceRegionLookups();
     const allCovered = seats.length > 0 && seats.every(s => getSeatPriceRegionColor(s, lookups));
