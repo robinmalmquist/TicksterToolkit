@@ -1953,6 +1953,9 @@
           <button id="updateOutlinesBtn" class="tool-button c-button c-button--ghost c-button--small" title="Update outlines">
             Update outlines
           </button>
+          <button id="updateRowIdsBtn" class="tool-button c-button c-button--ghost c-button--small" title="Update RowIds">
+            Update RowIds
+          </button>
         </div>
 
         <div id="selectionModeGroup">
@@ -2457,6 +2460,10 @@
                   <div class="help-tool__title">Update outlines</div>
                   <div class="help-tool__desc">Recalculate section outlines from seats.</div>
                 </div>
+                <div class="help-tool">
+                  <div class="help-tool__title">Update RowIds</div>
+                  <div class="help-tool__desc">Renumber SeatId per row so they start at RowId.1.</div>
+                </div>
               </div>
             </div>
           </div>
@@ -2637,6 +2644,7 @@
   const makeTableBtn = document.getElementById("makeTableBtn");
   const deselectToolBtn = document.getElementById("deselectToolBtn");
   const updateOutlinesBtn = document.getElementById("updateOutlinesBtn");
+  const updateRowIdsBtn = document.getElementById("updateRowIdsBtn");
 
   const modeSectionBtn = document.getElementById("modeSectionBtn");
   const modeRowBtn = document.getElementById("modeRowBtn");
@@ -2796,8 +2804,6 @@
   const ALT_MAX_SLOTS = 100;
   let altSeatNumberingMode = "row";
   let altContinuousStartSeat = 1;
-  let altContinuousAdvance = false;
-  let altContinuousAdvanceBlockId = null;
 
   let seats = [];
   let outlines = [];
@@ -3602,6 +3608,89 @@
     renderCanvas();
   }
 
+  function updateRowIdsFromSeats() {
+    if (!seats.length) return;
+    const rows = new Map();
+    seats.forEach((seat) => {
+      if (!seat.rowId) return;
+      if (!rows.has(seat.rowId)) rows.set(seat.rowId, []);
+      rows.get(seat.rowId).push(seat);
+    });
+
+    const seatIdMap = new Map();
+    let changed = false;
+
+    rows.forEach((rowSeats, rowId) => {
+      if (!rowSeats.length) return;
+      const sorted = sortSeatsInRow(rowSeats);
+      if (!sorted.length) return;
+      const firstSuffix = getSeatIdSuffix(sorted[0].seatId);
+      if (firstSuffix === 1) return;
+      sorted.forEach((seat, idx) => {
+        const nextId = `${rowId}.${idx + 1}`;
+        if (seat.seatId !== nextId) {
+          const oldId = seat.seatId;
+          seatIdMap.set(oldId, nextId);
+          seat.seatId = nextId;
+          changed = true;
+        }
+      });
+    });
+
+    if (!changed) return;
+
+    if (lastSelectedSeatId && seatIdMap.has(lastSelectedSeatId)) {
+      lastSelectedSeatId = seatIdMap.get(lastSelectedSeatId);
+    }
+
+    let priceRegionChanged = false;
+    if (seatIdMap.size) {
+      const remapValues = (values, map) => {
+        if (!Array.isArray(values) || !values.length) return { next: values, changed: false };
+        const seen = new Set();
+        const next = [];
+        let changedValues = false;
+        values.forEach((val) => {
+          const mapped = map.get(val) || val;
+          if (mapped !== val) changedValues = true;
+          if (!seen.has(mapped)) {
+            seen.add(mapped);
+            next.push(mapped);
+          } else if (mapped !== val) {
+            changedValues = true;
+          }
+        });
+        return { next, changed: changedValues };
+      };
+      priceRegions.forEach((region) => {
+        const seatRes = remapValues(region.seats, seatIdMap);
+        if (seatRes.changed) {
+          region.seats = seatRes.next;
+          priceRegionChanged = true;
+        }
+      });
+    }
+
+    if (priceRegionChanged) {
+      savePriceRegionsToStorage();
+      renderPriceRegionList();
+      updatePriceRegionUi();
+    }
+    updatePriceRegionStatus();
+    updateEntryPointUi();
+    updateCodeFromSeats();
+    const newText = originalLines.join("\n");
+    if (codePane.value !== newText) {
+      codePane.value = newText;
+    }
+    rebuildSeatLineIndex();
+    renderCanvas();
+    hasUnsavedChanges = true;
+    updateSaveButton();
+    saveSessionToLocalStorage();
+    pushHistorySnapshot();
+  }
+
   // --- Bakgrundshantering ---
   function setBackgroundEnabled(enabled) {
     const hasImage = !!backgroundState.img;
@@ -4303,6 +4392,7 @@ codePane.addEventListener("input", () => {
     }
     renderPriceRegionList();
     updatePriceRegionUi();
+    updatePriceRegionStatus();
     if (showPriceRegions) renderCanvas();
   }
 
@@ -4423,6 +4513,22 @@ codePane.addEventListener("input", () => {
     });
   }
 
+  function getPriceRegionMappingStatus() {
+    const existingSeatIds = new Set(seats.map(s => s.seatId));
+    const existingRowIds = new Set(seats.map(s => s.rowId).filter(Boolean));
+    const existingSectionIds = new Set(seats.map(s => s.sectionId).filter(Boolean));
+    let hasStaleMappings = false;
+    priceRegions.forEach((region) => {
+      if (!region) return;
+      if (region.sections?.some(id => !existingSectionIds.has(id))) hasStaleMappings = true;
+      if (region.rows?.some(id => !existingRowIds.has(id))) hasStaleMappings = true;
+      if (region.seats?.some(id => !existingSeatIds.has(id))) hasStaleMappings = true;
+    });
+    const lookups = buildPriceRegionLookups();
+    const allCovered = seats.length > 0 && seats.every(s => getSeatPriceRegionColor(s, lookups));
+    return { allCovered, hasStaleMappings };
+  }
+
   function updatePriceRegionStatus() {
     const statusEl = document.getElementById("priceRegionStatus");
     if (!statusEl) return;
@@ -4432,19 +4538,24 @@ codePane.addEventListener("input", () => {
       updateExportOptionsAvailability();
       return;
     }
-    const lookups = buildPriceRegionLookups();
-    const allCovered = seats.every(s => getSeatPriceRegionColor(s, lookups));
-    statusEl.textContent = allCovered ? "✅" : "❌";
-    statusEl.title = allCovered ? "All seats belong to a price region" : "Some seats have no price region";
+    const { allCovered, hasStaleMappings } = getPriceRegionMappingStatus();
+    const isOk = allCovered && !hasStaleMappings;
+    statusEl.textContent = hasStaleMappings ? "⚠️" : (isOk ? "✅" : "❌");
+    if (hasStaleMappings) {
+      statusEl.title = "Price regions reference seats/rows/sections that do not exist in this layout";
+    } else {
+      statusEl.title = isOk ? "All seats belong to a price region" : "Some seats have no price region";
+    }
     updateExportOptionsAvailability();
   }
 
   function updateExportOptionsAvailability() {
-    const tooltip = "Price regions must be created and assigned to all seats before exporting TPR/CSS/SVG.";
     const hasRegions = priceRegions.length > 0;
-    const lookups = buildPriceRegionLookups();
-    const allCovered = seats.length > 0 && seats.every(s => getSeatPriceRegionColor(s, lookups));
-    const enabled = hasRegions && allCovered;
+    const { allCovered, hasStaleMappings } = getPriceRegionMappingStatus();
+    const enabled = hasRegions && allCovered && !hasStaleMappings;
+    const tooltip = hasStaleMappings
+      ? "Price regions reference seats/rows/sections that do not exist in this layout. Update them before exporting TPR/CSS/SVG."
+      : "Price regions must be created and assigned to all seats before exporting TPR/CSS/SVG.";
     const applyState = (input) => {
       if (!input) return;
       const label = input.closest(".export-option");
@@ -11116,6 +11227,9 @@ function nudgeSelection(dxScreen, dyScreen) {
   updateOutlinesBtn.addEventListener("click", () => {
     updateOutlinesFromSeats();
   });
+  updateRowIdsBtn.addEventListener("click", () => {
+    updateRowIdsFromSeats();
+  });
 
   // --- Markeringsnivå-knappar ---
   function setSelectionMode(mode) {
@@ -11638,8 +11752,6 @@ function nudgeSelection(dxScreen, dyScreen) {
     altRowLines = [];
     altActiveLineIndex = null;
     altContinuousStartSeat = 1;
-    altContinuousAdvance = false;
-    altContinuousAdvanceBlockId = null;
   }
 
   function setSectionDirty(isDirty) {
@@ -11814,13 +11926,6 @@ function nudgeSelection(dxScreen, dyScreen) {
       const draft = getActiveDraft();
       if (draft) draft.continuousStartSeat = altContinuousStartSeat;
     }
-  }
-
-  function markAltContinuousAdvance(block) {
-    if (altSeatNumberingMode !== "continuous") return;
-    if (!block) return;
-    altContinuousAdvance = true;
-    altContinuousAdvanceBlockId = block.id;
   }
 
   function updateAltContinuousControls() {
@@ -12471,23 +12576,12 @@ function nudgeSelection(dxScreen, dyScreen) {
       altSeatNumberingModeSelect.value = altSeatNumberingMode;
     }
     if (altSeatNumberingMode === "continuous") {
-      if (altContinuousAdvance && altContinuousAdvanceBlockId) {
-        const found = getAltBlockById(altContinuousAdvanceBlockId);
-        if (found && found.block) {
-          const { line, block } = found;
-          if (!block.manualStartSeat && !block.autoStartSeatAssigned) {
-            block.startSeat = altContinuousStartSeat;
-            block.autoStartSeatAssigned = true;
-          }
-          const count = getAltSeatCount(line, block.id);
-          const nextStart = normalizeAltContinuousStartSeat(block.startSeat) + Math.max(0, count);
-          setAltContinuousStartSeat(nextStart, true);
-        }
-      }
-      altContinuousAdvance = false;
-      altContinuousAdvanceBlockId = null;
       altRowLines.forEach((line) => {
-        line.blocks.forEach((block) => renumberAltBlockSeats(line, block));
+        line.blocks.forEach((block) => {
+          if (getAltSeatCount(line, block.id) === 0) {
+            block.autoStartSeatAssigned = false;
+          }
+        });
       });
     } else {
       recalculateAltRowStartSeats();
@@ -12547,10 +12641,20 @@ function nudgeSelection(dxScreen, dyScreen) {
       alert("Start seat must be a valid number.");
       return;
     }
+    if (altSeatNumberingMode === "continuous") {
+      setAltContinuousStartSeat(next, true);
+      const hasSeats = line.slots.some(slot => slot && slot.type === "seat" && slot.blockId === block.id);
+      if (!hasSeats) {
+        block.startSeat = next;
+        block.autoStartSeatAssigned = true;
+      }
+      block.manualStartSeat = false;
+      commitAltChange();
+      return;
+    }
     block.startSeat = next;
     block.manualStartSeat = true;
     renumberAltBlockSeats(line, block);
-    markAltContinuousAdvance(block);
     commitAltChange();
   }
 
@@ -12700,6 +12804,7 @@ function nudgeSelection(dxScreen, dyScreen) {
     if (!line || !block) return;
     const metrics = getAltCanvasMetrics();
     if (!metrics) return;
+    const hadSeats = line.slots.some(slot => slot && slot.type === "seat" && slot.blockId === block.id);
     const lineIndex = line.lineIndex ?? altActiveLineIndex ?? 0;
     const centerY = getAltRowCenterY(lineIndex, metrics);
     let insertIndex = getAltLastSlotIndex(line, block.id);
@@ -12711,15 +12816,26 @@ function nudgeSelection(dxScreen, dyScreen) {
     }
     const slotX = metrics.seatStartX + insertIndex * ALT_SEAT_SPACING;
     const clamped = clampAltPointToRowBand({ x: slotX, y: centerY }, lineIndex, metrics);
+    let seatName = "";
+    if (altSeatNumberingMode === "continuous") {
+      const startValue = altContinuousStartSeat;
+      if (!hadSeats) {
+        block.startSeat = startValue;
+        block.autoStartSeatAssigned = true;
+      }
+      seatName = String(startValue);
+      setAltContinuousStartSeat(startValue + 1, true);
+    }
     line.slots[insertIndex] = {
       type: "seat",
       blockId: block.id,
-      name: "",
+      name: seatName,
       x: clamped.x,
       y: clamped.y
     };
-    renumberAltBlockSeats(line, block);
-    markAltContinuousAdvance(block);
+    if (altSeatNumberingMode !== "continuous") {
+      renumberAltBlockSeats(line, block);
+    }
     commitAltChange();
   }
 
@@ -12731,8 +12847,9 @@ function nudgeSelection(dxScreen, dyScreen) {
       const slot = line.slots[i];
       if (slot && slot.type === "seat" && slot.blockId === block.id) {
         line.slots[i] = null;
-        renumberAltBlockSeats(line, block);
-        markAltContinuousAdvance(block);
+        if (altSeatNumberingMode !== "continuous") {
+          renumberAltBlockSeats(line, block);
+        }
         commitAltChange();
         return;
       }
@@ -12758,38 +12875,64 @@ function nudgeSelection(dxScreen, dyScreen) {
     const centerY = getAltRowCenterY(lineIndex, metrics);
     start.y = centerY;
     end.y = centerY;
+    const hadSeats = line.slots.some(slot => slot && slot.type === "seat" && slot.blockId === block.id);
     const points = buildAltSeatPoints(start, end);
-    const isRightToLeft = end.x < start.x;
-    block.direction = isRightToLeft ? -1 : 1;
     const leftX = Math.min(start.x, end.x);
     let startIndex = getAltSlotIndexFromX(leftX, metrics);
+    const createdSlots = [];
     points.forEach((pt, idx) => {
       let slotIndex = startIndex + idx;
       if (slotIndex >= ALT_MAX_SLOTS) return;
       while (line.slots[slotIndex] && slotIndex < ALT_MAX_SLOTS) slotIndex += 1;
       if (slotIndex >= ALT_MAX_SLOTS) return;
       const slotX = metrics.seatStartX + slotIndex * ALT_SEAT_SPACING;
-      line.slots[slotIndex] = {
+      const slot = {
         type: "seat",
         blockId: block.id,
         name: "",
         x: slotX,
         y: centerY
       };
+      line.slots[slotIndex] = slot;
+      createdSlots.push({ slotIndex, slot });
     });
     const dx = end.x - start.x;
     const dy = 0;
     const len = Math.hypot(dx, dy);
     if (len > 1e-6) {
+      block.direction = dx < 0 ? -1 : 1;
       block.lastDirection = { x: dx / len, y: dy / len };
+    } else {
+      const hasExistingSeats = line.slots.some(slot => slot && slot.type === "seat" && slot.blockId === block.id);
+      if (!hasExistingSeats && block.lastDirection) {
+        block.direction = block.lastDirection.x < 0 ? -1 : 1;
+      }
     }
-    renumberAltBlockSeats(line, block);
+    if (altSeatNumberingMode === "continuous") {
+      if (createdSlots.length) {
+        const startValue = altContinuousStartSeat;
+        if (!hadSeats) {
+          block.startSeat = startValue;
+          block.autoStartSeatAssigned = true;
+        }
+        const ordered = createdSlots.sort((a, b) => {
+          return block.direction === -1 ? b.slotIndex - a.slotIndex : a.slotIndex - b.slotIndex;
+        });
+        let current = startValue;
+        ordered.forEach(({ slot }) => {
+          slot.name = String(current);
+          current += 1;
+        });
+        setAltContinuousStartSeat(current, true);
+      }
+    } else {
+      renumberAltBlockSeats(line, block);
+    }
     altIsDrawing = false;
     altDrawStart = null;
     altDrawEnd = null;
     altDrawLineIndex = null;
     setAltTooltip("", 0, 0, false);
-    markAltContinuousAdvance(block);
     commitAltChange();
   }
 
@@ -12810,11 +12953,15 @@ function nudgeSelection(dxScreen, dyScreen) {
     let rowCounter = 1;
     draft.rows.forEach((row, rowIdx) => {
       const yIndex = Number.isFinite(row.rowLine) ? row.rowLine : rowIdx;
+      const items = row.items && row.items.length ? row.items : row.seats.map((s, i) => ({ ...s, pos: i }));
+      const hasSeats = items.some((item) => !item.isGap);
+      if (!hasSeats) {
+        rowCounter += 1;
+        return;
+      }
       const rowName = (row.name || `Row ${rowCounter}`).trim();
       const rowId = `${sectionId}.${rowCounter}`;
       originalLines.push(`${timestamp}|RowAdd|RowId=${rowId}|Name=${rowName}`);
-
-      const items = row.items && row.items.length ? row.items : row.seats.map((s, i) => ({ ...s, pos: i }));
       let seatOrdinal = 1;
       items.forEach((seat) => {
         if (seat.isGap) return;
@@ -13121,8 +13268,6 @@ function nudgeSelection(dxScreen, dyScreen) {
   altAddRowBtn?.addEventListener("click", applyAltAddRow);
   altSeatNumberingModeSelect?.addEventListener("change", (e) => {
     altSeatNumberingMode = e.target.value === "continuous" ? "continuous" : "row";
-    altContinuousAdvance = false;
-    altContinuousAdvanceBlockId = null;
     if (altSeatNumberingMode === "continuous") {
       syncAltContinuousStartSeatFromDraft(getActiveDraft());
     }
@@ -13183,11 +13328,11 @@ function nudgeSelection(dxScreen, dyScreen) {
     if (line && block) {
       const existingSeats = line.slots.filter(slot => slot && slot.type === "seat" && slot.blockId === block.id).length;
       const previewPoints = buildAltSeatPoints(altDrawStart, altDrawEnd);
-      const total = existingSeats + previewPoints.length;
-      const isAutoStart = altSeatNumberingMode === "continuous" && !block.manualStartSeat && !block.autoStartSeatAssigned;
-      const startSeat = isAutoStart ? altContinuousStartSeat : block.startSeat;
-      const lastSeat = normalizeAltContinuousStartSeat(startSeat) + Math.max(0, total - 1);
-      setAltTooltip(`No. of seats: ${total} · Last seat name: ${lastSeat}`, e.clientX, e.clientY, true);
+      const newCount = previewPoints.length;
+      const total = existingSeats + newCount;
+      const startSeat = altSeatNumberingMode === "continuous" ? altContinuousStartSeat : block.startSeat;
+      const lastSeat = normalizeAltContinuousStartSeat(startSeat) + Math.max(0, (altSeatNumberingMode === "continuous" ? newCount : total) - 1);
+      setAltTooltip(`No. of seats: ${newCount} · Last seat name: ${lastSeat}`, e.clientX, e.clientY, true);
     }
     renderAltSectionCanvas();
   });
