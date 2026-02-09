@@ -2301,7 +2301,7 @@
       </div>
       <div class="new-layout-field">
         <label for="newVenueId">VenueId</label>
-        <input id="newVenueId" type="text" placeholder="Enter VenueId" />
+        <input id="newVenueId" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="Enter VenueId" />
       </div>
       <div class="new-layout-actions">
         <button id="newLayoutCancel" class="c-button c-button--ghost c-button--small">Cancel</button>
@@ -6250,6 +6250,11 @@ codePane.addEventListener("input", () => {
       return;
     }
     const venueIdVal = (newVenueId?.value || "").trim();
+    if (venueIdVal && !/^\d+$/.test(venueIdVal)) {
+      alert("VenueId får bara innehålla siffror.");
+      newVenueId?.focus();
+      return;
+    }
     const safeBase = rawName.replace(/[\\/:*?\"<>|]/g, "_");
     const defaultFileName = safeBase ? `${safeBase}.tlt` : "layout.tlt";
 
