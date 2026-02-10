@@ -837,6 +837,14 @@
       border: 1px solid #cdd3e0;
       font-size: 0.95rem;
     }
+    .new-layout-field textarea {
+      padding: 0.55rem 0.65rem;
+      border-radius: 8px;
+      border: 1px solid #cdd3e0;
+      font-size: 0.95rem;
+      min-height: 4.5rem;
+      resize: vertical;
+    }
     .new-layout-actions {
       display: flex;
       justify-content: flex-end;
@@ -2315,7 +2323,7 @@
       <h3>New price region</h3>
       <div class="new-layout-field">
         <label for="priceRegionName">Name</label>
-        <input id="priceRegionName" type="text" placeholder="Enter name" />
+        <textarea id="priceRegionName" rows="4" placeholder="Enter name(s), one per line or comma-separated"></textarea>
       </div>
       <div class="new-layout-actions">
         <button id="priceRegionCancel" class="c-button c-button--ghost c-button--small">Cancel</button>
@@ -2328,7 +2336,7 @@
       <h3>New entry point</h3>
       <div class="new-layout-field">
         <label for="entryPointName">Name</label>
-        <input id="entryPointName" type="text" placeholder="Enter name" />
+        <input id="entryPointName" type="text" placeholder="Enter name(s), comma-separated" />
       </div>
       <div class="new-layout-actions">
         <button id="entryPointCancel" class="c-button c-button--ghost c-button--small">Cancel</button>
@@ -2359,7 +2367,7 @@
       <h3>Export files</h3>
       <div class="new-layout-field">
         <label for="exportName">Export name</label>
-        <input id="exportName" type="text" placeholder="Enter name" />
+        <input id="exportName" type="text" placeholder="Enter name(s), comma-separated" />
       </div>
       <div class="new-layout-field">
         <label for="exportVenueId">VenueId</label>
@@ -2383,7 +2391,7 @@
           CSS
         </label>
         <label class="export-option">
-          <input type="checkbox" id="exportSvg" checked />
+          <input type="checkbox" id="exportSvg" />
           SVG
         </label>
       </div>
@@ -2787,6 +2795,8 @@
   const sectionRawText = new Map();
   const priceRegions = [];
   const entryPoints = [];
+  const PRICE_REGION_NAME_MAX = 30;
+  const SECTION_NAME_MAX = 20;
   const GOODNESS_RANGE_SIZE = 1000;
   const GOODNESS_HEAT_START = "#f2a23b";
   const GOODNESS_HEAT_END = "#2a6bd7";
@@ -5813,9 +5823,46 @@ codePane.addEventListener("input", () => {
     updatePriceRegionUi();
     if (showPriceRegions) renderCanvas();
   }
-
   function buildEntryPointId() {
     return `ep-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
+  }
+
+  function normalizePriceRegionName(raw) {
+    return String(raw || "").trim();
+  }
+
+  function normalizePriceRegionKey(raw) {
+    return normalizePriceRegionName(raw).toLowerCase();
+  }
+  function getPriceRegionNameIssues(names, existingKeys = new Set()) {
+    const seenKeys = new Set();
+    const duplicates = [];
+    const tooLong = [];
+    names.forEach((name) => {
+      if (name.length > PRICE_REGION_NAME_MAX) {
+        tooLong.push(name);
+      }
+      const key = normalizePriceRegionKey(name);
+      if (existingKeys.has(key) || seenKeys.has(key)) {
+        duplicates.push(name);
+      }
+      seenKeys.add(key);
+    });
+    return {
+      duplicates: Array.from(new Set(duplicates)),
+      tooLong: Array.from(new Set(tooLong))
+    };
+  }
+
+  function buildPriceRegionIssueMessage(duplicates, tooLong) {
+    const messages = [];
+    if (duplicates.length) {
+      messages.push(`Duplicate price region name(s): ${duplicates.join(", ")}`);
+    }
+    if (tooLong.length) {
+      messages.push(`Name(s) longer than ${PRICE_REGION_NAME_MAX} characters: ${tooLong.join(", ")}`);
+    }
+    return messages.join("\n");
   }
 
   function normalizeEntryPointName(raw) {
@@ -6369,6 +6416,16 @@ codePane.addEventListener("input", () => {
       alert("No price regions found in file.");
       return;
     }
+    regions.forEach((region) => {
+      region.name = normalizePriceRegionName(region.name);
+    });
+    const importNames = regions.map(r => r.name).filter(Boolean);
+    const { duplicates, tooLong } = getPriceRegionNameIssues(importNames, new Set());
+    const issueMessage = buildPriceRegionIssueMessage(duplicates, tooLong);
+    if (issueMessage) {
+      alert(issueMessage);
+      return;
+    }
     priceRegions.length = 0;
     regions.forEach(r => priceRegions.push(r));
     savePriceRegionsToStorage();
@@ -6378,14 +6435,24 @@ codePane.addEventListener("input", () => {
     priceRegionFileInput.value = "";
   });
   priceRegionCreate?.addEventListener("click", () => {
-    const name = (priceRegionName?.value || "").trim();
-    if (!name) {
-      alert("Enter a name for the price region.");
+    const raw = priceRegionName?.value || "";
+    const names = raw.split(/\r?\n|,/).map(normalizePriceRegionName).filter(Boolean);
+    if (!names.length) {
+      alert("Enter at least one name for the price region.");
       return;
     }
-    const id = `${Date.now()}${Math.floor(Math.random() * 1000)}`;
-    const color = generatePriceRegionColor(priceRegions.length);
-    priceRegions.push({ id, name, color, sections: [], rows: [], seats: [] });
+    const existingKeys = new Set(priceRegions.map(region => normalizePriceRegionKey(region.name)));
+    const { duplicates, tooLong } = getPriceRegionNameIssues(names, existingKeys);
+    const issueMessage = buildPriceRegionIssueMessage(duplicates, tooLong);
+    if (issueMessage) {
+      alert(issueMessage);
+      return;
+    }
+    names.forEach((name) => {
+      const id = `${Date.now()}${Math.floor(Math.random() * 1000)}`;
+      const color = generatePriceRegionColor(priceRegions.length);
+      priceRegions.push({ id, name, color, sections: [], rows: [], seats: [] });
+    });
     savePriceRegionsToStorage();
     renderPriceRegionList();
     updatePriceRegionUi();
@@ -6393,7 +6460,7 @@ codePane.addEventListener("input", () => {
     closePriceRegionModal();
   });
   priceRegionName?.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") {
+    if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
       e.preventDefault();
       priceRegionCreate?.click();
     }
@@ -6568,13 +6635,44 @@ codePane.addEventListener("input", () => {
     nameInput.blur();
   });
 
+  priceRegionList?.addEventListener("focusin", (e) => {
+    const nameInput = e.target.closest("[data-role='price-region-name']");
+    if (!nameInput) return;
+    nameInput.dataset.prevValue = normalizePriceRegionName(nameInput.value);
+  });
+
+  priceRegionList?.addEventListener("focusout", (e) => {
+    const nameInput = e.target.closest("[data-role='price-region-name']");
+    if (!nameInput) return;
+    const regionId = nameInput.dataset.regionId;
+    const region = priceRegions.find(r => r.id === regionId);
+    if (!region) return;
+    const prevValue = nameInput.dataset.prevValue || "";
+    const nextName = normalizePriceRegionName(nameInput.value);
+    const prevKey = normalizePriceRegionKey(prevValue);
+    const nextKey = normalizePriceRegionKey(nextName);
+    if (!nextKey || nextKey === prevKey) return;
+    const duplicate = priceRegions.some(r => r.id !== regionId && normalizePriceRegionKey(r.name) === nextKey);
+    if (!duplicate) return;
+    alert("That price region name already exists.");
+    nameInput.value = prevValue;
+    region.name = prevValue;
+    savePriceRegionsToStorage();
+    if (showPriceRegions) renderCanvas();
+  });
+
   priceRegionList?.addEventListener("input", (e) => {
     const nameInput = e.target.closest("[data-role='price-region-name']");
     if (nameInput) {
       const regionId = nameInput.dataset.regionId;
       const region = priceRegions.find(r => r.id === regionId);
       if (!region) return;
-      region.name = (nameInput.value || "").trim();
+      let nextName = normalizePriceRegionName(nameInput.value);
+      if (nextName.length > PRICE_REGION_NAME_MAX) {
+        nextName = nextName.slice(0, PRICE_REGION_NAME_MAX);
+        nameInput.value = nextName;
+      }
+      region.name = nextName;
       savePriceRegionsToStorage();
       if (showPriceRegions) renderCanvas();
       return;
@@ -9837,6 +9935,7 @@ function nudgeSelection(dxScreen, dyScreen) {
     nameLabel.textContent = "Section name";
     const nameInput = document.createElement("input");
     nameInput.type = "text";
+    nameInput.maxLength = SECTION_NAME_MAX;
     nameInput.value = section.name || "";
     nameInput.dataset.role = "section-name";
     nameField.appendChild(nameLabel);
@@ -10385,6 +10484,10 @@ function nudgeSelection(dxScreen, dyScreen) {
     if (sectionId) {
       const nameInput = sectionItem?.querySelector("input[data-role='section-name']");
       const nextName = (nameInput?.value || "").trim() || sectionId;
+      if (nextName.length > SECTION_NAME_MAX) {
+        alert(`Section name must be ${SECTION_NAME_MAX} characters or fewer.`);
+        return;
+      }
       if (isDuplicateSectionName(sectionId, nextName)) {
         alert(`Section name "${nextName}" is already in use.`);
         return;
@@ -11640,14 +11743,20 @@ function nudgeSelection(dxScreen, dyScreen) {
   function importPriceRegionsFromExcelSheet(sheet) {
     const names = extractNameListFromExcelSheet(sheet, 0);
     if (!names.length) return 0;
-    const existing = new Set(priceRegions.map(r => String(r.name || "").trim().toLowerCase()));
+    const normalized = names.map(normalizePriceRegionName).filter(Boolean);
+    if (!normalized.length) return 0;
+    const existingKeys = new Set(priceRegions.map(region => normalizePriceRegionKey(region.name)));
+    const { duplicates, tooLong } = getPriceRegionNameIssues(normalized, existingKeys);
+    const issueMessage = buildPriceRegionIssueMessage(duplicates, tooLong);
+    if (issueMessage) {
+      alert(issueMessage);
+      return 0;
+    }
     const addedNames = new Set();
     let added = 0;
-    names.forEach((raw) => {
-      const name = String(raw || "").trim();
-      const key = name.toLowerCase();
-      if (!name) return;
-      if (existing.has(key) || addedNames.has(key)) return;
+    normalized.forEach((name) => {
+      const key = normalizePriceRegionKey(name);
+      if (addedNames.has(key)) return;
       const id = `${Date.now()}${Math.floor(Math.random() * 1000)}`;
       const color = generatePriceRegionColor(priceRegions.length);
       priceRegions.push({ id, name, color, sections: [], rows: [], seats: [] });
@@ -11705,14 +11814,19 @@ function nudgeSelection(dxScreen, dyScreen) {
         priceRegionSheet = sheet;
         return;
       }
-      const res = buildRowTextFromExcelSheet(sheet, sheetName);
+      const sectionSheetName = String(sheetName || "").trim();
+      if (sectionSheetName.length > SECTION_NAME_MAX) {
+        errors.push(`Section name "${sectionSheetName}" exceeds ${SECTION_NAME_MAX} characters.`);
+        return;
+      }
+      const res = buildRowTextFromExcelSheet(sheet, sectionSheetName);
       if (res.errors.length) errors.push(...res.errors);
       if (!res.text.trim()) return;
 
       const parsed = parseRowsText(res.text);
       if (parsed.errors.length) {
         parsed.errors.forEach((err) => {
-          errors.push(`${sheetName}: ${err}`);
+          errors.push(`${sectionSheetName}: ${err}`);
         });
       }
 
@@ -11720,7 +11834,7 @@ function nudgeSelection(dxScreen, dyScreen) {
       usedIds.add(sectionId);
       drafts.push({
         sectionId,
-        sectionName: sheetName,
+        sectionName: sectionSheetName,
         color: "#14a0f4",
         rows: parsed.rows,
         rawRowText: res.text,
@@ -12425,6 +12539,10 @@ function nudgeSelection(dxScreen, dyScreen) {
       alert("Section name is required.");
       return null;
     }
+    if (name.length > SECTION_NAME_MAX) {
+      alert(`Section name must be ${SECTION_NAME_MAX} characters or fewer.`);
+      return null;
+    }
     return name;
   }
 
@@ -13123,6 +13241,14 @@ function nudgeSelection(dxScreen, dyScreen) {
     const duplicateNames = getDuplicateDraftSectionNames(sectionDrafts);
     if (duplicateNames.length) {
       alert("Section names must be unique. Duplicates: " + duplicateNames.join(", "));
+      return false;
+    }
+    const tooLongNames = sectionDrafts
+      .map(d => (d.sectionName || "").trim())
+      .filter(name => name.length > SECTION_NAME_MAX);
+    if (tooLongNames.length) {
+      const uniqueTooLong = Array.from(new Set(tooLongNames));
+      alert(`Section names must be ${SECTION_NAME_MAX} characters or fewer. Too long: ${uniqueTooLong.join(", ")}`);
       return false;
     }
 
