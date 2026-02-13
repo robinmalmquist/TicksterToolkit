@@ -6453,7 +6453,18 @@ codePane.addEventListener("input", () => {
     if (newLayoutOverlay) newLayoutOverlay.style.display = "none";
   }
 
-  function closeAllModals() {
+  function requestCloseAltSectionManager(confirmMessage = "You have unsaved changes. Close anyway?") {
+    if (!altSectionManagerOverlay || altSectionManagerOverlay.style.display !== "flex") return true;
+    if (!sectionDirty || confirm(confirmMessage)) {
+      closeAltSectionManager();
+      return true;
+    }
+    return false;
+  }
+
+  function closeAllModals(options = {}) {
+    const confirmAltSectionManager = !!options.confirmAltSectionManager;
+    const altSectionConfirmMessage = options.altSectionConfirmMessage || "You have unsaved changes. Close anyway?";
     closeSeatContextMenu();
     closeExportModal();
     closeHelpModal();
@@ -6465,7 +6476,11 @@ codePane.addEventListener("input", () => {
     closeEntryPointModal();
     closeGoodnessModal();
     closeCodeModal();
-    closeAltSectionManager();
+    if (confirmAltSectionManager) {
+      requestCloseAltSectionManager(altSectionConfirmMessage);
+    } else {
+      closeAltSectionManager();
+    }
     closeNewLayoutModal();
   }
 
@@ -6554,16 +6569,10 @@ codePane.addEventListener("input", () => {
 
   newLayoutBtn?.addEventListener("click", openNewLayoutModal);
   newLayoutCancel?.addEventListener("click", closeNewLayoutModal);
-  newLayoutOverlay?.addEventListener("click", (e) => {
-    if (e.target === newLayoutOverlay) closeNewLayoutModal();
-  });
   newLayoutStart?.addEventListener("click", handleStartNewLayout);
 
   exportBtn?.addEventListener("click", openExportModal);
   exportCancel?.addEventListener("click", closeExportModal);
-  exportOverlay?.addEventListener("click", (e) => {
-    if (e.target === exportOverlay) closeExportModal();
-  });
   exportConfirm?.addEventListener("click", async () => {
     await exportFiles();
     closeExportModal();
@@ -6578,18 +6587,12 @@ codePane.addEventListener("input", () => {
 
   helpBtn?.addEventListener("click", openHelpModal);
   helpClose?.addEventListener("click", closeHelpModal);
-  helpOverlay?.addEventListener("click", (e) => {
-    if (e.target === helpOverlay) closeHelpModal();
-  });
 
   createPriceRegionBtn?.addEventListener("click", openPriceRegionModal);
   selectSeatsNoPriceRegionBtn?.addEventListener("click", () => {
     selectSeatsWithoutPriceRegions();
   });
   priceRegionCancel?.addEventListener("click", closePriceRegionModal);
-  priceRegionOverlay?.addEventListener("click", (e) => {
-    if (e.target === priceRegionOverlay) closePriceRegionModal();
-  });
   loadPriceRegionBtn?.addEventListener("click", () => {
     if (!seats.length) {
       alert("Load a layout (TLT) before importing price regions.");
@@ -6660,9 +6663,6 @@ codePane.addEventListener("input", () => {
     selectSeatsWithoutEntryPoints();
   });
   entryPointCancel?.addEventListener("click", closeEntryPointModal);
-  entryPointOverlay?.addEventListener("click", (e) => {
-    if (e.target === entryPointOverlay) closeEntryPointModal();
-  });
   entryPointCreate?.addEventListener("click", () => {
     const name = normalizeEntryPointName(entryPointName?.value || "");
     if (!name) {
@@ -6697,9 +6697,6 @@ codePane.addEventListener("input", () => {
     setGoodnessRangeCount(e.target.value);
   });
   goodnessCancel?.addEventListener("click", closeGoodnessModal);
-  goodnessOverlay?.addEventListener("click", (e) => {
-    if (e.target === goodnessOverlay) closeGoodnessModal();
-  });
   goodnessApply?.addEventListener("click", () => {
     const rangeIndex = parseInt(goodnessRangeSelect?.value || "1", 10);
     const didApply = applyGoodnessFromPoint(Number.isFinite(rangeIndex) ? rangeIndex : 1);
@@ -10568,9 +10565,6 @@ function nudgeSelection(dxScreen, dyScreen) {
 
   attributeModalClose?.addEventListener("click", closeAttributeModal);
   attributeModalCancel?.addEventListener("click", closeAttributeModal);
-  attributeModalOverlay?.addEventListener("click", (e) => {
-    if (e.target === attributeModalOverlay) closeAttributeModal();
-  });
 
   attributeModalSave?.addEventListener("click", () => {
     if (!attributeModalList) return;
@@ -10586,9 +10580,6 @@ function nudgeSelection(dxScreen, dyScreen) {
 
   seatEditClose?.addEventListener("click", closeSeatEditModal);
   seatEditCancel?.addEventListener("click", closeSeatEditModal);
-  seatEditOverlay?.addEventListener("click", (e) => {
-    if (e.target === seatEditOverlay) closeSeatEditModal();
-  });
   seatEditSave?.addEventListener("click", () => {
     if (!seatEditList) return;
     const seatMap = new Map(seats.map(s => [s.seatId, s]));
@@ -10653,14 +10644,8 @@ function nudgeSelection(dxScreen, dyScreen) {
 
   rowEditClose?.addEventListener("click", closeRowEditModal);
   rowEditCancel?.addEventListener("click", closeRowEditModal);
-  rowEditOverlay?.addEventListener("click", (e) => {
-    if (e.target === rowEditOverlay) closeRowEditModal();
-  });
   sectionEditClose?.addEventListener("click", closeSectionEditModal);
   sectionEditCancel?.addEventListener("click", closeSectionEditModal);
-  sectionEditOverlay?.addEventListener("click", (e) => {
-    if (e.target === sectionEditOverlay) closeSectionEditModal();
-  });
   sectionAddRowBtn?.addEventListener("click", () => {
     if (!sectionEditTargetId) return;
     addSectionRowDraft();
@@ -10791,12 +10776,10 @@ function nudgeSelection(dxScreen, dyScreen) {
 
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") {
-      closeSeatContextMenu();
-      closeAttributeModal();
-      closeSeatEditModal();
-      closeRowEditModal();
-      closeSectionEditModal();
-      closeGoodnessModal();
+      closeAllModals({
+        confirmAltSectionManager: true,
+        altSectionConfirmMessage: "You have unsaved changes. Close anyway?"
+      });
     }
   });
 
@@ -13514,9 +13497,6 @@ function nudgeSelection(dxScreen, dyScreen) {
   }
   openCodeModalBtn?.addEventListener("click", openCodeModal);
   codeModalClose?.addEventListener("click", closeCodeModal);
-  codeModalOverlay?.addEventListener("click", (e) => {
-    if (e.target === codeModalOverlay) closeCodeModal();
-  });
   codeModalTextarea?.addEventListener("input", () => {
     codeModalApply.disabled = codeModalTextarea.value === codeModalOriginal;
   });
@@ -13553,21 +13533,7 @@ function nudgeSelection(dxScreen, dyScreen) {
   // --- Section manager events ---
   openSectionManagerBtn?.addEventListener("click", openAltSectionManager);
   altSectionManagerClose?.addEventListener("click", () => {
-    if (!sectionDirty) {
-      closeAltSectionManager();
-      return;
-    }
-    if (confirm("Close without saving?")) closeAltSectionManager();
-  });
-  altSectionManagerOverlay?.addEventListener("click", (e) => {
-    if (e.target !== altSectionManagerOverlay) return;
-    if (!sectionDirty) {
-      closeAltSectionManager();
-      return;
-    }
-    if (confirm("You have unsaved changes. Close anyway?")) {
-      closeAltSectionManager();
-    }
+    requestCloseAltSectionManager("Close without saving?");
   });
   altSectionImportExcelBtn?.addEventListener("click", () => {
     if (altSectionImportExcelInput) altSectionImportExcelInput.click();
