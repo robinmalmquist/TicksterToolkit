@@ -4081,8 +4081,17 @@ codePane.addEventListener("input", () => {
 });
 
 
+  function isTltFileName(name) {
+    return /\.tlt$/i.test(String(name || "").trim());
+  }
+
   async function loadTltFromHandle(handle) {
     const file = await handle.getFile();
+    if (!isTltFileName(file?.name)) {
+      alert("Only .tlt files can be opened.");
+      fileInfo.textContent = "Invalid file type (only .tlt).";
+      return;
+    }
     const text = await file.text();
     clearBackgroundImage();
     parseTlt(text);
@@ -4111,7 +4120,7 @@ codePane.addEventListener("input", () => {
             accept: { "text/plain": [".tlt"] }
           }
         ],
-        excludeAcceptAllOption: false,
+        excludeAcceptAllOption: true,
         multiple: false
       };
       const startDir = lastDirectoryHandle || await tryGetDirectoryHandle(currentFileHandle);
@@ -4193,6 +4202,12 @@ codePane.addEventListener("input", () => {
 
   async function openFileFromInput(file) {
     if (!file) return;
+    if (!isTltFileName(file?.name)) {
+      alert("Only .tlt files can be opened.");
+      fileInfo.textContent = "Invalid file type (only .tlt).";
+      fileInput.value = "";
+      return;
+    }
     const text = await file.text();
     clearBackgroundImage();
     parseTlt(text);
