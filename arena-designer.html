@@ -2255,7 +2255,7 @@
             </div>
             <div class="alt-section-toolbar__divider" aria-hidden="true"></div>
             <div class="alt-section-toolbar__group">
-              <button id="altGapNewBtn" class="c-button c-button--ghost c-button--small">New RowId</button>
+              <button id="altGapNewBtn" class="c-button c-button--ghost c-button--small">New RowId (N)</button>
               <button id="altSetStartRowBtn" class="c-button c-button--ghost c-button--small">Set start row</button>
               <button id="altReverseRowOrderBtn" class="c-button c-button--ghost c-button--small">Reverse row order</button>
               <button id="altSetRowsManualBtn" class="c-button c-button--ghost c-button--small">Set rows manually</button>
@@ -13680,6 +13680,10 @@ function nudgeSelection(dxScreen, dyScreen) {
     if (e.key === "d" || e.key === "D") {
       e.preventDefault();
       setAltTool("draw");
+    }
+    if (e.key === "n" || e.key === "N") {
+      e.preventDefault();
+      applyAltGap(false);
     }
   });
 
