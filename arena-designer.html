@@ -2049,7 +2049,7 @@
 
             </button>
             <button id="exportBtn" class="c-button c-button--primary">Export</button>
-            <input type="file" id="fileInput" accept=".tlt,.txt" />
+            <input type="file" id="fileInput" accept=".tlt" />
 
           </div>
 
@@ -4108,7 +4108,7 @@ codePane.addEventListener("input", () => {
         types: [
           {
             description: "Tickster Layout (.tlt)",
-            accept: { "text/plain": [".tlt", ".txt"] }
+            accept: { "text/plain": [".tlt"] }
           }
         ],
         excludeAcceptAllOption: false,
@@ -4138,7 +4138,7 @@ codePane.addEventListener("input", () => {
           types: [
             {
               description: "Tickster Layout (.tlt)",
-              accept: { "text/plain": [".tlt", ".txt"] }
+              accept: { "text/plain": [".tlt"] }
             }
           ],
           suggestedName: suggestedNameOverride || currentFileName || "layout.tlt",
@@ -4242,7 +4242,7 @@ codePane.addEventListener("input", () => {
     if (!rawName) return;
     const trimmed = rawName.trim();
     if (!trimmed) return;
-    const hasExt = /\.tlt$/i.test(trimmed) || /\.txt$/i.test(trimmed);
+    const hasExt = /\.tlt$/i.test(trimmed);
     const finalName = hasExt ? trimmed : `${trimmed}.tlt`;
     currentFileName = finalName;
     currentFileHandle = null;
