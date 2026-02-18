@@ -55,7 +55,7 @@
 
     body {
       font-family: var(--font-main);
-      background: #415e6e;
+      background: var(--app-bg);
       color: var(--tick-grey-dark);
       overflow: hidden;
     }
@@ -69,6 +69,7 @@
       height: 100vh;
       height: 100dvh;
       padding: 0.5rem;
+      background: var(--app-bg);
     }
 
     #app > * {
@@ -1115,6 +1116,42 @@
       white-space: nowrap;
     }
 
+    .price-region-color-tools {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr);
+      gap: 0.35rem 0.5rem;
+      align-items: center;
+      border: 1px solid #e1e6ef;
+      border-radius: 8px;
+      padding: 0.45rem 0.55rem;
+      background: #f9fbff;
+    }
+
+    .price-region-color-tools label {
+      color: #3f4d5d;
+      white-space: nowrap;
+    }
+
+    .price-region-color-tools .c-select {
+      width: 100%;
+      min-width: 0;
+    }
+
+    .price-region-color-tools__base {
+      width: 40px;
+      height: 24px;
+      padding: 0;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      justify-self: start;
+    }
+
+    .price-region-color-tools__apply {
+      grid-column: 1 / -1;
+      justify-self: end;
+    }
+
     #info-panel {
       font-size: 0.85rem;
       line-height: 1.4;
@@ -1471,7 +1508,7 @@
 
     #top-bar button {
       /* overrida gamla knappar – nu Tickster-knappar */
-      border: none;
+      /* border: none; */
     }
 
     #openFileBtnTop {
@@ -1503,6 +1540,11 @@
     html[data-theme="dark"] body {
       background: #0f141a;
       color: #e5e7eb;
+    }
+
+    html[data-theme="dark"] #app,
+    html[data-theme="dark"] #right-panels {
+      background: #0f141a;
     }
 
     html[data-theme="dark"] .c-card,
@@ -1718,6 +1760,15 @@
 
     html[data-theme="dark"] .price-region-item__color {
       background: transparent;
+    }
+
+    html[data-theme="dark"] .price-region-color-tools {
+      background: #111827;
+      border-color: #2b3442;
+    }
+
+    html[data-theme="dark"] .price-region-color-tools label {
+      color: #cbd5e1;
     }
 
     html[data-theme="dark"] .align-grouping label {
@@ -2177,8 +2228,23 @@
         <div class="c-card__body c-toolbar">
           <button id="createPriceRegionBtn" class="c-button c-button--ghost c-button--small">Add price region</button>
           <button id="loadPriceRegionBtn" class="c-button c-button--ghost c-button--small">Load price regions from file</button>
+          <button id="loadPriceRegionCssBtn" class="c-button c-button--ghost c-button--small">Load colors from CSS file</button>
           <button id="selectSeatsNoPriceRegionBtn" class="c-button c-button--ghost c-button--small">Select seats without price regions</button>
+          <div class="price-region-color-tools u-font--small">
+            <label for="priceRegionColorModeSelect">Auto colors</label>
+            <select id="priceRegionColorModeSelect" class="c-select c-select--small">
+              <option value="spectrum">Full spectrum</option>
+              <option value="monochromatic">Monochromatic</option>
+              <option value="analogous">Analogous</option>
+              <option value="triad">Triad</option>
+              <option value="complementary">Complementary</option>
+            </select>
+            <label id="priceRegionBaseColorLabel" for="priceRegionBaseColorInput">Base color</label>
+            <input id="priceRegionBaseColorInput" class="price-region-color-tools__base" type="color" value="#2f80ed" />
+            <button id="applyPriceRegionColorModeBtn" class="c-button c-button--ghost c-button--small price-region-color-tools__apply">Apply color harmony</button>
+          </div>
           <input type="file" id="priceRegionFileInput" accept=".tpr,.txt" style="display:none" />
+          <input type="file" id="priceRegionCssFileInput" accept=".css,.txt" style="display:none" />
           <div id="priceRegionList" class="price-region-list"></div>
         </div>
       </div>
@@ -2745,8 +2811,14 @@
   const helpClose = document.getElementById("helpClose");
   const createPriceRegionBtn = document.getElementById("createPriceRegionBtn");
   const loadPriceRegionBtn = document.getElementById("loadPriceRegionBtn");
+  const loadPriceRegionCssBtn = document.getElementById("loadPriceRegionCssBtn");
   const selectSeatsNoPriceRegionBtn = document.getElementById("selectSeatsNoPriceRegionBtn");
   const priceRegionFileInput = document.getElementById("priceRegionFileInput");
+  const priceRegionCssFileInput = document.getElementById("priceRegionCssFileInput");
+  const priceRegionColorModeSelect = document.getElementById("priceRegionColorModeSelect");
+  const priceRegionBaseColorLabel = document.getElementById("priceRegionBaseColorLabel");
+  const priceRegionBaseColorInput = document.getElementById("priceRegionBaseColorInput");
+  const applyPriceRegionColorModeBtn = document.getElementById("applyPriceRegionColorModeBtn");
   const priceRegionList = document.getElementById("priceRegionList");
   const priceRegionOverlay = document.getElementById("priceRegionOverlay");
   const priceRegionName = document.getElementById("priceRegionName");
@@ -2801,6 +2873,12 @@
   const priceRegions = [];
   const entryPoints = [];
   const PRICE_REGION_NAME_MAX = 30;
+  const PRICE_REGION_COLOR_MODE_SPECTRUM = "spectrum";
+  const PRICE_REGION_COLOR_MODE_MONOCHROMATIC = "monochromatic";
+  const PRICE_REGION_COLOR_MODE_ANALOGOUS = "analogous";
+  const PRICE_REGION_COLOR_MODE_TRIAD = "triad";
+  const PRICE_REGION_COLOR_MODE_COMPLEMENTARY = "complementary";
+  const DEFAULT_PRICE_REGION_BASE_COLOR = "#2f80ed";
   const SECTION_NAME_MAX = 20;
   const GOODNESS_RANGE_SIZE = 1000;
   const GOODNESS_HEAT_START = "#f2a23b";
@@ -2889,6 +2967,8 @@
   let showPriceRegions = false;
   let showGoodnessHeatmap = false;
   let overlayMode = "none";
+  let priceRegionColorMode = PRICE_REGION_COLOR_MODE_SPECTRUM;
+  let priceRegionBaseColor = DEFAULT_PRICE_REGION_BASE_COLOR;
   let goodnessRangeCount = DEFAULT_GOODNESS_RANGE_COUNT;
   let goodnessAnchorPoint = null;
   let restoredSession = false;
@@ -3048,7 +3128,17 @@
   function normalizeColorToHex(color, fallback) {
     if (typeof color === "string") {
       const trimmed = color.trim();
-      if (/^#([0-9a-f]{6})$/i.test(trimmed)) return trimmed;
+      const shortHexMatch = trimmed.match(/^#([0-9a-f]{3})$/i);
+      if (shortHexMatch) {
+        const raw = shortHexMatch[1].toLowerCase();
+        return `#${raw[0]}${raw[0]}${raw[1]}${raw[1]}${raw[2]}${raw[2]}`;
+      }
+      const hexMatch = trimmed.match(/^#([0-9a-f]{6})$/i);
+      if (hexMatch) return `#${hexMatch[1].toLowerCase()}`;
+      const hex8Match = trimmed.match(/^#([0-9a-f]{8})$/i);
+      if (hex8Match) {
+        return `#${hex8Match[1].slice(2).toLowerCase()}`;
+      }
       const hslMatch = trimmed.match(/hsl\(\s*([\d.]+)\s*,\s*([\d.]+)%\s*,\s*([\d.]+)%\s*\)/i);
       if (hslMatch) {
         return hslToHex(
@@ -3057,14 +3147,180 @@
           parseFloat(hslMatch[3])
         );
       }
+      const rgbMatch = trimmed.match(/rgba?\(\s*([\d.]+%?)\s*,\s*([\d.]+%?)\s*,\s*([\d.]+%?)(?:\s*,\s*[\d.]+\s*)?\)/i);
+      if (rgbMatch) {
+        const toByte = (raw) => {
+          const value = raw.trim();
+          if (value.endsWith("%")) {
+            const pct = parseFloat(value.slice(0, -1));
+            if (Number.isFinite(pct)) return Math.max(0, Math.min(255, Math.round(pct * 2.55)));
+            return null;
+          }
+          const num = parseFloat(value);
+          if (!Number.isFinite(num)) return null;
+          return Math.max(0, Math.min(255, Math.round(num)));
+        };
+        const r = toByte(rgbMatch[1]);
+        const g = toByte(rgbMatch[2]);
+        const b = toByte(rgbMatch[3]);
+        if (r != null && g != null && b != null) {
+          const toHex = (v) => v.toString(16).padStart(2, "0");
+          return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+        }
+      }
+      const inlineHex = trimmed.match(/#([0-9a-f]{3}|[0-9a-f]{6}|[0-9a-f]{8})/i);
+      if (inlineHex) return normalizeColorToHex(`#${inlineHex[1]}`, fallback);
     }
     return fallback;
   }
 
+  function normalizePriceRegionColorMode(mode) {
+    if (
+      mode === PRICE_REGION_COLOR_MODE_MONOCHROMATIC ||
+      mode === PRICE_REGION_COLOR_MODE_ANALOGOUS ||
+      mode === PRICE_REGION_COLOR_MODE_TRIAD ||
+      mode === PRICE_REGION_COLOR_MODE_COMPLEMENTARY
+    ) {
+      return mode;
+    }
+    return PRICE_REGION_COLOR_MODE_SPECTRUM;
+  }
+
+  function setPriceRegionColorMode(mode, persist = true) {
+    priceRegionColorMode = normalizePriceRegionColorMode(mode);
+    updatePriceRegionColorModeUi();
+    if (persist) saveSessionToLocalStorage();
+  }
+
+  function setPriceRegionBaseColor(color, persist = true) {
+    priceRegionBaseColor = normalizeColorToHex(color, DEFAULT_PRICE_REGION_BASE_COLOR);
+    updatePriceRegionColorModeUi();
+    if (persist) saveSessionToLocalStorage();
+  }
+
+  function updatePriceRegionColorModeUi() {
+    if (priceRegionColorModeSelect) {
+      priceRegionColorModeSelect.value = priceRegionColorMode;
+    }
+    const usesBaseColor = priceRegionColorMode !== PRICE_REGION_COLOR_MODE_SPECTRUM;
+    if (priceRegionBaseColorLabel) {
+      priceRegionBaseColorLabel.style.display = usesBaseColor ? "" : "none";
+    }
+    if (priceRegionBaseColorInput) {
+      priceRegionBaseColorInput.value = normalizeColorToHex(priceRegionBaseColor, DEFAULT_PRICE_REGION_BASE_COLOR);
+      priceRegionBaseColorInput.style.display = usesBaseColor ? "" : "none";
+      priceRegionBaseColorInput.disabled = !layoutActive || !usesBaseColor;
+    }
+  }
+
+  function hexToHsl(hex) {
+    const normalized = normalizeColorToHex(hex, DEFAULT_PRICE_REGION_BASE_COLOR);
+    const raw = normalized.slice(1);
+    const r = parseInt(raw.slice(0, 2), 16) / 255;
+    const g = parseInt(raw.slice(2, 4), 16) / 255;
+    const b = parseInt(raw.slice(4, 6), 16) / 255;
+    const max = Math.max(r, g, b);
+    const min = Math.min(r, g, b);
+    const delta = max - min;
+    let h = 0;
+    if (delta > 0) {
+      if (max === r) {
+        h = ((g - b) / delta) % 6;
+      } else if (max === g) {
+        h = (b - r) / delta + 2;
+      } else {
+        h = (r - g) / delta + 4;
+      }
+      h *= 60;
+      if (h < 0) h += 360;
+    }
+    const l = (max + min) / 2;
+    const s = delta === 0 ? 0 : delta / (1 - Math.abs(2 * l - 1));
+    return {
+      h,
+      s: s * 100,
+      l: l * 100
+    };
+  }
+
+  function generateAnalogousPriceRegionColor(index) {
+    const base = hexToHsl(priceRegionBaseColor);
+    const waveStep = Math.ceil(index / 2);
+    const direction = index === 0 ? 0 : (index % 2 === 1 ? 1 : -1);
+    const hueOffset = direction * Math.min(4, waveStep) * 14;
+    const hue = (base.h + hueOffset + 360) % 360;
+    const saturationPattern = [0, 5, -4, 8, -7, 3, -2, 6, -5];
+    const lightnessPattern = [0, 6, -6, 10, -10, 4, -4, 8, -8];
+    const sat = Math.max(35, Math.min(80, base.s + saturationPattern[index % saturationPattern.length]));
+    const light = Math.max(32, Math.min(72, base.l + lightnessPattern[index % lightnessPattern.length]));
+    return hslToHex(hue, sat, light);
+  }
+
+  function generateMonochromaticPriceRegionColor(index) {
+    const base = hexToHsl(priceRegionBaseColor);
+    const saturationPattern = [0, -6, 5, -10, 8, -3, 10, -8];
+    const lightnessPattern = [0, 10, -10, 16, -16, 6, -6, 12, -12];
+    const sat = Math.max(22, Math.min(78, base.s + saturationPattern[index % saturationPattern.length]));
+    const light = Math.max(28, Math.min(78, base.l + lightnessPattern[index % lightnessPattern.length]));
+    return hslToHex(base.h, sat, light);
+  }
+
+  function generateTriadPriceRegionColor(index) {
+    const base = hexToHsl(priceRegionBaseColor);
+    const triadOffsets = [0, 120, 240];
+    const hue = (base.h + triadOffsets[index % triadOffsets.length]) % 360;
+    const wave = Math.floor(index / triadOffsets.length);
+    const saturationPattern = [0, 4, -4, 7, -7, 2, -2];
+    const lightnessPattern = [0, 8, -8, 12, -12, 4, -4];
+    const sat = Math.max(26, Math.min(80, base.s + saturationPattern[wave % saturationPattern.length]));
+    const light = Math.max(30, Math.min(76, base.l + lightnessPattern[wave % lightnessPattern.length]));
+    return hslToHex(hue, sat, light);
+  }
+
+  function generateComplementaryPriceRegionColor(index) {
+    const base = hexToHsl(priceRegionBaseColor);
+    const complementaryOffsets = [0, 180];
+    const hue = (base.h + complementaryOffsets[index % complementaryOffsets.length]) % 360;
+    const wave = Math.floor(index / complementaryOffsets.length);
+    const saturationPattern = [0, 6, -5, 9, -8, 3, -2];
+    const lightnessPattern = [0, 8, -8, 12, -12, 5, -5];
+    const sat = Math.max(24, Math.min(80, base.s + saturationPattern[wave % saturationPattern.length]));
+    const light = Math.max(30, Math.min(76, base.l + lightnessPattern[wave % lightnessPattern.length]));
+    return hslToHex(hue, sat, light);
+  }
+
   function generatePriceRegionColor(index) {
+    if (priceRegionColorMode === PRICE_REGION_COLOR_MODE_MONOCHROMATIC) {
+      return generateMonochromaticPriceRegionColor(index);
+    }
+    if (priceRegionColorMode === PRICE_REGION_COLOR_MODE_ANALOGOUS) {
+      return generateAnalogousPriceRegionColor(index);
+    }
+    if (priceRegionColorMode === PRICE_REGION_COLOR_MODE_TRIAD) {
+      return generateTriadPriceRegionColor(index);
+    }
+    if (priceRegionColorMode === PRICE_REGION_COLOR_MODE_COMPLEMENTARY) {
+      return generateComplementaryPriceRegionColor(index);
+    }
     const goldenAngle = 137.508;
     const hue = (index * goldenAngle) % 360;
-    return hslToHex(hue, 58, 54);
+    return hslToHex(hue, 50, 62);
+  }
+
+  function applyPriceRegionColorHarmonyToAllRegions() {
+    if (!priceRegions.length) {
+      alert("No price regions available.");
+      return;
+    }
+    const confirmText = "Replace current colors for all price regions with the selected harmony?";
+    if (!confirm(confirmText)) return;
+    priceRegions.forEach((region, idx) => {
+      region.color = generatePriceRegionColor(idx);
+    });
+    savePriceRegionsToStorage();
+    renderPriceRegionList();
+    updatePriceRegionUi();
+    if (showPriceRegions) renderCanvas();
   }
 
   function rebuildSectionColors() {
@@ -3919,6 +4175,10 @@ function saveSessionToLocalStorage() {
         priceRegions: !!showPriceRegions,
         seatLabelMode: seatLabelMode || "none"
       },
+      priceRegionColors: {
+        mode: normalizePriceRegionColorMode(priceRegionColorMode),
+        baseColor: normalizeColorToHex(priceRegionBaseColor, DEFAULT_PRICE_REGION_BASE_COLOR)
+      },
       timestamp: Date.now()
     };
     localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(payload));
@@ -4011,6 +4271,13 @@ async function tryRestoreSessionFromLocalStorage() {
     );
     if (!accept) return;
     restoredSession = true;
+
+    if (data.priceRegionColors) {
+      setPriceRegionColorMode(data.priceRegionColors.mode, false);
+      setPriceRegionBaseColor(data.priceRegionColors.baseColor, false);
+    } else {
+      updatePriceRegionColorModeUi();
+    }
 
     // Återställ tlt-texten
     codePane.value = data.tltText;
@@ -4375,6 +4642,7 @@ codePane.addEventListener("input", () => {
       updateMoveButtonState();
       updateBackgroundMoveButtons();
     }
+    updatePriceRegionColorModeUi();
   }
 
   function getLayoutMeta() {
@@ -4855,6 +5123,107 @@ codePane.addEventListener("input", () => {
       region.seats = Array.from(new Set(region.seats));
     });
     return regions;
+  }
+
+  function extractPriceRegionColorFromCssDeclarations(declarations) {
+    if (!declarations) return "";
+    const props = ["stroke", "fill", "background-color", "color"];
+    for (const prop of props) {
+      const propRegex = new RegExp(`${prop}\\s*:\\s*([^;}{]+)`, "i");
+      const match = declarations.match(propRegex);
+      if (!match) continue;
+      const value = String(match[1] || "").trim();
+      if (!value || /^none$/i.test(value)) continue;
+      const normalized = normalizeColorToHex(value, "");
+      if (normalized) return normalized;
+    }
+    return "";
+  }
+
+  function parsePriceRegionColorsFromCssText(cssText) {
+    const byRangeId = new Map();
+    const byName = new Map();
+    const text = String(cssText || "");
+    if (!text.trim()) return { byRangeId, byName };
+
+    const addRangeIdsFromSelectors = (selectors, color, overwrite = false) => {
+      if (!selectors || !color) return;
+      const idRegex = /\.pr-([A-Za-z0-9_-]+)/g;
+      let idMatch;
+      while ((idMatch = idRegex.exec(selectors)) !== null) {
+        const key = String(idMatch[1]);
+        if (!key) continue;
+        if (!overwrite && byRangeId.has(key)) continue;
+        byRangeId.set(key, color);
+      }
+    };
+
+    const commentRuleRegex = /\/\*\s*Colors for price region\s+(.+?)\s*\*\/\s*([^{}]+)\{([^{}]+)\}/gi;
+    let commentMatch;
+    while ((commentMatch = commentRuleRegex.exec(text)) !== null) {
+      const rawName = normalizePriceRegionName(commentMatch[1] || "");
+      const selectors = commentMatch[2] || "";
+      const declarations = commentMatch[3] || "";
+      const color = extractPriceRegionColorFromCssDeclarations(declarations);
+      if (!color) continue;
+      if (rawName) {
+        byName.set(normalizePriceRegionKey(rawName), color);
+      }
+      addRangeIdsFromSelectors(selectors, color, true);
+    }
+
+    const ruleRegex = /([^{}]+)\{([^{}]+)\}/g;
+    let ruleMatch;
+    while ((ruleMatch = ruleRegex.exec(text)) !== null) {
+      const selectors = ruleMatch[1] || "";
+      if (!/\.pr-/i.test(selectors)) continue;
+      const declarations = ruleMatch[2] || "";
+      const color = extractPriceRegionColorFromCssDeclarations(declarations);
+      if (!color) continue;
+      addRangeIdsFromSelectors(selectors, color, false);
+    }
+
+    return { byRangeId, byName };
+  }
+
+  function importPriceRegionColorsFromCssText(cssText) {
+    const { byRangeId, byName } = parsePriceRegionColorsFromCssText(cssText);
+    const parsedCount = byRangeId.size + byName.size;
+    if (!parsedCount) {
+      return { parsedCount: 0, matchedCount: 0, updatedCount: 0 };
+    }
+    let matchedCount = 0;
+    let updatedCount = 0;
+    priceRegions.forEach((region, idx) => {
+      const rangeId = buildRangeId(region, idx);
+      const candidateIds = [
+        rangeId,
+        region.rangeId,
+        region.id
+      ]
+        .map((v) => String(v || "").trim())
+        .filter(Boolean);
+      let importedColor = "";
+      for (const key of candidateIds) {
+        if (byRangeId.has(key)) {
+          importedColor = byRangeId.get(key);
+          break;
+        }
+      }
+      if (!importedColor && region.name) {
+        const nameKey = normalizePriceRegionKey(region.name);
+        importedColor = byName.get(nameKey) || "";
+      }
+      if (!importedColor) return;
+      matchedCount += 1;
+      const fallbackColor = generatePriceRegionColor(idx);
+      const normalized = normalizeColorToHex(importedColor, fallbackColor);
+      if (normalized && normalized !== region.color) {
+        region.color = normalized;
+        updatedCount += 1;
+      }
+    });
+    return { parsedCount, matchedCount, updatedCount };
   }
 
   function buildCssText() {
@@ -6603,29 +6972,77 @@ codePane.addEventListener("input", () => {
   priceRegionFileInput?.addEventListener("change", async (e) => {
     const file = e.target.files && e.target.files[0];
     if (!file) return;
-    const text = await file.text();
-    const regions = parseTprText(text);
-    if (!regions.length) {
-      alert("No price regions found in file.");
+    try {
+      const text = await file.text();
+      const regions = parseTprText(text);
+      if (!regions.length) {
+        alert("No price regions found in file.");
+        return;
+      }
+      regions.forEach((region) => {
+        region.name = normalizePriceRegionName(region.name);
+      });
+      const importNames = regions.map(r => r.name).filter(Boolean);
+      const { duplicates, tooLong } = getPriceRegionNameIssues(importNames, new Set());
+      const issueMessage = buildPriceRegionIssueMessage(duplicates, tooLong);
+      if (issueMessage) {
+        alert(issueMessage);
+        return;
+      }
+      priceRegions.length = 0;
+      regions.forEach(r => priceRegions.push(r));
+      savePriceRegionsToStorage();
+      renderPriceRegionList();
+      updatePriceRegionUi();
+      if (showPriceRegions) renderCanvas();
+    } finally {
+      priceRegionFileInput.value = "";
+    }
+  });
+  loadPriceRegionCssBtn?.addEventListener("click", () => {
+    if (!seats.length) {
+      alert("Load a layout (TLT) before importing CSS colors.");
       return;
     }
-    regions.forEach((region) => {
-      region.name = normalizePriceRegionName(region.name);
-    });
-    const importNames = regions.map(r => r.name).filter(Boolean);
-    const { duplicates, tooLong } = getPriceRegionNameIssues(importNames, new Set());
-    const issueMessage = buildPriceRegionIssueMessage(duplicates, tooLong);
-    if (issueMessage) {
-      alert(issueMessage);
+    if (!priceRegions.length) {
+      alert("Load or create price regions before importing CSS colors.");
       return;
     }
-    priceRegions.length = 0;
-    regions.forEach(r => priceRegions.push(r));
-    savePriceRegionsToStorage();
-    renderPriceRegionList();
-    updatePriceRegionUi();
-    if (showPriceRegions) renderCanvas();
-    priceRegionFileInput.value = "";
+    priceRegionCssFileInput?.click();
+  });
+  priceRegionCssFileInput?.addEventListener("change", async (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    try {
+      const text = await file.text();
+      const { parsedCount, matchedCount, updatedCount } = importPriceRegionColorsFromCssText(text);
+      if (!parsedCount) {
+        alert("No price region colors found in CSS file.");
+        return;
+      }
+      if (!matchedCount) {
+        alert("No CSS colors matched current price regions.");
+        return;
+      }
+      savePriceRegionsToStorage();
+      renderPriceRegionList();
+      updatePriceRegionUi();
+      if (showPriceRegions) renderCanvas();
+      const unchangedCount = matchedCount - updatedCount;
+      alert(`Updated ${updatedCount} price region color(s). ${unchangedCount} already had that color.`);
+    } finally {
+      priceRegionCssFileInput.value = "";
+    }
+  });
+  priceRegionColorModeSelect?.addEventListener("change", (e) => {
+    const nextMode = e.target.value;
+    setPriceRegionColorMode(nextMode, true);
+  });
+  priceRegionBaseColorInput?.addEventListener("input", (e) => {
+    setPriceRegionBaseColor(e.target.value, true);
+  });
+  applyPriceRegionColorModeBtn?.addEventListener("click", () => {
+    applyPriceRegionColorHarmonyToAllRegions();
   });
   priceRegionCreate?.addEventListener("click", () => {
     const raw = priceRegionName?.value || "";
@@ -13730,6 +14147,7 @@ function nudgeSelection(dxScreen, dyScreen) {
   });
 
   applyTheme(getPreferredTheme());
+  updatePriceRegionColorModeUi();
 
 
   // --- Init ---
