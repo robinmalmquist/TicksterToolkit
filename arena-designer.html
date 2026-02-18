@@ -1506,11 +1506,6 @@
       color: var(--tick-green);
     }
 
-    #top-bar button {
-      /* overrida gamla knappar – nu Tickster-knappar */
-      /* border: none; */
-    }
-
     #openFileBtnTop {
       /* primär handling */
       color: #fff;
@@ -1827,15 +1822,11 @@
       text-align: center;
     }
 
-    .goodness-settings {
+    .goodness-range-controls {
       display: flex;
-      flex-direction: column;
-      gap: 0.35rem;
-    }
-
-    .goodness-settings input {
-      width: 120px;
-      max-width: 100%;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
     }
 
     .goodness-hint {
@@ -2261,22 +2252,6 @@
         </div>
       </div>
 
-      <div class="c-card" data-collapsible="true" data-collapsed="true">
-        <div class="c-card__header">
-          <div class="c-card__title">Goodness</div>
-          <button class="c-card__toggle" type="button" aria-expanded="true" aria-label="Toggle panel" onclick="toggleRightPanel(this)"></button>
-        </div>
-        <div class="c-card__body c-toolbar">
-          <div class="goodness-settings u-font--small">
-            <label for="goodnessRangeCount">Ranking ranges</label>
-            <input id="goodnessRangeCount" type="number" min="1" max="25" step="1" value="3" />
-            <div id="goodnessRangeHint" class="goodness-hint">Each range spans 1000 (1-1000, 1001-2000, ...).</div>
-          </div>
-          <button id="selectSeatsNoGoodnessBtn" class="c-button c-button--ghost c-button--small">Select seats without goodness</button>
-        </div>
-      </div>
-
-
     </aside>
   </div>
 
@@ -2418,8 +2393,12 @@
         <div id="goodnessModalHint" class="u-font--small"></div>
       </div>
       <div class="new-layout-field">
-        <label for="goodnessRangeSelect">Range</label>
+        <div class="goodness-range-controls">
+          <label for="goodnessRangeSelect">Range</label>
+          <button id="goodnessAddRange" class="c-button c-button--ghost c-button--small" type="button">Add range</button>
+        </div>
         <select id="goodnessRangeSelect"></select>
+        <div id="goodnessRangeHint" class="goodness-hint u-font--small"></div>
       </div>
       <div class="new-layout-actions">
         <button id="goodnessCancel" class="c-button c-button--ghost c-button--small">Cancel</button>
@@ -2558,7 +2537,7 @@
             <div class="help-panel__title">Entry Points</div>
             <div class="help-placeholder">In the same way price regions are created and managed, you also manage your Entry Points. Create them in the Entry Points Panel and then add seats to their correct entry point.<br /><br /></div>
             <div class="help-panel__title">Goodness</div>
-            <div class="help-placeholder">To set goddness we first make sure to set a number of available ranking ranges in the panel to the left. After that you can make a selection, right click on the canvas where the seat with best goodness is and select "Set goodness from point". Here you select what range the selection should have. Lower is better.</div>
+            <div class="help-placeholder">To set goodness, make a selection, right click on the canvas where the seat with best goodness is and select "Set goodness from point". In the modal you can choose range directly, and click "Add range" to create more ranges (default is three). Lower is better.</div>
           </div>
         </div>
 
@@ -2831,11 +2810,10 @@
   const entryPointName = document.getElementById("entryPointName");
   const entryPointCancel = document.getElementById("entryPointCancel");
   const entryPointCreate = document.getElementById("entryPointCreate");
-  const goodnessRangeCountInput = document.getElementById("goodnessRangeCount");
   const goodnessRangeHint = document.getElementById("goodnessRangeHint");
-  const selectSeatsNoGoodnessBtn = document.getElementById("selectSeatsNoGoodnessBtn");
   const goodnessOverlay = document.getElementById("goodnessOverlay");
   const goodnessRangeSelect = document.getElementById("goodnessRangeSelect");
+  const goodnessAddRange = document.getElementById("goodnessAddRange");
   const goodnessCancel = document.getElementById("goodnessCancel");
   const goodnessApply = document.getElementById("goodnessApply");
   const goodnessModalHint = document.getElementById("goodnessModalHint");
@@ -3652,6 +3630,14 @@
     return s;
   }
 
+  function formatCenterCoordinate(num) {
+    if (!Number.isFinite(num)) return "0";
+    if (Math.abs(num - Math.round(num)) < 1e-6) return String(Math.round(num));
+    let s = num.toFixed(2);
+    s = s.replace(/0+$/, "").replace(/\.$/, "");
+    return s;
+  }
+
   function buildTimestamp() {
     const d = new Date();
     const pad = (v, len = 2) => String(v).padStart(len, "0");
@@ -3673,8 +3659,8 @@
     const entryStr = seat.entryVia != null ? seat.entryVia : "-";
     const goodnessValue = Number(seat.goodness);
     const goodStr = Number.isFinite(goodnessValue) ? formatNumber(goodnessValue) : "0";
-    const cxStr = formatNumber(seat.centerX);
-    const cyStr = formatNumber(seat.centerY);
+    const cxStr = formatCenterCoordinate(seat.centerX);
+    const cyStr = formatCenterCoordinate(seat.centerY);
 
     let line = `${timestamp}|SeatAdd|SeatId=${seat.seatId}|Name=${seat.name}` +
       `|CenterX=${cxStr}|CenterY=${cyStr}|Width=${widthStr}|Rotation=${rotationStr}` +
@@ -6509,6 +6495,7 @@ codePane.addEventListener("input", () => {
 
   function renderGoodnessRangeOptions() {
     if (!goodnessRangeSelect) return;
+    const previousValue = parseInt(goodnessRangeSelect.value || "1", 10);
     goodnessRangeSelect.innerHTML = "";
     const ranges = buildGoodnessRanges(goodnessRangeCount);
     ranges.forEach((r) => {
@@ -6517,14 +6504,25 @@ codePane.addEventListener("input", () => {
       opt.textContent = `Range ${r.index}: ${r.start}-${r.end}`;
       goodnessRangeSelect.appendChild(opt);
     });
+    const safeValue = Number.isFinite(previousValue)
+      ? Math.max(1, Math.min(ranges.length, previousValue))
+      : 1;
+    goodnessRangeSelect.value = String(safeValue);
   }
 
   function setGoodnessRangeCount(value, persist = true) {
     goodnessRangeCount = normalizeGoodnessRangeCount(value);
-    if (goodnessRangeCountInput) goodnessRangeCountInput.value = String(goodnessRangeCount);
     updateGoodnessRangeHint();
     renderGoodnessRangeOptions();
     if (persist) saveGoodnessSettingsToStorage();
+  }
+
+  function addGoodnessRange() {
+    const nextCount = normalizeGoodnessRangeCount(goodnessRangeCount + 1);
+    if (nextCount === goodnessRangeCount) return false;
+    setGoodnessRangeCount(nextCount);
+    if (goodnessRangeSelect) goodnessRangeSelect.value = String(nextCount);
+    return true;
   }
 
   function loadGoodnessSettingsFromStorage() {
@@ -7104,14 +7102,11 @@ codePane.addEventListener("input", () => {
       entryPointCreate?.click();
     }
   });
-  selectSeatsNoGoodnessBtn?.addEventListener("click", () => {
-    selectSeatsWithoutGoodness();
-  });
-  goodnessRangeCountInput?.addEventListener("change", (e) => {
-    setGoodnessRangeCount(e.target.value);
-  });
-  goodnessRangeCountInput?.addEventListener("blur", (e) => {
-    setGoodnessRangeCount(e.target.value);
+  goodnessAddRange?.addEventListener("click", () => {
+    const didAdd = addGoodnessRange();
+    if (!didAdd) {
+      alert("Maximum number of goodness ranges reached.");
+    }
   });
   goodnessCancel?.addEventListener("click", closeGoodnessModal);
   goodnessApply?.addEventListener("click", () => {
