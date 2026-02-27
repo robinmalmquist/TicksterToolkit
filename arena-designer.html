@@ -646,7 +646,8 @@
     #helpOverlay,
     #seatEditOverlay,
     #rowEditOverlay,
-    #sectionEditOverlay {
+    #sectionEditOverlay,
+    #highlightSeatsOverlay {
       position: fixed;
       inset: 0;
       background: var(--overlay-bg);
@@ -1482,7 +1483,8 @@
     #attributeModal,
     #seatEditModal,
     #rowEditModal,
-    #sectionEditModal {
+    #sectionEditModal,
+    #highlightSeatsModal {
       background: var(--card-bg);
       border-radius: 12px;
       max-height: 80vh;
@@ -1499,10 +1501,15 @@
       width: min(860px, 95vw);
     }
 
+    #highlightSeatsModal {
+      width: min(620px, 95vw);
+    }
+
     #attributeModal header,
     #seatEditModal header,
     #rowEditModal header,
-    #sectionEditModal header {
+    #sectionEditModal header,
+    #highlightSeatsModal header {
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -1513,7 +1520,8 @@
     #attributeModal main,
     #seatEditModal main,
     #rowEditModal main,
-    #sectionEditModal main {
+    #sectionEditModal main,
+    #highlightSeatsModal main {
       padding: 0.75rem 1rem;
       overflow: auto;
       background: #f8f9fb;
@@ -1522,13 +1530,32 @@
     #attributeModal footer,
     #seatEditModal footer,
     #rowEditModal footer,
-    #sectionEditModal footer {
+    #sectionEditModal footer,
+    #highlightSeatsModal footer {
       padding: 0.75rem 1rem;
       border-top: 1px solid #e5e9ef;
       background: #f7f9fc;
       display: flex;
       justify-content: flex-end;
       gap: 0.5rem;
+    }
+
+    #highlightSeatIdsInput {
+      width: 100%;
+      min-height: 220px;
+      resize: vertical;
+      border: 1px solid #d6dde9;
+      border-radius: 8px;
+      padding: 0.55rem 0.65rem;
+      font: 0.85rem "SUSE Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      background: #fff;
+      color: #243648;
+      outline: none;
+    }
+
+    #highlightSeatIdsInput:focus {
+      border-color: #5a8dee;
+      box-shadow: 0 0 0 3px rgba(90,141,238,0.18);
     }
 
     .edit-list {
@@ -1705,6 +1732,7 @@
     html[data-theme="dark"] #seatEditModal,
     html[data-theme="dark"] #rowEditModal,
     html[data-theme="dark"] #sectionEditModal,
+    html[data-theme="dark"] #highlightSeatsModal,
     html[data-theme="dark"] .section-manager,
     html[data-theme="dark"] .section-list,
     html[data-theme="dark"] .section-editor {
@@ -1806,6 +1834,7 @@
     html[data-theme="dark"] #seatEditOverlay,
     html[data-theme="dark"] #rowEditOverlay,
     html[data-theme="dark"] #sectionEditOverlay,
+    html[data-theme="dark"] #highlightSeatsOverlay,
     html[data-theme="dark"] #attributeModalOverlay {
       background: var(--dark-overlay-bg);
     }
@@ -1815,7 +1844,8 @@
     html[data-theme="dark"] #goodnessModal h3,
     html[data-theme="dark"] #seatEditModal h3,
     html[data-theme="dark"] #rowEditModal h3,
-    html[data-theme="dark"] #sectionEditModal h3 {
+    html[data-theme="dark"] #sectionEditModal h3,
+    html[data-theme="dark"] #highlightSeatsModal h3 {
       color: var(--dark-text);
     }
 
@@ -1847,22 +1877,31 @@
 
     html[data-theme="dark"] #seatEditModal header,
     html[data-theme="dark"] #rowEditModal header,
-    html[data-theme="dark"] #sectionEditModal header {
+    html[data-theme="dark"] #sectionEditModal header,
+    html[data-theme="dark"] #highlightSeatsModal header {
       border-color: var(--dark-border);
     }
 
     html[data-theme="dark"] #seatEditModal main,
     html[data-theme="dark"] #rowEditModal main,
-    html[data-theme="dark"] #sectionEditModal main {
+    html[data-theme="dark"] #sectionEditModal main,
+    html[data-theme="dark"] #highlightSeatsModal main {
       background: var(--dark-bg);
       border-color: var(--dark-border);
     }
 
     html[data-theme="dark"] #seatEditModal footer,
     html[data-theme="dark"] #rowEditModal footer,
-    html[data-theme="dark"] #sectionEditModal footer {
+    html[data-theme="dark"] #sectionEditModal footer,
+    html[data-theme="dark"] #highlightSeatsModal footer {
       background: var(--dark-elevated);
       border-color: var(--dark-border);
+    }
+
+    html[data-theme="dark"] #highlightSeatIdsInput {
+      background: var(--dark-elevated);
+      border-color: var(--dark-border);
+      color: var(--dark-text);
     }
 
     html[data-theme="dark"] .edit-item {
@@ -2439,6 +2478,7 @@
               Display seat ID
             </label>
           </div>
+          <button id="highlightSeatsBtn" class="c-button c-button--ghost c-button--small">Highlight seats</button>
           <button id="openCodeModalBtn" class="c-button c-button--ghost c-button--small">Show source code</button>
         </div>
       </div>
@@ -2946,6 +2986,25 @@
     </div>
   </div>
 
+  <div id="highlightSeatsOverlay">
+    <div id="highlightSeatsModal">
+      <header>
+        <h3>Highlight seats</h3>
+        <button id="highlightSeatsClose" class="c-button c-button--ghost c-button--small">Close</button>
+      </header>
+      <main>
+        <div class="u-font--small" style="margin-bottom:0.5rem;">
+          Enter SeatId values separated by comma or one per line.
+        </div>
+        <textarea id="highlightSeatIdsInput" rows="10" placeholder="1.1.4.12&#10;1.1.4.13, 1.1.4.14"></textarea>
+      </main>
+      <footer>
+        <button id="highlightSeatsCancel" class="c-button c-button--ghost c-button--small">Cancel</button>
+        <button id="highlightSeatsApply" class="c-button c-button--primary c-button--small">OK</button>
+      </footer>
+    </div>
+  </div>
+
   <div id="codeModalOverlay">
     <div id="codeModal">
       <header>
@@ -3029,6 +3088,11 @@
   const mimicRowShapeMenuItem = document.getElementById("mimicRowShapeMenuItem");
   const editSectionsMenuItem = document.getElementById("editSectionsMenuItem");
   const toggleSeatShapeMenuItem = document.getElementById("toggleSeatShapeMenuItem");
+  const highlightSeatsOverlay = document.getElementById("highlightSeatsOverlay");
+  const highlightSeatsClose = document.getElementById("highlightSeatsClose");
+  const highlightSeatsCancel = document.getElementById("highlightSeatsCancel");
+  const highlightSeatsApply = document.getElementById("highlightSeatsApply");
+  const highlightSeatIdsInput = document.getElementById("highlightSeatIdsInput");
   const attributeModalOverlay = document.getElementById("attributeModalOverlay");
   const attributeModalList = document.getElementById("attributeModalList");
   const attributeModalClose = document.getElementById("attributeModalClose");
@@ -3061,6 +3125,7 @@
   const bgScaleRange = document.getElementById("bgScaleRange");
   const viewHoverToggle = document.getElementById("viewHoverToggle");
   const viewSectionNamesToggle = document.getElementById("viewSectionNamesToggle");
+  const highlightSeatsBtn = document.getElementById("highlightSeatsBtn");
   const viewOverlayNone = document.getElementById("viewOverlayNone");
   const viewOverlayPrice = document.getElementById("viewOverlayPrice");
   const viewOverlayGoodness = document.getElementById("viewOverlayGoodness");
@@ -3207,6 +3272,7 @@
   let altContinuousStartSeat = 1;
 
   let seats = [];
+  let highlightedSeatIds = new Set();
   let outlines = [];
   let sectionNames = new Map();
   let layoutBounds = null;
@@ -3252,6 +3318,69 @@
     }
     renderCanvas();
     if (persist) saveSessionToLocalStorage();
+  }
+
+  function updateHighlightSeatsButtonLabel() {
+    if (!highlightSeatsBtn) return;
+    const hasHighlight = highlightedSeatIds.size > 0;
+    highlightSeatsBtn.textContent = hasHighlight ? "Clear Highlight" : "Highlight seats";
+    highlightSeatsBtn.classList.toggle("c-button--active", hasHighlight);
+  }
+
+  function closeHighlightSeatsModal() {
+    if (highlightSeatsOverlay) highlightSeatsOverlay.style.display = "none";
+  }
+
+  function openHighlightSeatsModal() {
+    if (!highlightSeatsOverlay) return;
+    if (highlightSeatIdsInput) {
+      highlightSeatIdsInput.value = [...highlightedSeatIds].join("\n");
+    }
+    highlightSeatsOverlay.style.display = "flex";
+    highlightSeatIdsInput?.focus();
+    highlightSeatIdsInput?.select();
+  }
+
+  function parseSeatIdsFromInput(raw) {
+    const tokens = String(raw || "")
+      .split(/[\r\n,]+/)
+      .map((part) => part.trim())
+      .filter(Boolean);
+    if (!tokens.length) return [];
+    const seen = new Set();
+    const unique = [];
+    tokens.forEach((token) => {
+      if (seen.has(token)) return;
+      seen.add(token);
+      unique.push(token);
+    });
+    return unique;
+  }
+
+  function applyHighlightFromInput(raw) {
+    const tokens = parseSeatIdsFromInput(raw);
+    if (!tokens.length) {
+      alert("Enter at least one SeatId.");
+      return false;
+    }
+    const seatIdLookup = new Set(seats.map((s) => s.seatId));
+    const matched = [];
+    const missing = [];
+    tokens.forEach((id) => {
+      if (seatIdLookup.has(id)) matched.push(id);
+      else missing.push(id);
+    });
+    if (!matched.length) {
+      alert("No matching SeatId values were found.");
+      return false;
+    }
+    highlightedSeatIds = new Set(matched);
+    updateHighlightSeatsButtonLabel();
+    renderCanvas();
+    if (missing.length) {
+      alert(`Highlighted ${matched.length} seat(s). ${missing.length} SeatId value(s) were not found.`);
+    }
+    return true;
   }
 
   async function tryGetDirectoryHandle(handle) {
@@ -3691,6 +3820,8 @@
   // --- Parse av .tlt ---
   function parseTlt(text) {
     seats = [];
+    highlightedSeatIds.clear();
+    updateHighlightSeatsButtonLabel();
     outlines = [];
     selectionOrderCounter = 1;
     lastSelectedSeatId = null;
@@ -4880,6 +5011,8 @@ codePane.addEventListener("input", () => {
   function resetLayoutState(baseName = "", venueId = "") {
     clearBackgroundImage();
     seats = [];
+    highlightedSeatIds.clear();
+    updateHighlightSeatsButtonLabel();
     outlines = [];
     selectionOrderCounter = 1;
     lastSelectedSeatId = null;
@@ -4912,6 +5045,8 @@ codePane.addEventListener("input", () => {
   function clearLayoutState() {
     clearBackgroundImage();
     seats = [];
+    highlightedSeatIds.clear();
+    updateHighlightSeatsButtonLabel();
     outlines = [];
     selectionOrderCounter = 1;
     lastSelectedSeatId = null;
@@ -8450,6 +8585,7 @@ codePane.addEventListener("input", () => {
     closePriceRegionModal();
     closeEntryPointModal();
     closeGoodnessModal();
+    closeHighlightSeatsModal();
     closeCodeModal();
     if (confirmAltSectionManager) {
       requestCloseAltSectionManager(altSectionConfirmMessage);
@@ -9185,6 +9321,7 @@ codePane.addEventListener("input", () => {
       const assignedRefNo = numberedImportMode ? numberedImportAssignmentsBySeatId.get(s.seatId) : "";
       const isAssignedSeat = !!assignedRefNo;
       const isActiveAssignedSeat = isAssignedSeat && assignedRefNo === numberedImportSelectedRefNo;
+      const isHighlightedSeat = highlightedSeatIds.has(s.seatId);
       if (isBlockedNumberedSeat) {
         baseColor = "#9aa5b1";
       } else if (isAssignedSeat) {
@@ -9238,6 +9375,24 @@ codePane.addEventListener("input", () => {
           ctx.moveTo(s.vx + rectSizeWorld, s.vy - rectSizeWorld);
           ctx.lineTo(s.vx - rectSizeWorld, s.vy + rectSizeWorld);
           ctx.stroke();
+        }
+        if (isHighlightedSeat) {
+          ctx.lineWidth = 2.4 / scale;
+          ctx.strokeStyle = "rgba(255, 214, 10, 0.98)";
+          ctx.strokeRect(
+            s.vx - rectSizeWorld * 2.1,
+            s.vy - rectSizeWorld * 2.1,
+            rectSizeWorld * 4.2,
+            rectSizeWorld * 4.2
+          );
+          ctx.lineWidth = 1.2 / scale;
+          ctx.strokeStyle = "rgba(17,24,39,0.95)";
+          ctx.strokeRect(
+            s.vx - rectSizeWorld * 2.1,
+            s.vy - rectSizeWorld * 2.1,
+            rectSizeWorld * 4.2,
+            rectSizeWorld * 4.2
+          );
         }
         if (s.attributes && s.attributes.length) {
           ctx.save();
@@ -9308,6 +9463,10 @@ codePane.addEventListener("input", () => {
         if (isActiveAssignedSeat) {
           strokeSeatShape(3 / scale, "rgba(255,255,255,0.95)");
           strokeSeatShape(1.6 / scale, "rgba(17,24,39,0.95)");
+        }
+        if (isHighlightedSeat) {
+          strokeSeatShape(3.2 / scale, "rgba(255,214,10,0.98)");
+          strokeSeatShape(1.4 / scale, "rgba(17,24,39,0.95)");
         }
         if (isBlockedNumberedSeat) {
           ctx.save();
@@ -12876,6 +13035,24 @@ function nudgeSelection(dxScreen, dyScreen) {
     closeSeatContextMenu();
     renderCanvas();
   });
+  highlightSeatsBtn?.addEventListener("click", () => {
+    if (highlightedSeatIds.size > 0) {
+      highlightedSeatIds.clear();
+      updateHighlightSeatsButtonLabel();
+      renderCanvas();
+      return;
+    }
+    openHighlightSeatsModal();
+  });
+  highlightSeatsClose?.addEventListener("click", closeHighlightSeatsModal);
+  highlightSeatsCancel?.addEventListener("click", closeHighlightSeatsModal);
+  highlightSeatsOverlay?.addEventListener("click", (e) => {
+    if (e.target === highlightSeatsOverlay) closeHighlightSeatsModal();
+  });
+  highlightSeatsApply?.addEventListener("click", () => {
+    const didApply = applyHighlightFromInput(highlightSeatIdsInput?.value || "");
+    if (didApply) closeHighlightSeatsModal();
+  });
 
   attributeModalClose?.addEventListener("click", closeAttributeModal);
   attributeModalCancel?.addEventListener("click", closeAttributeModal);
@@ -15984,6 +16161,7 @@ function nudgeSelection(dxScreen, dyScreen) {
     // Försök återställa en tidigare session (om det finns)
     await tryRestoreSessionFromLocalStorage();
     setLayoutActive(restoredSession);
+    updateHighlightSeatsButtonLabel();
 
     setBackgroundEnabled(!!backgroundState.enabled);
     if (!restoredSession) {
