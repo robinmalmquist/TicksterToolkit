@@ -2571,6 +2571,7 @@
         <button id="attributeMenuItem" class="context-menu__item" type="button">Attributes</button>
         <button id="goodnessFromPointMenuItem" class="context-menu__item" type="button">Set goodness from point</button>
         <button id="deleteSelectionMenuItem" class="context-menu__item" type="button">Delete selected seat(s)</button>
+        <button id="toggleSeatShapeMenuItem" class="context-menu__item" type="button">Show as squares</button>
       </div>
     </div>
   <input type="file" id="bgFileInput" accept="image/*" style="display:none" />
@@ -3027,6 +3028,7 @@
   const equalizeRowsMenuItem = document.getElementById("equalizeRowsMenuItem");
   const mimicRowShapeMenuItem = document.getElementById("mimicRowShapeMenuItem");
   const editSectionsMenuItem = document.getElementById("editSectionsMenuItem");
+  const toggleSeatShapeMenuItem = document.getElementById("toggleSeatShapeMenuItem");
   const attributeModalOverlay = document.getElementById("attributeModalOverlay");
   const attributeModalList = document.getElementById("attributeModalList");
   const attributeModalClose = document.getElementById("attributeModalClose");
@@ -3371,6 +3373,7 @@
   let lastVisibleSeatCount = 0;
   const RECT_DOT_THRESHOLD = 2500; // över detta: små fyrkanter
   const HOVER_VISIBLE_LIMIT = 4000; // över detta: ingen tooltip/hover-info
+  let renderSeatsAsSquares = false;
 
   let hoverSeat = null;
 
@@ -3911,6 +3914,7 @@
       vy: s.vy,
       centerX: s.centerX,
       centerY: s.centerY,
+      rotation: Number.isFinite(s.rotation) ? s.rotation : 0,
       selected: s.selected
     }));
   }
@@ -3919,17 +3923,20 @@
     const byId = new Map();
     for (const s of seats) byId.set(s.seatId, s);
 
-    let anyPositionChanged = false;
+    let anyGeometryChanged = false;
     for (const snap of state) {
       const s = byId.get(snap.seatId);
       if (!s) continue;
-      if (s.centerX !== snap.centerX || s.centerY !== snap.centerY) {
-        anyPositionChanged = true;
+      const currentRotation = Number.isFinite(s.rotation) ? s.rotation : 0;
+      const nextRotation = Number.isFinite(snap.rotation) ? snap.rotation : currentRotation;
+      if (s.centerX !== snap.centerX || s.centerY !== snap.centerY || Math.abs(currentRotation - nextRotation) > 1e-6) {
+        anyGeometryChanged = true;
       }
       s.vx = snap.vx;
       s.vy = snap.vy;
       s.centerX = snap.centerX;
       s.centerY = snap.centerY;
+      s.rotation = nextRotation;
       if (typeof snap.selected === "boolean") {
         s.selected = snap.selected;
       }
@@ -3938,8 +3945,8 @@
     rebuildSelectionOrderFromSelection();
     renderCanvas();
 
-    // Markera ändringar & kod om positionerna ändrats
-    if (anyPositionChanged) {
+    // Markera ändringar & kod om geometri (position/rotation) ändrats
+    if (anyGeometryChanged) {
       hasUnsavedChanges = true;
       updateCodeFromSeats();
     }
@@ -9133,7 +9140,7 @@ codePane.addEventListener("input", () => {
     }
     lastVisibleSeatCount = visibleCount;
 
-    const useRectDots = visibleCount > RECT_DOT_THRESHOLD;
+    const useRectDots = !renderSeatsAsSquares && visibleCount > RECT_DOT_THRESHOLD;
     const rectScreenSize = 2;
     const rectSizeWorld = rectScreenSize / scale;
 
@@ -9242,55 +9249,88 @@ codePane.addEventListener("input", () => {
         continue;
       }
 
-        // Cirkel-läge
+        // Normal-läge: cirkel eller roterad fyrkant
         let pxRadius = BASE_WORLD_RADIUS * scale;
         if (pxRadius < MIN_SEAT_SCREEN_RADIUS) {
           pxRadius = MIN_SEAT_SCREEN_RADIUS;
         }
         const worldRadius = pxRadius / scale;
+        const drawAsSquare = renderSeatsAsSquares;
+        const seatRotation = Number.isFinite(s.rotation) ? s.rotation : 0;
+        const seatRotationRad = (seatRotation * Math.PI) / 180;
+        const hasSeatRotation = Math.abs(seatRotationRad) > 1e-6;
+        const seatSize = worldRadius * 2;
 
-      ctx.beginPath();
-      ctx.arc(s.vx, s.vy, worldRadius, 0, Math.PI * 2);
-      ctx.fillStyle = baseColor;
-      ctx.fill();
+        const fillSeatShape = () => {
+          if (drawAsSquare) {
+            ctx.save();
+            ctx.translate(s.vx, s.vy);
+            if (hasSeatRotation) ctx.rotate(seatRotationRad);
+            ctx.fillStyle = baseColor;
+            ctx.fillRect(-worldRadius, -worldRadius, seatSize, seatSize);
+            ctx.restore();
+            return;
+          }
+          ctx.beginPath();
+          ctx.arc(s.vx, s.vy, worldRadius, 0, Math.PI * 2);
+          ctx.fillStyle = baseColor;
+          ctx.fill();
+        };
+
+        const strokeSeatShape = (lineWidth, strokeStyle) => {
+          if (drawAsSquare) {
+            ctx.save();
+            ctx.translate(s.vx, s.vy);
+            if (hasSeatRotation) ctx.rotate(seatRotationRad);
+            ctx.lineWidth = lineWidth;
+            ctx.strokeStyle = strokeStyle;
+            ctx.strokeRect(-worldRadius, -worldRadius, seatSize, seatSize);
+            ctx.restore();
+            return;
+          }
+          ctx.lineWidth = lineWidth;
+          ctx.strokeStyle = strokeStyle;
+          ctx.stroke();
+        };
+
+        fillSeatShape();
 
         if (s.selected) {
-          ctx.lineWidth = selectionStroke.outerWidth / scale;
-          ctx.strokeStyle = selectionStroke.outerColor;
-          ctx.stroke();
-          ctx.lineWidth = selectionStroke.innerWidth / scale;
-          ctx.strokeStyle = selectionStroke.innerColor;
-          ctx.stroke();
-      } else if (isBlockedNumberedSeat) {
-          ctx.lineWidth = 1.6 / scale;
-          ctx.strokeStyle = "rgba(17,24,39,0.9)";
-          ctx.stroke();
-      } else if (isAssignedSeat) {
-          ctx.lineWidth = 1.6 / scale;
-          ctx.strokeStyle = "rgba(17,24,39,0.55)";
-          ctx.stroke();
-       } else {
-          ctx.lineWidth = 1.2 / scale;
-          ctx.strokeStyle = "rgba(0,0,0,0.25)";
-          ctx.stroke();
+          strokeSeatShape(selectionStroke.outerWidth / scale, selectionStroke.outerColor);
+          strokeSeatShape(selectionStroke.innerWidth / scale, selectionStroke.innerColor);
+        } else if (isBlockedNumberedSeat) {
+          strokeSeatShape(1.6 / scale, "rgba(17,24,39,0.9)");
+        } else if (isAssignedSeat) {
+          strokeSeatShape(1.6 / scale, "rgba(17,24,39,0.55)");
+        } else {
+          strokeSeatShape(1.2 / scale, "rgba(0,0,0,0.25)");
         }
         if (isActiveAssignedSeat) {
-          ctx.lineWidth = 3 / scale;
-          ctx.strokeStyle = "rgba(255,255,255,0.95)";
-          ctx.stroke();
-          ctx.lineWidth = 1.6 / scale;
-          ctx.strokeStyle = "rgba(17,24,39,0.95)";
-          ctx.stroke();
+          strokeSeatShape(3 / scale, "rgba(255,255,255,0.95)");
+          strokeSeatShape(1.6 / scale, "rgba(17,24,39,0.95)");
         }
         if (isBlockedNumberedSeat) {
+          ctx.save();
+          if (drawAsSquare) {
+            ctx.translate(s.vx, s.vy);
+            if (hasSeatRotation) ctx.rotate(seatRotationRad);
+          }
           ctx.lineWidth = 1.8 / scale;
           ctx.strokeStyle = "rgba(17,24,39,0.9)";
           ctx.beginPath();
-          ctx.moveTo(s.vx - worldRadius * 0.75, s.vy - worldRadius * 0.75);
-          ctx.lineTo(s.vx + worldRadius * 0.75, s.vy + worldRadius * 0.75);
-          ctx.moveTo(s.vx + worldRadius * 0.75, s.vy - worldRadius * 0.75);
-          ctx.lineTo(s.vx - worldRadius * 0.75, s.vy + worldRadius * 0.75);
+          if (drawAsSquare) {
+            ctx.moveTo(-worldRadius * 0.75, -worldRadius * 0.75);
+            ctx.lineTo(worldRadius * 0.75, worldRadius * 0.75);
+            ctx.moveTo(worldRadius * 0.75, -worldRadius * 0.75);
+            ctx.lineTo(-worldRadius * 0.75, worldRadius * 0.75);
+          } else {
+            ctx.moveTo(s.vx - worldRadius * 0.75, s.vy - worldRadius * 0.75);
+            ctx.lineTo(s.vx + worldRadius * 0.75, s.vy + worldRadius * 0.75);
+            ctx.moveTo(s.vx + worldRadius * 0.75, s.vy - worldRadius * 0.75);
+            ctx.lineTo(s.vx - worldRadius * 0.75, s.vy + worldRadius * 0.75);
+          }
           ctx.stroke();
+          ctx.restore();
         }
 
         if (seatLabelMode !== "none") {
@@ -9880,6 +9920,54 @@ function selectSeatsWithoutEntryPoints() {
       if (kb.kind === "num") return 1;
       return ka.value - kb.value;
     });
+  }
+
+  function computeRotationFromVector(dx, dy) {
+    if (!Number.isFinite(dx) || !Number.isFinite(dy)) return null;
+    if (Math.abs(dx) < 1e-6 && Math.abs(dy) < 1e-6) return null;
+    const degrees = Math.atan2(dy, dx) * (180 / Math.PI);
+    const rounded = Math.round(degrees * 1000) / 1000;
+    return Math.abs(rounded) < 1e-6 ? 0 : rounded;
+  }
+
+  function syncRowSeatRotations(rowSeats) {
+    if (!Array.isArray(rowSeats) || rowSeats.length < 2) return false;
+    const sorted = sortSeatsInRow(rowSeats);
+    let changed = false;
+    for (let i = 0; i < sorted.length; i++) {
+      const prev = i > 0 ? sorted[i - 1] : sorted[i];
+      const next = i < sorted.length - 1 ? sorted[i + 1] : sorted[i];
+      const dx = next.vx - prev.vx;
+      const dy = next.vy - prev.vy;
+      const nextRotation = computeRotationFromVector(dx, dy);
+      if (!Number.isFinite(nextRotation)) continue;
+      const currentRotation = Number.isFinite(sorted[i].rotation) ? sorted[i].rotation : 0;
+      if (Math.abs(currentRotation - nextRotation) > 1e-6) {
+        sorted[i].rotation = nextRotation;
+        changed = true;
+      }
+    }
+    return changed;
+  }
+
+  function syncSeatRotationsForSelectedRows() {
+    const selected = getSelectedSeats();
+    const rowIds = new Set();
+    for (const seat of selected) {
+      if (seat.rowId) rowIds.add(seat.rowId);
+    }
+    if (!rowIds.size) return false;
+    const rowsById = new Map();
+    for (const seat of seats) {
+      if (!seat.rowId || !rowIds.has(seat.rowId)) continue;
+      if (!rowsById.has(seat.rowId)) rowsById.set(seat.rowId, []);
+      rowsById.get(seat.rowId).push(seat);
+    }
+    let changed = false;
+    rowsById.forEach((rowSeats) => {
+      changed = syncRowSeatRotations(rowSeats) || changed;
+    });
+    return changed;
   }
 
   function getSeatDistanceRatios(rowSeats) {
@@ -10640,6 +10728,30 @@ function nudgeSelection(dxScreen, dyScreen) {
     return last.offset;
   }
 
+  function getOffsetSlopeAt(points, t) {
+    if (!points || points.length < 2) return 0;
+    if (t <= points[0].t) {
+      const next = points[1];
+      const span = next.t - points[0].t || 1e-6;
+      return (next.offset - points[0].offset) / span;
+    }
+    const lastIdx = points.length - 1;
+    if (t >= points[lastIdx].t) {
+      const prev = points[lastIdx - 1];
+      const span = points[lastIdx].t - prev.t || 1e-6;
+      return (points[lastIdx].offset - prev.offset) / span;
+    }
+    for (let i = 1; i < points.length; i++) {
+      const prev = points[i - 1];
+      const next = points[i];
+      if (t <= next.t) {
+        const span = next.t - prev.t || 1e-6;
+        return (next.offset - prev.offset) / span;
+      }
+    }
+    return 0;
+  }
+
   function applyRowShapeTemplate(template, rowSeats) {
     if (!template || !rowSeats || rowSeats.length < 2) return false;
     const sorted = sortSeatsInRow(rowSeats);
@@ -10664,15 +10776,24 @@ function nudgeSelection(dxScreen, dyScreen) {
       if (!Number.isFinite(t)) t = 0;
       t = Math.max(0, Math.min(1, t));
       const offset = getOffsetAt(template.points, t) * scale;
+      const offsetSlope = getOffsetSlopeAt(template.points, t) * scale;
       const baseX = first.vx + dir.x * (t * length);
       const baseY = first.vy + dir.y * (t * length);
       const newX = baseX + perp.x * offset;
       const newY = baseY + perp.y * offset;
+      const tangentX = dir.x * length + perp.x * offsetSlope;
+      const tangentY = dir.y * length + perp.y * offsetSlope;
+      const nextRotation = computeRotationFromVector(tangentX, tangentY);
+      const currentRotation = Number.isFinite(seat.rotation) ? seat.rotation : 0;
       if (Math.abs(seat.vx - newX) > 1e-6 || Math.abs(seat.vy - newY) > 1e-6) {
         seat.vx = newX;
         seat.vy = newY;
         seat.centerX = newX;
         seat.centerY = newY;
+        changed = true;
+      }
+      if (Number.isFinite(nextRotation) && Math.abs(currentRotation - nextRotation) > 1e-6) {
+        seat.rotation = nextRotation;
         changed = true;
       }
     }
@@ -11498,56 +11619,88 @@ function nudgeSelection(dxScreen, dyScreen) {
     seatContextMenu.setAttribute("aria-hidden", "true");
   }
 
-  function openSeatContextMenu(x, y) {
+  function setSeatShapeMenuLabel() {
+    if (!toggleSeatShapeMenuItem) return;
+    toggleSeatShapeMenuItem.textContent = renderSeatsAsSquares ? "Show as circles" : "Show as squares";
+  }
+
+  function setSeatContextMenuMode(mode) {
+    const showSelectionActions = mode !== "shape-toggle";
+    const selectionItems = [
+      editSeatsMenuItem,
+      editRowsMenuItem,
+      mergeRowsMenuItem,
+      splitRowMenuItem,
+      equalizeRowsMenuItem,
+      mimicRowShapeMenuItem,
+      editSectionsMenuItem,
+      attributeMenuItem,
+      goodnessFromPointMenuItem,
+      deleteSelectionMenuItem
+    ];
+    selectionItems.forEach((item) => {
+      if (item) item.style.display = showSelectionActions ? "" : "none";
+    });
+    if (toggleSeatShapeMenuItem) {
+      toggleSeatShapeMenuItem.style.display = showSelectionActions ? "none" : "";
+      setSeatShapeMenuLabel();
+    }
+  }
+
+  function openSeatContextMenu(x, y, options = {}) {
     if (!seatContextMenu) return;
+    const mode = options.mode === "shape-toggle" ? "shape-toggle" : "selection";
     const selectedSeats = getSelectedSeats();
+    setSeatContextMenuMode(mode);
     seatContextMenu.style.left = `${x}px`;
     seatContextMenu.style.top = `${y}px`;
     seatContextMenu.classList.add("open");
     seatContextMenu.setAttribute("aria-hidden", "false");
-    if (deleteSelectionMenuItem) {
-      if (selectionMode === "section") deleteSelectionMenuItem.textContent = "Delete selected section(s)";
-      else if (selectionMode === "row") deleteSelectionMenuItem.textContent = "Delete selected row(s)";
-      else deleteSelectionMenuItem.textContent = "Delete selected seat(s)";
-      deleteSelectionMenuItem.disabled = selectedSeats.length === 0;
-    }
-    if (editSeatsMenuItem) {
-      editSeatsMenuItem.disabled = selectedSeats.length === 0;
-    }
-    if (editRowsMenuItem) {
-      editRowsMenuItem.disabled = selectionMode !== "row" || getSelectedRows().size === 0;
-    }
-    const rows = getSelectedRows();
-    let sameSection = true;
-    let rowSectionId = "";
-    if (rows.size >= 2) {
-      rows.forEach((rowSeats) => {
-        const rowSection = rowSeats[0]?.sectionId || "";
-        if (!rowSection) sameSection = false;
-        if (!rowSectionId) rowSectionId = rowSection;
-        else if (rowSectionId !== rowSection) sameSection = false;
-      });
-    }
-    if (mergeRowsMenuItem) {
-      mergeRowsMenuItem.disabled = selectionMode !== "row" || rows.size < 2 || !sameSection;
-    }
-    if (splitRowMenuItem) {
-      const splitInfo = selectionMode === "seat" ? getSplitRowSelectionInfo(selectedSeats) : null;
-      splitRowMenuItem.disabled = !splitInfo;
-    }
-    if (equalizeRowsMenuItem) {
-      equalizeRowsMenuItem.disabled = selectionMode !== "row" || rows.size < 2;
-    }
-    if (mimicRowShapeMenuItem) {
-      const validRows = [...rows.values()].filter(r => r.length >= 2);
-      mimicRowShapeMenuItem.disabled = selectionMode !== "row" || validRows.length < 2;
-    }
-    if (editSectionsMenuItem) {
-      const sections = new Set(selectedSeats.map(s => s.sectionId).filter(Boolean));
-      editSectionsMenuItem.disabled = selectionMode !== "section" || sections.size !== 1;
-    }
-    if (goodnessFromPointMenuItem) {
-      goodnessFromPointMenuItem.disabled = selectedSeats.length === 0;
+    if (mode === "selection") {
+      if (deleteSelectionMenuItem) {
+        if (selectionMode === "section") deleteSelectionMenuItem.textContent = "Delete selected section(s)";
+        else if (selectionMode === "row") deleteSelectionMenuItem.textContent = "Delete selected row(s)";
+        else deleteSelectionMenuItem.textContent = "Delete selected seat(s)";
+        deleteSelectionMenuItem.disabled = selectedSeats.length === 0;
+      }
+      if (editSeatsMenuItem) {
+        editSeatsMenuItem.disabled = selectedSeats.length === 0;
+      }
+      if (editRowsMenuItem) {
+        editRowsMenuItem.disabled = selectionMode !== "row" || getSelectedRows().size === 0;
+      }
+      const rows = getSelectedRows();
+      let sameSection = true;
+      let rowSectionId = "";
+      if (rows.size >= 2) {
+        rows.forEach((rowSeats) => {
+          const rowSection = rowSeats[0]?.sectionId || "";
+          if (!rowSection) sameSection = false;
+          if (!rowSectionId) rowSectionId = rowSection;
+          else if (rowSectionId !== rowSection) sameSection = false;
+        });
+      }
+      if (mergeRowsMenuItem) {
+        mergeRowsMenuItem.disabled = selectionMode !== "row" || rows.size < 2 || !sameSection;
+      }
+      if (splitRowMenuItem) {
+        const splitInfo = selectionMode === "seat" ? getSplitRowSelectionInfo(selectedSeats) : null;
+        splitRowMenuItem.disabled = !splitInfo;
+      }
+      if (equalizeRowsMenuItem) {
+        equalizeRowsMenuItem.disabled = selectionMode !== "row" || rows.size < 2;
+      }
+      if (mimicRowShapeMenuItem) {
+        const validRows = [...rows.values()].filter(r => r.length >= 2);
+        mimicRowShapeMenuItem.disabled = selectionMode !== "row" || validRows.length < 2;
+      }
+      if (editSectionsMenuItem) {
+        const sections = new Set(selectedSeats.map(s => s.sectionId).filter(Boolean));
+        editSectionsMenuItem.disabled = selectionMode !== "section" || sections.size !== 1;
+      }
+      if (goodnessFromPointMenuItem) {
+        goodnessFromPointMenuItem.disabled = selectedSeats.length === 0;
+      }
     }
     const padding = 8;
     const rect = seatContextMenu.getBoundingClientRect();
@@ -12717,6 +12870,12 @@ function nudgeSelection(dxScreen, dyScreen) {
     closeSeatContextMenu();
     deleteSelectionByMode();
   });
+  toggleSeatShapeMenuItem?.addEventListener("click", () => {
+    renderSeatsAsSquares = !renderSeatsAsSquares;
+    setSeatShapeMenuLabel();
+    closeSeatContextMenu();
+    renderCanvas();
+  });
 
   attributeModalClose?.addEventListener("click", closeAttributeModal);
   attributeModalCancel?.addEventListener("click", closeAttributeModal);
@@ -12954,19 +13113,22 @@ function nudgeSelection(dxScreen, dyScreen) {
 
     if (currentTool === "reshape") {
       const hit = hitTestSeat(worldX, worldY);
-      if (!hit || !hit.rowId) return;
       const rows = getSelectedRows();
-      if (rows.size !== 1 || !rows.has(hit.rowId)) return;
-      reshapePivotSeatId = hit.seatId;
-      e.preventDefault();
-      return;
+      if (hit && hit.rowId && rows.size === 1 && rows.has(hit.rowId)) {
+        reshapePivotSeatId = hit.seatId;
+        e.preventDefault();
+        return;
+      }
     }
 
     const selected = getSelectedSeats();
-    if (!selected.length) return;
     e.preventDefault();
+    if (!selected.length) {
+      openSeatContextMenu(e.clientX, e.clientY, { mode: "shape-toggle" });
+      return;
+    }
     goodnessAnchorPoint = { x: worldX, y: worldY };
-    openSeatContextMenu(e.clientX, e.clientY);
+    openSeatContextMenu(e.clientX, e.clientY, { mode: "selection" });
   });
 
   let selectionRectAdditive = false;
@@ -13191,6 +13353,14 @@ function nudgeSelection(dxScreen, dyScreen) {
     }
   });
 
+  function commitSelectionGeometryChange() {
+    syncSeatRotationsForSelectedRows();
+    pushHistorySnapshot();
+    hasUnsavedChanges = true;
+    updateCodeFromSeats();
+    updateSaveButton();
+  }
+
   canvas.addEventListener("mouseup", (e) => {
     if (isDraggingBackground) {
       isDraggingBackground = false;
@@ -13213,10 +13383,7 @@ function nudgeSelection(dxScreen, dyScreen) {
 
       if (didRotate) {
         // Rotation klar -> historik + kod + save-knapp
-        pushHistorySnapshot();
-        hasUnsavedChanges = true;
-        updateCodeFromSeats();
-        updateSaveButton();
+        commitSelectionGeometryChange();
       }
     }
 
@@ -13229,10 +13396,7 @@ function nudgeSelection(dxScreen, dyScreen) {
       bendDragTarget = null;
 
       if (didBend) {
-        pushHistorySnapshot();
-        hasUnsavedChanges = true;
-        updateCodeFromSeats();
-        updateSaveButton();
+        commitSelectionGeometryChange();
       }
     }
 
@@ -13245,10 +13409,7 @@ function nudgeSelection(dxScreen, dyScreen) {
       reshapeRowSeats = null;
 
       if (didReshape) {
-        pushHistorySnapshot();
-        hasUnsavedChanges = true;
-        updateCodeFromSeats();
-        updateSaveButton();
+        commitSelectionGeometryChange();
       }
     }
 
@@ -13264,10 +13425,7 @@ function nudgeSelection(dxScreen, dyScreen) {
       resizeStartVector = null;
 
       if (didResize) {
-        pushHistorySnapshot();
-        hasUnsavedChanges = true;
-        updateCodeFromSeats();
-        updateSaveButton();
+        commitSelectionGeometryChange();
       }
     }
 
@@ -13276,10 +13434,7 @@ function nudgeSelection(dxScreen, dyScreen) {
       dragStartSnapshot = null;
 
       // Flytten är klar -> historik + kod + save-knapp
-      pushHistorySnapshot();
-      hasUnsavedChanges = true;
-      updateCodeFromSeats();
-      updateSaveButton();
+      commitSelectionGeometryChange();
       return;
     }
 
@@ -13324,10 +13479,7 @@ function nudgeSelection(dxScreen, dyScreen) {
       rotateStartAngle = 0;
 
       if (didRotate) {
-        pushHistorySnapshot();
-        hasUnsavedChanges = true;
-        updateCodeFromSeats();
-        updateSaveButton();
+        commitSelectionGeometryChange();
       }
     }
     if (isBendingSelection) {
@@ -13338,10 +13490,7 @@ function nudgeSelection(dxScreen, dyScreen) {
       bendDragTarget = null;
 
       if (didBend) {
-        pushHistorySnapshot();
-        hasUnsavedChanges = true;
-        updateCodeFromSeats();
-        updateSaveButton();
+        commitSelectionGeometryChange();
       }
     }
     if (isReshapingRow) {
@@ -13353,10 +13502,7 @@ function nudgeSelection(dxScreen, dyScreen) {
       reshapeRowSeats = null;
 
       if (didReshape) {
-        pushHistorySnapshot();
-        hasUnsavedChanges = true;
-        updateCodeFromSeats();
-        updateSaveButton();
+        commitSelectionGeometryChange();
       }
     }
     if (isResizingSelection) {
@@ -13371,20 +13517,14 @@ function nudgeSelection(dxScreen, dyScreen) {
       resizeStartVector = null;
 
       if (didResize) {
-        pushHistorySnapshot();
-        hasUnsavedChanges = true;
-        updateCodeFromSeats();
-        updateSaveButton();
+        commitSelectionGeometryChange();
       }
     }
     if (isDraggingSelection) {
       isDraggingSelection = false;
       dragStartSnapshot = null;
 
-      pushHistorySnapshot();
-      hasUnsavedChanges = true;
-      updateCodeFromSeats();
-      updateSaveButton();
+      commitSelectionGeometryChange();
     }
     if (selectionRectActive) {
       selectionRectActive = false;
@@ -13416,10 +13556,7 @@ function nudgeSelection(dxScreen, dyScreen) {
     const rowData = computeRowEndpoints(rowSeats);
     redistributeRowLinear(rowData);
 
-    pushHistorySnapshot();
-    hasUnsavedChanges = true;
-    updateCodeFromSeats();
-    updateSaveButton();
+    commitSelectionGeometryChange();
     renderCanvas();
   });
 
@@ -13640,10 +13777,7 @@ function nudgeSelection(dxScreen, dyScreen) {
     if (resetRowBtn.disabled) return;
     const didReset = resetSelectedRowsLinear();
     if (didReset) {
-      pushHistorySnapshot();
-      hasUnsavedChanges = true;
-      updateCodeFromSeats();
-      updateSaveButton();
+      commitSelectionGeometryChange();
       renderCanvas();
     }
   });
@@ -13651,10 +13785,7 @@ function nudgeSelection(dxScreen, dyScreen) {
     if (makeTableBtn.disabled) return;
     const didMake = makeTableFromSelectedRows();
     if (didMake) {
-      pushHistorySnapshot();
-      hasUnsavedChanges = true;
-      updateCodeFromSeats();
-      updateSaveButton();
+      commitSelectionGeometryChange();
       renderCanvas();
     }
   });
@@ -13833,10 +13964,7 @@ function nudgeSelection(dxScreen, dyScreen) {
     const degrees = direction === "ccw" ? -Math.abs(value) : Math.abs(value);
     const didRotate = rotateSelectionByDegrees(degrees);
     if (didRotate) {
-      pushHistorySnapshot();
-      hasUnsavedChanges = true;
-      updateCodeFromSeats();
-      updateSaveButton();
+      commitSelectionGeometryChange();
       renderCanvas();
     }
   }
@@ -13844,10 +13972,7 @@ function nudgeSelection(dxScreen, dyScreen) {
   function handleFlip(axis) {
     const didFlip = flipSelection(axis);
     if (didFlip) {
-      pushHistorySnapshot();
-      hasUnsavedChanges = true;
-      updateCodeFromSeats();
-      updateSaveButton();
+      commitSelectionGeometryChange();
       renderCanvas();
     }
   }
@@ -13855,10 +13980,7 @@ function nudgeSelection(dxScreen, dyScreen) {
   function handleAlign(mode) {
     const didAlign = alignSelectedSeats(mode);
     if (didAlign) {
-      pushHistorySnapshot();
-      hasUnsavedChanges = true;
-      updateCodeFromSeats();
-      updateSaveButton();
+      commitSelectionGeometryChange();
       renderCanvas();
     }
   }
