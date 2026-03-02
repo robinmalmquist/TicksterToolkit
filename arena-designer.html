@@ -2606,6 +2606,7 @@
         <button id="mergeRowsMenuItem" class="context-menu__item" type="button">Merge rows</button>
         <button id="splitRowMenuItem" class="context-menu__item" type="button">Split row at selection</button>
         <button id="equalizeRowsMenuItem" class="context-menu__item" type="button">Equalize row distance</button>
+        <button id="equalizeSeatsMenuItem" class="context-menu__item" type="button">Equalize seat distance</button>
         <button id="mimicRowShapeMenuItem" class="context-menu__item" type="button">Mimic shape of first selected row</button>
         <button id="editSectionsMenuItem" class="context-menu__item" type="button">Edit section</button>
         <button id="attributeMenuItem" class="context-menu__item" type="button">Attributes</button>
@@ -3085,6 +3086,7 @@
   const mergeRowsMenuItem = document.getElementById("mergeRowsMenuItem");
   const splitRowMenuItem = document.getElementById("splitRowMenuItem");
   const equalizeRowsMenuItem = document.getElementById("equalizeRowsMenuItem");
+  const equalizeSeatsMenuItem = document.getElementById("equalizeSeatsMenuItem");
   const mimicRowShapeMenuItem = document.getElementById("mimicRowShapeMenuItem");
   const editSectionsMenuItem = document.getElementById("editSectionsMenuItem");
   const toggleSeatShapeMenuItem = document.getElementById("toggleSeatShapeMenuItem");
@@ -10849,6 +10851,50 @@ function nudgeSelection(dxScreen, dyScreen) {
     return changed;
   }
 
+  function equalizeSeatDistanceForSelection() {
+    if (selectionMode !== "seat") return false;
+    const selected = getSelectedSeats();
+    if (selected.length < 3) return false;
+
+    let ordered = [];
+    const rowIds = new Set(selected.map((seat) => seat.rowId).filter(Boolean));
+    if (rowIds.size === 1) {
+      ordered = sortSeatsInRow(selected);
+    } else {
+      ordered = [...selected].sort((a, b) => {
+        const aOrder = Number.isFinite(a.selectedAt) ? a.selectedAt : Infinity;
+        const bOrder = Number.isFinite(b.selectedAt) ? b.selectedAt : Infinity;
+        if (aOrder !== bOrder) return aOrder - bOrder;
+        return String(a.seatId || "").localeCompare(String(b.seatId || ""));
+      });
+    }
+    if (ordered.length < 3) return false;
+
+    const first = ordered[0];
+    const last = ordered[ordered.length - 1];
+    if (!first || !last) return false;
+    const dx = last.vx - first.vx;
+    const dy = last.vy - first.vy;
+    const span = Math.hypot(dx, dy);
+    if (!Number.isFinite(span) || span < 1e-6) return false;
+
+    const denom = ordered.length - 1;
+    let changed = false;
+    for (let i = 0; i < ordered.length; i++) {
+      const t = denom <= 0 ? 0 : i / denom;
+      const targetX = first.vx + dx * t;
+      const targetY = first.vy + dy * t;
+      const seat = ordered[i];
+      if (Math.abs(seat.vx - targetX) < 1e-6 && Math.abs(seat.vy - targetY) < 1e-6) continue;
+      seat.vx = targetX;
+      seat.vy = targetY;
+      seat.centerX = targetX;
+      seat.centerY = targetY;
+      changed = true;
+    }
+    return changed;
+  }
+
   function buildRowShapeTemplate(rowSeats) {
     if (!rowSeats || rowSeats.length < 2) return null;
     const sorted = sortSeatsInRow(rowSeats);
@@ -11791,6 +11837,7 @@ function nudgeSelection(dxScreen, dyScreen) {
       mergeRowsMenuItem,
       splitRowMenuItem,
       equalizeRowsMenuItem,
+      equalizeSeatsMenuItem,
       mimicRowShapeMenuItem,
       editSectionsMenuItem,
       attributeMenuItem,
@@ -11848,6 +11895,9 @@ function nudgeSelection(dxScreen, dyScreen) {
       }
       if (equalizeRowsMenuItem) {
         equalizeRowsMenuItem.disabled = selectionMode !== "row" || rows.size < 2;
+      }
+      if (equalizeSeatsMenuItem) {
+        equalizeSeatsMenuItem.disabled = selectionMode !== "seat" || selectedSeats.length < 3;
       }
       if (mimicRowShapeMenuItem) {
         const validRows = [...rows.values()].filter(r => r.length >= 2);
@@ -13002,6 +13052,17 @@ function nudgeSelection(dxScreen, dyScreen) {
   equalizeRowsMenuItem?.addEventListener("click", () => {
     closeSeatContextMenu();
     const changed = equalizeRowDistanceForSelection();
+    if (changed) {
+      pushHistorySnapshot();
+      hasUnsavedChanges = true;
+      updateCodeFromSeats();
+      updateSaveButton();
+      renderCanvas();
+    }
+  });
+  equalizeSeatsMenuItem?.addEventListener("click", () => {
+    closeSeatContextMenu();
+    const changed = equalizeSeatDistanceForSelection();
     if (changed) {
       pushHistorySnapshot();
       hasUnsavedChanges = true;
