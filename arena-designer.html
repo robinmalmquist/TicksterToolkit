@@ -15464,13 +15464,16 @@ function nudgeSelection(dxScreen, dyScreen) {
       return;
     }
     if (altSeatNumberingMode === "continuous") {
-      setAltContinuousStartSeat(next, true);
-      const hasSeats = line.slots.some(slot => slot && slot.type === "seat" && slot.blockId === block.id);
-      if (!hasSeats) {
-        block.startSeat = next;
-        block.autoStartSeatAssigned = true;
-      }
+      const seatCount = getAltSeatCount(line, block.id);
+      block.startSeat = next;
+      block.autoStartSeatAssigned = seatCount > 0;
       block.manualStartSeat = false;
+      if (seatCount > 0) {
+        renumberAltBlockSeats(line, block);
+        setAltContinuousStartSeat(next + seatCount, true);
+      } else {
+        setAltContinuousStartSeat(next, true);
+      }
       commitAltChange();
       return;
     }
@@ -16247,7 +16250,7 @@ function nudgeSelection(dxScreen, dyScreen) {
     loadEntryPointsFromStorage();
     renderCanvas();
 
-    // Om det finns sparad vyinfo i localStorage som Бnnu inte applicerats (t.ex. ingen session vald)
+    // Om det finns sparad vyinfo i localStorage som ännu inte applicerats (t.ex. ingen session vald)
     // se till att UI-speglas
     if (viewHoverToggle) viewHoverToggle.checked = showHoverInfo;
     if (viewSectionNamesToggle) viewSectionNamesToggle.checked = showSectionNames;
