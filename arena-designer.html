@@ -1710,11 +1710,16 @@
       --dark-button-bg: #1f2937;
       --dark-button-hover-bg: #273244;
       --dark-ghost-border: #334155;
+      --dark-card-title: #117c79;
     }
 
     html[data-theme="dark"] body {
       background: var(--dark-bg);
       color: var(--dark-text);
+    }
+
+    html[data-theme="dark"] .c-card__title {
+      color: var(--dark-card-title);
     }
 
     html[data-theme="dark"] #app,
@@ -1845,7 +1850,9 @@
     html[data-theme="dark"] #seatEditModal h3,
     html[data-theme="dark"] #rowEditModal h3,
     html[data-theme="dark"] #sectionEditModal h3,
-    html[data-theme="dark"] #highlightSeatsModal h3 {
+    html[data-theme="dark"] #highlightSeatsModal h3,
+    html[data-theme="dark"] #fileInfo,
+    html[data-theme="dark"] strong {
       color: var(--dark-text);
     }
 
