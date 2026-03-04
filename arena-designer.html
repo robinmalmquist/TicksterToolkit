@@ -3431,6 +3431,9 @@
   let numberedImportUseAllSections = true;
   let numberedImportSelectedSectionKeys = new Set();
   let numberedImportAutoOrderMode = "row1";
+  let numberedImportHoverPreviewRefNo = "";
+  let numberedImportHoverPreviewSeatId = "";
+  let numberedImportHoverPreviewSeatIds = new Set();
 
   // Kamera/transform
   let translateX = 0;
@@ -6681,6 +6684,97 @@ codePane.addEventListener("input", () => {
     purchase.assignedSeatIds = [];
   }
 
+  function clearNumberedImportHoverPreview() {
+    const hadPreview =
+      numberedImportHoverPreviewSeatIds.size > 0 ||
+      !!numberedImportHoverPreviewSeatId ||
+      !!numberedImportHoverPreviewRefNo;
+    numberedImportHoverPreviewRefNo = "";
+    numberedImportHoverPreviewSeatId = "";
+    numberedImportHoverPreviewSeatIds = new Set();
+    return hadPreview;
+  }
+
+  function setsHaveSameValues(first, second) {
+    if (first.size !== second.size) return false;
+    for (const value of first) {
+      if (!second.has(value)) return false;
+    }
+    return true;
+  }
+
+  function setNumberedImportHoverPreview(refNo, seatId, seatIds = []) {
+    const nextRefNo = String(refNo || "").trim();
+    const nextSeatId = String(seatId || "").trim();
+    const nextSeatSet = new Set(
+      Array.isArray(seatIds)
+        ? seatIds.map((value) => String(value || "").trim()).filter(Boolean)
+        : []
+    );
+    const changed =
+      numberedImportHoverPreviewRefNo !== nextRefNo ||
+      numberedImportHoverPreviewSeatId !== nextSeatId ||
+      !setsHaveSameValues(numberedImportHoverPreviewSeatIds, nextSeatSet);
+    if (!changed) return false;
+    numberedImportHoverPreviewRefNo = nextRefNo;
+    numberedImportHoverPreviewSeatId = nextSeatId;
+    numberedImportHoverPreviewSeatIds = nextSeatSet;
+    return true;
+  }
+
+  function getNumberedImportContiguousRunAroundTarget(refNo, targetSeatId, requiredCount) {
+    const targetId = String(targetSeatId || "").trim();
+    if (!refNo || !targetId) return null;
+    const neededCount = Number(requiredCount);
+    if (!Number.isFinite(neededCount) || neededCount <= 0) return null;
+    const targetSeat = seats.find((seat) => seat.seatId === targetId);
+    if (!targetSeat || !targetSeat.rowId) return null;
+    const orderedRowSeats = sortSeatsInRow(seats.filter((seat) => seat.rowId === targetSeat.rowId));
+    if (orderedRowSeats.length < neededCount) return null;
+    const targetIndex = orderedRowSeats.findIndex((seat) => seat.seatId === targetId);
+    if (targetIndex < 0) return null;
+    const minStart = Math.max(0, targetIndex - neededCount + 1);
+    const maxStart = Math.min(targetIndex, orderedRowSeats.length - neededCount);
+    if (maxStart < minStart) return null;
+
+    let bestStart = -1;
+    let bestScore = Number.POSITIVE_INFINITY;
+    for (let start = minStart; start <= maxStart; start++) {
+      let valid = true;
+      let score = 0;
+      for (let index = start; index < start + neededCount; index++) {
+        const seat = orderedRowSeats[index];
+        if (!canAssignNumberedImportSeat(seat, refNo)) {
+          valid = false;
+          break;
+        }
+        score += Math.abs(index - targetIndex);
+      }
+      if (!valid) continue;
+      if (score < bestScore) {
+        bestScore = score;
+        bestStart = start;
+      }
+    }
+    if (bestStart < 0) return null;
+    return orderedRowSeats.slice(bestStart, bestStart + neededCount);
+  }
+
+  function getNumberedImportHoverPreviewSeatIds(refNo, targetSeatId) {
+    const currentRefNo = String(refNo || "").trim();
+    const currentSeatId = String(targetSeatId || "").trim();
+    if (!numberedImportMode || !numberedImportReady || !currentRefNo || !currentSeatId) return [];
+    const purchase = numberedImportPurchaseByRefNo.get(currentRefNo);
+    if (!purchase) return [];
+    if (numberedImportPlacementMode === "seat") {
+      const seat = seats.find((entry) => entry.seatId === currentSeatId);
+      return seat && canAssignNumberedImportSeat(seat, currentRefNo) ? [currentSeatId] : [];
+    }
+    const requiredCount = Number.isFinite(purchase.ticketCount) ? purchase.ticketCount : 0;
+    const run = getNumberedImportContiguousRunAroundTarget(currentRefNo, currentSeatId, requiredCount);
+    return Array.isArray(run) ? run.map((seat) => seat.seatId).filter(Boolean) : [];
+  }
+
   function isNumberedImportPurchaseComplete(purchase) {
     if (!purchase) return false;
     const placedCount = Array.isArray(purchase.assignedSeatIds) ? purchase.assignedSeatIds.length : 0;
@@ -7283,6 +7377,7 @@ codePane.addEventListener("input", () => {
   }
 
   function refreshNumberedImportUi() {
+    clearNumberedImportHoverPreview();
     renderNumberedImportPurchaseList();
     updateNumberedImportStateUi();
     renderCanvas();
@@ -7526,6 +7621,7 @@ codePane.addEventListener("input", () => {
   function selectNumberedImportPurchase(refNo) {
     if (!numberedImportPurchaseByRefNo.has(refNo)) return;
     numberedImportSelectedRefNo = refNo;
+    clearNumberedImportHoverPreview();
     renderNumberedImportPurchaseList();
     renderCanvas();
   }
@@ -7579,47 +7675,14 @@ codePane.addEventListener("input", () => {
       return false;
     };
 
-    const candidates = [];
-    seats.forEach((seat) => {
-      if (seat.rowId !== targetSeat.rowId) return;
-      if (!canAssignNumberedImportSeat(seat, refNo)) return;
-      candidates.push(seat);
-    });
-
-    const orderedCandidates = sortSeatsInRow(candidates);
-    if (orderedCandidates.length < requiredCount) {
+    const selectedRun = getNumberedImportContiguousRunAroundTarget(refNo, targetSeatId, requiredCount);
+    if (!selectedRun || !selectedRun.length) {
       return failPlacement(
-        `Could not place purchase ${refNo}. Need ${requiredCount} free seats on row ${targetSeat.rowId}, found ${orderedCandidates.length}.`
+        `Could not place purchase ${refNo}. Need ${requiredCount} contiguous free seats around target seat on row ${targetSeat.rowId}.`
       );
     }
 
-    const targetIndex = orderedCandidates.findIndex((seat) => seat.seatId === targetSeatId);
-    if (targetIndex < 0) {
-      return failPlacement(`Could not place purchase ${refNo}. Target seat is not available on row ${targetSeat.rowId}.`);
-    }
-
-    const minStart = Math.max(0, targetIndex - requiredCount + 1);
-    const maxStart = Math.min(targetIndex, orderedCandidates.length - requiredCount);
-    if (maxStart < minStart) {
-      return failPlacement(`Could not place purchase ${refNo}. Not enough contiguous seats on row ${targetSeat.rowId}.`);
-    }
-
-    let bestStart = minStart;
-    let bestScore = Number.POSITIVE_INFINITY;
-    for (let start = minStart; start <= maxStart; start++) {
-      let score = 0;
-      for (let index = start; index < start + requiredCount; index++) {
-        score += Math.abs(index - targetIndex);
-      }
-      if (score < bestScore) {
-        bestScore = score;
-        bestStart = start;
-      }
-    }
-
-    const selectedSeatIds = orderedCandidates
-      .slice(bestStart, bestStart + requiredCount)
-      .map((seat) => seat.seatId);
+    const selectedSeatIds = selectedRun.map((seat) => seat.seatId);
     selectedSeatIds.forEach((seatId) => {
       numberedImportAssignmentsBySeatId.set(seatId, refNo);
     });
@@ -7709,6 +7772,7 @@ codePane.addEventListener("input", () => {
     if (numberedImportMode === nextMode) return;
     numberedImportMode = nextMode;
     numberedImportDraggingRefNo = "";
+    clearNumberedImportHoverPreview();
     if (!numberedImportMode) {
       numberedImportSelectedRefNo = "";
     } else {
@@ -9894,6 +9958,9 @@ codePane.addEventListener("input", () => {
     const priceRegionLookups = showPriceRegions ? buildPriceRegionLookups() : null;
     const goodnessStats = showGoodnessHeatmap ? computeGoodnessStats() : null;
     const selectionStroke = getSelectionStrokePalette();
+    const hasNumberedImportPreview = numberedImportMode && numberedImportHoverPreviewSeatIds.size > 0;
+    const hasNumberedImportPreviewTarget = numberedImportMode && !!numberedImportHoverPreviewSeatId;
+    const hasNumberedImportPreviewRefNo = numberedImportMode && !!numberedImportHoverPreviewRefNo;
 
     // Platser
     for (const s of seats) {
@@ -9918,6 +9985,9 @@ codePane.addEventListener("input", () => {
       const isAssignedSeat = !!assignedRefNo;
       const isActiveAssignedSeat = isAssignedSeat && assignedRefNo === numberedImportSelectedRefNo;
       const isHighlightedSeat = highlightedSeatIds.has(s.seatId);
+      const isPreviewSeat = hasNumberedImportPreview && numberedImportHoverPreviewSeatIds.has(s.seatId);
+      const isPreviewTargetSeat = hasNumberedImportPreviewTarget && s.seatId === numberedImportHoverPreviewSeatId;
+      const isPreviewInvalidTarget = hasNumberedImportPreviewRefNo && isPreviewTargetSeat && !isPreviewSeat && !hasNumberedImportPreview;
       if (isBlockedNumberedSeat) {
         baseColor = "#9aa5b1";
       } else if (isAssignedSeat) {
@@ -9988,6 +10058,33 @@ codePane.addEventListener("input", () => {
             s.vy - rectSizeWorld * 2.1,
             rectSizeWorld * 4.2,
             rectSizeWorld * 4.2
+          );
+        }
+        if (isPreviewSeat) {
+          ctx.lineWidth = 2.8 / scale;
+          ctx.strokeStyle = "rgba(56, 189, 248, 0.98)";
+          ctx.strokeRect(
+            s.vx - rectSizeWorld * 2.7,
+            s.vy - rectSizeWorld * 2.7,
+            rectSizeWorld * 5.4,
+            rectSizeWorld * 5.4
+          );
+          ctx.lineWidth = 1.2 / scale;
+          ctx.strokeStyle = "rgba(17, 24, 39, 0.95)";
+          ctx.strokeRect(
+            s.vx - rectSizeWorld * 2.7,
+            s.vy - rectSizeWorld * 2.7,
+            rectSizeWorld * 5.4,
+            rectSizeWorld * 5.4
+          );
+        } else if (isPreviewInvalidTarget) {
+          ctx.lineWidth = 2.8 / scale;
+          ctx.strokeStyle = "rgba(239, 68, 68, 0.98)";
+          ctx.strokeRect(
+            s.vx - rectSizeWorld * 2.5,
+            s.vy - rectSizeWorld * 2.5,
+            rectSizeWorld * 5,
+            rectSizeWorld * 5
           );
         }
         if (s.attributes && s.attributes.length) {
@@ -10063,6 +10160,12 @@ codePane.addEventListener("input", () => {
         if (isHighlightedSeat) {
           strokeSeatShape(3.2 / scale, "rgba(255,214,10,0.98)");
           strokeSeatShape(1.4 / scale, "rgba(17,24,39,0.95)");
+        }
+        if (isPreviewSeat) {
+          strokeSeatShape(3.4 / scale, "rgba(56,189,248,0.98)");
+          strokeSeatShape(1.4 / scale, "rgba(17,24,39,0.95)");
+        } else if (isPreviewInvalidTarget) {
+          strokeSeatShape(3.4 / scale, "rgba(239,68,68,0.98)");
         }
         if (isBlockedNumberedSeat) {
           ctx.save();
@@ -13970,6 +14073,19 @@ function nudgeSelection(dxScreen, dyScreen) {
     const canvasX = e.clientX - rect.left;
     const canvasY = e.clientY - rect.top;
     const { worldX, worldY } = screenToWorld(canvasX, canvasY);
+    let numberedImportPreviewChanged = false;
+
+    if (numberedImportMode) {
+      if (isPanning || isDraggingBackground || !numberedImportReady) {
+        numberedImportPreviewChanged = clearNumberedImportHoverPreview();
+      } else {
+        const previewRefNo = numberedImportDraggingRefNo || numberedImportSelectedRefNo || "";
+        const previewHit = hitTestSeat(worldX, worldY);
+        const previewSeatId = previewHit?.seatId || "";
+        const previewSeatIds = getNumberedImportHoverPreviewSeatIds(previewRefNo, previewSeatId);
+        numberedImportPreviewChanged = setNumberedImportHoverPreview(previewRefNo, previewSeatId, previewSeatIds);
+      }
+    }
 
     if (isDraggingBackground) {
       backgroundState.originX = backgroundDragOriginX + (worldX - backgroundDragStartWorldX);
@@ -14181,7 +14297,11 @@ function nudgeSelection(dxScreen, dyScreen) {
 
       renderCanvas();
     } else {
+      const hadHoverSeat = !!hoverSeat;
       hoverSeat = null;
+      if (numberedImportPreviewChanged || hadHoverSeat) {
+        renderCanvas();
+      }
     }
   });
 
@@ -14293,6 +14413,7 @@ function nudgeSelection(dxScreen, dyScreen) {
 
   canvas.addEventListener("mouseleave", () => {
     hoverSeat = null;
+    clearNumberedImportHoverPreview();
     if (isDraggingBackground) {
       isDraggingBackground = false;
       saveSessionToLocalStorage();
