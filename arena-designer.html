@@ -1018,6 +1018,7 @@
       gap: 0.5rem;
       cursor: grab;
       user-select: none;
+      position: relative;
     }
 
     .numbered-import-item.is-active {
@@ -1031,11 +1032,26 @@
       background: #edf9f1;
     }
 
+    .numbered-import-item.is-complete::after {
+      content: "✅";
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 1.35rem;
+      line-height: 1;
+      opacity: 0.78;
+      pointer-events: none;
+      z-index: 3;
+    }
+
     .numbered-import-item__main {
       min-width: 0;
       display: flex;
       flex-direction: column;
       gap: 0.15rem;
+      position: relative;
+      z-index: 2;
     }
 
     .numbered-import-item__ref {
@@ -1073,6 +1089,8 @@
       flex-direction: column;
       align-items: stretch;
       gap: 0.35rem;
+      position: relative;
+      z-index: 2;
     }
 
     .numbered-import-item__btn {
@@ -1982,6 +2000,11 @@
       background: #10231d;
     }
 
+    html[data-theme="dark"] .numbered-import-item.is-complete::after {
+      opacity: 0.9;
+      filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.55));
+    }
+
     html[data-theme="dark"] .numbered-import-item__ref {
       color: #e2e8f0;
     }
@@ -2622,6 +2645,14 @@
         <button id="toggleSeatShapeMenuItem" class="context-menu__item" type="button">Show as squares</button>
       </div>
     </div>
+    <div id="numberedImportPurchaseMenu" class="context-menu" aria-hidden="true">
+      <div class="context-menu__list">
+        <button id="numberedImportMenuClearPurchase" class="context-menu__item" type="button">Clear purchase</button>
+        <button id="numberedImportMenuClearRow" class="context-menu__item" type="button">Clear row</button>
+        <button id="numberedImportMenuPushLeft" class="context-menu__item" type="button">Push placed left</button>
+        <button id="numberedImportMenuPushRight" class="context-menu__item" type="button">Push placed right</button>
+      </div>
+    </div>
   <input type="file" id="bgFileInput" accept="image/*" style="display:none" />
   <div id="altSectionManagerOverlay">
     <div class="section-manager section-manager--alt">
@@ -3085,6 +3116,11 @@
 
   const tooltipEl = document.getElementById("tooltip");
   const seatContextMenu = document.getElementById("seatContextMenu");
+  const numberedImportPurchaseMenu = document.getElementById("numberedImportPurchaseMenu");
+  const numberedImportMenuClearPurchase = document.getElementById("numberedImportMenuClearPurchase");
+  const numberedImportMenuClearRow = document.getElementById("numberedImportMenuClearRow");
+  const numberedImportMenuPushLeft = document.getElementById("numberedImportMenuPushLeft");
+  const numberedImportMenuPushRight = document.getElementById("numberedImportMenuPushRight");
   const deleteSelectionMenuItem = document.getElementById("deleteSelectionMenuItem");
   const attributeMenuItem = document.getElementById("attributeMenuItem");
   const goodnessFromPointMenuItem = document.getElementById("goodnessFromPointMenuItem");
@@ -3441,6 +3477,8 @@
   let numberedImportHoverPreviewRefNo = "";
   let numberedImportHoverPreviewSeatId = "";
   let numberedImportHoverPreviewSeatIds = new Set();
+  let numberedImportContextRefNo = "";
+  let numberedImportContextRowId = "";
 
   // Kamera/transform
   let translateX = 0;
@@ -6691,6 +6729,195 @@ codePane.addEventListener("input", () => {
     purchase.assignedSeatIds = [];
   }
 
+  function getNumberedImportPurchasesInDisplayOrder() {
+    return [...numberedImportPurchases].sort((first, second) => {
+      const firstComplete = isNumberedImportPurchaseComplete(first) ? 1 : 0;
+      const secondComplete = isNumberedImportPurchaseComplete(second) ? 1 : 0;
+      if (firstComplete !== secondComplete) return firstComplete - secondComplete;
+      const firstBaseOrder = Number(first?.listBaseOrder);
+      const secondBaseOrder = Number(second?.listBaseOrder);
+      const firstHasBase = Number.isFinite(firstBaseOrder);
+      const secondHasBase = Number.isFinite(secondBaseOrder);
+      if (firstHasBase && secondHasBase && firstBaseOrder !== secondBaseOrder) {
+        return firstBaseOrder - secondBaseOrder;
+      }
+      if (firstHasBase !== secondHasBase) return firstHasBase ? -1 : 1;
+      return String(first?.refNo || "").localeCompare(String(second?.refNo || ""), "sv", { numeric: true, sensitivity: "base" });
+    });
+  }
+
+  function isNumberedImportSeatAssignableByWorkbook(seat) {
+    if (!seat || !seat.seatId || !numberedImportParsed) return false;
+    if (numberedImportBlockedSeatIds.has(seat.seatId)) return false;
+    if (numberedImportParsed.allowsAllLayoutSeats) return true;
+    const numericId = normalizeNumericId(seatIdToSvgCode(seat.seatId));
+    return !!(numericId && numberedImportParsed.seatsByNumeric.has(numericId));
+  }
+
+  function getNumberedImportSingleAssignedRowId(purchase) {
+    if (!purchase || !Array.isArray(purchase.assignedSeatIds) || !purchase.assignedSeatIds.length) return "";
+    const seatById = new Map(seats.map((seat) => [seat.seatId, seat]));
+    const rowIds = new Set();
+    purchase.assignedSeatIds.forEach((seatId) => {
+      const rowId = String(seatById.get(seatId)?.rowId || "").trim();
+      if (rowId) rowIds.add(rowId);
+    });
+    if (rowIds.size !== 1) return "";
+    return Array.from(rowIds)[0];
+  }
+
+  function hasNumberedImportPlacedSeatsOnRow(rowId) {
+    const currentRowId = String(rowId || "").trim();
+    if (!currentRowId) return false;
+    return seats.some((seat) => {
+      if (seat.rowId !== currentRowId) return false;
+      return numberedImportAssignmentsBySeatId.has(seat.seatId);
+    });
+  }
+
+  function buildNumberedImportRowPushPlan(rowId, direction = "left") {
+    const currentRowId = String(rowId || "").trim();
+    const normalizedDirection = direction === "right" ? "right" : "left";
+    if (!currentRowId || !numberedImportReady || !numberedImportParsed) return null;
+    const orderedRowSeats = sortSeatsInRow(seats.filter((seat) => seat.rowId === currentRowId));
+    if (!orderedRowSeats.length) return null;
+    const step = normalizedDirection === "right" ? 1 : -1;
+    const assignedEntries = [];
+    orderedRowSeats.forEach((seat, index) => {
+      const refNo = String(numberedImportAssignmentsBySeatId.get(seat.seatId) || "").trim();
+      if (!refNo) return;
+      assignedEntries.push({
+        refNo,
+        fromSeatId: seat.seatId,
+        index
+      });
+    });
+    if (!assignedEntries.length) return null;
+
+    const rowAssignedSeatIds = assignedEntries.map((entry) => entry.fromSeatId);
+    const rowAssignedSeatIdSet = new Set(rowAssignedSeatIds);
+    const assignments = [];
+    for (const entry of assignedEntries) {
+      const targetIndex = entry.index + step;
+      if (targetIndex < 0 || targetIndex >= orderedRowSeats.length) return null;
+      const targetSeat = orderedRowSeats[targetIndex];
+      if (!isNumberedImportSeatAssignableByWorkbook(targetSeat)) return null;
+      const targetSeatId = String(targetSeat?.seatId || "").trim();
+      if (!targetSeatId) return null;
+      const targetRefNo = String(numberedImportAssignmentsBySeatId.get(targetSeatId) || "").trim();
+      if (targetRefNo && !rowAssignedSeatIdSet.has(targetSeatId)) return null;
+      assignments.push({
+        refNo: entry.refNo,
+        fromSeatId: entry.fromSeatId,
+        toSeatId: targetSeatId
+      });
+    }
+
+    return {
+      rowId: currentRowId,
+      direction: normalizedDirection,
+      changed: true,
+      assignments,
+      rowAssignedSeatIds
+    };
+  }
+
+  function applyNumberedImportRowPushPlan(plan) {
+    if (!plan || !Array.isArray(plan.assignments) || !plan.assignments.length) return false;
+    const rowAssignedSeatSet = new Set(
+      Array.isArray(plan.rowAssignedSeatIds)
+        ? plan.rowAssignedSeatIds.map((seatId) => String(seatId || "").trim()).filter(Boolean)
+        : []
+    );
+    if (!rowAssignedSeatSet.size) return false;
+
+    rowAssignedSeatSet.forEach((seatId) => {
+      const refNo = String(numberedImportAssignmentsBySeatId.get(seatId) || "").trim();
+      if (!refNo) return;
+      numberedImportAssignmentsBySeatId.delete(seatId);
+      const purchase = numberedImportPurchaseByRefNo.get(refNo);
+      if (!purchase || !Array.isArray(purchase.assignedSeatIds)) return;
+      purchase.assignedSeatIds = purchase.assignedSeatIds.filter((assignedSeatId) => assignedSeatId !== seatId);
+    });
+
+    plan.assignments.forEach((assignment) => {
+      const refNo = String(assignment?.refNo || "").trim();
+      const toSeatId = String(assignment?.toSeatId || "").trim();
+      if (!refNo || !toSeatId) return;
+      numberedImportAssignmentsBySeatId.set(toSeatId, refNo);
+      const purchase = numberedImportPurchaseByRefNo.get(refNo);
+      if (!purchase) return;
+      const assignedSeatIds = Array.isArray(purchase.assignedSeatIds) ? purchase.assignedSeatIds : [];
+      if (!assignedSeatIds.includes(toSeatId)) assignedSeatIds.push(toSeatId);
+      purchase.assignedSeatIds = assignedSeatIds;
+    });
+    return true;
+  }
+
+  function clearNumberedImportRowAssignments(rowId) {
+    const currentRowId = String(rowId || "").trim();
+    if (!currentRowId) return false;
+    let changed = false;
+    seats.forEach((seat) => {
+      if (seat.rowId !== currentRowId) return;
+      const refNo = String(numberedImportAssignmentsBySeatId.get(seat.seatId) || "").trim();
+      if (!refNo) return;
+      numberedImportAssignmentsBySeatId.delete(seat.seatId);
+      const purchase = numberedImportPurchaseByRefNo.get(refNo);
+      if (purchase && Array.isArray(purchase.assignedSeatIds)) {
+        purchase.assignedSeatIds = purchase.assignedSeatIds.filter((assignedSeatId) => assignedSeatId !== seat.seatId);
+      }
+      changed = true;
+    });
+    return changed;
+  }
+
+  function closeNumberedImportPurchaseMenu() {
+    if (!numberedImportPurchaseMenu) return;
+    numberedImportPurchaseMenu.classList.remove("open");
+    numberedImportPurchaseMenu.setAttribute("aria-hidden", "true");
+    numberedImportContextRefNo = "";
+    numberedImportContextRowId = "";
+  }
+
+  function openNumberedImportPurchaseMenu(clientX, clientY, refNo, rowIdOverride = "") {
+    if (!numberedImportPurchaseMenu || !numberedImportReady) return;
+    const purchase = numberedImportPurchaseByRefNo.get(refNo);
+    if (!purchase) return;
+    const placedCount = Array.isArray(purchase.assignedSeatIds) ? purchase.assignedSeatIds.length : 0;
+    const rowId = String(rowIdOverride || "").trim() || getNumberedImportSingleAssignedRowId(purchase);
+    const rowHasAssignments = hasNumberedImportPlacedSeatsOnRow(rowId);
+    const leftPlan = buildNumberedImportRowPushPlan(rowId, "left");
+    const rightPlan = buildNumberedImportRowPushPlan(rowId, "right");
+
+    numberedImportContextRefNo = purchase.refNo;
+    numberedImportContextRowId = rowId;
+    if (numberedImportMenuClearPurchase) numberedImportMenuClearPurchase.disabled = placedCount <= 0;
+    if (numberedImportMenuClearRow) numberedImportMenuClearRow.disabled = !rowHasAssignments;
+    if (numberedImportMenuPushLeft) numberedImportMenuPushLeft.disabled = !(leftPlan && leftPlan.changed);
+    if (numberedImportMenuPushRight) numberedImportMenuPushRight.disabled = !(rightPlan && rightPlan.changed);
+
+    numberedImportPurchaseMenu.style.left = `${clientX}px`;
+    numberedImportPurchaseMenu.style.top = `${clientY}px`;
+    numberedImportPurchaseMenu.classList.add("open");
+    numberedImportPurchaseMenu.setAttribute("aria-hidden", "false");
+
+    const padding = 8;
+    const menuRect = numberedImportPurchaseMenu.getBoundingClientRect();
+    let left = clientX;
+    let top = clientY;
+    if (left + menuRect.width > window.innerWidth - padding) {
+      left = window.innerWidth - menuRect.width - padding;
+    }
+    if (top + menuRect.height > window.innerHeight - padding) {
+      top = window.innerHeight - menuRect.height - padding;
+    }
+    if (left < padding) left = padding;
+    if (top < padding) top = padding;
+    numberedImportPurchaseMenu.style.left = `${left}px`;
+    numberedImportPurchaseMenu.style.top = `${top}px`;
+  }
+
   function clearNumberedImportHoverPreview() {
     const hadPreview =
       numberedImportHoverPreviewSeatIds.size > 0 ||
@@ -6789,19 +7016,20 @@ codePane.addEventListener("input", () => {
   }
 
   function getNextNumberedImportPurchaseRefNo(currentRefNo) {
-    if (!numberedImportPurchases.length) return "";
-    const listLength = numberedImportPurchases.length;
-    const currentIndex = numberedImportPurchases.findIndex((purchase) => purchase.refNo === currentRefNo);
+    const orderedPurchases = getNumberedImportPurchasesInDisplayOrder();
+    if (!orderedPurchases.length) return "";
+    const listLength = orderedPurchases.length;
+    const currentIndex = orderedPurchases.findIndex((purchase) => purchase.refNo === currentRefNo);
     const startIndex = currentIndex >= 0 ? currentIndex : -1;
     for (let offset = 1; offset <= listLength; offset++) {
       const index = (startIndex + offset + listLength) % listLength;
-      const candidate = numberedImportPurchases[index];
+      const candidate = orderedPurchases[index];
       if (!isNumberedImportPurchaseComplete(candidate)) {
         return candidate.refNo;
       }
     }
-    if (currentIndex >= 0) return numberedImportPurchases[currentIndex].refNo;
-    return numberedImportPurchases[0].refNo;
+    if (currentIndex >= 0) return orderedPurchases[currentIndex].refNo;
+    return orderedPurchases[0].refNo;
   }
 
   function canAssignNumberedImportSeat(seat, refNo = "") {
@@ -7272,12 +7500,13 @@ codePane.addEventListener("input", () => {
       appendEmpty("Validation failed. Resolve errors before placement.");
       return;
     }
-    if (!numberedImportPurchases.length) {
+    const displayPurchases = getNumberedImportPurchasesInDisplayOrder();
+    if (!displayPurchases.length) {
       appendEmpty("No purchases were found in the workbook.");
       return;
     }
 
-    numberedImportPurchases.forEach((purchase) => {
+    displayPurchases.forEach((purchase) => {
       const placedCount = Array.isArray(purchase.assignedSeatIds) ? purchase.assignedSeatIds.length : 0;
       const complete = isNumberedImportPurchaseComplete(purchase);
       const item = document.createElement("div");
@@ -7385,6 +7614,7 @@ codePane.addEventListener("input", () => {
 
   function refreshNumberedImportUi() {
     clearNumberedImportHoverPreview();
+    closeNumberedImportPurchaseMenu();
     renderNumberedImportPurchaseList();
     updateNumberedImportStateUi();
     renderCanvas();
@@ -7558,6 +7788,9 @@ codePane.addEventListener("input", () => {
       if (rowCompare !== 0) return rowCompare;
       return String(a.refNo || "").localeCompare(String(b.refNo || ""), "sv", { numeric: true, sensitivity: "base" });
     });
+    purchases.forEach((purchase, index) => {
+      purchase.listBaseOrder = index;
+    });
     if (!purchases.length && !errors.length) {
       warnings.push(allowsAllLayoutSeats
         ? "No purchasable rows were found."
@@ -7588,7 +7821,8 @@ codePane.addEventListener("input", () => {
       numberedImportSelectedRefNo = "";
     }
     if (!numberedImportSelectedRefNo && numberedImportPurchases.length) {
-      numberedImportSelectedRefNo = numberedImportPurchases[0].refNo;
+      const displayPurchases = getNumberedImportPurchasesInDisplayOrder();
+      numberedImportSelectedRefNo = displayPurchases[0]?.refNo || numberedImportPurchases[0].refNo;
     }
     renderNumberedImportSectionFilters();
     setNumberedImportIssues(numberedImportValidationErrors, numberedImportValidationWarnings);
@@ -9243,6 +9477,7 @@ codePane.addEventListener("input", () => {
     const confirmAltSectionManager = !!options.confirmAltSectionManager;
     const altSectionConfirmMessage = options.altSectionConfirmMessage || "You have unsaved changes. Close anyway?";
     closeSeatContextMenu();
+    closeNumberedImportPurchaseMenu();
     closeExportModal();
     closeHelpModal();
     closeAttributeModal();
@@ -9423,7 +9658,41 @@ codePane.addEventListener("input", () => {
   numberedImportExportBtn?.addEventListener("click", async () => {
     await exportNumberedImportWorkbook();
   });
-
+  numberedImportMenuClearPurchase?.addEventListener("click", () => {
+    const refNo = String(numberedImportContextRefNo || "").trim();
+    if (!refNo) return;
+    closeNumberedImportPurchaseMenu();
+    clearNumberedImportPurchase(refNo);
+    refreshNumberedImportUi();
+  });
+  numberedImportMenuClearRow?.addEventListener("click", () => {
+    const rowId = String(numberedImportContextRowId || "").trim();
+    if (!rowId) return;
+    closeNumberedImportPurchaseMenu();
+    const changed = clearNumberedImportRowAssignments(rowId);
+    if (!changed) return;
+    refreshNumberedImportUi();
+  });
+  numberedImportMenuPushLeft?.addEventListener("click", () => {
+    const rowId = String(numberedImportContextRowId || "").trim();
+    if (!rowId) return;
+    const plan = buildNumberedImportRowPushPlan(rowId, "left");
+    closeNumberedImportPurchaseMenu();
+    if (!plan || !plan.changed) return;
+    const changed = applyNumberedImportRowPushPlan(plan);
+    if (!changed) return;
+    refreshNumberedImportUi();
+  });
+  numberedImportMenuPushRight?.addEventListener("click", () => {
+    const rowId = String(numberedImportContextRowId || "").trim();
+    if (!rowId) return;
+    const plan = buildNumberedImportRowPushPlan(rowId, "right");
+    closeNumberedImportPurchaseMenu();
+    if (!plan || !plan.changed) return;
+    const changed = applyNumberedImportRowPushPlan(plan);
+    if (!changed) return;
+    refreshNumberedImportUi();
+  });
   helpBtn?.addEventListener("click", openHelpModal);
   helpClose?.addEventListener("click", closeHelpModal);
 
@@ -12559,6 +12828,7 @@ function nudgeSelection(dxScreen, dyScreen) {
 
   function openSeatContextMenu(x, y, options = {}) {
     if (!seatContextMenu) return;
+    closeNumberedImportPurchaseMenu();
     const mode = options.mode === "shape-toggle" ? "shape-toggle" : "selection";
     const selectedSeats = getSelectedSeats();
     setSeatContextMenuMode(mode);
@@ -14025,9 +14295,16 @@ function nudgeSelection(dxScreen, dyScreen) {
   });
 
   document.addEventListener("click", (e) => {
-    if (!seatContextMenu || !seatContextMenu.classList.contains("open")) return;
-    if (seatContextMenu.contains(e.target)) return;
-    closeSeatContextMenu();
+    if (seatContextMenu && seatContextMenu.classList.contains("open") && !seatContextMenu.contains(e.target)) {
+      closeSeatContextMenu();
+    }
+    if (
+      numberedImportPurchaseMenu &&
+      numberedImportPurchaseMenu.classList.contains("open") &&
+      !numberedImportPurchaseMenu.contains(e.target)
+    ) {
+      closeNumberedImportPurchaseMenu();
+    }
   });
 
   document.addEventListener("keydown", (e) => {
@@ -14039,8 +14316,14 @@ function nudgeSelection(dxScreen, dyScreen) {
     }
   });
 
-  window.addEventListener("blur", closeSeatContextMenu);
-  window.addEventListener("resize", closeSeatContextMenu);
+  window.addEventListener("blur", () => {
+    closeSeatContextMenu();
+    closeNumberedImportPurchaseMenu();
+  });
+  window.addEventListener("resize", () => {
+    closeSeatContextMenu();
+    closeNumberedImportPurchaseMenu();
+  });
 
   canvas.addEventListener("contextmenu", (e) => {
     const rect = canvas.getBoundingClientRect();
@@ -14050,6 +14333,15 @@ function nudgeSelection(dxScreen, dyScreen) {
 
     if (numberedImportMode) {
       e.preventDefault();
+      const hit = hitTestSeat(worldX, worldY);
+      const refNo = String(numberedImportAssignmentsBySeatId.get(hit?.seatId || "") || "").trim();
+      if (!hit || !refNo) {
+        closeNumberedImportPurchaseMenu();
+        return;
+      }
+      selectNumberedImportPurchase(refNo);
+      closeSeatContextMenu();
+      openNumberedImportPurchaseMenu(e.clientX, e.clientY, refNo, hit.rowId || "");
       return;
     }
 
