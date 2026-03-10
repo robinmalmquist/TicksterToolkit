@@ -6023,7 +6023,7 @@ codePane.addEventListener("input", () => {
 
   function normalizeLayoutStructureForPersist() {
     if (!Array.isArray(originalLines) || !originalLines.length) return false;
-    if (!Array.isArray(seats) || !seats.length) return false;
+    if (!Array.isArray(seats)) return false;
 
     const beforeText = originalLines.join("\n");
     const parseTimestamp = (line) => {
@@ -6155,19 +6155,13 @@ codePane.addEventListener("input", () => {
     });
 
     const sectionIds = new Set();
-    sectionMetaById.forEach((_, id) => sectionIds.add(id));
-    rowMetaById.forEach((meta, rowId) => {
-      if (meta?.sectionId) sectionIds.add(meta.sectionId);
-      if (!meta?.sectionId) {
-        const parts = String(rowId || "").split(".");
-        if (parts.length >= 2) sectionIds.add(`${parts[0]}.${parts[1]}`);
-      }
-    });
     seatsBySectionRow.forEach((_, id) => sectionIds.add(id));
-    outlineTemplateBySection.forEach((_, id) => sectionIds.add(id));
-    computedOutlineBySection.forEach((_, id) => sectionIds.add(id));
-
-    if (!sectionIds.size) return false;
+    Array.from(sectionNames.keys()).forEach((sectionId) => {
+      if (!sectionIds.has(sectionId)) sectionNames.delete(sectionId);
+    });
+    Array.from(sectionColors.keys()).forEach((sectionId) => {
+      if (!sectionIds.has(sectionId)) sectionColors.delete(sectionId);
+    });
 
     const orderedSections = Array.from(sectionIds).sort(compareSectionIds);
     const newLines = [];
@@ -6184,13 +6178,8 @@ codePane.addEventListener("input", () => {
       const sectionTs = sectionMeta?.timestamp || firstSeat?.timestamp || buildTimestamp();
       newLines.push(`${sectionTs}|SectionAdd|SectionId=${sectionId}|Name=${sectionName}`);
 
-      const rowIds = new Set();
-      rowMetaById.forEach((meta, rowId) => {
-        const metaSection = meta?.sectionId || "";
-        if (metaSection === sectionId) rowIds.add(rowId);
-      });
-      if (seatRows) seatRows.forEach((_, rowId) => rowIds.add(rowId));
-      const orderedRows = Array.from(rowIds).sort(compareRowIds);
+      const rowIds = seatRows ? Array.from(seatRows.keys()) : [];
+      const orderedRows = rowIds.sort(compareRowIds);
 
       orderedRows.forEach((rowId) => {
         const rowMeta = rowMetaById.get(rowId);
@@ -10901,6 +10890,64 @@ function selectSeatsWithoutEntryPoints() {
     return best;
   }
 
+  function cleanupDanglingLayoutStructureLines() {
+    if (!Array.isArray(originalLines) || !Array.isArray(seats)) return false;
+
+    const existingRowIds = new Set(seats.map(s => s.rowId).filter(Boolean));
+    const existingSectionIds = new Set(seats.map(s => s.sectionId).filter(Boolean));
+    const outlineSectionByLine = new Map();
+
+    outlines.forEach((o) => {
+      if (!o?.sectionId) return;
+      if (!Number.isFinite(o.lineIndex)) return;
+      outlineSectionByLine.set(o.lineIndex, o.sectionId);
+    });
+
+    const removedIndexes = [];
+    let changed = false;
+
+    originalLines = originalLines.filter((line, idx) => {
+      if (line.includes("|RowAdd|")) {
+        const rowMatch = line.match(/RowId=([^|]+)/);
+        if (rowMatch && !existingRowIds.has(rowMatch[1])) {
+          removedIndexes.push(idx);
+          changed = true;
+          return false;
+        }
+      }
+      if (line.includes("|SectionAdd|")) {
+        const sectionMatch = line.match(/SectionId=([^|]+)/);
+        if (sectionMatch && !existingSectionIds.has(sectionMatch[1])) {
+          removedIndexes.push(idx);
+          changed = true;
+          return false;
+        }
+      }
+      if (line.includes("<Outline|")) {
+        const outlineSectionId = outlineSectionByLine.get(idx);
+        if (outlineSectionId && !existingSectionIds.has(outlineSectionId)) {
+          removedIndexes.push(idx);
+          changed = true;
+          return false;
+        }
+      }
+      return true;
+    });
+
+    if (!changed) return false;
+
+    shiftOutlineLineIndexesAfterRemoval(removedIndexes);
+    outlines = outlines.filter((o) => o?.sectionId && existingSectionIds.has(o.sectionId));
+    Array.from(sectionNames.keys()).forEach((sectionId) => {
+      if (!existingSectionIds.has(sectionId)) sectionNames.delete(sectionId);
+    });
+    Array.from(sectionColors.keys()).forEach((sectionId) => {
+      if (!existingSectionIds.has(sectionId)) sectionColors.delete(sectionId);
+    });
+    rebuildSeatLineIndex();
+    return true;
+  }
+
   function removeSeatsById(seatIds) {
     if (!seatIds || seatIds.size === 0) return false;
     seats = seats.filter(s => !seatIds.has(s.seatId));
@@ -10916,7 +10963,8 @@ function selectSeatsWithoutEntryPoints() {
       return true;
     });
     shiftOutlineLineIndexesAfterRemoval(removedIndexes);
-    rebuildSeatLineIndex();
+    const cleanedStructure = cleanupDanglingLayoutStructureLines();
+    if (!cleanedStructure) rebuildSeatLineIndex();
     return true;
   }
 
@@ -10949,7 +10997,8 @@ function selectSeatsWithoutEntryPoints() {
       return true;
     });
     shiftOutlineLineIndexesAfterRemoval(removedIndexes);
-    rebuildSeatLineIndex();
+    const cleanedStructure = cleanupDanglingLayoutStructureLines();
+    if (!cleanedStructure) rebuildSeatLineIndex();
     return true;
   }
 
