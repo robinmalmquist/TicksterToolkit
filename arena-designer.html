@@ -2545,6 +2545,10 @@
               <input type="radio" name="seatLabelMode" id="viewSeatLabelSeatId" value="seatId" />
               Display seat ID
             </label>
+            <label class="bg-control">
+              <input type="radio" name="seatLabelMode" id="viewSeatLabelEntry" value="entry" />
+              Display entry point
+            </label>
           </div>
           <button id="highlightSeatsBtn" class="c-button c-button--ghost c-button--small">Highlight seats</button>
           <button id="openCodeModalBtn" class="c-button c-button--ghost c-button--small">Show source code</button>
@@ -2815,7 +2819,7 @@
       <h3>New entry point</h3>
       <div class="new-layout-field">
         <label for="entryPointName">Name</label>
-        <input id="entryPointName" type="text" placeholder="Enter name(s), comma-separated" />
+        <textarea id="entryPointName" rows="4" placeholder="Enter name(s), one per line or comma-separated"></textarea>
       </div>
       <div class="new-layout-actions">
         <button id="entryPointCancel" class="c-button c-button--ghost c-button--small">Cancel</button>
@@ -3239,6 +3243,7 @@
   const viewSeatLabelRow = document.getElementById("viewSeatLabelRow");
   const viewSeatLabelSeat = document.getElementById("viewSeatLabelSeat");
   const viewSeatLabelSeatId = document.getElementById("viewSeatLabelSeatId");
+  const viewSeatLabelEntry = document.getElementById("viewSeatLabelEntry");
   const openCodeModalBtn = document.getElementById("openCodeModalBtn");
   const codeModalOverlay = document.getElementById("codeModalOverlay");
   const codeModalClose = document.getElementById("codeModalClose");
@@ -3423,6 +3428,7 @@
       if (mode === "row" && viewSeatLabelRow) viewSeatLabelRow.checked = true;
       if (mode === "seat" && viewSeatLabelSeat) viewSeatLabelSeat.checked = true;
       if (mode === "seatId" && viewSeatLabelSeatId) viewSeatLabelSeatId.checked = true;
+      if (mode === "entry" && viewSeatLabelEntry) viewSeatLabelEntry.checked = true;
     }
     renderCanvas();
   }
@@ -4737,6 +4743,7 @@ function saveSessionToLocalStorage() {
       if (viewSeatLabelRow?.checked) return "row";
       if (viewSeatLabelSeat?.checked) return "seat";
       if (viewSeatLabelSeatId?.checked) return "seatId";
+      if (viewSeatLabelEntry?.checked) return "entry";
       return "none";
     };
     seatLabelMode = readSeatLabelMode();
@@ -9738,6 +9745,10 @@ codePane.addEventListener("input", () => {
     return String(raw || "").trim();
   }
 
+  function normalizeEntryPointKey(raw) {
+    return normalizeEntryPointName(raw).toLowerCase();
+  }
+
   function getEntryPointStorageKey() {
     const meta = getLayoutMeta();
     const venuePart = meta.venueId || "unknown";
@@ -9751,9 +9762,12 @@ codePane.addEventListener("input", () => {
       const name = normalizeEntryPointName(s.entryVia);
       if (name && name !== "-") names.add(name);
     });
+    const existingKeys = new Set(entryPoints.map((ep) => normalizeEntryPointKey(ep.name)));
     names.forEach((name) => {
-      const exists = entryPoints.some(ep => ep.name === name);
-      if (!exists) entryPoints.push({ id: buildEntryPointId(), name });
+      const key = normalizeEntryPointKey(name);
+      if (existingKeys.has(key)) return;
+      entryPoints.push({ id: buildEntryPointId(), name });
+      existingKeys.add(key);
     });
   }
 
@@ -10074,7 +10088,8 @@ codePane.addEventListener("input", () => {
       if (inputEl) inputEl.value = prevName;
       return;
     }
-    const duplicate = entryPoints.some(ep => ep.id !== entryPointId && ep.name === nextName);
+    const nextKey = normalizeEntryPointKey(nextName);
+    const duplicate = entryPoints.some((ep) => ep.id !== entryPointId && normalizeEntryPointKey(ep.name) === nextKey);
     if (duplicate) {
       alert("That entry point name already exists.");
       if (inputEl) inputEl.value = prevName;
@@ -10502,25 +10517,39 @@ codePane.addEventListener("input", () => {
   });
   entryPointCancel?.addEventListener("click", closeEntryPointModal);
   entryPointCreate?.addEventListener("click", () => {
-    const name = normalizeEntryPointName(entryPointName?.value || "");
-    if (!name) {
-      alert("Enter a name for the entry point.");
+    const raw = entryPointName?.value || "";
+    const names = raw.split(/\r?\n|,/).map(normalizeEntryPointName).filter(Boolean);
+    if (!names.length) {
+      alert("Enter at least one name for the entry point.");
       return;
     }
-    const duplicate = entryPoints.some(ep => ep.name === name);
-    if (duplicate) {
-      alert("That entry point name already exists.");
+    if (names.some((name) => name === "-")) {
+      alert("Entry point name '-' is reserved.");
       return;
     }
-    const id = buildEntryPointId();
-    entryPoints.push({ id, name });
+    const existingKeys = new Set(entryPoints.map((ep) => normalizeEntryPointKey(ep.name)));
+    const seenKeys = new Set();
+    const duplicates = [];
+    names.forEach((name) => {
+      const key = normalizeEntryPointKey(name);
+      if (existingKeys.has(key) || seenKeys.has(key)) duplicates.push(name);
+      seenKeys.add(key);
+    });
+    if (duplicates.length) {
+      alert(`Duplicate entry point name(s): ${Array.from(new Set(duplicates)).join(", ")}`);
+      return;
+    }
+    names.forEach((name) => {
+      const id = buildEntryPointId();
+      entryPoints.push({ id, name });
+    });
     saveEntryPointsToStorage();
     renderEntryPointList();
     updateEntryPointUi();
     closeEntryPointModal();
   });
   entryPointName?.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") {
+    if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
       e.preventDefault();
       entryPointCreate?.click();
     }
@@ -11291,6 +11320,9 @@ codePane.addEventListener("input", () => {
               const parts = seatId.split(".");
               label = parts[parts.length - 1] || seatId;
             }
+          } else if (seatLabelMode === "entry") {
+            const entryName = normalizeEntryPointName(s.entryVia);
+            label = entryName && entryName !== "-" ? entryName : "-";
           } else {
             label = s.rowName || s.rowId || s.row || "";
           }
@@ -15829,6 +15861,7 @@ function nudgeSelection(dxScreen, dyScreen) {
         if (seatLabelMode === "none") setSeatLabelMode("row");
         else if (seatLabelMode === "row") setSeatLabelMode("seat");
         else if (seatLabelMode === "seat") setSeatLabelMode("seatId");
+        else if (seatLabelMode === "seatId") setSeatLabelMode("entry");
         else setSeatLabelMode("none");
         break;
       case "o":
@@ -16023,7 +16056,7 @@ function nudgeSelection(dxScreen, dyScreen) {
       setOverlayMode(e.target.value, false, true);
     });
   });
-  [viewSeatLabelNone, viewSeatLabelRow, viewSeatLabelSeat, viewSeatLabelSeatId].forEach((el) => {
+  [viewSeatLabelNone, viewSeatLabelRow, viewSeatLabelSeat, viewSeatLabelSeatId, viewSeatLabelEntry].forEach((el) => {
     el?.addEventListener("change", (e) => {
       if (!e.target.checked) return;
       setSeatLabelMode(e.target.value || "none", false);
@@ -18253,6 +18286,7 @@ function nudgeSelection(dxScreen, dyScreen) {
       if (viewSeatLabelRow?.checked) seatLabelMode = "row";
       else if (viewSeatLabelSeat?.checked) seatLabelMode = "seat";
       else if (viewSeatLabelSeatId?.checked) seatLabelMode = "seatId";
+      else if (viewSeatLabelEntry?.checked) seatLabelMode = "entry";
       else seatLabelMode = "none";
       const initialOverlay = viewOverlayGoodness?.checked
         ? "goodness"
