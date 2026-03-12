@@ -2391,7 +2391,7 @@
 
              </button>
              <button id="exportBtn" class="c-button c-button--primary">Export</button>
-             <button id="numberedImportModeBtn" class="c-button c-button--ghost" title="Toggle numbered import mode">Numbered import</button>
+             <button id="numberedImportModeBtn" class="c-button c-button--ghost" title="Toggle Import mode">Import mode</button>
              <input type="file" id="fileInput" accept=".tlt" />
 
           </div>
@@ -2556,7 +2556,7 @@
 
       <div id="numberedImportCard" class="c-card" data-collapsible="true" data-collapsed="false" hidden>
         <div class="c-card__header">
-          <div class="c-card__title">Numbered import</div>
+          <div class="c-card__title">Import</div>
           <button class="c-card__toggle" type="button" aria-expanded="true" aria-label="Toggle panel" onclick="toggleRightPanel(this)"></button>
         </div>
         <div class="c-card__body c-toolbar">
@@ -7677,7 +7677,7 @@ codePane.addEventListener("input", () => {
     if (Array.isArray(parsed.warnings)) warnings.push(...parsed.warnings);
 
     if (!seats.length) {
-      errors.push("Load a TLT layout before validating Numbered import.");
+      errors.push("Load a TLT layout before validating import.");
       return { errors, warnings, purchases: [], blockedSeatIds: [] };
     }
     const { numericToSeat, duplicates } = buildNumberedImportLayoutSeatMap();
@@ -7832,7 +7832,7 @@ codePane.addEventListener("input", () => {
       numberedImportParsed = parseNumberedImportWorkbook(workbook);
       handleNumberedImportLayoutChanged();
     } catch (error) {
-      console.warn("Failed to parse numbered import workbook:", error);
+      console.warn("Failed to parse import workbook:", error);
       numberedImportWorkbookName = "";
       numberedImportWorkbookBuffer = null;
       numberedImportParsed = null;
@@ -8021,7 +8021,7 @@ codePane.addEventListener("input", () => {
     }
     if (numberedImportModeBtn) {
       numberedImportModeBtn.classList.toggle("c-button--active", numberedImportMode);
-      numberedImportModeBtn.textContent = numberedImportMode ? "Numbered import ON" : "Numbered import";    
+      numberedImportModeBtn.textContent = numberedImportMode ? "Import mode ON" : "Import mode";    
     }
     updateRightPanelVisibilityForNumberedImport();
     if (numberedImportMode) {
