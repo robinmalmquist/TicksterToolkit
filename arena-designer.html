@@ -842,6 +842,73 @@
       margin-bottom: 0;
     }
 
+    #appMenuToggleBtn {
+      width: 100%;
+      justify-content: center;
+      text-align: center;
+      gap: 0.45rem;
+    }
+
+    #appMenuToggleBtn[aria-expanded="true"] {
+      position: relative;
+      z-index: 10001;
+    }
+
+    #appMenuOverlay {
+      position: fixed;
+      inset: 0;
+      display: none;
+      background: rgba(18, 32, 53, 0.14);
+      z-index: 10000;
+    }
+
+    #appMenuOverlay.open {
+      display: block;
+    }
+
+    #appMenuPanel {
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 1;
+      width: min(240px, calc(100vw - 1rem));
+      max-height: calc(100vh - 1rem);
+      padding: 0.75rem;
+      border-radius: 12px;
+      border: 1px solid var(--card-border);
+      background: var(--card-bg);
+      box-shadow: var(--shadow-modal-lg);
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      overflow-y: auto;
+    }
+
+    #appMenuPanel .c-button {
+      width: 100%;
+      justify-content: flex-start;
+      padding-inline: 0.75rem;
+    }
+
+    #appMenuToggleBtn .menu-toggle__icon {
+      width: 0.95rem;
+      height: 0.75rem;
+      display: inline-block;
+      flex: 0 0 auto;
+      background:
+        linear-gradient(currentColor 0 0) 0 0 / 100% 2px no-repeat,
+        linear-gradient(currentColor 0 0) 0 50% / 100% 2px no-repeat,
+        linear-gradient(currentColor 0 0) 0 100% / 100% 2px no-repeat;
+    }
+
+    #numberedImportModeBtn,
+    #helpBtn,
+    #themeToggleBtn {
+      background: var(--tick-turq-dark);
+      border-color: var(--tick-turq-dark);
+      color: #fff;
+    }
+
     .tool-button {
       width: 100%;
       text-align: left;
@@ -1666,7 +1733,7 @@
     }
 
     #top-bar {
-      padding: 0.45rem 0.75rem;
+      padding: 0.5rem 0.75rem;
       border-radius: var(--radius-card);
       border: 1px solid var(--card-border);
       background: var(--card-bg);
@@ -2135,6 +2202,10 @@
       width: 100%;
       flex-wrap: wrap;
       gap: 0.35rem;
+      justify-content: center;
+      align-items: center;
+      align-content: center;
+      margin-bottom: 0;
     }
 
     .align-grouping {
@@ -2315,6 +2386,10 @@
       color: #6b7280;
       opacity: 0.65;
     }
+
+    html[data-theme="dark"] #appMenuOverlay {
+      background: rgba(6, 10, 18, 0.28);
+    }
   </style>
 </head>
 <body>
@@ -2322,6 +2397,26 @@
     <!-- Vänster: verktyg -->
     <aside id="left-toolbar">
       <div class="c-card">
+
+        <div class="left-panel-section">
+          <div class="c-toolbar">
+            <button id="appMenuToggleBtn" class="tool-button c-button c-button--primary c-button--small" type="button" aria-haspopup="true" aria-expanded="false" aria-controls="appMenuPanel">
+              <span class="menu-toggle__icon" aria-hidden="true"></span>
+              <span>Menu</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="left-panel-section">
+          <div class="c-card__header">
+            <div class="c-card__title">Sections</div>
+          </div>
+          <div class="c-toolbar">
+            <button id="openSectionManagerBtn" class="tool-button c-button c-button--primary c-button--small c-button--icon-left" data-icon="">
+              Manage
+            </button>
+          </div>
+        </div>
 
         <div class="left-panel-section">
           <div class="c-card__header">
@@ -2414,59 +2509,6 @@
     <!-- Mitten: canvas + kod -->
     <section id="center-area">
       <div id="top-bar">
-
-        <div class="top-bar__row">
-          <div id="top-bar-left" class="c-toolbar c-toolbar--horizontal">
-
-            <button id="newLayoutBtn" class="c-button c-button--primary c-button--icon-left" data-icon="">
-
-              Create new
-
-            </button>
-
-            <button id="openFileBtnTop" class="c-button c-button--primary c-button--icon-left" data-icon="">
-
-              Open layout
-
-            </button>
-
-            <button id="saveBtn" class="c-button c-button--primary c-button--icon-left" data-icon="" disabled>
-
-              Save layout
-
-            </button>
-
-            <button id="saveAsBtn" class="c-button c-button--primary c-button--icon-left" data-icon="" disabled>
-
-              Save layout as
-
-            </button>
-
-            <button id="closeLayoutBtn" class="c-button c-button--ghost c-button--icon-left" data-icon="" disabled>
-              Close
-            </button>
-
-             <button id="openSectionManagerBtn" class="c-button c-button--primary c-button--icon-left" data-icon="">
-
-               Manage sections
-
-             </button>
-             <button id="exportBtn" class="c-button c-button--primary">Export</button>
-             <button id="numberedImportModeBtn" class="c-button c-button--ghost" title="Toggle Import mode">Import mode</button>
-             <input type="file" id="fileInput" accept=".tlt" />
-
-          </div>
-
-          <div id="top-bar-right" class="c-toolbar c-toolbar--horizontal">
-            <button id="helpBtn" class="c-button c-button--ghost" title="Help">
-              HELP
-            </button>
-            <button id="themeToggleBtn" class="c-button c-button--ghost" title="Toggle dark mode">
-              Dark mode
-            </button>
-          </div>
-        </div>
-
         <div id="alignBar" class="c-toolbar c-toolbar--horizontal">
           <button id="alignTopBtn" class="c-button c-button--ghost c-button--small" title="Align top">Align Up</button>
           <button id="alignBottomBtn" class="c-button c-button--ghost c-button--small" title="Align bottom">Align Down</button>
@@ -2491,6 +2533,7 @@
           <button id="flipHBtn" class="c-button c-button--ghost c-button--small" title="Flip horizontally">Flip H</button>
           <button id="flipVBtn" class="c-button c-button--ghost c-button--small" title="Flip vertically">Flip V</button>
         </div>
+        <input type="file" id="fileInput" accept=".tlt" />
 
       </div>
 
@@ -2706,6 +2749,33 @@
       </div>
 
     </aside>
+    <div id="appMenuOverlay" aria-hidden="true">
+      <div id="appMenuPanel" aria-label="Arena Designer menu">
+        <button id="newLayoutBtn" class="c-button c-button--primary c-button--icon-left" data-icon="">
+          Create new
+        </button>
+        <button id="openFileBtnTop" class="c-button c-button--primary c-button--icon-left" data-icon="">
+          Open layout
+        </button>
+        <button id="saveBtn" class="c-button c-button--primary c-button--icon-left" data-icon="" disabled>
+          Save layout
+        </button>
+        <button id="saveAsBtn" class="c-button c-button--primary c-button--icon-left" data-icon="" disabled>
+          Save layout as
+        </button>
+        <button id="closeLayoutBtn" class="c-button c-button--ghost c-button--icon-left" data-icon="" disabled>
+          Close
+        </button>
+        <button id="exportBtn" class="c-button c-button--primary">Export</button>
+        <button id="numberedImportModeBtn" class="c-button c-button--ghost" title="Toggle Import mode">Import mode</button>
+        <button id="helpBtn" class="c-button c-button--ghost" title="Help">
+          Help
+        </button>
+        <button id="themeToggleBtn" class="c-button c-button--ghost" title="Toggle dark mode">
+          Go Dark
+        </button>
+      </div>
+    </div>
   </div>
 
     <div id="tooltip"></div>
@@ -3179,6 +3249,9 @@
   const fileInfo = document.getElementById("fileInfo");
   const themeToggleBtn = document.getElementById("themeToggleBtn");
   const helpBtn = document.getElementById("helpBtn");
+  const appMenuToggleBtn = document.getElementById("appMenuToggleBtn");
+  const appMenuOverlay = document.getElementById("appMenuOverlay");
+  const appMenuPanel = document.getElementById("appMenuPanel");
 
   const selectToolBtn = document.getElementById("selectToolBtn");
   const panToolBtn = document.getElementById("panToolBtn");
@@ -5280,6 +5353,7 @@ codePane.addEventListener("input", () => {
   function applyControlAvailability() {
     const controls = document.querySelectorAll("#app button, #app input, #app select, #app textarea");
     const alwaysEnabledIds = new Set([
+      "appMenuToggleBtn",
       "newLayoutBtn",
       "openFileBtnTop",
       "fileInput",
@@ -5292,6 +5366,7 @@ codePane.addEventListener("input", () => {
       "numberedImportModeBtn"
     ]);
     const numberedImportEnabledIds = new Set([
+      "appMenuToggleBtn",
       "numberedImportModeBtn",
       "helpBtn",
       "themeToggleBtn",
@@ -10170,6 +10245,49 @@ codePane.addEventListener("input", () => {
     }
   });
 
+  function positionAppMenuPanel() {
+    if (!appMenuToggleBtn || !appMenuPanel) return;
+    const buttonRect = appMenuToggleBtn.getBoundingClientRect();
+    const viewportPadding = 8;
+    const preferredWidth = Math.min(240, window.innerWidth - viewportPadding * 2);
+    appMenuPanel.style.width = `${preferredWidth}px`;
+
+    let left = buttonRect.left;
+    if (left + preferredWidth > window.innerWidth - viewportPadding) {
+      left = window.innerWidth - preferredWidth - viewportPadding;
+    }
+    if (left < viewportPadding) left = viewportPadding;
+
+    let top = buttonRect.bottom + viewportPadding;
+    const panelHeight = appMenuPanel.offsetHeight;
+    if (top + panelHeight > window.innerHeight - viewportPadding) {
+      top = Math.max(viewportPadding, buttonRect.top - panelHeight - viewportPadding);
+    }
+
+    appMenuPanel.style.left = `${left}px`;
+    appMenuPanel.style.top = `${top}px`;
+  }
+
+  function openAppMenu() {
+    if (!appMenuOverlay || !appMenuToggleBtn) return;
+    appMenuOverlay.classList.add("open");
+    appMenuOverlay.setAttribute("aria-hidden", "false");
+    appMenuToggleBtn.setAttribute("aria-expanded", "true");
+    window.requestAnimationFrame(positionAppMenuPanel);
+  }
+
+  function closeAppMenu() {
+    if (!appMenuOverlay || !appMenuToggleBtn) return;
+    appMenuOverlay.classList.remove("open");
+    appMenuOverlay.setAttribute("aria-hidden", "true");
+    appMenuToggleBtn.setAttribute("aria-expanded", "false");
+  }
+
+  function toggleAppMenu() {
+    if (!appMenuOverlay?.classList.contains("open")) openAppMenu();
+    else closeAppMenu();
+  }
+
   function openNewLayoutModal() {
     if (newLayoutOverlay) newLayoutOverlay.style.display = "flex";
     if (newProjectName) {
@@ -10195,6 +10313,7 @@ codePane.addEventListener("input", () => {
   function closeAllModals(options = {}) {
     const confirmAltSectionManager = !!options.confirmAltSectionManager;
     const altSectionConfirmMessage = options.altSectionConfirmMessage || "You have unsaved changes. Close anyway?";
+    closeAppMenu();
     closeSeatContextMenu();
     closeNumberedImportPurchaseMenu();
     closeExportModal();
@@ -10303,6 +10422,15 @@ codePane.addEventListener("input", () => {
   newLayoutBtn?.addEventListener("click", openNewLayoutModal);
   newLayoutCancel?.addEventListener("click", closeNewLayoutModal);
   newLayoutStart?.addEventListener("click", handleStartNewLayout);
+  appMenuToggleBtn?.addEventListener("click", toggleAppMenu);
+  appMenuOverlay?.addEventListener("click", (e) => {
+    if (e.target === appMenuOverlay) closeAppMenu();
+  });
+  appMenuPanel?.addEventListener("click", (e) => {
+    const clickedButton = e.target.closest("button");
+    if (!clickedButton || clickedButton.disabled) return;
+    window.setTimeout(closeAppMenu, 0);
+  });
 
   exportBtn?.addEventListener("click", openExportModal);
   exportCancel?.addEventListener("click", closeExportModal);
@@ -15261,10 +15389,12 @@ function nudgeSelection(dxScreen, dyScreen) {
   });
 
   window.addEventListener("blur", () => {
+    closeAppMenu();
     closeSeatContextMenu();
     closeNumberedImportPurchaseMenu();
   });
   window.addEventListener("resize", () => {
+    closeAppMenu();
     closeSeatContextMenu();
     closeNumberedImportPurchaseMenu();
   });
@@ -18253,7 +18383,7 @@ function nudgeSelection(dxScreen, dyScreen) {
     if (theme === "dark") root.setAttribute("data-theme", "dark");
     else root.removeAttribute("data-theme");
     if (themeToggleBtn) {
-      themeToggleBtn.textContent = theme === "dark" ? "GO LIGHT" : "GO DARK";
+      themeToggleBtn.textContent = theme === "dark" ? "Go Light" : "Go Dark";
     }
   }
 
