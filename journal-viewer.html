@@ -175,6 +175,57 @@
       min-width: 0;
     }
 
+    .lookup-box {
+      display: grid;
+      gap: 0.45rem;
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-card);
+      background: #f8fbff;
+      padding: 0.55rem 0.6rem;
+    }
+
+    .lookup-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(110px, 1fr));
+      gap: 0.45rem;
+    }
+
+    .lookup-field {
+      display: grid;
+      gap: 0.2rem;
+      color: var(--tick-grey);
+      font-size: 0.74rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .lookup-input {
+      width: 100%;
+      border: 1px solid #cdd3e0;
+      border-radius: var(--radius-pill);
+      padding: 0.34rem 0.56rem;
+      background: #fff;
+      color: var(--tick-grey-dark);
+      font-size: 0.86rem;
+      font-family: var(--font-mono);
+    }
+
+    .lookup-input:focus-visible {
+      outline: 2px solid rgba(20, 160, 244, 0.25);
+      border-color: var(--tick-blue);
+    }
+
+    .lookup-actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.45rem;
+    }
+
+    .lookup-status {
+      font-size: 0.78rem;
+    }
+
     .upload-help {
       border: 1px solid var(--card-border);
       border-radius: var(--radius-card);
@@ -199,6 +250,27 @@
       color: var(--tick-grey-dark);
     }
 
+    .upload-help a {
+      color: var(--tick-blue-dark);
+      text-decoration: underline;
+      text-underline-offset: 2px;
+      font-weight: 600;
+    }
+
+    .upload-help a:visited {
+      color: var(--tick-blue-dark);
+    }
+
+    .upload-help a:hover {
+      color: var(--tick-turq-dark);
+    }
+
+    .upload-help a:focus-visible {
+      outline: 2px solid rgba(20, 160, 244, 0.35);
+      outline-offset: 2px;
+      border-radius: 2px;
+    }
+
     .upload-help p:last-child {
       margin-bottom: 0;
     }
@@ -215,6 +287,48 @@
       padding: 0.4rem 0.45rem;
       overflow-wrap: anywhere;
       white-space: normal;
+    }
+
+    .layout-link-box {
+      margin-top: 0.55rem;
+      border: 1px solid #d6dee8;
+      border-radius: var(--radius-card);
+      background: #fff;
+      padding: 0.48rem 0.52rem;
+      display: grid;
+      gap: 0.35rem;
+    }
+
+    .layout-link-title {
+      font-size: 0.73rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--tick-grey-dark);
+      font-weight: 700;
+    }
+
+    .layout-link-text {
+      margin: 0;
+      border: 1px solid #d6dee8;
+      border-radius: var(--radius-card);
+      background: #f7f9fc;
+      color: var(--tick-grey-dark);
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      padding: 0.32rem 0.4rem;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+
+    .layout-link-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+    }
+
+    .layout-link-copy-status {
+      font-size: 0.78rem;
     }
 
     .btn {
@@ -774,12 +888,51 @@
       border-color: #334155;
     }
 
+    html[data-theme="dark"] .lookup-box {
+      background: #111827;
+      border-color: #334155;
+    }
+
+    html[data-theme="dark"] .lookup-input {
+      background: #0f172a;
+      border-color: #334155;
+      color: #e5e7eb;
+    }
+
     html[data-theme="dark"] .upload-help p {
       color: #dbe3ee;
     }
 
+    html[data-theme="dark"] .upload-help a,
+    html[data-theme="dark"] .upload-help a:visited {
+      color: #93c5fd;
+    }
+
+    html[data-theme="dark"] .upload-help a:hover {
+      color: #6ee0db;
+    }
+
+    html[data-theme="dark"] .upload-help a:focus-visible {
+      outline-color: rgba(147, 197, 253, 0.45);
+    }
+
     html[data-theme="dark"] .upload-help code {
       background: #0f172a;
+      border-color: #334155;
+      color: #e5e7eb;
+    }
+
+    html[data-theme="dark"] .layout-link-box {
+      background: #0f172a;
+      border-color: #334155;
+    }
+
+    html[data-theme="dark"] .layout-link-title {
+      color: #e5e7eb;
+    }
+
+    html[data-theme="dark"] .layout-link-text {
+      background: #111827;
       border-color: #334155;
       color: #e5e7eb;
     }
@@ -880,6 +1033,9 @@
       .upload-grid {
         grid-template-columns: 1fr;
       }
+      .lookup-grid {
+        grid-template-columns: 1fr;
+      }
       .purchase-summary {
         padding: 0.62rem 0.68rem;
       }
@@ -900,18 +1056,37 @@
       <h1>Journal Viewer (.tjn)</h1>
       <div class="upload-grid">
         <div class="upload-main">
+          <form id="pathLookupForm" class="lookup-box" novalidate>
+            <div class="lookup-grid">
+              <label class="lookup-field" for="eogIdInput">
+                EOGID
+                <input id="eogIdInput" class="lookup-input" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="e.g. 2915" />
+              </label>
+              <label class="lookup-field" for="venueIdInput">
+                VenueID
+                <input id="venueIdInput" class="lookup-input" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="e.g. 8413" />
+              </label>
+              <label class="lookup-field" for="eventIdInput">
+                EventID
+                <input id="eventIdInput" class="lookup-input" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="e.g. 117675" />
+              </label>
+            </div>
+            <div class="lookup-actions">
+              <button id="openPathBtn" class="btn" type="submit">Create Path</button>
+              <span id="lookupStatus" class="subtle lookup-status"></span>
+            </div>
+          </form>
 
           <label class="upload-zone" id="dropZone" for="fileInput">
-            <strong>Släpp fil här</strong> eller klicka för att välja.
-            <div class="subtle">Stöd: <code>.tjn</code>, <code>.txt</code></div>
+            <strong>Click to open TJN file</strong>
+            <div class="subtle">Supported: <code>.tjn</code>, <code>.txt</code></div>
           </label>
 
-          <p class="subtle">Ladda in en journalfil för att dela upp och gruppera händelser per PurchId.</p>
           <div class="upload-controls">
             <input id="fileInput" type="file" accept=".tjn,.txt,text/plain" class="hidden" />
-            <button id="pickBtn" class="btn btn-primary" type="button">Välj fil</button>
-            <button id="resetBtn" class="btn" type="button">Rensa</button>
-            <span id="fileName" class="subtle">Ingen fil vald.</span>
+            <button id="pickBtn" class="btn btn-primary" type="button">Choose File</button>
+            <button id="resetBtn" class="btn" type="button">Clear</button>
+            <span id="fileName" class="subtle">No file selected.</span>
           </div>
 
           <p id="status" class="subtle" aria-live="polite"></p>
@@ -919,16 +1094,24 @@
         </div>
 
         <aside class="upload-help">
-          <div class="upload-help-title">How To Find TJN</div>
-          <p>To obtain a TJN file, first look up the EventID and VenueID.</p>
+          <div class="upload-help-title">How To Find TJN manually</div>
+          <p>To obtain a TJN file manually, first look up the EventID and VenueID.</p>
           <p>Then go to \\prodstage\gxfs\venue and browse to the specific VenueID.</p>
           <p>Enter that folder and then to EventInventory and then enter the folder with the EOG ID.</p>
-          <p>Here you browse to the specifik EventID. In that folder you'll find the TJN file.</p>
+          <p>Here you browse to the specific EventID. In that folder you'll find the TJN file.</p>
           <p>
-            Full path is
-            <code>\\prodstage\gxfs\venue\[VenueID]\EventInventory\[EOGID]\[EventID]</code>
+            Full path to TJN file is
+            <code id="resolvedPath">\\prodstage\gxfs\venue\[VenueID]\EventInventory\[EOGID]\[EventID]</code>
           </p>
-          <p>To obtain a PurchId, use <a href="https://manager.tickster.com/Statistics/CustomReports.aspx?report=purchid" target="_blank">THIS</a> custom report in Manager and search for the purchase or booking reference number.</a></p>
+          <div id="layoutPathBox" class="layout-link-box hidden">
+            <div class="layout-link-title">Generated path to seating layout file</div>
+            <code id="layoutPathText" class="layout-link-text"></code>
+            <div class="layout-link-actions">
+              <button id="copyLayoutPathBtn" class="btn" type="button">Copy Path</button>
+              <span id="layoutPathCopyStatus" class="subtle layout-link-copy-status"></span>
+            </div>
+          </div>
+          <p>To obtain a PurchId, use <a href="https://manager.tickster.com/Statistics/CustomReports.aspx?report=purchid" target="_blank">THIS</a> custom report in Manager and search for the purchase or booking reference number.</p>
         </aside>
       </div>
     </section>
@@ -937,11 +1120,11 @@
       <h2>Filter</h2>
       <div class="toolbar">
         <div class="field">
-          <label for="typeFilter">Filtrera ID</label>
-          <input id="typeFilter" type="search" placeholder="t.ex. 146703694 eller HoldId" />
+          <label for="typeFilter">Filter ID</label>
+          <input id="typeFilter" type="search" placeholder="e.g. 146703694 or HoldId" />
         </div>
         <div class="field">
-          <label>Visa</label>
+          <label>Show</label>
           <div class="checkbox-row">
             <label class="checkbox-chip" for="showPurchaseIds">
               <input id="showPurchaseIds" type="checkbox" checked />
@@ -954,7 +1137,7 @@
           </div>
         </div>
         <div class="field">
-          <button id="clearFiltersBtn" class="btn" type="button">Rensa filter</button>
+          <button id="clearFiltersBtn" class="btn" type="button">Clear Filters</button>
         </div>
       </div>
     </section>
@@ -966,12 +1149,12 @@
     </section>
 
     <section class="footer-note">
-      All parsing sker lokalt i webbläsaren. Ingen data skickas vidare.
+      All parsing happens locally in the browser. No data is sent anywhere.
     </section>
   </main>
 
   <script>
-    const NO_HOLD_ID_LABEL = "(Saknar HoldId)";
+    const NO_HOLD_ID_LABEL = "(Missing HoldId)";
     const THEME_STORAGE_KEY = "journalViewerTheme";
 
     const state = {
@@ -987,6 +1170,17 @@
 
     const refs = {
       themeToggleBtn: document.getElementById("themeToggleBtn"),
+      pathLookupForm: document.getElementById("pathLookupForm"),
+      eogIdInput: document.getElementById("eogIdInput"),
+      venueIdInput: document.getElementById("venueIdInput"),
+      eventIdInput: document.getElementById("eventIdInput"),
+      openPathBtn: document.getElementById("openPathBtn"),
+      lookupStatus: document.getElementById("lookupStatus"),
+      resolvedPath: document.getElementById("resolvedPath"),
+      layoutPathBox: document.getElementById("layoutPathBox"),
+      layoutPathText: document.getElementById("layoutPathText"),
+      copyLayoutPathBtn: document.getElementById("copyLayoutPathBtn"),
+      layoutPathCopyStatus: document.getElementById("layoutPathCopyStatus"),
       fileInput: document.getElementById("fileInput"),
       pickBtn: document.getElementById("pickBtn"),
       resetBtn: document.getElementById("resetBtn"),
@@ -1007,11 +1201,14 @@
     initTheme();
 
     refs.themeToggleBtn.addEventListener("click", toggleTheme);
+    refs.pathLookupForm.addEventListener("submit", onPathLookupSubmit);
     refs.pickBtn.addEventListener("click", () => refs.fileInput.click());
     refs.fileInput.addEventListener("change", onFilePicked);
     refs.resetBtn.addEventListener("click", resetState);
     refs.clearFiltersBtn.addEventListener("click", clearFilters);
     refs.purchaseList.addEventListener("click", onPurchaseListClick);
+    refs.dropZone.addEventListener("click", onDropZoneClick);
+    refs.copyLayoutPathBtn.addEventListener("click", onCopyLayoutPathClick);
 
     refs.typeFilter.addEventListener("input", () => {
       state.typeFilter = refs.typeFilter.value.trim().toLowerCase();
@@ -1045,6 +1242,8 @@
         loadFile(file);
       }
     });
+
+    clearLayoutPathInfo();
 
     function initTheme() {
       let theme = "light";
@@ -1082,6 +1281,106 @@
       }
     }
 
+    function onPathLookupSubmit(event) {
+      event.preventDefault();
+      createPathFromInputs();
+    }
+
+    function onDropZoneClick() {
+      tryCopyLookupPathForFileDialog();
+    }
+
+    function onCopyLayoutPathClick() {
+      const layoutPath = String(refs.layoutPathText.textContent || "").trim();
+      refs.layoutPathCopyStatus.textContent = "";
+      if (!layoutPath) {
+        return;
+      }
+      copyTextToClipboard(layoutPath)
+        .then(() => {
+          refs.layoutPathCopyStatus.textContent = "Path copied to clipboard.";
+        })
+        .catch(() => {
+          refs.layoutPathCopyStatus.textContent = "Could not copy path.";
+        });
+    }
+
+    function getPathLookupValues() {
+      return {
+        eogId: String(refs.eogIdInput.value || "").trim(),
+        venueId: String(refs.venueIdInput.value || "").trim(),
+        eventId: String(refs.eventIdInput.value || "").trim(),
+      };
+    }
+
+    function isValidNumericId(value) {
+      return /^\d+$/.test(value);
+    }
+
+    function buildInventoryPath(values, usePlaceholders = false) {
+      const venuePart = usePlaceholders ? (values.venueId || "[VenueID]") : values.venueId;
+      const eogPart = usePlaceholders ? (values.eogId || "[EOGID]") : values.eogId;
+      const eventPart = usePlaceholders ? (values.eventId || "[EventID]") : values.eventId;
+      return `\\\\prodstage\\gxfs\\venue\\${venuePart}\\EventInventory\\${eogPart}\\${eventPart}`;
+    }
+
+    function buildLayoutTltPath(metadata) {
+      const venueId = String(metadata?.venueId || "").trim();
+      const layoutName = String(metadata?.layoutName || "").trim();
+      if (!venueId || !layoutName) {
+        return "";
+      }
+      return `\\\\prodstage\\gxfs\\venue\\${venueId}\\Layouts\\${layoutName}`;
+    }
+
+    function updateLayoutPathInfo(metadata) {
+      const layoutPath = buildLayoutTltPath(metadata);
+      if (!layoutPath) {
+        clearLayoutPathInfo();
+        return;
+      }
+      refs.layoutPathText.textContent = layoutPath;
+      refs.layoutPathCopyStatus.textContent = "";
+      refs.layoutPathBox.classList.remove("hidden");
+    }
+
+    function clearLayoutPathInfo() {
+      refs.layoutPathText.textContent = "";
+      refs.layoutPathCopyStatus.textContent = "";
+      refs.layoutPathBox.classList.add("hidden");
+    }
+
+    function createPathFromInputs() {
+      const values = getPathLookupValues();
+      refs.lookupStatus.textContent = "";
+
+      if (!isValidNumericId(values.eogId) || !isValidNumericId(values.venueId) || !isValidNumericId(values.eventId)) {
+        refs.lookupStatus.textContent = "Enter numeric values for EOGID, VenueID, and EventID.";
+        refs.resolvedPath.textContent = buildInventoryPath(values, true);
+        return;
+      }
+
+      const uncPath = buildInventoryPath(values, false);
+      refs.resolvedPath.textContent = uncPath;
+      refs.lookupStatus.textContent = "Path created.";
+    }
+
+    function tryCopyLookupPathForFileDialog() {
+      const values = getPathLookupValues();
+      if (!isValidNumericId(values.eogId) || !isValidNumericId(values.venueId) || !isValidNumericId(values.eventId)) {
+        return;
+      }
+
+      const uncPath = buildInventoryPath(values, false);
+      copyTextToClipboard(uncPath)
+        .then(() => {
+          refs.lookupStatus.textContent = "Path copied. Paste it in the Open dialog.";
+        })
+        .catch(() => {
+          refs.lookupStatus.textContent = `Could not copy path automatically: ${uncPath}`;
+        });
+    }
+
     function onPurchaseListClick(event) {
       const copyButton = event.target.closest("button[data-copy-seatids]");
       if (!copyButton) {
@@ -1097,10 +1396,10 @@
       clearMessages();
       copyTextToClipboard(decoded)
         .then(() => {
-          refs.status.textContent = "SeatId kopierade till clipboard.";
+          refs.status.textContent = "Seat IDs copied to clipboard.";
         })
         .catch(() => {
-          refs.error.textContent = "Kunde inte kopiera SeatId till clipboard.";
+          refs.error.textContent = "Could not copy Seat IDs to clipboard.";
         });
     }
 
@@ -1116,7 +1415,7 @@
     async function loadFile(file) {
       try {
         clearMessages();
-        refs.status.textContent = "Läser fil...";
+        refs.status.textContent = "Reading file...";
         const text = await file.text();
 
         const parsed = parseJournal(text);
@@ -1130,11 +1429,12 @@
         refs.dropZone.classList.add("hidden");
         refs.filtersPanel.classList.remove("hidden");
         refs.dataPanel.classList.remove("hidden");
+        updateLayoutPathInfo(parsed.metadata);
 
         renderAll();
         refs.status.textContent = formatLoadedStatus(parsed.metadata);
       } catch (error) {
-        refs.error.textContent = `Kunde inte läsa filen: ${error.message}`;
+        refs.error.textContent = `Could not read file: ${error.message}`;
         refs.status.textContent = "";
       }
     }
@@ -1211,7 +1511,7 @@
 
       const timestampRaw = parts[0].trim();
       const typeRaw = parts[1].trim();
-      const type = typeRaw || "(okänd)";
+      const type = typeRaw || "(unknown)";
 
       const fields = {};
       const extras = [];
@@ -1316,9 +1616,10 @@
       refs.typeFilter.value = "";
       refs.showPurchaseIds.checked = true;
       refs.showHolds.checked = true;
-      refs.fileName.textContent = "Ingen fil vald.";
+      refs.fileName.textContent = "No file selected.";
       refs.groupCount.textContent = "";
       refs.purchaseList.innerHTML = "";
+      clearLayoutPathInfo();
 
       refs.dropZone.classList.remove("hidden");
       refs.filtersPanel.classList.add("hidden");
@@ -1355,15 +1656,15 @@
     function renderPurchIdGroups() {
       const groups = getFilteredGroups();
       if (!state.showPurchaseIds && !state.showHolds) {
-        refs.groupCount.textContent = "Välj minst en kategori.";
-        refs.purchaseList.innerHTML = '<div class="subtle">Inget visas eftersom båda kategorierna är avmarkerade.</div>';
+        refs.groupCount.textContent = "Select at least one category.";
+        refs.purchaseList.innerHTML = '<div class="subtle">Nothing is shown because both categories are unchecked.</div>';
         return;
       }
 
-      refs.groupCount.textContent = `${formatNumber(groups.length)} grupper visas`;
+      refs.groupCount.textContent = `${formatNumber(groups.length)} groups shown`;
 
       if (groups.length === 0) {
-        refs.purchaseList.innerHTML = '<div class="subtle">Ingen grupp matchar filtret.</div>';
+        refs.purchaseList.innerHTML = '<div class="subtle">No groups match the filter.</div>';
         return;
       }
 
@@ -1385,7 +1686,7 @@
     function renderPurchIdGroup(group) {
       const cards = group.events.length
         ? group.events.map(renderEventCard).join("")
-        : '<div class="subtle">Inga händelser i gruppen.</div>';
+        : '<div class="subtle">No events in this group.</div>';
 
       return `
         <details class="purchase-item" data-key="${encodeKey(group.key)}">
@@ -1480,7 +1781,7 @@
       const eogId = metadata?.eogId || "-";
       const layoutName = metadata?.layoutName || "-";
       return [
-        "Fil inläst.",
+        "File loaded.",
         `EventId: ${eventId}`,
         `VenueId: ${venueId}`,
         `EOGID: ${eogId}`,
