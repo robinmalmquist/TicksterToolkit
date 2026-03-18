@@ -442,6 +442,15 @@
       accent-color: var(--tick-blue-dark);
     }
 
+    .checkbox-chip[aria-disabled="true"] {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    .checkbox-chip[aria-disabled="true"] input {
+      cursor: not-allowed;
+    }
+
     label {
       color: var(--tick-grey);
       font-size: 0.78rem;
@@ -752,6 +761,14 @@
       gap: 0.35rem;
     }
 
+    .event-mini-grid--reservation {
+      grid-template-columns:
+        minmax(150px, 1.25fr)
+        minmax(300px, 3.1fr)
+        minmax(82px, 0.62fr)
+        minmax(82px, 0.62fr);
+    }
+
     .event-mini-field {
       border: 1px solid #edf2f7;
       border-radius: var(--radius-pill);
@@ -760,11 +777,24 @@
       min-width: 0;
     }
 
+    .event-mini-field--seat .event-mini-value {
+      font-size: 0.9rem;
+      line-height: 1.35;
+    }
+
     .event-mini-field-head {
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 0.4rem;
+    }
+
+    .event-mini-copy-actions {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      flex-wrap: wrap;
+      justify-content: flex-end;
     }
 
     .btn-copy-ids {
@@ -1023,13 +1053,17 @@
     .event-mini-value {
       display: block;
       color: var(--tick-grey-dark);
-      font-size: 0.75rem;
+      font-size: 0.85rem;
       font-family: var(--font-mono);
       overflow-wrap: anywhere;
+      white-space: pre-line;
       margin-top: 0.05rem;
     }
 
     @media (max-width: 720px) {
+      .event-mini-grid--reservation {
+        grid-template-columns: 1fr;
+      }
       .upload-grid {
         grid-template-columns: 1fr;
       }
@@ -1084,6 +1118,7 @@
 
           <div class="upload-controls">
             <input id="fileInput" type="file" accept=".tjn,.txt,text/plain" class="hidden" />
+            <input id="layoutFileInput" type="file" accept=".tlt,.txt,text/plain" class="hidden" />
             <button id="pickBtn" class="btn btn-primary" type="button">Choose File</button>
             <button id="resetBtn" class="btn" type="button">Clear</button>
             <span id="fileName" class="subtle">No file selected.</span>
@@ -1107,7 +1142,7 @@
             <div class="layout-link-title">Generated path to seating layout file</div>
             <code id="layoutPathText" class="layout-link-text"></code>
             <div class="layout-link-actions">
-              <button id="copyLayoutPathBtn" class="btn" type="button">Copy Path</button>
+              <button id="loadLayoutFileBtn" class="btn" type="button">Load Layout File</button>
               <span id="layoutPathCopyStatus" class="subtle layout-link-copy-status"></span>
             </div>
           </div>
@@ -1133,6 +1168,10 @@
             <label class="checkbox-chip" for="showHolds">
               <input id="showHolds" type="checkbox" checked />
               <span>Holds</span>
+            </label>
+            <label id="showActualSeatInfoChip" class="checkbox-chip" for="showActualSeatInfo" aria-disabled="true">
+              <input id="showActualSeatInfo" type="checkbox" disabled />
+              <span>Show actual seat info</span>
             </label>
           </div>
         </div>
@@ -1165,6 +1204,9 @@
       typeFilter: "",
       showPurchaseIds: true,
       showHolds: true,
+      showActualSeatInfo: false,
+      layoutSeatInfoById: new Map(),
+      layoutFileName: "",
       expandedPurchIds: new Set(),
     };
 
@@ -1179,15 +1221,18 @@
       resolvedPath: document.getElementById("resolvedPath"),
       layoutPathBox: document.getElementById("layoutPathBox"),
       layoutPathText: document.getElementById("layoutPathText"),
-      copyLayoutPathBtn: document.getElementById("copyLayoutPathBtn"),
+      loadLayoutFileBtn: document.getElementById("loadLayoutFileBtn"),
       layoutPathCopyStatus: document.getElementById("layoutPathCopyStatus"),
       fileInput: document.getElementById("fileInput"),
+      layoutFileInput: document.getElementById("layoutFileInput"),
       pickBtn: document.getElementById("pickBtn"),
       resetBtn: document.getElementById("resetBtn"),
       clearFiltersBtn: document.getElementById("clearFiltersBtn"),
       typeFilter: document.getElementById("typeFilter"),
       showPurchaseIds: document.getElementById("showPurchaseIds"),
       showHolds: document.getElementById("showHolds"),
+      showActualSeatInfo: document.getElementById("showActualSeatInfo"),
+      showActualSeatInfoChip: document.getElementById("showActualSeatInfoChip"),
       dropZone: document.getElementById("dropZone"),
       fileName: document.getElementById("fileName"),
       status: document.getElementById("status"),
@@ -1204,11 +1249,12 @@
     refs.pathLookupForm.addEventListener("submit", onPathLookupSubmit);
     refs.pickBtn.addEventListener("click", () => refs.fileInput.click());
     refs.fileInput.addEventListener("change", onFilePicked);
+    refs.layoutFileInput.addEventListener("change", onLayoutFilePicked);
     refs.resetBtn.addEventListener("click", resetState);
     refs.clearFiltersBtn.addEventListener("click", clearFilters);
     refs.purchaseList.addEventListener("click", onPurchaseListClick);
     refs.dropZone.addEventListener("click", onDropZoneClick);
-    refs.copyLayoutPathBtn.addEventListener("click", onCopyLayoutPathClick);
+    refs.loadLayoutFileBtn.addEventListener("click", onLoadLayoutFileClick);
 
     refs.typeFilter.addEventListener("input", () => {
       state.typeFilter = refs.typeFilter.value.trim().toLowerCase();
@@ -1222,6 +1268,11 @@
 
     refs.showHolds.addEventListener("change", () => {
       state.showHolds = refs.showHolds.checked;
+      renderAll();
+    });
+
+    refs.showActualSeatInfo.addEventListener("change", () => {
+      state.showActualSeatInfo = refs.showActualSeatInfo.checked;
       renderAll();
     });
 
@@ -1244,6 +1295,7 @@
     });
 
     clearLayoutPathInfo();
+    clearLoadedLayoutData();
 
     function initTheme() {
       let theme = "light";
@@ -1290,19 +1342,17 @@
       tryCopyLookupPathForFileDialog();
     }
 
-    function onCopyLayoutPathClick() {
+    function onLoadLayoutFileClick() {
       const layoutPath = String(refs.layoutPathText.textContent || "").trim();
       refs.layoutPathCopyStatus.textContent = "";
-      if (!layoutPath) {
-        return;
+      const copied = layoutPath ? copyTextToClipboardSync(layoutPath) : false;
+      if (layoutPath) {
+        refs.layoutPathCopyStatus.textContent = copied
+          ? "Path copied. Choose a TLT file."
+          : `Could not copy path automatically: ${layoutPath}`;
       }
-      copyTextToClipboard(layoutPath)
-        .then(() => {
-          refs.layoutPathCopyStatus.textContent = "Path copied to clipboard.";
-        })
-        .catch(() => {
-          refs.layoutPathCopyStatus.textContent = "Could not copy path.";
-        });
+      refs.layoutFileInput.value = "";
+      refs.layoutFileInput.click();
     }
 
     function getPathLookupValues() {
@@ -1382,12 +1432,15 @@
     }
 
     function onPurchaseListClick(event) {
-      const copyButton = event.target.closest("button[data-copy-seatids]");
+      const copyButton = event.target.closest("button[data-copy-seatids], button[data-copy-seatinfo]");
       if (!copyButton) {
         return;
       }
 
-      const encoded = copyButton.getAttribute("data-copy-seatids") || "";
+      const isCopySeatInfo = copyButton.hasAttribute("data-copy-seatinfo");
+      const encoded = isCopySeatInfo
+        ? (copyButton.getAttribute("data-copy-seatinfo") || "")
+        : (copyButton.getAttribute("data-copy-seatids") || "");
       const decoded = decodeKey(encoded);
       if (!decoded) {
         return;
@@ -1396,10 +1449,14 @@
       clearMessages();
       copyTextToClipboard(decoded)
         .then(() => {
-          refs.status.textContent = "Seat IDs copied to clipboard.";
+          refs.status.textContent = isCopySeatInfo
+            ? "Seat info copied to clipboard."
+            : "Seat IDs copied to clipboard.";
         })
         .catch(() => {
-          refs.error.textContent = "Could not copy Seat IDs to clipboard.";
+          refs.error.textContent = isCopySeatInfo
+            ? "Could not copy seat info to clipboard."
+            : "Could not copy Seat IDs to clipboard.";
         });
     }
 
@@ -1410,6 +1467,15 @@
       }
       await loadFile(file);
       refs.fileInput.value = "";
+    }
+
+    async function onLayoutFilePicked(event) {
+      const [file] = event.target.files || [];
+      if (!file) {
+        return;
+      }
+      await loadLayoutFile(file);
+      refs.layoutFileInput.value = "";
     }
 
     async function loadFile(file) {
@@ -1424,6 +1490,7 @@
         state.groups = parsed.groups;
         state.metadata = parsed.metadata;
         state.expandedPurchIds = new Set();
+        clearLoadedLayoutData();
 
         refs.fileName.textContent = file.name;
         refs.dropZone.classList.add("hidden");
@@ -1436,6 +1503,30 @@
       } catch (error) {
         refs.error.textContent = `Could not read file: ${error.message}`;
         refs.status.textContent = "";
+      }
+    }
+
+    async function loadLayoutFile(file) {
+      try {
+        refs.error.textContent = "";
+        refs.layoutPathCopyStatus.textContent = "Reading layout file...";
+        const text = await file.text();
+        const parsed = parseLayout(text);
+
+        if (parsed.seatInfoById.size === 0) {
+          throw new Error("No SeatAdd entries were found in the selected file.");
+        }
+
+        state.layoutSeatInfoById = parsed.seatInfoById;
+        state.layoutFileName = file.name;
+        updateActualSeatInfoAvailability();
+        renderAll();
+
+        refs.layoutPathCopyStatus.textContent = `Loaded ${file.name} (${formatNumber(parsed.seatInfoById.size)} seats).`;
+      } catch (error) {
+        clearLoadedLayoutData();
+        refs.layoutPathCopyStatus.textContent = "";
+        refs.error.textContent = `Could not read layout file: ${error.message}`;
       }
     }
 
@@ -1501,6 +1592,84 @@
       const metadata = extractFileMetadata(events);
 
       return { events, groups: [...purchaseGroups, ...holdGroups], metadata };
+    }
+
+    function parseLayout(text) {
+      const lines = String(text || "").split(/\r?\n/).filter((line) => line.trim() !== "");
+      const sectionNamesById = new Map();
+      const rowInfoById = new Map();
+      const seatEntries = [];
+
+      for (let index = 0; index < lines.length; index += 1) {
+        const event = parseLine(lines[index], index);
+        if (!event) {
+          continue;
+        }
+
+        if (event.typeLower === "sectionadd") {
+          const sectionId = getFirstFieldValue(event, "SectionId");
+          if (!sectionId) {
+            continue;
+          }
+          const sectionName = getFirstFieldValue(event, "Name") || sectionId;
+          sectionNamesById.set(sectionId, sectionName);
+          continue;
+        }
+
+        if (event.typeLower === "rowadd") {
+          const rowId = getFirstFieldValue(event, "RowId");
+          if (!rowId) {
+            continue;
+          }
+          rowInfoById.set(rowId, {
+            rowId,
+            name: getFirstFieldValue(event, "Name") || rowId,
+            sectionId: getParentSeatNodeId(rowId),
+          });
+          continue;
+        }
+
+        if (event.typeLower === "seatadd") {
+          const seatId = getFirstFieldValue(event, "SeatId");
+          if (!seatId) {
+            continue;
+          }
+          seatEntries.push({
+            seatId,
+            seatName: getFirstFieldValue(event, "Name") || seatId,
+            rowId: getParentSeatNodeId(seatId),
+          });
+        }
+      }
+
+      const seatInfoById = new Map();
+      for (const seat of seatEntries) {
+        const rowInfo = rowInfoById.get(seat.rowId);
+        const sectionId = rowInfo?.sectionId || getParentSeatNodeId(seat.rowId);
+        const sectionName = sectionNamesById.get(sectionId) || sectionId || "(Unknown section)";
+        const rowName = rowInfo?.name || seat.rowId || "(Unknown row)";
+        const seatName = seat.seatName || seat.seatId;
+
+        seatInfoById.set(seat.seatId, {
+          sectionName,
+          rowName,
+          seatName,
+        });
+      }
+
+      return { seatInfoById };
+    }
+
+    function getParentSeatNodeId(value) {
+      const text = String(value || "").trim();
+      if (!text) {
+        return "";
+      }
+      const separator = text.lastIndexOf(".");
+      if (separator <= 0) {
+        return "";
+      }
+      return text.slice(0, separator);
     }
 
     function parseLine(line, index) {
@@ -1598,8 +1767,10 @@
       state.typeFilter = "";
       state.showPurchaseIds = true;
       state.showHolds = true;
+      state.showActualSeatInfo = false;
       refs.showPurchaseIds.checked = true;
       refs.showHolds.checked = true;
+      refs.showActualSeatInfo.checked = false;
       renderAll();
     }
 
@@ -1611,21 +1782,45 @@
       state.typeFilter = "";
       state.showPurchaseIds = true;
       state.showHolds = true;
+      state.showActualSeatInfo = false;
       state.expandedPurchIds = new Set();
+      state.layoutSeatInfoById = new Map();
+      state.layoutFileName = "";
 
       refs.typeFilter.value = "";
       refs.showPurchaseIds.checked = true;
       refs.showHolds.checked = true;
+      refs.showActualSeatInfo.checked = false;
       refs.fileName.textContent = "No file selected.";
       refs.groupCount.textContent = "";
       refs.purchaseList.innerHTML = "";
       clearLayoutPathInfo();
+      updateActualSeatInfoAvailability();
 
       refs.dropZone.classList.remove("hidden");
       refs.filtersPanel.classList.add("hidden");
       refs.dataPanel.classList.add("hidden");
 
       clearMessages();
+    }
+
+    function clearLoadedLayoutData() {
+      state.layoutSeatInfoById = new Map();
+      state.layoutFileName = "";
+      state.showActualSeatInfo = false;
+      refs.showActualSeatInfo.checked = false;
+      updateActualSeatInfoAvailability();
+    }
+
+    function updateActualSeatInfoAvailability() {
+      const enabled = state.layoutSeatInfoById.size > 0;
+      refs.showActualSeatInfo.disabled = !enabled;
+      refs.showActualSeatInfoChip.setAttribute("aria-disabled", enabled ? "false" : "true");
+
+      if (!enabled) {
+        state.showActualSeatInfo = false;
+        refs.showActualSeatInfo.checked = false;
+      }
     }
 
     function clearMessages() {
@@ -1704,18 +1899,20 @@
 
     function renderEventCard(event) {
       const isHold = event.typeLower === "holdupsert";
+      const seatField = buildSeatField(event, { includeInfoCopyButton: !isHold });
+      const gridClass = isHold ? "event-mini-grid" : "event-mini-grid event-mini-grid--reservation";
       const fields = isHold
         ? [
             { label: "HoldState", values: getFieldValues(event, "HoldState") },
             { label: "Name", values: getFieldValues(event, "Name") },
-            { label: "SeatId", values: getFieldValues(event, "SeatId"), enableCopy: true },
+            seatField,
             { label: "HoldId", values: getFieldValues(event, "HoldId") },
           ]
         : [
-            { label: "ReservationState", values: getFieldValues(event, "ReservationState") },
-            { label: "SeatId", values: getFieldValues(event, "SeatId"), enableCopy: true },
-            { label: "GFSID", values: getFieldValues(event, "GFSID") },
-            { label: "Price", values: getFieldValues(event, "Price") },
+            { label: "ReservationState", values: getFieldValues(event, "ReservationState"), fieldClass: "event-mini-field--reservation-state" },
+            seatField,
+            { label: "GFSID", values: getFieldValues(event, "GFSID"), fieldClass: "event-mini-field--gfsid" },
+            { label: "Price", values: getFieldValues(event, "Price"), fieldClass: "event-mini-field--price" },
           ];
       const eventTypeClass = getEventTypeClass(event.type);
       const stateLabel = getEventStateLabel(event);
@@ -1726,28 +1923,77 @@
             <span class="event-mini-time">${escapeHtml(formatTimestampNoMillis(event.timestampRaw))}</span>
             <span class="event-mini-type ${eventTypeClass}">${escapeHtml(stateLabel)}</span>
           </div>
-          <div class="event-mini-grid">
-            ${fields.map((field) => renderEventField(field.label, field.values, { enableCopy: !!field.enableCopy })).join("")}
+          <div class="${gridClass}">
+            ${fields
+              .map((field) =>
+                renderEventField(field.label, field.values, {
+                  enableCopy: !!field.enableCopy,
+                  displayText: field.displayText || "",
+                  copyValues: field.copyValues || field.values,
+                  extraCopyValue: field.extraCopyValue || "",
+                  extraCopyLabel: field.extraCopyLabel || "",
+                  fieldClass: field.fieldClass || "",
+                })
+              )
+              .join("")}
           </div>
         </article>
       `;
     }
 
     function renderEventField(label, values, options = {}) {
-      const valueText = values.length > 0 ? values.join(", ") : "-";
-      const copyButton = options.enableCopy && values.length > 0
-        ? `<button type="button" class="btn-copy-ids" data-copy-seatids="${encodeKey(values.join(", "))}">Copy IDs</button>`
+      const copyValues = options.copyValues || values;
+      const valueText = options.displayText || (values.length > 0 ? values.join(", ") : "-");
+      const fieldClass = options.fieldClass ? ` ${options.fieldClass}` : "";
+      const copyButtons = [];
+      if (options.enableCopy && copyValues.length > 0) {
+        copyButtons.push(`<button type="button" class="btn-copy-ids" data-copy-seatids="${encodeKey(copyValues.join(", "))}">Copy IDs</button>`);
+      }
+      if (options.extraCopyValue) {
+        const extraCopyLabel = options.extraCopyLabel || "Copy";
+        copyButtons.push(`<button type="button" class="btn-copy-ids" data-copy-seatinfo="${encodeKey(options.extraCopyValue)}">${escapeHtml(extraCopyLabel)}</button>`);
+      }
+      const copyActions = copyButtons.length > 0
+        ? `<span class="event-mini-copy-actions">${copyButtons.join("")}</span>`
         : "";
 
       return `
-        <div class="event-mini-field">
+        <div class="event-mini-field${fieldClass}">
           <div class="event-mini-field-head">
             <span class="event-mini-label">${escapeHtml(label)}</span>
-            ${copyButton}
+            ${copyActions}
           </div>
           <span class="event-mini-value">${escapeHtml(valueText)}</span>
         </div>
       `;
+    }
+
+    function buildSeatField(event, options = {}) {
+      const seatIds = getFieldValues(event, "SeatId");
+      if (!state.showActualSeatInfo || state.layoutSeatInfoById.size === 0) {
+        return { label: "SeatId", values: seatIds, enableCopy: true };
+      }
+
+      const displayLines = seatIds.map(formatSeatInfoLine);
+      const fullSeatInfo = displayLines.join("\n");
+      return {
+        label: "Seat",
+        values: seatIds,
+        displayText: displayLines.length > 0 ? fullSeatInfo : "-",
+        copyValues: seatIds,
+        extraCopyValue: options.includeInfoCopyButton && fullSeatInfo ? fullSeatInfo : "",
+        extraCopyLabel: options.includeInfoCopyButton && fullSeatInfo ? "Copy All info" : "",
+        fieldClass: "event-mini-field--seat",
+        enableCopy: true,
+      };
+    }
+
+    function formatSeatInfoLine(seatId) {
+      const info = state.layoutSeatInfoById.get(seatId);
+      const sectionName = info?.sectionName || "(Unknown section)";
+      const rowName = info?.rowName || "(Unknown row)";
+      const seatName = info?.seatName || seatId || "(Unknown seat)";
+      return `${sectionName} / ${rowName} / ${seatName}`;
     }
 
     function getFieldValues(event, key) {
@@ -1820,16 +2066,7 @@
       return "";
     }
 
-    async function copyTextToClipboard(text) {
-      if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
-        try {
-          await navigator.clipboard.writeText(text);
-          return;
-        } catch {
-          // fallback below
-        }
-      }
-
+    function copyTextToClipboardSync(text) {
       const textArea = document.createElement("textarea");
       textArea.value = text;
       textArea.setAttribute("readonly", "");
@@ -1840,6 +2077,20 @@
       textArea.setSelectionRange(0, text.length);
       const copied = document.execCommand("copy");
       document.body.removeChild(textArea);
+      return copied;
+    }
+
+    async function copyTextToClipboard(text) {
+      if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
+        try {
+          await navigator.clipboard.writeText(text);
+          return;
+        } catch {
+          // fallback below
+        }
+      }
+
+      const copied = copyTextToClipboardSync(text);
       if (!copied) {
         throw new Error("copy failed");
       }
