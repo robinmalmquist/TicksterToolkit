@@ -2338,7 +2338,7 @@
       gap: 0.15rem;
       padding: 0.15rem;
       max-height: 70vh;
-      overflow: auto;
+      overflow: visible;
     }
 
     .context-menu__item {
@@ -2372,6 +2372,50 @@
       background: transparent;
     }
 
+    .context-submenu {
+      position: relative;
+      width: 100%;
+    }
+
+    .context-menu__item--submenu::after {
+      content: "\203A";
+      margin-left: auto;
+      opacity: 0.75;
+      font-size: 0.95rem;
+      line-height: 1;
+      padding-left: 0.5rem;
+    }
+
+    .context-submenu__panel {
+      position: absolute;
+      top: 0;
+      left: calc(100% + 6px);
+      display: none;
+      flex-direction: column;
+      gap: 0.12rem;
+      min-width: 190px;
+      background: #ffffff;
+      border: 1px solid #dbe0e4;
+      border-radius: 10px;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.18);
+      padding: 0.3rem;
+      z-index: 65;
+    }
+
+    .context-submenu:hover > .context-submenu__panel,
+    .context-submenu:focus-within > .context-submenu__panel {
+      display: flex;
+    }
+
+    .context-submenu--disabled > .context-submenu__panel {
+      display: none !important;
+    }
+
+    .context-menu--submenu-left .context-submenu__panel {
+      left: auto;
+      right: calc(100% + 6px);
+    }
+
     html[data-theme="dark"] .context-menu {
       background: #111827;
       border-color: #2b3442;
@@ -2386,6 +2430,12 @@
     html[data-theme="dark"] .context-menu__item:disabled {
       color: #6b7280;
       opacity: 0.65;
+    }
+
+    html[data-theme="dark"] .context-submenu__panel {
+      background: #111827;
+      border-color: #2b3442;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.45);
     }
 
     html[data-theme="dark"] #appMenuOverlay {
@@ -2784,12 +2834,21 @@
       <div class="context-menu__list">
         <button id="editSeatsMenuItem" class="context-menu__item" type="button">Edit seat(s)</button>
         <button id="editRowsMenuItem" class="context-menu__item" type="button">Edit row(s)</button>
+        <button id="editSectionsMenuItem" class="context-menu__item" type="button">Edit section</button>
         <button id="mergeRowsMenuItem" class="context-menu__item" type="button">Merge rows</button>
         <button id="splitRowMenuItem" class="context-menu__item" type="button">Split row at selection</button>
-        <button id="equalizeRowsMenuItem" class="context-menu__item" type="button">Equalize row distance</button>
+        <div id="equalizeRowsSubmenuItem" class="context-submenu">
+          <button id="equalizeRowsMenuItem" class="context-menu__item context-menu__item--submenu" type="button">Equalize row distance</button>
+          <div class="context-submenu__panel">
+            <button id="equalizeRowsByFirstSeatMenuItem" class="context-menu__item" type="button">From first seat</button>
+            <button id="equalizeRowsByCenterMenuItem" class="context-menu__item" type="button">From Row Center</button>
+            <button id="equalizeRowsByLastSeatMenuItem" class="context-menu__item" type="button">From last seat</button>
+          </div>
+        </div>
         <button id="equalizeSeatsMenuItem" class="context-menu__item" type="button">Equalize seat distance</button>
+        <button id="reverseSeatNamesMenuItem" class="context-menu__item" type="button">Reverse seat names</button>
+        <button id="reverseSeatIdsMenuItem" class="context-menu__item" type="button">Reverse SeatIds</button>
         <button id="mimicRowShapeMenuItem" class="context-menu__item" type="button">Mimic shape of first selected row</button>
-        <button id="editSectionsMenuItem" class="context-menu__item" type="button">Edit section</button>
         <button id="attributeMenuItem" class="context-menu__item" type="button">Attributes</button>
         <button id="goodnessFromPointMenuItem" class="context-menu__item" type="button">Set goodness from point</button>
         <button id="blockSelectionMenuItem" class="context-menu__item" type="button">Block selected seat(s)</button>
@@ -2829,6 +2888,7 @@
             <div class="alt-section-toolbar__group alt-section-toolbar__group--tools">
               <button id="altToolSelectBtn" class="c-button c-button--ghost c-button--small c-button--active">Select (S)</button>
               <button id="altToolDrawBtn" class="c-button c-button--ghost c-button--small">Draw (D)</button>
+              <button id="altUndoBtn" class="c-button c-button--ghost c-button--small" title="Undo (Ctrl/Cmd+Z)">Undo</button>
             </div>
             <div class="alt-section-toolbar__divider" aria-hidden="true"></div>
             <div class="alt-section-toolbar__group">
@@ -3290,8 +3350,14 @@
   const editRowsMenuItem = document.getElementById("editRowsMenuItem");
   const mergeRowsMenuItem = document.getElementById("mergeRowsMenuItem");
   const splitRowMenuItem = document.getElementById("splitRowMenuItem");
+  const equalizeRowsSubmenuItem = document.getElementById("equalizeRowsSubmenuItem");
   const equalizeRowsMenuItem = document.getElementById("equalizeRowsMenuItem");
+  const equalizeRowsByFirstSeatMenuItem = document.getElementById("equalizeRowsByFirstSeatMenuItem");
+  const equalizeRowsByCenterMenuItem = document.getElementById("equalizeRowsByCenterMenuItem");
+  const equalizeRowsByLastSeatMenuItem = document.getElementById("equalizeRowsByLastSeatMenuItem");
   const equalizeSeatsMenuItem = document.getElementById("equalizeSeatsMenuItem");
+  const reverseSeatNamesMenuItem = document.getElementById("reverseSeatNamesMenuItem");
+  const reverseSeatIdsMenuItem = document.getElementById("reverseSeatIdsMenuItem");
   const mimicRowShapeMenuItem = document.getElementById("mimicRowShapeMenuItem");
   const editSectionsMenuItem = document.getElementById("editSectionsMenuItem");
   const toggleSeatShapeMenuItem = document.getElementById("toggleSeatShapeMenuItem");
@@ -3434,6 +3500,7 @@
   const altSeatTooltip = document.getElementById("altSeatTooltip");
   const altToolSelectBtn = document.getElementById("altToolSelectBtn");
   const altToolDrawBtn = document.getElementById("altToolDrawBtn");
+  const altUndoBtn = document.getElementById("altUndoBtn");
   const altGapNewBtn = document.getElementById("altGapNewBtn");
   const altReverseSeatOrderBtn = document.getElementById("altReverseSeatOrderBtn");
   const altSetStartSeatBtn = document.getElementById("altSetStartSeatBtn");
@@ -3493,6 +3560,9 @@
   const ALT_MAX_SLOTS = 100;
   let altSeatNumberingMode = "row";
   let altContinuousStartSeat = 1;
+  let altHistory = [];
+  let altHistoryIndex = -1;
+  const ALT_HISTORY_LIMIT = 200;
 
   let seats = [];
   let highlightedSeatIds = new Set();
@@ -12803,72 +12873,62 @@ function nudgeSelection(dxScreen, dyScreen) {
     return changed;
   }
 
-  function equalizeRowDistanceForSelection() {
+  function getRowEqualizeAnchor(rowSeats, anchorMode = "center") {
+    if (!rowSeats || !rowSeats.length) return null;
+    if (anchorMode === "center") {
+      return computeRowCenter(rowSeats);
+    }
+    const sorted = sortSeatsInRow(rowSeats);
+    if (!sorted.length) return null;
+    const sourceSeat = anchorMode === "last" ? sorted[sorted.length - 1] : sorted[0];
+    if (!sourceSeat) return null;
+    return { x: sourceSeat.vx, y: sourceSeat.vy };
+  }
+
+  function equalizeRowDistanceForSelection(anchorMode = "center") {
     const rows = getSelectedRows();
     if (rows.size < 2) return false;
 
     const rowInfos = [];
-    let sumX = 0;
-    let sumY = 0;
-    let dirCount = 0;
-    let refDir = null;
-
     for (const [rowId, rowSeats] of rows.entries()) {
       if (!rowSeats || !rowSeats.length) continue;
-      const center = computeRowCenter(rowSeats);
-      const dir = computeRowDirection(rowSeats);
-      if (dir) {
-        if (!refDir) {
-          refDir = { ...dir };
-        } else if (dir.x * refDir.x + dir.y * refDir.y < 0) {
-          dir.x = -dir.x;
-          dir.y = -dir.y;
-        }
-        sumX += dir.x;
-        sumY += dir.y;
-        dirCount += 1;
-      }
-      rowInfos.push({ rowId, seats: rowSeats, center });
+      const anchor = getRowEqualizeAnchor(rowSeats, anchorMode);
+      if (!anchor) continue;
+      rowInfos.push({ rowId, seats: rowSeats, anchor });
     }
 
     if (rowInfos.length < 2) return false;
 
-    let dirX = 1;
-    let dirY = 0;
-    if (dirCount > 0) {
-      dirX = sumX / dirCount;
-      dirY = sumY / dirCount;
-      const len = Math.hypot(dirX, dirY);
-      if (len > 1e-3) {
-        dirX /= len;
-        dirY /= len;
-      } else {
-        dirX = 1;
-        dirY = 0;
-      }
-    }
-    const normX = -dirY;
-    const normY = dirX;
-
-    rowInfos.forEach((info) => {
-      info.projection = info.center.x * normX + info.center.y * normY;
+    rowInfos.sort((a, b) => {
+      const pa = parseRowIdParts(a.rowId);
+      const pb = parseRowIdParts(b.rowId);
+      if (pa.major != null && pb.major != null && pa.major !== pb.major) return pa.major - pb.major;
+      if (pa.major != null && pb.major == null) return -1;
+      if (pa.major == null && pb.major != null) return 1;
+      if (pa.minor != null && pb.minor != null && pa.minor !== pb.minor) return pa.minor - pb.minor;
+      if (pa.minor != null && pb.minor == null) return -1;
+      if (pa.minor == null && pb.minor != null) return 1;
+      if (pa.row != null && pb.row != null && pa.row !== pb.row) return pa.row - pb.row;
+      if (pa.row != null && pb.row == null) return -1;
+      if (pa.row == null && pb.row != null) return 1;
+      return String(a.rowId).localeCompare(String(b.rowId), "sv", { numeric: true, sensitivity: "base" });
     });
-    rowInfos.sort((a, b) => a.projection - b.projection);
 
-    const first = rowInfos[0].projection;
-    const last = rowInfos[rowInfos.length - 1].projection;
-    const span = last - first;
-    if (!Number.isFinite(span) || Math.abs(span) < 1e-6) return false;
-    const gap = span / (rowInfos.length - 1);
-    if (!Number.isFinite(gap)) return false;
+    const firstRow = rowInfos[0];
+    const lastRow = rowInfos[rowInfos.length - 1];
+    const spanX = lastRow.anchor.x - firstRow.anchor.x;
+    const spanY = lastRow.anchor.y - firstRow.anchor.y;
+    const spanLen = Math.hypot(spanX, spanY);
+    if (!Number.isFinite(spanLen) || spanLen < 1e-6) return false;
 
     let changed = false;
     rowInfos.forEach((info, idx) => {
-      const target = first + gap * idx;
-      const delta = target - info.projection;
-      if (Math.abs(delta) < 1e-6) return;
-      const dx = normX * delta;
-      const dy = normY * delta;
+      const t = rowInfos.length <= 1 ? 0 : idx / (rowInfos.length - 1);
+      const targetX = firstRow.anchor.x + spanX * t;
+      const targetY = firstRow.anchor.y + spanY * t;
+      const dx = targetX - info.anchor.x;
+      const dy = targetY - info.anchor.y;
+      if (Math.abs(dx) < 1e-6 && Math.abs(dy) < 1e-6) return;
       info.seats.forEach((seat) => {
         seat.vx += dx;
         seat.vy += dy;
@@ -12923,6 +12983,172 @@ function nudgeSelection(dxScreen, dyScreen) {
       changed = true;
     }
     return changed;
+  }
+
+  function remapValueArray(values, map) {
+    if (!Array.isArray(values) || !values.length || !map || !map.size) {
+      return { next: values, changed: false };
+    }
+    const seen = new Set();
+    const next = [];
+    let changed = false;
+    values.forEach((value) => {
+      const mapped = map.get(value) || value;
+      if (mapped !== value) changed = true;
+      if (!seen.has(mapped)) {
+        seen.add(mapped);
+        next.push(mapped);
+      } else if (mapped !== value) {
+        changed = true;
+      }
+    });
+    return { next, changed };
+  }
+
+  function reverseSeatNamesForSelectedRows() {
+    if (selectionMode !== "row") return false;
+    const rows = getSelectedRows();
+    if (!rows.size) return false;
+
+    let changed = false;
+    rows.forEach((rowSeats) => {
+      const sorted = sortSeatsInRow(rowSeats);
+      if (!sorted.length) return;
+      const reversedNames = sorted.map((seat) => String(seat.name || "")).reverse();
+      sorted.forEach((seat, idx) => {
+        const nextName = reversedNames[idx] || "";
+        if (String(seat.name || "") !== nextName) {
+          seat.name = nextName;
+          changed = true;
+        }
+      });
+    });
+    return changed;
+  }
+
+  function reverseSeatIdsForSelectedRows() {
+    if (selectionMode !== "row") return false;
+    const rows = getSelectedRows();
+    if (!rows.size) return false;
+
+    const seatIdMap = new Map();
+    rows.forEach((rowSeats) => {
+      const sorted = sortSeatsInRow(rowSeats);
+      if (sorted.length < 2) return;
+      const oldIds = sorted.map((seat) => String(seat.seatId || "").trim()).filter(Boolean);
+      if (oldIds.length < 2) return;
+      const reversed = [...oldIds].reverse();
+      oldIds.forEach((oldId, idx) => {
+        const nextId = reversed[idx];
+        if (nextId && nextId !== oldId) {
+          seatIdMap.set(oldId, nextId);
+        }
+      });
+    });
+
+    if (!seatIdMap.size) return false;
+
+    let changed = false;
+    seats.forEach((seat) => {
+      const mapped = seatIdMap.get(seat.seatId);
+      if (mapped && mapped !== seat.seatId) {
+        seat.seatId = mapped;
+        changed = true;
+      }
+    });
+    if (!changed) return false;
+
+    if (lastSelectedSeatId && seatIdMap.has(lastSelectedSeatId)) {
+      lastSelectedSeatId = seatIdMap.get(lastSelectedSeatId);
+    }
+    if (reshapePivotSeatId && seatIdMap.has(reshapePivotSeatId)) {
+      reshapePivotSeatId = seatIdMap.get(reshapePivotSeatId);
+    }
+
+    if (highlightedSeatIds.size) {
+      highlightedSeatIds = new Set(
+        Array.from(highlightedSeatIds).map((seatId) => seatIdMap.get(seatId) || seatId)
+      );
+      updateHighlightSeatsButtonLabel();
+    }
+
+    let priceRegionChanged = false;
+    priceRegions.forEach((region) => {
+      const seatRes = remapValueArray(region.seats, seatIdMap);
+      if (seatRes.changed) {
+        region.seats = seatRes.next;
+        priceRegionChanged = true;
+      }
+    });
+    if (priceRegionChanged) {
+      savePriceRegionsToStorage();
+      renderPriceRegionList();
+      updatePriceRegionUi();
+    }
+
+    let seatBlockChanged = false;
+    seatBlocks.forEach((block) => {
+      const seatRes = remapValueArray(block.seats, seatIdMap);
+      if (seatRes.changed) {
+        block.seats = seatRes.next;
+        seatBlockChanged = true;
+      }
+    });
+    if (seatBlockChanged) {
+      saveSeatBlocksToStorage();
+      renderSeatBlockList();
+    }
+
+    let numberedImportChanged = false;
+    if (numberedImportAssignmentsBySeatId instanceof Map && numberedImportAssignmentsBySeatId.size) {
+      const nextAssignments = new Map();
+      numberedImportAssignmentsBySeatId.forEach((refNo, seatId) => {
+        const mappedSeatId = seatIdMap.get(seatId) || seatId;
+        if (mappedSeatId !== seatId) numberedImportChanged = true;
+        nextAssignments.set(mappedSeatId, refNo);
+      });
+      if (nextAssignments.size !== numberedImportAssignmentsBySeatId.size) {
+        numberedImportChanged = true;
+      }
+      numberedImportAssignmentsBySeatId = nextAssignments;
+    }
+    numberedImportPurchases.forEach((purchase) => {
+      const seatRes = remapValueArray(purchase?.assignedSeatIds, seatIdMap);
+      if (seatRes.changed) {
+        purchase.assignedSeatIds = seatRes.next;
+        numberedImportChanged = true;
+      }
+    });
+    if (numberedImportBlockedSeatIds instanceof Set && numberedImportBlockedSeatIds.size) {
+      const nextBlocked = new Set();
+      numberedImportBlockedSeatIds.forEach((seatId) => {
+        const mappedSeatId = seatIdMap.get(seatId) || seatId;
+        if (mappedSeatId !== seatId) numberedImportChanged = true;
+        nextBlocked.add(mappedSeatId);
+      });
+      numberedImportBlockedSeatIds = nextBlocked;
+    }
+    if (numberedImportHoverPreviewSeatId) {
+      const mappedSeatId = seatIdMap.get(numberedImportHoverPreviewSeatId) || numberedImportHoverPreviewSeatId;
+      if (mappedSeatId !== numberedImportHoverPreviewSeatId) {
+        numberedImportHoverPreviewSeatId = mappedSeatId;
+        numberedImportChanged = true;
+      }
+    }
+    if (numberedImportHoverPreviewSeatIds instanceof Set && numberedImportHoverPreviewSeatIds.size) {
+      const nextPreviewSet = new Set();
+      numberedImportHoverPreviewSeatIds.forEach((seatId) => {
+        const mappedSeatId = seatIdMap.get(seatId) || seatId;
+        if (mappedSeatId !== seatId) numberedImportChanged = true;
+        nextPreviewSet.add(mappedSeatId);
+      });
+      numberedImportHoverPreviewSeatIds = nextPreviewSet;
+    }
+    if (numberedImportChanged && numberedImportMode) {
+      refreshNumberedImportUi();
+    }
+
+    return true;
   }
 
   function buildRowShapeTemplate(rowSeats) {
@@ -13851,6 +14077,7 @@ function nudgeSelection(dxScreen, dyScreen) {
   function closeSeatContextMenu() {
     if (!seatContextMenu) return;
     seatContextMenu.classList.remove("open");
+    seatContextMenu.classList.remove("context-menu--submenu-left");
     seatContextMenu.setAttribute("aria-hidden", "true");
   }
 
@@ -13866,8 +14093,10 @@ function nudgeSelection(dxScreen, dyScreen) {
       editRowsMenuItem,
       mergeRowsMenuItem,
       splitRowMenuItem,
-      equalizeRowsMenuItem,
+      equalizeRowsSubmenuItem,
       equalizeSeatsMenuItem,
+      reverseSeatNamesMenuItem,
+      reverseSeatIdsMenuItem,
       mimicRowShapeMenuItem,
       editSectionsMenuItem,
       attributeMenuItem,
@@ -13926,11 +14155,30 @@ function nudgeSelection(dxScreen, dyScreen) {
         const splitInfo = selectionMode === "seat" ? getSplitRowSelectionInfo(selectedSeats) : null;
         splitRowMenuItem.disabled = !splitInfo;
       }
+      const canEqualizeRows = selectionMode === "row" && rows.size >= 2;
       if (equalizeRowsMenuItem) {
-        equalizeRowsMenuItem.disabled = selectionMode !== "row" || rows.size < 2;
+        equalizeRowsMenuItem.disabled = !canEqualizeRows;
+      }
+      if (equalizeRowsByFirstSeatMenuItem) {
+        equalizeRowsByFirstSeatMenuItem.disabled = !canEqualizeRows;
+      }
+      if (equalizeRowsByCenterMenuItem) {
+        equalizeRowsByCenterMenuItem.disabled = !canEqualizeRows;
+      }
+      if (equalizeRowsByLastSeatMenuItem) {
+        equalizeRowsByLastSeatMenuItem.disabled = !canEqualizeRows;
+      }
+      if (equalizeRowsSubmenuItem) {
+        equalizeRowsSubmenuItem.classList.toggle("context-submenu--disabled", !canEqualizeRows);
       }
       if (equalizeSeatsMenuItem) {
         equalizeSeatsMenuItem.disabled = selectionMode !== "seat" || selectedSeats.length < 3;
+      }
+      if (reverseSeatNamesMenuItem) {
+        reverseSeatNamesMenuItem.disabled = selectionMode !== "row" || rows.size === 0;
+      }
+      if (reverseSeatIdsMenuItem) {
+        reverseSeatIdsMenuItem.disabled = selectionMode !== "row" || rows.size === 0;
       }
       if (mimicRowShapeMenuItem) {
         const validRows = [...rows.values()].filter(r => r.length >= 2);
@@ -13964,6 +14212,11 @@ function nudgeSelection(dxScreen, dyScreen) {
     if (top < padding) top = padding;
     seatContextMenu.style.left = `${left}px`;
     seatContextMenu.style.top = `${top}px`;
+    const finalRect = seatContextMenu.getBoundingClientRect();
+    const submenuWidth = 210;
+    const canOpenLeft = finalRect.left > submenuWidth + padding;
+    const shouldOpenLeft = (window.innerWidth - finalRect.right) < submenuWidth && canOpenLeft;
+    seatContextMenu.classList.toggle("context-menu--submenu-left", shouldOpenLeft);
   }
 
   function getSeatDirectPriceRegionId(seat) {
@@ -15096,9 +15349,32 @@ function nudgeSelection(dxScreen, dyScreen) {
     closeSeatContextMenu();
     splitRowAtSelection();
   });
-  equalizeRowsMenuItem?.addEventListener("click", () => {
+  function applyEqualizeRowsWithAnchor(anchorMode) {
     closeSeatContextMenu();
-    const changed = equalizeRowDistanceForSelection();
+    const changed = equalizeRowDistanceForSelection(anchorMode);
+    if (changed) {
+      pushHistorySnapshot();
+      hasUnsavedChanges = true;
+      updateCodeFromSeats();
+      updateSaveButton();
+      renderCanvas();
+    }
+  }
+  equalizeRowsMenuItem?.addEventListener("click", () => {
+    applyEqualizeRowsWithAnchor("center");
+  });
+  equalizeRowsByFirstSeatMenuItem?.addEventListener("click", () => {
+    applyEqualizeRowsWithAnchor("first");
+  });
+  equalizeRowsByCenterMenuItem?.addEventListener("click", () => {
+    applyEqualizeRowsWithAnchor("center");
+  });
+  equalizeRowsByLastSeatMenuItem?.addEventListener("click", () => {
+    applyEqualizeRowsWithAnchor("last");
+  });
+  equalizeSeatsMenuItem?.addEventListener("click", () => {
+    closeSeatContextMenu();
+    const changed = equalizeSeatDistanceForSelection();
     if (changed) {
       pushHistorySnapshot();
       hasUnsavedChanges = true;
@@ -15107,10 +15383,25 @@ function nudgeSelection(dxScreen, dyScreen) {
       renderCanvas();
     }
   });
-  equalizeSeatsMenuItem?.addEventListener("click", () => {
+  reverseSeatNamesMenuItem?.addEventListener("click", () => {
     closeSeatContextMenu();
-    const changed = equalizeSeatDistanceForSelection();
+    const changed = reverseSeatNamesForSelectedRows();
     if (changed) {
+      pushHistorySnapshot();
+      hasUnsavedChanges = true;
+      updateCodeFromSeats();
+      updateSaveButton();
+      renderCanvas();
+    }
+  });
+  reverseSeatIdsMenuItem?.addEventListener("click", () => {
+    closeSeatContextMenu();
+    const changed = reverseSeatIdsForSelectedRows();
+    if (changed) {
+      rebuildSeatLineIndex();
+      updatePriceRegionStatus();
+      updateSeatBlockUi();
+      updateEntryPointUi();
       pushHistorySnapshot();
       hasUnsavedChanges = true;
       updateCodeFromSeats();
@@ -15909,6 +16200,15 @@ function nudgeSelection(dxScreen, dyScreen) {
       return;
     }
 
+    const altSectionManagerOpen = !!(altSectionManagerOverlay && altSectionManagerOverlay.style.display === "flex");
+    if (altSectionManagerOpen) {
+      if (!isTextInput && (e.ctrlKey || e.metaKey) && !e.shiftKey && key === "z") {
+        e.preventDefault();
+        undoAltChange();
+      }
+      return;
+    }
+
     // Ctrl/Cmd-kombinationer
     if (e.ctrlKey || e.metaKey) {
       if (key === "s") {
@@ -16657,6 +16957,7 @@ function nudgeSelection(dxScreen, dyScreen) {
       setSectionDirty(true);
       renderAltSectionCards();
       renderAltSectionDetail();
+      pushAltHistorySnapshot();
     }
   }
 
@@ -17297,6 +17598,7 @@ function nudgeSelection(dxScreen, dyScreen) {
     renderAltSectionCards();
     renderAltSectionDetail();
     setSectionDirty(false);
+    resetAltHistory();
     if (altSectionManagerOverlay) altSectionManagerOverlay.style.display = "flex";
   }
 
@@ -17339,6 +17641,7 @@ function nudgeSelection(dxScreen, dyScreen) {
     if (nextName === current) return;
     draft.sectionName = nextName;
     setSectionDirty(true);
+    pushAltHistorySnapshot();
   }
 
   function addNewAltDraft(sectionName, rowCount) {
@@ -17361,6 +17664,7 @@ function nudgeSelection(dxScreen, dyScreen) {
     setSectionDirty(true);
     renderAltSectionCards();
     renderAltSectionDetail();
+    pushAltHistorySnapshot();
   }
 
   function updateAltControls() {
@@ -17371,6 +17675,7 @@ function nudgeSelection(dxScreen, dyScreen) {
     const hasBlock = !!block;
     if (altToolSelectBtn) altToolSelectBtn.disabled = !hasDraft;
     if (altToolDrawBtn) altToolDrawBtn.disabled = !hasDraft;
+    if (altUndoBtn) altUndoBtn.disabled = altHistoryIndex <= 0;
     if (altGapNewBtn) altGapNewBtn.disabled = !hasBlock;
     if (altReverseSeatOrderBtn) altReverseSeatOrderBtn.disabled = !hasBlock;
     if (altSetStartSeatBtn) altSetStartSeatBtn.disabled = !hasBlock;
@@ -17482,6 +17787,84 @@ function nudgeSelection(dxScreen, dyScreen) {
     return null;
   }
 
+  function cloneAltHistoryValue(value) {
+    if (Array.isArray(value)) return value.map((item) => cloneAltHistoryValue(item));
+    if (value && typeof value === "object") {
+      const cloned = {};
+      Object.keys(value).forEach((key) => {
+        cloned[key] = cloneAltHistoryValue(value[key]);
+      });
+      return cloned;
+    }
+    return value;
+  }
+
+  function captureAltHistorySnapshot() {
+    return {
+      sectionDrafts: cloneAltHistoryValue(sectionDrafts),
+      activeSectionDraftId,
+      altActiveLineIndex,
+      altSeatNumberingMode,
+      sectionDirty,
+      sectionRawTextEntries: Array.from(sectionRawText.entries())
+    };
+  }
+
+  function applyAltHistorySnapshot(snapshot) {
+    if (!snapshot) return;
+    sectionDrafts = cloneAltHistoryValue(snapshot.sectionDrafts || []);
+    activeSectionDraftId = snapshot.activeSectionDraftId || null;
+    altActiveLineIndex = Number.isFinite(snapshot.altActiveLineIndex) ? snapshot.altActiveLineIndex : null;
+    altSeatNumberingMode = snapshot.altSeatNumberingMode === "continuous" ? "continuous" : "row";
+    if (altSeatNumberingModeSelect) {
+      altSeatNumberingModeSelect.value = altSeatNumberingMode;
+    }
+    altIsDrawing = false;
+    altDrawStart = null;
+    altDrawEnd = null;
+    altDrawLineIndex = null;
+    setAltTooltip("", 0, 0, false);
+    sectionRawText.clear();
+    const entries = Array.isArray(snapshot.sectionRawTextEntries) ? snapshot.sectionRawTextEntries : [];
+    entries.forEach((entry) => {
+      if (!Array.isArray(entry) || entry.length < 2) return;
+      const key = String(entry[0] ?? "");
+      if (!key) return;
+      const value = entry[1] == null ? "" : String(entry[1]);
+      sectionRawText.set(key, value);
+    });
+    sectionDirty = !!snapshot.sectionDirty;
+    renderAltSectionCards();
+    renderAltSectionDetail();
+    setSectionDirty(sectionDirty);
+  }
+
+  function pushAltHistorySnapshot() {
+    const snapshot = captureAltHistorySnapshot();
+    altHistory = altHistory.slice(0, altHistoryIndex + 1);
+    altHistory.push(snapshot);
+    if (altHistory.length > ALT_HISTORY_LIMIT) {
+      altHistory = altHistory.slice(altHistory.length - ALT_HISTORY_LIMIT);
+    }
+    altHistoryIndex = altHistory.length - 1;
+    updateAltControls();
+  }
+
+  function resetAltHistory() {
+    altHistory = [];
+    altHistoryIndex = -1;
+    pushAltHistorySnapshot();
+  }
+
+  function undoAltChange() {
+    if (altHistoryIndex <= 0) return false;
+    altHistoryIndex -= 1;
+    const snapshot = altHistory[altHistoryIndex];
+    applyAltHistorySnapshot(snapshot);
+    updateAltControls();
+    return true;
+  }
+
   function commitAltChange() {
     const draft = getActiveDraft();
     if (!draft) return;
@@ -17507,6 +17890,7 @@ function nudgeSelection(dxScreen, dyScreen) {
     setSectionDirty(true);
     renderAltSectionCards();
     renderAltSectionDetail();
+    pushAltHistorySnapshot();
   }
 
   function applyAltGap(sameBlock) {
@@ -18271,6 +18655,9 @@ function nudgeSelection(dxScreen, dyScreen) {
 
   altToolSelectBtn?.addEventListener("click", () => setAltTool("select"));
   altToolDrawBtn?.addEventListener("click", () => setAltTool("draw"));
+  altUndoBtn?.addEventListener("click", () => {
+    undoAltChange();
+  });
   altGapNewBtn?.addEventListener("click", () => applyAltGap(false));
   altReverseSeatOrderBtn?.addEventListener("click", applyAltReverseSeatOrder);
   altSetStartSeatBtn?.addEventListener("click", applyAltSetStartSeat);
