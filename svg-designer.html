@@ -1,113 +1,322 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="sv">
 <head>
   <meta charset="UTF-8">
   <title>SVG Designer</title>
+  <link rel="icon" href="https://tickster.github.io/styleguide/logos/logo_t_circle_blue.png" type="image/png" />
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=SUSE+Mono:ital,wght@0,100..800;1,100..800&family=SUSE:ital,wght@0,100..900;1,100..900&display=swap');
+
     :root {
-      /* Tickster palette */
-      --tick-blue-100: #7cd0ff;
-      --tick-blue-500: #14a0f4;
-      --tick-blue-700: #0c6ba5;
+      --tick-blue-light: #7cd0ff;
+      --tick-blue:       #14a0f4;
+      --tick-blue-dark:  #0c6ba5;
 
-      --tick-turq-100: #6ee0db;
-      --tick-turq-500: #19bab5;
-      --tick-turq-700: #117c79;
+      --tick-turq-light: #6ee0db;
+      --tick-turq:       #19bab5;
+      --tick-turq-dark:  #117c79;
 
-      --tick-yellow-100: #ffe479;
-      --tick-yellow-500: #e6c229;
-      --tick-yellow-700: #99811c;
+      --tick-yellow-light: #ffe479;
+      --tick-yellow:       #e6c229;
+      --tick-yellow-dark:  #99811c;
 
+      --tick-grey-light: #ffffff;
+      --tick-grey:       #849099;
+      --tick-grey-dark:  #144163;
+      --tick-grey-darker:#232e36;
+
+      --tick-red-light: #e57c8c;
+      --tick-red:       #c12e44;
+      --tick-red-dark:  #801f2e;
+
+      --tick-green-light: #5cae8f;
+      --tick-green:       #007347;
+      --tick-green-dark:  #004d2f;
+
+      --app-bg: #f3f6f9;
+      --card-bg: #fff;
+      --card-border: #dbe0e4;
+      --card-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      --overlay-bg: rgba(0,0,0,0.35);
+      --overlay-bg-strong: rgba(18, 32, 53, 0.65);
+      --shadow-modal-md: 0 10px 30px rgba(0,0,0,0.12);
+      --shadow-modal-lg: 0 20px 50px rgba(0,0,0,0.25);
+      --radius-card: 4px;
+      --radius-pill: 4px;
+      --transition-fast: 0.15s ease-out;
+      --font-main: "SUSE", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: "SUSE Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Courier New", monospace;
+      --retro-border: #111111;
+      --retro-shadow: #111111;
+      --retro-text-dark: #111111;
+      --retro-text-light: #ffffff;
+      --retro-bg-default: #efd64d;
+      --retro-bg-default-hover: #f8e47d;
+      --retro-bg-primary: #f4d21b;
+      --retro-bg-primary-hover: #ffe35a;
+      --retro-bg-secondary: #5fcfbe;
+      --retro-bg-secondary-hover: #82dfd1;
+      --retro-bg-ghost: #f0eadc;
+      --retro-bg-ghost-hover: #faf3df;
+      --retro-bg-danger: #cb4a52;
+      --retro-bg-danger-hover: #de636a;
+      --retro-bg-active: #93d2ff;
+      --retro-bg-active-hover: #abdfff;
+
+      /* Compatibility aliases for existing rules */
+      --tick-blue-100: var(--tick-blue-light);
+      --tick-blue-500: var(--tick-blue);
+      --tick-blue-700: var(--tick-blue-dark);
+      --tick-turq-100: var(--tick-turq-light);
+      --tick-turq-500: var(--tick-turq);
+      --tick-turq-700: var(--tick-turq-dark);
+      --tick-yellow-100: var(--tick-yellow-light);
+      --tick-yellow-500: var(--tick-yellow);
+      --tick-yellow-700: var(--tick-yellow-dark);
       --tick-grey-100: #f3f5f7;
       --tick-grey-150: #e6eaee;
-      --tick-grey-200: #dbe0e4;
-      --tick-grey-400: #849099;
+      --tick-grey-200: var(--card-border);
+      --tick-grey-400: var(--tick-grey);
       --tick-grey-700: #4f5d68;
-
-      --tick-red-300: #e57c8c;
-      --tick-red-600: #c12e44;
-
-      --tick-green-300: #5cae8f;
-      --tick-green-600: #007347;
-
-      --tick-radius-lg: 10px;
-      --tick-radius-sm: 999px;
-      --tick-shadow-soft: 0 2px 8px rgba(15, 23, 42, 0.08);
+      --tick-red-300: var(--tick-red-light);
+      --tick-red-600: var(--tick-red);
+      --tick-green-300: var(--tick-green-light);
+      --tick-green-600: var(--tick-green);
+      --tick-radius-lg: var(--radius-card);
+      --tick-radius-sm: var(--radius-pill);
+      --tick-shadow-soft: var(--card-shadow);
     }
 
     * {
       box-sizing: border-box;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
     }
 
     body {
-      margin: 0;
-      min-height: 100vh;
-      background: linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%);
-      color: var(--tick-grey-700);
+      font-family: var(--font-main);
+      background: var(--app-bg);
+      color: var(--tick-grey-dark);
+      overflow: hidden;
       display: flex;
       flex-direction: column;
     }
 
-    /* Header */
-
-    header {
-      padding: 10px 18px;
-      background: white;
-      border-bottom: 1px solid var(--tick-grey-200);
-      box-shadow: 0 1px 4px rgba(15, 23, 42, 0.04);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
+    select,
+    input,
+    textarea,
+    button {
+      font-family: "SUSE", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
 
-    header h1 {
+    /* Center: top panel + canvas */
+
+    .center-area {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      min-height: 0;
+      gap: 0.5rem;
+    }
+
+    .top-panel {
       margin: 0;
-      font-size: 18px;
-      font-weight: 600;
-      color: var(--tick-blue-700);
+      padding: 0.75rem;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-card);
+      box-shadow: var(--card-shadow);
       display: flex;
       align-items: center;
-      gap: 6px;
+      justify-content: flex-start;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      position: relative;
+      z-index: 1;
     }
 
-    header h1::before {
-      content: "";
-      width: 22px;
-      height: 22px;
-      border-radius: 6px;
-      background: linear-gradient(135deg, var(--tick-blue-500), var(--tick-turq-500));
+    .top-panel__meta {
+      margin-left: auto;
+      color: var(--tick-grey);
+    }
+
+    .top-panel__tools {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+      flex: 1 1 auto;
+      min-width: 0;
+    }
+
+    .top-panel__group {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+      padding-left: 0.5rem;
+      margin-left: 0.1rem;
+      border-left: 1px solid var(--tick-grey-150);
+    }
+
+    .top-panel__group:first-child {
+      border-left: none;
+      padding-left: 0;
+      margin-left: 0;
+    }
+
+    .top-panel__group .c-button--small {
+      font-size: 0.82rem;
+      padding: 0.22rem 0.56rem;
+    }
+
+    .top-panel__move {
+      gap: 0.4rem;
+    }
+
+    #moveStepInputsWrap {
+      display: none;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    #moveStepInputsWrap .input-number {
+      width: 66px;
+    }
+
+    #appMenuToggleBtn {
+      min-width: 92px;
+      justify-content: center;
+      text-align: center;
+      gap: 0.45rem;
+      flex: 0 0 auto;
+    }
+
+    #appMenuToggleBtn[aria-expanded="true"] {
+      position: relative;
+      z-index: 10022;
+    }
+
+    #appMenuToggleBtn .menu-toggle__icon {
+      width: 0.95rem;
+      height: 0.75rem;
       display: inline-block;
+      flex: 0 0 auto;
+      background:
+        linear-gradient(currentColor 0 0) 0 0 / 100% 2px no-repeat,
+        linear-gradient(currentColor 0 0) 0 50% / 100% 2px no-repeat,
+        linear-gradient(currentColor 0 0) 0 100% / 100% 2px no-repeat;
     }
 
-    header small {
-      font-size: 12px;
-      color: var(--tick-grey-400);
+    #appMenuOverlay {
+      position: fixed;
+      inset: 0;
+      display: none;
+      background: rgba(18, 32, 53, 0.14);
+      z-index: 10020;
+    }
+
+    #appMenuOverlay.open {
+      display: block;
+    }
+
+    #appMenuPanel {
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 10021;
+      width: min(240px, calc(100vw - 1rem));
+      max-height: calc(100vh - 1rem);
+      padding: 0.75rem;
+      border-radius: 12px;
+      border: 1px solid var(--card-border);
+      background: var(--card-bg);
+      box-shadow: var(--shadow-modal-lg);
+      display: none;
+      flex-direction: column;
+      gap: 0.4rem;
+      overflow-y: auto;
+    }
+
+    #appMenuPanel.open {
+      display: flex;
+    }
+
+    #appMenuPanel .c-button {
+      width: 100%;
+      justify-content: flex-start;
+      padding-inline: 0.75rem;
+    }
+
+    #canvasContextMenu {
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 10030;
+      width: min(260px, calc(100vw - 1rem));
+      max-height: calc(100vh - 1rem);
+      padding: 0.5rem;
+      border-radius: 12px;
+      border: 1px solid var(--card-border);
+      background: var(--card-bg);
+      box-shadow: var(--shadow-modal-lg);
+      display: none;
+      flex-direction: column;
+      gap: 0.35rem;
+      overflow-y: auto;
+    }
+
+    #canvasContextMenu.open {
+      display: flex;
+    }
+
+    #canvasContextMenu .c-button {
+      width: 100%;
+      justify-content: flex-start;
+      padding-inline: 0.75rem;
     }
 
     /* Layout */
 
     .app {
       flex: 1;
-      padding: 16px 18px 18px;
-      display: grid;
-      grid-template-columns: 260px minmax(0, 1fr) 300px;
-      gap: 16px;
       min-height: 0;
+      padding: 0.5rem;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 300px;
+      gap: 0.5rem;
+      background: var(--app-bg);
+    }
+
+    .app > * {
+      min-height: 0;
+    }
+
+    .canvas-card {
+      flex: 1 1 auto;
+      min-height: 0;
+      background: #f3f3f3 !important;
     }
 
     .sidebar-left {
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 0.5rem;
       min-height: 0;
+      overflow: auto;
     }
 
     .sidebar-right {
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 0.5rem;
       min-height: 0;
+      overflow: auto;
     }
 
     .tools-grid {
@@ -127,11 +336,11 @@
     /* Cards */
 
     .c-card {
-      background: white;
-      border-radius: var(--tick-radius-lg);
-      box-shadow: var(--tick-shadow-soft);
-      border: 1px solid var(--tick-grey-200);
-      padding: 12px 14px 14px;
+      background: var(--card-bg);
+      border-radius: var(--radius-card);
+      box-shadow: var(--card-shadow);
+      border: 1px solid var(--card-border);
+      padding: 0.75rem;
       display: flex;
       flex-direction: column;
       min-height: 0;
@@ -141,30 +350,32 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 8px;
+      margin-bottom: 0.5rem;
       gap: 8px;
     }
 
     .c-card__title {
-      font-size: 14px;
+      font-size: 0.82rem;
       font-weight: 600;
-      color: var(--tick-grey-700);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--tick-grey-dark);
     }
 
     .c-card__subtitle {
-      font-size: 11px;
-      color: var(--tick-grey-400);
+      font-size: 0.78rem;
+      color: var(--tick-grey);
     }
 
     .c-card__body {
       flex: 1;
       font-size: 13px;
       overflow-y: auto;
-      padding-top: 4px;
+      padding-top: 0.1rem;
     }
 
     .c-card__section {
-      padding: 8px 0;
+      padding: 0.5rem 0;
       border-top: 1px solid var(--tick-grey-150);
     }
     .c-card__section:first-of-type {
@@ -175,104 +386,102 @@
     /* Buttons */
 
     .c-button {
-      border-radius: var(--tick-radius-sm);
-      border: 1px solid transparent;
-      padding: 6px 10px;
-      font-size: 12px;
-      font-weight: 500;
+      --btn-bg: var(--retro-bg-default);
+      --btn-bg-hover: var(--retro-bg-default-hover);
+      --btn-text: var(--retro-text-dark);
+      border-radius: 2px;
+      border: 2px solid var(--retro-border);
+      padding: 0.4rem 0.9rem;
+      font-size: 0.95rem;
+      font-weight: 700;
+      letter-spacing: 0.01em;
       cursor: pointer;
-      background: white;
-      color: var(--tick-grey-700);
+      background: var(--btn-bg);
+      color: var(--btn-text);
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      gap: 6px;
-      transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.08s ease;
+      gap: 0.3rem;
+      box-shadow: 2px 3px 0 var(--retro-shadow);
+      transition: none;
       text-align: center;
+      white-space: nowrap;
     }
 
     .c-button--block {
       width: 100%;
     }
 
-    .c-button--primary {
-      background: var(--tick-blue-500);
-      border-color: var(--tick-blue-500);
-      color: white;
+    .c-button:hover:not(:disabled) {
+      background: var(--btn-bg-hover);
+      color: var(--btn-text);
     }
 
-    .c-button--primary:hover {
-      background: var(--tick-blue-700);
-      border-color: var(--tick-blue-700);
-      box-shadow: 0 2px 6px rgba(20, 160, 244, 0.25);
+    .c-button:disabled {
+      opacity: 1;
+      background: #d3d3d3;
+      border-color: #a6a6a6;
+      color: #8f8f8f;
+      box-shadow: 2px 3px 0 #9a9a9a;
+      cursor: default;
+    }
+
+    .c-button--primary {
+      --btn-bg: var(--retro-bg-primary);
+      --btn-bg-hover: var(--retro-bg-primary-hover);
+      --btn-text: var(--retro-text-dark);
     }
 
     .c-button--secondary {
-      background: var(--tick-turq-500);
-      border-color: var(--tick-turq-500);
-      color: white;
-    }
-
-    .c-button--secondary:hover {
-      background: var(--tick-turq-700);
-      border-color: var(--tick-turq-700);
-      box-shadow: 0 2px 6px rgba(25, 186, 181, 0.25);
+      --btn-bg: var(--retro-bg-secondary);
+      --btn-bg-hover: var(--retro-bg-secondary-hover);
+      --btn-text: var(--retro-text-dark);
     }
 
     .c-button--ghost {
-      background: white;
-      border-color: var(--tick-grey-200);
-      color: var(--tick-grey-700);
+      --btn-bg: var(--retro-bg-ghost);
+      --btn-bg-hover: var(--retro-bg-ghost-hover);
+      --btn-text: var(--retro-text-dark);
     }
 
     .c-button--danger {
-      background: var(--tick-red-600);
-      border-color: var(--tick-red-600);
-      color: white;
-    }
-
-    .c-button--danger:hover {
-      background: #a62639;
-      border-color: #a62639;
-      box-shadow: 0 2px 6px rgba(193, 46, 68, 0.25);
-    }
-
-    .c-button--ghost:hover {
-      border-color: var(--tick-blue-100);
-      background: #f4faff;
+      --btn-bg: var(--retro-bg-danger);
+      --btn-bg-hover: var(--retro-bg-danger-hover);
+      --btn-text: var(--retro-text-light);
     }
 
     .c-button--small {
-      padding: 4px 8px;
-      font-size: 11px;
+      padding: 0.25rem 0.7rem;
+      font-size: 0.88rem;
     }
 
     .c-toolbar {
       display: flex;
-      gap: 6px;
+      gap: 0.4rem;
       flex-wrap: wrap;
       align-items: center;
     }
 
     /* Toggle-style buttons for alignment */
-    .c-button.is-active {
-      background: var(--tick-blue-500);
-      border-color: var(--tick-blue-500);
-      color: #fff;
+    .c-button.is-active,
+    .c-button--active {
+      --btn-bg: var(--retro-bg-active);
+      --btn-bg-hover: var(--retro-bg-active-hover);
+      --btn-text: var(--retro-text-dark);
     }
 
     /* Typography utils */
 
     .u-font--small {
-      font-size: 12px;
+      font-size: 0.8rem;
     }
 
     .u-font--smaller {
-      font-size: 11px;
+      font-size: 0.75rem;
     }
 
     .u-font--mono {
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-family: var(--font-mono);
     }
 
     /* Pills */
@@ -282,21 +491,21 @@
       align-items: center;
       gap: 6px;
       padding: 2px 8px;
-      border-radius: var(--tick-radius-sm);
-      background: var(--tick-grey-100);
-      border: 1px solid var(--tick-grey-200);
+      border-radius: var(--radius-pill);
+      background: #f7f9fc;
+      border: 1px solid var(--card-border);
       font-size: 11px;
-      color: var(--tick-grey-700);
+      color: var(--tick-grey-dark);
     }
 
     .c-pill__code {
       padding: 2px 6px;
-      border-radius: 6px;
-      background: #f0f9ff;
-      color: var(--tick-blue-700);
+      border-radius: var(--radius-pill);
+      background: rgba(219,224,228,0.4);
+      color: var(--tick-blue-dark);
       font-weight: 600;
       font-size: 11px;
-      font-family: ui-monospace, SFMono-Regular, "Menlo", monospace;
+      font-family: var(--font-mono);
     }
 
     /* Left card: size controls */
@@ -326,9 +535,11 @@
     .size-custom-grid input[type="number"] {
       width: 80px;
       padding: 3px 6px;
-      border-radius: 6px;
-      border: 1px solid var(--tick-grey-200);
+      border-radius: var(--radius-pill);
+      border: 1px solid #cdd3e0;
+      background: #f7f9fc;
       font-size: 12px;
+      color: var(--tick-grey-dark);
     }
 
     .size-custom-grid input[type="number"]:focus {
@@ -360,19 +571,14 @@
 
     #svgContainer {
       flex: 1;
-      margin-top: 4px;
+      margin-top: 8px;
       position: relative;
-      border-radius: 10px;
-      background-image:
-        linear-gradient(90deg, rgba(148, 163, 184, 0.07) 1px, transparent 1px),
-        linear-gradient(180deg, rgba(148, 163, 184, 0.07) 1px, transparent 1px);
-      background-size: 16px 16px;
-      padding: 6px;
+      border-radius: var(--radius-card);
+      padding: 12px 14px 10px;
       display: flex;
       justify-content: center;
       align-items: center;
-      border: 1px solid var(--tick-grey-150);
-      background-color: #fdfdfd;
+      background-color: #f3f3f3;
       overflow: auto;
     }
 
@@ -384,34 +590,9 @@
       user-select: none;
     }
 
-    .canvas-toolbar {
-      align-items: center;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-
-    .canvas-toolbar__buttons {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      align-items: center;
-    }
-
-    .c-button--medium {
-      padding: 16px;
-      width: 88px;
-      height: 88px;
-      border-radius: 14px;
-      font-size: 13px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-    }
-
     #svgCanvas {
-      background: #fffaf5;
-      border-radius: 6px;
-      box-shadow: 0 0 6px rgba(15, 23, 42, 0.35);
+      background: #ffffff;
+      box-shadow: 0 0 10px #232e3622;
     }
 
     /* Right card: elements */
@@ -431,6 +612,7 @@
       width: 100%;
       font-size: 11px;
       margin-top: 4px;
+      color: var(--tick-grey-dark);
     }
 
     .info-list {
@@ -463,22 +645,22 @@
     .modal-backdrop {
       position: absolute;
       inset: 0;
-      background: rgba(15, 23, 42, 0.35);
+      background: var(--overlay-bg);
     }
 
     .modal-content {
       position: relative;
-      background: white;
-      border-radius: var(--tick-radius-lg);
+      background: var(--card-bg);
+      border-radius: var(--radius-card);
       padding: 14px 16px 12px;
       min-width: 360px;
       max-width: 560px;
       max-height: 80vh;
       overflow-y: auto;
-      box-shadow: 0 16px 40px rgba(15, 23, 42, 0.35);
+      box-shadow: var(--shadow-modal-md);
       z-index: 1000;
       font-size: 13px;
-      border: 1px solid var(--tick-blue-100);
+      border: 1px solid var(--card-border);
     }
 
     .modal-header {
@@ -492,7 +674,7 @@
       margin: 0;
       font-size: 15px;
       font-weight: 600;
-      color: var(--tick-grey-700);
+      color: var(--tick-grey-dark);
     }
 
     .modal-header p {
@@ -508,16 +690,16 @@
     .placeholder-group {
       margin-bottom: 8px;
       padding: 6px 8px 6px;
-      border-radius: 8px;
-      background: #f7fafc;
-      border: 1px solid var(--tick-grey-150);
+      border-radius: var(--radius-card);
+      background: #f7f9fc;
+      border: 1px solid var(--card-border);
     }
 
     .placeholder-group h4 {
       margin: 0 0 4px;
       font-size: 12px;
       font-weight: 600;
-      color: var(--tick-grey-700);
+      color: var(--tick-grey-dark);
     }
 
     .placeholder-group label {
@@ -527,7 +709,7 @@
       margin-bottom: 2px;
       cursor: pointer;
       font-size: 12px;
-      color: var(--tick-grey-700);
+      color: var(--tick-grey-dark);
     }
 
     .placeholder-group input[type="checkbox"] {
@@ -538,12 +720,122 @@
       flex: 1;
     }
 
+    .placeholder-modal .modal-content {
+      width: min(980px, 95vw);
+      max-width: 980px;
+      min-height: min(80vh, 680px);
+      max-height: 88vh;
+      overflow-y: auto;
+    }
+
+    .placeholder-modal .placeholder-list {
+      margin: 10px 0 10px;
+    }
+
+    .placeholder-tabs {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding-bottom: 8px;
+      margin-bottom: 8px;
+      border-bottom: 1px solid var(--tick-grey-150);
+      scrollbar-width: thin;
+    }
+
+    .placeholder-tab {
+      border: 1px solid var(--card-border);
+      background: #f7f9fc;
+      color: var(--tick-grey-dark);
+      border-radius: var(--radius-pill);
+      padding: 0.38rem 0.66rem;
+      font-size: 0.84rem;
+      font-weight: 600;
+      line-height: 1.2;
+      white-space: nowrap;
+      cursor: pointer;
+      transition: background var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast);
+      flex: 0 0 auto;
+    }
+
+    .placeholder-tab:hover {
+      border-color: var(--tick-blue-500);
+      background: #edf5ff;
+    }
+
+    .placeholder-tab.is-active {
+      background: var(--tick-blue-500);
+      border-color: var(--tick-blue-500);
+      color: #fff;
+    }
+
+    .placeholder-tab-panel {
+      display: none;
+    }
+
+    .placeholder-tab-panel.is-active {
+      display: block;
+    }
+
+    .placeholder-modal .placeholder-group {
+      margin-bottom: 0;
+      padding: 10px 12px;
+    }
+
+    .placeholder-modal .placeholder-group h4 {
+      margin-bottom: 8px;
+      font-size: 13.5px;
+    }
+
+    .placeholder-modal .placeholder-group label {
+      margin-bottom: 4px;
+      font-size: 13px;
+      line-height: 1.38;
+    }
+
+    .placeholder-modal .modal-footer {
+      margin-top: 2px;
+      padding-top: 8px;
+    }
+
+    @media (max-width: 980px) {
+      .placeholder-modal .modal-content {
+        width: min(96vw, 640px);
+      }
+    }
+
     .modal-footer {
       display: flex;
       justify-content: flex-end;
       gap: 8px;
       padding-top: 8px;
       border-top: 1px solid var(--tick-grey-150);
+    }
+
+    .help-shortcuts {
+      display: grid;
+      gap: 6px;
+      margin: 8px 0 10px;
+    }
+
+    .help-shortcut {
+      display: grid;
+      grid-template-columns: minmax(90px, auto) minmax(0, 1fr);
+      gap: 8px;
+      align-items: center;
+      padding: 8px 10px;
+      border-radius: var(--radius-card);
+      border: 1px solid var(--card-border);
+      background: #f7f9fc;
+      color: var(--tick-grey-dark);
+      font-size: 12px;
+    }
+
+    .help-shortcut-key {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--tick-blue-dark);
+      white-space: nowrap;
     }
 
     /* Hidden file input for image */
@@ -554,10 +846,12 @@
     /* Inputs in text-inspektorn */
     .input-text {
       width: 100%;
-      border-radius: 6px;
-      border: 1px solid var(--tick-grey-200);
+      border-radius: var(--radius-pill);
+      border: 1px solid #cdd3e0;
+      background: #f7f9fc;
       padding: 4px 6px;
       font-size: 12px;
+      color: var(--tick-grey-dark);
     }
 
     .input-text:focus {
@@ -568,10 +862,12 @@
 
     .input-number {
       width: 80px;
-      border-radius: 6px;
-      border: 1px solid var(--tick-grey-200);
+      border-radius: var(--radius-pill);
+      border: 1px solid #cdd3e0;
+      background: #f7f9fc;
       padding: 3px 6px;
       font-size: 12px;
+      color: var(--tick-grey-dark);
     }
 
     .input-number:focus {
@@ -579,121 +875,103 @@
       border-color: var(--tick-blue-500);
       box-shadow: 0 0 0 1px rgba(20, 160, 244, 0.25);
     }
+
+    .input-select {
+      border-radius: var(--radius-pill);
+      border: 1px solid #cdd3e0;
+      background: #f7f9fc;
+      padding: 3px 10px 3px 8px;
+      font-size: 12px;
+      color: var(--tick-grey-dark);
+      min-width: 138px;
+      height: 28px;
+    }
+
+    .input-select:focus {
+      outline: none;
+      border-color: var(--tick-blue-500);
+      box-shadow: 0 0 0 1px rgba(20, 160, 244, 0.25);
+    }
+
+    @media (max-width: 1200px) {
+      .app {
+        grid-template-columns: minmax(0, 1fr) 280px;
+      }
+    }
+
+    @media (max-width: 980px) {
+      body {
+        overflow: auto;
+      }
+
+      .app {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .sidebar-left,
+      .sidebar-right {
+        min-height: auto;
+      }
+
+      .modal-content {
+        min-width: min(92vw, 360px);
+      }
+
+    }
   </style>
 </head>
 <body>
-<header>
-  <div>
-    <h1>SVG Designer</h1>
-    <small>Skapa och justera biljetter, säsongskort och värdebevis som SVG-mallar</small>
-  </div>
-</header>
-
 <div class="app">
-  <!-- Vänster: fil + storlek -->
-  <div class="sidebar-left">
-    <aside class="c-card">
-      <div class="c-card__header">
-        <div>
-          <div class="c-card__title">Filhantering</div>
-          <div class="c-card__subtitle">Öppna, spara och exportera din mall</div>
+  <!-- Mitten: top-panel + canvas -->
+  <section class="center-area">
+    <header class="top-panel">
+      <button id="appMenuToggleBtn" class="c-button c-button--primary c-button--small" type="button" aria-haspopup="true" aria-expanded="false" aria-controls="appMenuPanel">
+        <span class="menu-toggle__icon" aria-hidden="true"></span>
+        <span>Meny</span>
+      </button>
+      <div class="top-panel__tools" aria-label="Verktyg">
+        <div class="top-panel__group">
+          <button class="c-button c-button--ghost c-button--small" id="rotateCcwBtn" disabled type="button">↺ Rotera -90°</button>
+          <button class="c-button c-button--ghost c-button--small" id="rotateCwBtn" disabled type="button">↻ Rotera +90°</button>
         </div>
-      </div>
-      <div class="c-card__body">
-        <div class="c-card__section">
-          <div class="u-font--smaller" style="margin-bottom:4px;">Öppna befintlig SVG</div>
-          <input type="file" id="openFile" accept=".svg,image/svg+xml" class="file-input">
-          <div style="margin-top:8px; display:flex; flex-direction:column; gap:6px;">
-            <button class="c-button c-button--ghost c-button--block" id="newTemplateBtn">
-              Skapa ny mall
-            </button>
-            <button class="c-button c-button--primary c-button--block" id="saveBtn">
-              Spara SVG-mall
-            </button>
-            <button class="c-button c-button--secondary c-button--block" id="savePngBtn">
-              Exportera som PNG
-            </button>
+        <div class="top-panel__group">
+          <button class="c-button c-button--ghost c-button--small" id="alignLeftBtnTools" disabled type="button">Vänster</button>
+          <button class="c-button c-button--ghost c-button--small" id="alignRightBtnTools" disabled type="button">Höger</button>
+          <button class="c-button c-button--ghost c-button--small" id="alignTopBtnTools" disabled type="button">Topp</button>
+          <button class="c-button c-button--ghost c-button--small" id="alignBottomBtnTools" disabled type="button">Botten</button>
+          <button class="c-button c-button--ghost c-button--small" id="alignCenterHBtnTools" disabled type="button">Centrera H</button>
+          <button class="c-button c-button--ghost c-button--small" id="alignCenterVBtnTools" disabled type="button">Centrera V</button>
+        </div>
+        <div class="top-panel__group top-panel__move">
+          <label class="u-font--smaller" for="moveModeSelect">Flyttläge</label>
+          <select id="moveModeSelect" class="input-select">
+            <option value="free" selected>Flytta fritt</option>
+            <option value="snap">Stegvis (snappa)</option>
+          </select>
+          <div id="moveStepInputsWrap" class="u-font--smaller">
+            <label for="moveStepX">Steg X</label>
+            <input type="number" id="moveStepX" class="input-number" min="0.1" step="0.1" value="1">
+            <label for="moveStepY">Steg Y</label>
+            <input type="number" id="moveStepY" class="input-number" min="0.1" step="0.1" value="1">
           </div>
-        <ul class="info-list">
-          <li>Exporten rensar bort editor-hjälpelement (bakgrundsram, markeringar).</li>
-          <li>Platshållare sparas som ren text, t.ex. <span class="u-font--mono">%EventName%</span>.</li>
-        </ul>
         </div>
       </div>
-    </aside>
+      <div class="u-font--smaller top-panel__meta" id="sizeInfo"></div>
+    </header>
 
-    <aside class="c-card">
-      <div class="c-card__header">
-        <div>
-          <div class="c-card__title">Format &amp; storlek</div>
-          <div class="c-card__subtitle">Välj etikett- eller biljettstorlek i mm</div>
+    <main class="c-card canvas-card">
+      <div class="c-card__body canvas-shell">
+        <div id="svgContainer">
+          <svg id="svgCanvas"
+               xmlns="http://www.w3.org/2000/svg"
+               xmlns:xlink="http://www.w3.org/1999/xlink"
+               version="1.1">
+          </svg>
         </div>
       </div>
-      <div class="c-card__body">
-        <div class="c-card__section">
-          <div class="size-option-group u-font--small">
-            <label>
-              <input type="radio" name="sizePreset" value="152x76" data-w="152" data-h="76" checked>
-              <span>152 × 76 mm (liggande)</span>
-            </label>
-            <label>
-              <input type="radio" name="sizePreset" value="76x152" data-w="76" data-h="152">
-              <span>76 × 152 mm (stående)</span>
-            </label>
-            <label>
-              <input type="radio" name="sizePreset" value="54x86" data-w="54" data-h="86">
-              <span>54 × 86 mm (stående)</span>
-            </label>
-            <label>
-              <input type="radio" name="sizePreset" value="86x54" data-w="86" data-h="54">
-              <span>86 × 54 mm (liggande)</span>
-            </label>
-          </div>
-        </div>
-
-        <div class="c-card__section u-font--small">
-          <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
-            <input type="radio" name="sizePreset" value="custom" id="sizeCustom">
-            <span>Valfri storlek</span>
-          </label>
-          <div class="size-custom-grid u-font--smaller">
-            <span>Bredd</span>
-            <input type="number" id="customWidth" min="1" value="100">
-            <span>Höjd</span>
-            <input type="number" id="customHeight" min="1" value="50">
-          </div>
-          <div class="u-font--smaller" style="margin-top:6px; color:var(--tick-grey-400);">
-            När du ändrar egna mått aktiveras automatiskt “Valfri storlek”.
-          </div>
-        </div>
-      </div>
-    </aside>
-  </div>
-
-  <!-- Mitten: canvas -->
-  <main class="c-card">
-    <div class="c-card__header canvas-toolbar">
-      <div class="canvas-toolbar__buttons">
-        <button class="c-button c-button--ghost c-button--medium" id="addSquareBtn">QR-kod</button>
-        <button class="c-button c-button--ghost c-button--medium" id="addLineBtn">Linje</button>
-        <button class="c-button c-button--ghost c-button--medium" id="addTextBtn">Text</button>
-        <button class="c-button c-button--ghost c-button--medium" id="addImageBtn">Bild</button>
-        <button class="c-button c-button--secondary c-button--medium" id="addPlaceholderBtn">
-          Fördefinierade platshållare
-        </button>
-      </div>
-      <div class="u-font--smaller" id="sizeInfo"></div>
-    </div>
-    <div class="c-card__body canvas-shell">
-      <div id="svgContainer">
-        <svg id="svgCanvas"
-             xmlns="http://www.w3.org/2000/svg"
-             xmlns:xlink="http://www.w3.org/1999/xlink"
-             version="1.1">
-        </svg>
-      </div>
-    </div>
-  </main>
+    </main>
+  </section>
 
   <!-- Höger: element och text-egenskaper -->
   <div class="sidebar-right">
@@ -743,62 +1021,118 @@
 
         <div class="c-card__section">
           <div class="u-font--small" style="margin-bottom:6px; font-weight:600;">Redigering</div>
-          <div class="tools-grid" style="margin-bottom:6px;">
-            <button class="c-button c-button--ghost c-button--small" id="rotateCcwBtn" disabled>
-              ↺ Rotera -90°
-            </button>
-            <button class="c-button c-button--ghost c-button--small" id="rotateCwBtn" disabled>
-              ↻ Rotera +90°
-            </button>
-          </div>
-      <button class="c-button c-button--ghost c-button--small c-button--block" id="deleteElementBtn" disabled>
-        Radera markerat
-      </button>
-      <button class="c-button c-button--ghost c-button--small c-button--block" id="clearHelpersBtn" style="margin-top:6px;">
-        Rensa markeringar/stödlinjer
-      </button>
-          <div class="u-font--small" style="margin:10px 0 4px; font-weight:600;">Justering</div>
-          
-          <div class="c-card__subtitle">Markera ett element, håll inne CTRL och markera ytterligare ett eller flera element. Använd sedan något av följande alternativ för att linjera elementens placering. Utgångspunkten är alltid det element som väljs först i ordningen.<br /><br /></div>
-          <div class="tools-grid" style="margin-bottom:6px;">
-            <button class="c-button c-button--ghost c-button--small" id="alignLeftBtnTools" disabled>Vänster</button>
-            <button class="c-button c-button--ghost c-button--small" id="alignRightBtnTools" disabled>Höger</button>
-            <button class="c-button c-button--ghost c-button--small" id="alignTopBtnTools" disabled>Topp</button>
-            <button class="c-button c-button--ghost c-button--small" id="alignBottomBtnTools" disabled>Botten</button>
-            <button class="c-button c-button--ghost c-button--small" id="alignCenterHBtnTools" disabled>Centrera horisontellt</button>
-            <button class="c-button c-button--ghost c-button--small" id="alignCenterVBtnTools" disabled>Centrera vertikalt</button>
-          </div>
-          <div class="u-font--small" style="margin:10px 0 4px; font-weight:600;">Flytt-läge</div>
-          <div class="u-font--smaller" style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
-            <label style="display:flex; align-items:center; gap:4px; cursor:pointer;">
-              <input type="radio" name="moveMode" id="moveModeFree" value="free" checked>
-              <span>Flytta fritt</span>
-            </label>
-            <label style="display:flex; align-items:center; gap:4px; cursor:pointer;">
-              <input type="radio" name="moveMode" id="moveModeSnap" value="snap">
-              <span>Stegvis (snappa)</span>
-            </label>
-          </div>
-          <div class="tools-inputs u-font--smaller">
-            <label for="moveStepX">Steg X</label>
-            <input type="number" id="moveStepX" class="input-number" min="0.1" step="0.1" value="1">
-            <label for="moveStepY">Steg Y</label>
-            <input type="number" id="moveStepY" class="input-number" min="0.1" step="0.1" value="1">
-          </div>
-          <div class="u-font--smaller" style="margin-top:6px; color:var(--tick-grey-400);">
-            Välj ett element på ytan för att aktivera verktygen. Använd steg för att matcha rutnätet.
-          </div>
+          <button class="c-button c-button--ghost c-button--small c-button--block" id="deleteElementBtn" disabled>
+            Radera markerat
+          </button>
+          <button class="c-button c-button--ghost c-button--small c-button--block" id="clearHelpersBtn" style="margin-top:6px;">
+            Rensa markeringar/stödlinjer
+          </button>
         </div>
       </div>
     </aside>
   </div>
 </div>
 
+<div id="appMenuOverlay"></div>
+<div id="appMenuPanel" role="menu" aria-label="Designmeny">
+  <button class="c-button c-button--ghost c-button--small" id="newTemplateBtn" type="button">Skapa ny</button>
+  <button class="c-button c-button--ghost c-button--small" id="openFileBtn" type="button">Öppna</button>
+  <button class="c-button c-button--primary c-button--small" id="saveBtn" type="button">Spara</button>
+  <button class="c-button c-button--ghost c-button--small" id="saveAsBtn" type="button">Spara som</button>
+  <button class="c-button c-button--secondary c-button--small" id="savePngBtn" type="button">Exportera PNG</button>
+  <button class="c-button c-button--ghost c-button--small" id="openSizeModalBtn" type="button">Justera storlek</button>
+  <button class="c-button c-button--ghost c-button--small" id="openHelpModalBtn" type="button">Hjälp</button>
+  <button class="c-button c-button--danger c-button--small" id="closeDesignBtn" type="button">Stäng design</button>
+</div>
+
+<div id="canvasContextMenu" role="menu" aria-label="Lägg till">
+  <button class="c-button c-button--small" id="addSquareBtn" type="button">QR-kod</button>
+  <button class="c-button c-button--small" id="addLineBtn" type="button">Linje</button>
+  <button class="c-button c-button--small" id="addTextBtn" type="button">Text</button>
+  <button class="c-button c-button--small" id="addImageBtn" type="button">Bild</button>
+  <button class="c-button c-button--small" id="addPlaceholderBtn" type="button">Fördefinierade platshållare</button>
+</div>
+
+<input type="file" id="openFile" accept=".svg,image/svg+xml" hidden>
+
 <!-- Fil-input för bild -->
 <input type="file" id="imageFileInput" accept="image/*">
 
+<!-- Modal för format/storlek -->
+<div id="sizeModal" class="modal hidden">
+  <div class="modal-backdrop"></div>
+  <div class="modal-content" style="max-width:420px;">
+    <div class="modal-header">
+      <h3>Format &amp; storlek</h3>
+      <p>Välj etikett- eller biljettstorlek i millimeter.</p>
+    </div>
+    <div class="placeholder-list">
+      <div class="placeholder-group">
+        <div class="size-option-group u-font--small">
+          <label>
+            <input type="radio" name="sizePreset" value="152x76" data-w="152" data-h="76" checked>
+            <span>152 × 76 mm (liggande)</span>
+          </label>
+          <label>
+            <input type="radio" name="sizePreset" value="76x152" data-w="76" data-h="152">
+            <span>76 × 152 mm (stående)</span>
+          </label>
+          <label>
+            <input type="radio" name="sizePreset" value="54x86" data-w="54" data-h="86">
+            <span>54 × 86 mm (stående)</span>
+          </label>
+          <label>
+            <input type="radio" name="sizePreset" value="86x54" data-w="86" data-h="54">
+            <span>86 × 54 mm (liggande)</span>
+          </label>
+        </div>
+      </div>
+      <div class="placeholder-group u-font--small">
+        <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+          <input type="radio" name="sizePreset" value="custom" id="sizeCustom">
+          <span>Valfri storlek</span>
+        </label>
+        <div class="size-custom-grid u-font--smaller">
+          <span>Bredd</span>
+          <input type="number" id="customWidth" min="1" value="100">
+          <span>Höjd</span>
+          <input type="number" id="customHeight" min="1" value="50">
+        </div>
+        <div class="u-font--smaller" style="margin-top:6px; color:var(--tick-grey-400);">
+          När du ändrar egna mått aktiveras automatiskt “Valfri storlek”.
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="c-button c-button--ghost c-button--small" id="sizeModalCloseBtn" type="button">Stäng</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal för hjälp och genvägar -->
+<div id="helpModal" class="modal hidden">
+  <div class="modal-backdrop"></div>
+  <div class="modal-content" style="max-width:520px;">
+    <div class="modal-header">
+      <h3>Hjälp &amp; genvägar</h3>
+      <p>Snabbkommandon i SVG-designer.</p>
+    </div>
+    <div class="help-shortcuts">
+      <div class="help-shortcut"><span class="help-shortcut-key">Ctrl/Cmd+S</span><span>Spara</span></div>
+      <div class="help-shortcut"><span class="help-shortcut-key">Ctrl/Cmd+O</span><span>Öppna SVG-fil</span></div>
+      <div class="help-shortcut"><span class="help-shortcut-key">Ctrl/Cmd+Z</span><span>Ångra senaste ändring</span></div>
+      <div class="help-shortcut"><span class="help-shortcut-key">Delete</span><span>Radera markerade element</span></div>
+      <div class="help-shortcut"><span class="help-shortcut-key">Ctrl/Cmd+D</span><span>Avmarkera element</span></div>
+      <div class="help-shortcut"><span class="help-shortcut-key">H</span><span>Öppna/Stäng denna hjälp</span></div>
+    </div>
+    <div class="modal-footer">
+      <button class="c-button c-button--ghost c-button--small" id="helpModalCloseBtn" type="button">Stäng</button>
+    </div>
+  </div>
+</div>
+
 <!-- Modal för platshållare -->
-<div id="placeholderModal" class="modal hidden">
+<div id="placeholderModal" class="modal hidden placeholder-modal">
   <div class="modal-backdrop"></div>
   <div class="modal-content">
     <div class="modal-header">
@@ -806,91 +1140,111 @@
       <p>Markera en eller flera platshållare. I SVG-texten läggs de in som t.ex. <span class="u-font--mono">%EventName%</span>.</p>
     </div>
     <div class="placeholder-list">
-
-      <div class="placeholder-group">
-        <h4>Onumrerade biljetter</h4>
-        <label><input type="checkbox" value="%TicketDesignation%"><span>TicketDesignation – Biljettens namn</span></label>
-        <label><input type="checkbox" value="%AuthCode%"><span>AuthCode – Biljettkod</span></label>
-        <label><input type="checkbox" value="%Price%"><span>Price – Pris inkl. moms</span></label>
-        <label><input type="checkbox" value="%PriceVat%"><span>PriceVat – Moms</span></label>
-        <label><input type="checkbox" value="%ServiceFee%"><span>ServiceFee – Serviceavgift inkl. moms</span></label>
-        <label><input type="checkbox" value="%ServiceFeeVat%"><span>ServiceFeeVat – Moms på serviceavgift</span></label>
-        <label><input type="checkbox" value="%EventName%"><span>EventName – Evenemangets namn</span></label>
-        <label><input type="checkbox" value="%Supertitle%"><span>Supertitle – Överrubrik för produktion</span></label>
-        <label><input type="checkbox" value="%Subtitle%"><span>Subtitle – Underrubrik för produktion</span></label>
-        <label><input type="checkbox" value="%EventDate%"><span>EventDate – Datum (fredag 30 mars 2020)</span></label>
-        <label><input type="checkbox" value="%EventDateShort%"><span>EventDateShort – Datum (YYYY-MM-DD)</span></label>
-        <label><input type="checkbox" value="%EventStartTime%"><span>EventStartTime – Starttid (HH:MM)</span></label>
-        <label><input type="checkbox" value="%EntryPermittedFrom%"><span>EntryPermittedFrom – Insläppstid (HH:MM)</span></label>
-        <label><input type="checkbox" value="%OrganizerName%"><span>OrganizerName – Arrangörens namn</span></label>
-        <label><input type="checkbox" value="%VenueName%"><span>VenueName – Arenans namn</span></label>
-        <label><input type="checkbox" value="%CityName%"><span>CityName – Stad</span></label>
-        <label><input type="checkbox" value="%AdmittedName%"><span>AdmittedName – Köparens namn</span></label>
-        <label><input type="checkbox" value="%TicketInformation%"><span>TicketInformation – Fritextinformation på biljett</span></label>
-        <label><input type="checkbox" value="%OrganizationName%"><span>OrganizationName – Köparens organisationsnamn</span></label>
-        <label><input type="checkbox" value="%PurchaseRefNo%"><span>PurchaseRefNo – Köpets referensnummer</span></label>
+      <div class="placeholder-tabs" role="tablist" aria-label="Platshållarkategorier">
+        <button class="placeholder-tab is-active" type="button" role="tab" id="placeholder-tab-unnumbered-ticket" aria-selected="true" aria-controls="placeholder-panel-unnumbered-ticket" data-placeholder-tab="unnumbered-ticket">Onumrerade biljetter</button>
+        <button class="placeholder-tab" type="button" role="tab" id="placeholder-tab-numbered-ticket" aria-selected="false" aria-controls="placeholder-panel-numbered-ticket" data-placeholder-tab="numbered-ticket" tabindex="-1">Numrerade biljetter</button>
+        <button class="placeholder-tab" type="button" role="tab" id="placeholder-tab-unnumbered-season" aria-selected="false" aria-controls="placeholder-panel-unnumbered-season" data-placeholder-tab="unnumbered-season" tabindex="-1">Onumrerade säsongskort</button>
+        <button class="placeholder-tab" type="button" role="tab" id="placeholder-tab-numbered-season" aria-selected="false" aria-controls="placeholder-panel-numbered-season" data-placeholder-tab="numbered-season" tabindex="-1">Numrerade säsongskort</button>
+        <button class="placeholder-tab" type="button" role="tab" id="placeholder-tab-voucher" aria-selected="false" aria-controls="placeholder-panel-voucher" data-placeholder-tab="voucher" tabindex="-1">Värdebevis</button>
+        <button class="placeholder-tab" type="button" role="tab" id="placeholder-tab-giftcard" aria-selected="false" aria-controls="placeholder-panel-giftcard" data-placeholder-tab="giftcard" tabindex="-1">Presentkort</button>
       </div>
+      <div class="placeholder-tab-panels">
+        <div class="placeholder-tab-panel is-active" role="tabpanel" id="placeholder-panel-unnumbered-ticket" aria-labelledby="placeholder-tab-unnumbered-ticket" data-placeholder-panel="unnumbered-ticket">
+          <div class="placeholder-group">
+            <h4>Onumrerade biljetter</h4>
+            <label><input type="checkbox" value="%TicketDesignation%"><span>TicketDesignation – Biljettens namn</span></label>
+            <label><input type="checkbox" value="%AuthCode%"><span>AuthCode – Biljettkod</span></label>
+            <label><input type="checkbox" value="%Price%"><span>Price – Pris inkl. moms</span></label>
+            <label><input type="checkbox" value="%PriceVat%"><span>PriceVat – Moms</span></label>
+            <label><input type="checkbox" value="%ServiceFee%"><span>ServiceFee – Serviceavgift inkl. moms</span></label>
+            <label><input type="checkbox" value="%ServiceFeeVat%"><span>ServiceFeeVat – Moms på serviceavgift</span></label>
+            <label><input type="checkbox" value="%EventName%"><span>EventName – Evenemangets namn</span></label>
+            <label><input type="checkbox" value="%Supertitle%"><span>Supertitle – Överrubrik för produktion</span></label>
+            <label><input type="checkbox" value="%Subtitle%"><span>Subtitle – Underrubrik för produktion</span></label>
+            <label><input type="checkbox" value="%EventDate%"><span>EventDate – Datum (fredag 30 mars 2020)</span></label>
+            <label><input type="checkbox" value="%EventDateShort%"><span>EventDateShort – Datum (YYYY-MM-DD)</span></label>
+            <label><input type="checkbox" value="%EventStartTime%"><span>EventStartTime – Starttid (HH:MM)</span></label>
+            <label><input type="checkbox" value="%EntryPermittedFrom%"><span>EntryPermittedFrom – Insläppstid (HH:MM)</span></label>
+            <label><input type="checkbox" value="%OrganizerName%"><span>OrganizerName – Arrangörens namn</span></label>
+            <label><input type="checkbox" value="%VenueName%"><span>VenueName – Arenans namn</span></label>
+            <label><input type="checkbox" value="%CityName%"><span>CityName – Stad</span></label>
+            <label><input type="checkbox" value="%AdmittedName%"><span>AdmittedName – Köparens namn</span></label>
+            <label><input type="checkbox" value="%TicketInformation%"><span>TicketInformation – Fritextinformation på biljett</span></label>
+            <label><input type="checkbox" value="%OrganizationName%"><span>OrganizationName – Köparens organisationsnamn</span></label>
+            <label><input type="checkbox" value="%PurchaseRefNo%"><span>PurchaseRefNo – Köpets referensnummer</span></label>
+          </div>
+        </div>
 
-      <div class="placeholder-group">
-        <h4>Numrerade biljetter</h4>
-        <label><input type="checkbox" value="%Section%"><span>Section – Sektion</span></label>
-        <label><input type="checkbox" value="%Row%"><span>Row – Radnummer</span></label>
-        <label><input type="checkbox" value="%Seat%"><span>Seat – Platsnummer</span></label>
-        <label><input type="checkbox" value="%EntryVia%"><span>EntryVia – Ingång</span></label>
+        <div class="placeholder-tab-panel" role="tabpanel" id="placeholder-panel-numbered-ticket" aria-labelledby="placeholder-tab-numbered-ticket" data-placeholder-panel="numbered-ticket">
+          <div class="placeholder-group">
+            <h4>Numrerade biljetter</h4>
+            <label><input type="checkbox" value="%Section%"><span>Section – Sektion</span></label>
+            <label><input type="checkbox" value="%Row%"><span>Row – Radnummer</span></label>
+            <label><input type="checkbox" value="%Seat%"><span>Seat – Platsnummer</span></label>
+            <label><input type="checkbox" value="%EntryVia%"><span>EntryVia – Ingång</span></label>
+          </div>
+        </div>
+
+        <div class="placeholder-tab-panel" role="tabpanel" id="placeholder-panel-unnumbered-season" aria-labelledby="placeholder-tab-unnumbered-season" data-placeholder-panel="unnumbered-season">
+          <div class="placeholder-group">
+            <h4>Onumrerade säsongskort</h4>
+            <label><input type="checkbox" value="%Name%"><span>Name – Säsongskortets namn</span></label>
+            <label><input type="checkbox" value="%PriceCategory%"><span>PriceCategory – Prisgrupp</span></label>
+            <label><input type="checkbox" value="%TicketType%"><span>TicketType – Biljettyp</span></label>
+            <label><input type="checkbox" value="%AuthCode%"><span>AuthCode – Säsongskortskod</span></label>
+            <label><input type="checkbox" value="%Price%"><span>Price – Pris inkl. moms</span></label>
+            <label><input type="checkbox" value="%PriceVat%"><span>PriceVat – Moms</span></label>
+            <label><input type="checkbox" value="%ServiceFee%"><span>ServiceFee – Serviceavgift inkl. moms</span></label>
+            <label><input type="checkbox" value="%ServiceFeeVat%"><span>ServiceFeeVat – Moms på serviceavgift</span></label>
+            <label><input type="checkbox" value="%OrganizerName%"><span>OrganizerName – Arrangörens namn</span></label>
+            <label><input type="checkbox" value="%AdmittedName%"><span>AdmittedName – Köparens namn</span></label>
+            <label><input type="checkbox" value="%OrganizationName%"><span>OrganizationName – Köparens organisationsnamn</span></label>
+            <label><input type="checkbox" value="%SeasonOfferInformation%"><span>SeasonOfferInformation – Fritextinfo på säsongskort</span></label>
+            <label><input type="checkbox" value="%ReceiptText%"><span>ReceiptText – Benämning för säsongskort på kvitto</span></label>
+          </div>
+        </div>
+
+        <div class="placeholder-tab-panel" role="tabpanel" id="placeholder-panel-numbered-season" aria-labelledby="placeholder-tab-numbered-season" data-placeholder-panel="numbered-season">
+          <div class="placeholder-group">
+            <h4>Numrerade säsongskort</h4>
+            <label><input type="checkbox" value="%EntryVia%"><span>EntryVia – Ingång</span></label>
+            <label><input type="checkbox" value="%Row%"><span>Row – Rad</span></label>
+            <label><input type="checkbox" value="%Seat%"><span>Seat – Plats</span></label>
+            <label><input type="checkbox" value="%Section%"><span>Section – Sektion</span></label>
+          </div>
+        </div>
+
+        <div class="placeholder-tab-panel" role="tabpanel" id="placeholder-panel-voucher" aria-labelledby="placeholder-tab-voucher" data-placeholder-panel="voucher">
+          <div class="placeholder-group">
+            <h4>Värdebevis</h4>
+            <label><input type="checkbox" value="%AuthCode%"><span>AuthCode – Värdebeviskod</span></label>
+            <label><input type="checkbox" value="%Price%"><span>Price – Pris inkl. moms</span></label>
+            <label><input type="checkbox" value="%PriceVat%"><span>PriceVat – Moms</span></label>
+            <label><input type="checkbox" value="%PurchaseRefNo%"><span>PurchaseRefNo – Köpets referensnummer</span></label>
+            <label><input type="checkbox" value="%ServiceFee%"><span>ServiceFee – Serviceavgift inkl. moms</span></label>
+            <label><input type="checkbox" value="%ServiceFeeVat%"><span>ServiceFeeVat – Moms på serviceavgift</span></label>
+            <label><input type="checkbox" value="%VoucherDesignation%"><span>VoucherDesignation – Värdebevisets namn</span></label>
+            <label><input type="checkbox" value="%VoucherInformation%"><span>VoucherInformation – Fritextinformation på värdebevis</span></label>
+            <label><input type="checkbox" value="%EventName%"><span>EventName – Evenemangets namn</span></label>
+            <label><input type="checkbox" value="%EventDate%"><span>EventDate – Datum (fredag 30 mars 2020)</span></label>
+            <label><input type="checkbox" value="%EventDateShort%"><span>EventDateShort – Datum (YYYY-MM-DD)</span></label>
+            <label><input type="checkbox" value="%EventStartTime%"><span>EventStartTime – Starttid (HH:MM)</span></label>
+          </div>
+        </div>
+
+        <div class="placeholder-tab-panel" role="tabpanel" id="placeholder-panel-giftcard" aria-labelledby="placeholder-tab-giftcard" data-placeholder-panel="giftcard">
+          <div class="placeholder-group">
+            <h4>Presentkort</h4>
+            <label><input type="checkbox" value="%GiftCertificateDesignation%"><span>GiftCertificateDesignation – Presentkortets namn</span></label>
+            <label><input type="checkbox" value="%RedemptionCode%"><span>RedemptionCode – Presentkortskod</span></label>
+            <label><input type="checkbox" value="%Expiry%"><span>Expiry – Sista giltighetsdatum (YYYY-MM-DD)</span></label>
+            <label><input type="checkbox" value="%PurchaseRefNo%"><span>PurchaseRefNo – Köpets referensnummer</span></label>
+            <label><input type="checkbox" value="%Price%"><span>Price – Pris inkl. moms</span></label>
+            <label><input type="checkbox" value="%PriceVat%"><span>PriceVat – Moms</span></label>
+            <label><input type="checkbox" value="%GiftCertificateInformation%"><span>GiftCertificateInformation – Fritextinformation på presentkort</span></label>
+          </div>
+        </div>
       </div>
-
-      <div class="placeholder-group">
-        <h4>Onumrerade säsongskort</h4>
-        <label><input type="checkbox" value="%Name%"><span>Name – Säsongskortets namn</span></label>
-        <label><input type="checkbox" value="%PriceCategory%"><span>PriceCategory – Prisgrupp</span></label>
-        <label><input type="checkbox" value="%TicketType%"><span>TicketType – Biljettyp</span></label>
-        <label><input type="checkbox" value="%AuthCode%"><span>AuthCode – Säsongskortskod</span></label>
-        <label><input type="checkbox" value="%Price%"><span>Price – Pris inkl. moms</span></label>
-        <label><input type="checkbox" value="%PriceVat%"><span>PriceVat – Moms</span></label>
-        <label><input type="checkbox" value="%ServiceFee%"><span>ServiceFee – Serviceavgift inkl. moms</span></label>
-        <label><input type="checkbox" value="%ServiceFeeVat%"><span>ServiceFeeVat – Moms på serviceavgift</span></label>
-        <label><input type="checkbox" value="%OrganizerName%"><span>OrganizerName – Arrangörens namn</span></label>
-        <label><input type="checkbox" value="%AdmittedName%"><span>AdmittedName – Köparens namn</span></label>
-        <label><input type="checkbox" value="%OrganizationName%"><span>OrganizationName – Köparens organisationsnamn</span></label>
-        <label><input type="checkbox" value="%SeasonOfferInformation%"><span>SeasonOfferInformation – Fritextinfo på säsongskort</span></label>
-        <label><input type="checkbox" value="%ReceiptText%"><span>ReceiptText – Benämning för säsongskort på kvitto</span></label>
-      </div>
-
-      <div class="placeholder-group">
-        <h4>Numrerade säsongskort</h4>
-        <label><input type="checkbox" value="%EntryVia%"><span>EntryVia – Ingång</span></label>
-        <label><input type="checkbox" value="%Row%"><span>Row – Rad</span></label>
-        <label><input type="checkbox" value="%Seat%"><span>Seat – Plats</span></label>
-        <label><input type="checkbox" value="%Section%"><span>Section – Sektion</span></label>
-      </div>
-
-      <div class="placeholder-group">
-        <h4>Värdebevis</h4>
-        <label><input type="checkbox" value="%AuthCode%"><span>AuthCode – Värdebeviskod</span></label>
-        <label><input type="checkbox" value="%Price%"><span>Price – Pris inkl. moms</span></label>
-        <label><input type="checkbox" value="%PriceVat%"><span>PriceVat – Moms</span></label>
-        <label><input type="checkbox" value="%PurchaseRefNo%"><span>PurchaseRefNo – Köpets referensnummer</span></label>
-        <label><input type="checkbox" value="%ServiceFee%"><span>ServiceFee – Serviceavgift inkl. moms</span></label>
-        <label><input type="checkbox" value="%ServiceFeeVat%"><span>ServiceFeeVat – Moms på serviceavgift</span></label>
-        <label><input type="checkbox" value="%VoucherDesignation%"><span>VoucherDesignation – Värdebevisets namn</span></label>
-        <label><input type="checkbox" value="%VoucherInformation%"><span>VoucherInformation – Fritextinformation på värdebevis</span></label>
-        <label><input type="checkbox" value="%EventName%"><span>EventName – Evenemangets namn</span></label>
-        <label><input type="checkbox" value="%EventDate%"><span>EventDate – Datum (fredag 30 mars 2020)</span></label>
-        <label><input type="checkbox" value="%EventDateShort%"><span>EventDateShort – Datum (YYYY-MM-DD)</span></label>
-        <label><input type="checkbox" value="%EventStartTime%"><span>EventStartTime – Starttid (HH:MM)</span></label>
-      </div>
-
-      <div class="placeholder-group">
-        <h4>Presentkort</h4>
-        <label><input type="checkbox" value="%GiftCertificateDesignation%"><span>GiftCertificateDesignation – Presentkortets namn</span></label>
-        <label><input type="checkbox" value="%RedemptionCode%"><span>RedemptionCode – Presentkortskod</span></label>
-        <label><input type="checkbox" value="%Expiry%"><span>Expiry – Sista giltighetsdatum (YYYY-MM-DD)</span></label>
-        <label><input type="checkbox" value="%PurchaseRefNo%"><span>PurchaseRefNo – Köpets referensnummer</span></label>
-        <label><input type="checkbox" value="%Price%"><span>Price – Pris inkl. moms</span></label>
-        <label><input type="checkbox" value="%PriceVat%"><span>PriceVat – Moms</span></label>
-        <label><input type="checkbox" value="%GiftCertificateInformation%"><span>GiftCertificateInformation – Fritextinformation på presentkort</span></label>
-      </div>
-
     </div>
     <div class="modal-footer">
       <button class="c-button c-button--ghost c-button--small" id="placeholderCancelBtn">Avbryt</button>
@@ -935,10 +1289,10 @@
   const rotateCwBtn = document.getElementById('rotateCwBtn');
   const rotateCcwBtn = document.getElementById('rotateCcwBtn');
   const deleteElementBtn = document.getElementById('deleteElementBtn');
-  const moveModeFree = document.getElementById('moveModeFree');
-  const moveModeSnap = document.getElementById('moveModeSnap');
+  const moveModeSelect = document.getElementById('moveModeSelect');
   const moveStepXInput = document.getElementById('moveStepX');
   const moveStepYInput = document.getElementById('moveStepY');
+  const moveStepInputsWrap = document.getElementById('moveStepInputsWrap');
   const alignLeftBtn = document.getElementById('alignLeftBtnTools');
   const alignRightBtn = document.getElementById('alignRightBtnTools');
   const alignTopBtn = document.getElementById('alignTopBtnTools');
@@ -970,10 +1324,267 @@
   let moveStepY = 1;
   const DRAFT_KEY = 'svgBuilderDraft';
   const SIZE_KEY = 'svgBuilderSize';
+  const MAX_UNDO_STATES = 120;
   let persistTimer = null;
   let hasDraft = false;
   let restoredDraft = false;
   let sizeRestored = false;
+  let currentSvgFilename = 'tickster-mall.svg';
+  let currentSvgFileHandle = null;
+  let appMenuOpen = false;
+  let canvasContextMenuOpen = false;
+  let undoStack = [];
+  let historyCurrentState = '';
+  let suspendHistoryTracking = false;
+  let interactionWindowEventsAttached = false;
+  const supportsOpenPicker = typeof window.showOpenFilePicker === 'function';
+  const supportsSavePicker = typeof window.showSaveFilePicker === 'function';
+
+  function normalizeSvgFilename(name) {
+    const trimmed = String(name || '').trim();
+    if (!trimmed) return 'tickster-mall.svg';
+    return /\.svg$/i.test(trimmed) ? trimmed : `${trimmed}.svg`;
+  }
+
+  function positionAppMenuPanel() {
+    const toggleBtn = document.getElementById('appMenuToggleBtn');
+    const panel = document.getElementById('appMenuPanel');
+    if (!toggleBtn || !panel) return;
+    const viewportPadding = 8;
+    const buttonRect = toggleBtn.getBoundingClientRect();
+    const panelWidth = panel.offsetWidth || 240;
+    const panelHeight = panel.offsetHeight || 0;
+    let left = buttonRect.left;
+    if (left + panelWidth > window.innerWidth - viewportPadding) {
+      left = Math.max(viewportPadding, window.innerWidth - panelWidth - viewportPadding);
+    }
+    let top = buttonRect.bottom + viewportPadding;
+    if (top + panelHeight > window.innerHeight - viewportPadding) {
+      top = Math.max(viewportPadding, buttonRect.top - panelHeight - viewportPadding);
+    }
+    panel.style.left = `${left}px`;
+    panel.style.top = `${top}px`;
+  }
+
+  function setAppMenuOpen(open) {
+    const toggleBtn = document.getElementById('appMenuToggleBtn');
+    const overlay = document.getElementById('appMenuOverlay');
+    const panel = document.getElementById('appMenuPanel');
+    if (!toggleBtn || !overlay || !panel) return;
+    appMenuOpen = !!open;
+    overlay.classList.toggle('open', appMenuOpen);
+    panel.classList.toggle('open', appMenuOpen);
+    toggleBtn.setAttribute('aria-expanded', appMenuOpen ? 'true' : 'false');
+    if (appMenuOpen) {
+      closeCanvasContextMenu();
+      positionAppMenuPanel();
+    }
+  }
+
+  function closeAppMenu() {
+    setAppMenuOpen(false);
+  }
+
+  function positionCanvasContextMenu(clientX, clientY) {
+    const menu = document.getElementById('canvasContextMenu');
+    if (!menu) return;
+    const viewportPadding = 8;
+    const menuWidth = menu.offsetWidth || 240;
+    const menuHeight = menu.offsetHeight || 0;
+    let left = clientX;
+    let top = clientY;
+    if (left + menuWidth > window.innerWidth - viewportPadding) {
+      left = Math.max(viewportPadding, window.innerWidth - menuWidth - viewportPadding);
+    }
+    if (top + menuHeight > window.innerHeight - viewportPadding) {
+      top = Math.max(viewportPadding, window.innerHeight - menuHeight - viewportPadding);
+    }
+    menu.style.left = `${left}px`;
+    menu.style.top = `${top}px`;
+  }
+
+  function openCanvasContextMenu(clientX, clientY) {
+    const menu = document.getElementById('canvasContextMenu');
+    if (!menu) return;
+    closeAppMenu();
+    canvasContextMenuOpen = true;
+    menu.classList.add('open');
+    positionCanvasContextMenu(clientX, clientY);
+  }
+
+  function closeCanvasContextMenu() {
+    const menu = document.getElementById('canvasContextMenu');
+    if (!menu) return;
+    canvasContextMenuOpen = false;
+    menu.classList.remove('open');
+  }
+
+  function initCanvasContextMenu() {
+    const menu = document.getElementById('canvasContextMenu');
+    const container = document.getElementById('svgContainer');
+    if (!menu || !container) return;
+
+    container.addEventListener('contextmenu', event => {
+      event.preventDefault();
+      openCanvasContextMenu(event.clientX, event.clientY);
+    });
+
+    menu.addEventListener('contextmenu', event => {
+      event.preventDefault();
+    });
+
+    menu.addEventListener('click', event => {
+      const btn = event.target.closest('button');
+      if (!btn) return;
+      closeCanvasContextMenu();
+    });
+
+    document.addEventListener('pointerdown', event => {
+      if (!canvasContextMenuOpen) return;
+      if (menu.contains(event.target)) return;
+      closeCanvasContextMenu();
+    });
+
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape') {
+        closeCanvasContextMenu();
+      }
+    });
+
+    window.addEventListener('resize', () => {
+      if (canvasContextMenuOpen) {
+        closeCanvasContextMenu();
+      }
+    });
+  }
+
+  function initAppMenu() {
+    const toggleBtn = document.getElementById('appMenuToggleBtn');
+    const overlay = document.getElementById('appMenuOverlay');
+    if (!toggleBtn || !overlay) return;
+    toggleBtn.addEventListener('click', event => {
+      event.stopPropagation();
+      setAppMenuOpen(!appMenuOpen);
+    });
+    overlay.addEventListener('click', closeAppMenu);
+    window.addEventListener('resize', () => {
+      if (appMenuOpen) {
+        positionAppMenuPanel();
+      }
+    });
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape') {
+        closeAppMenu();
+      }
+    });
+  }
+
+  function initSizeModal() {
+    const modal = document.getElementById('sizeModal');
+    const openBtn = document.getElementById('openSizeModalBtn');
+    const closeBtn = document.getElementById('sizeModalCloseBtn');
+    const backdrop = modal ? modal.querySelector('.modal-backdrop') : null;
+    if (!modal || !openBtn || !closeBtn || !backdrop) return;
+    const close = () => modal.classList.add('hidden');
+    openBtn.addEventListener('click', () => {
+      closeAppMenu();
+      modal.classList.remove('hidden');
+    });
+    closeBtn.addEventListener('click', close);
+    backdrop.addEventListener('click', close);
+  }
+
+  function openHelpModal() {
+    const modal = document.getElementById('helpModal');
+    if (!modal) return;
+    closeAppMenu();
+    modal.classList.remove('hidden');
+  }
+
+  function closeHelpModal() {
+    const modal = document.getElementById('helpModal');
+    if (!modal) return;
+    modal.classList.add('hidden');
+  }
+
+  function toggleHelpModal() {
+    const modal = document.getElementById('helpModal');
+    if (!modal) return;
+    if (modal.classList.contains('hidden')) {
+      openHelpModal();
+    } else {
+      closeHelpModal();
+    }
+  }
+
+  function initHelpModal() {
+    const modal = document.getElementById('helpModal');
+    const openBtn = document.getElementById('openHelpModalBtn');
+    const closeBtn = document.getElementById('helpModalCloseBtn');
+    const backdrop = modal ? modal.querySelector('.modal-backdrop') : null;
+    if (!modal || !openBtn || !closeBtn || !backdrop) return;
+    openBtn.addEventListener('click', () => {
+      openHelpModal();
+    });
+    closeBtn.addEventListener('click', closeHelpModal);
+    backdrop.addEventListener('click', closeHelpModal);
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape' && !modal.classList.contains('hidden')) {
+        closeHelpModal();
+      }
+    });
+  }
+
+  function isTextInputFocused() {
+    const active = document.activeElement;
+    if (!active) return false;
+    const tag = active.tagName ? active.tagName.toLowerCase() : '';
+    return !!active.isContentEditable || tag === 'input' || tag === 'textarea' || tag === 'select';
+  }
+
+  function initKeyboardShortcuts() {
+    window.addEventListener('keydown', event => {
+      const key = String(event.key || '').toLowerCase();
+      const hasMeta = event.ctrlKey || event.metaKey;
+      const isTextEditing = isTextInputFocused();
+
+      if (hasMeta) {
+        if (key === 's') {
+          event.preventDefault();
+          document.getElementById('saveBtn')?.click();
+        } else if (key === 'o') {
+          event.preventDefault();
+          const openBtn = document.getElementById('openFileBtn');
+          if (openBtn) openBtn.click();
+        } else if (key === 'z' && !event.shiftKey) {
+          if (isTextEditing) return;
+          event.preventDefault();
+          undoLastChange();
+        } else if (key === 'd') {
+          if (isTextEditing) return;
+          event.preventDefault();
+          clearSelection();
+        }
+        return;
+      }
+
+      if (event.altKey) return;
+
+      if (key === 'delete') {
+        if (isTextEditing) return;
+        event.preventDefault();
+        deleteSelectedElement();
+        return;
+      }
+
+      if (key === 'h') {
+        if (isTextEditing) return;
+        if (event.repeat) return;
+        event.preventDefault();
+        toggleHelpModal();
+      }
+    });
+  }
 
   function ensureEditorBackgroundRect() {
     let bg = svg.querySelector('rect[data-editor-background="1"]');
@@ -1000,9 +1611,10 @@
     const rect = container.getBoundingClientRect();
     const { width, height } = getViewBoxSize();
     if (!width || !height) return;
-    const padding = 16; // lämna lite luft runt
-    const availableW = Math.max(0, rect.width - padding);
-    const availableH = Math.max(0, rect.height - padding);
+    const paddingX = 26; // extra luft från vänster/höger
+    const paddingY = 24; // extra luft från över-/underkant
+    const availableW = Math.max(0, rect.width - paddingX);
+    const availableH = Math.max(0, rect.height - paddingY);
     const widthPx = width * mmToPx;
     const heightPx = height * mmToPx;
     const rawScale = Math.min(availableW / widthPx, availableH / heightPx);
@@ -1307,19 +1919,23 @@
     selectionRect = document.createElementNS(svgNS, 'rect');
     selectionRect.setAttribute('fill', 'none');
     selectionRect.setAttribute('stroke', '#14a0f4');
-    selectionRect.setAttribute('stroke-width', '0.4');
-    selectionRect.setAttribute('stroke-dasharray', '1.5,1.5');
+    selectionRect.setAttribute('stroke-width', '0.26');
+    selectionRect.setAttribute('stroke-dasharray', '1.1,1.1');
+    selectionRect.setAttribute('rx', '0.45');
+    selectionRect.setAttribute('ry', '0.45');
     selectionRect.setAttribute('pointer-events', 'none');
     selectionRect.style.display = 'none';
     selectionRect.dataset.editorHelper = '1';
     selectionRect.dataset.selectionHelper = '1';
 
     resizeHandle = document.createElementNS(svgNS, 'rect');
-    resizeHandle.setAttribute('width', 4);
-    resizeHandle.setAttribute('height', 4);
+    resizeHandle.setAttribute('width', 2);
+    resizeHandle.setAttribute('height', 2);
     resizeHandle.setAttribute('fill', '#14a0f4');
     resizeHandle.setAttribute('stroke', '#0c6ba5');
-    resizeHandle.setAttribute('stroke-width', '0.3');
+    resizeHandle.setAttribute('stroke-width', '0.22');
+    resizeHandle.setAttribute('rx', '0.55');
+    resizeHandle.setAttribute('ry', '0.55');
     resizeHandle.style.cursor = 'se-resize';
     resizeHandle.style.display = 'none';
     resizeHandle.dataset.editorHelper = '1';
@@ -1367,6 +1983,55 @@
       return selectedElement.parentNode.querySelector('text') || null;
     }
     return null;
+  }
+
+  function parseFontSizeParts(rawValue) {
+    const raw = String(rawValue || '').trim();
+    if (!raw) {
+      return { value: NaN, unit: '' };
+    }
+    const match = raw.match(/^([-+]?\d*\.?\d+)([a-z%]*)$/i);
+    if (!match) {
+      const parsed = parseFloat(raw);
+      return { value: parsed, unit: '' };
+    }
+    return {
+      value: parseFloat(match[1]),
+      unit: (match[2] || '').toLowerCase()
+    };
+  }
+
+  function getTextFontSizeValue(textEl, fallback = 4) {
+    if (!textEl) return fallback;
+    const attrParts = parseFontSizeParts(textEl.getAttribute('font-size'));
+    if (!isNaN(attrParts.value) && attrParts.value > 0) {
+      return attrParts.value;
+    }
+    const styleParts = parseFontSizeParts(textEl.style ? textEl.style.fontSize : '');
+    if (!isNaN(styleParts.value) && styleParts.value > 0) {
+      return styleParts.value;
+    }
+    return fallback;
+  }
+
+  function setTextFontSizeValue(textEl, size) {
+    if (!textEl) return;
+    const safeSize = Math.max(1, parseFloat(size) || 1);
+    const attrParts = parseFontSizeParts(textEl.getAttribute('font-size'));
+    const styleParts = parseFontSizeParts(textEl.style ? textEl.style.fontSize : '');
+    const unit = styleParts.unit || attrParts.unit || '';
+    if (unit) {
+      const serialized = `${safeSize}${unit}`;
+      textEl.setAttribute('font-size', serialized);
+      if (textEl.style) {
+        textEl.style.fontSize = serialized;
+      }
+      return;
+    }
+    textEl.setAttribute('font-size', String(safeSize));
+    if (textEl.style && textEl.style.fontSize) {
+      textEl.style.removeProperty('font-size');
+    }
   }
 
   function isLineElement(el) {
@@ -1471,7 +2136,7 @@
     }
     selectionRect.style.display = 'block';
 
-    const handleSize = 4;
+    const handleSize = parseFloat(resizeHandle.getAttribute('width') || '3');
     resizeHandle.setAttribute('x', bbox.x + bbox.width - handleSize / 2);
     resizeHandle.setAttribute('y', bbox.y + bbox.height - handleSize / 2);
     if (selData.transform) {
@@ -1493,8 +2158,10 @@
         r.setAttribute('height', data.bbox.height);
         r.setAttribute('fill', 'none');
         r.setAttribute('stroke', '#94a3b8');
-        r.setAttribute('stroke-width', '0.3');
-        r.setAttribute('stroke-dasharray', '1.2,1.2');
+        r.setAttribute('stroke-width', '0.22');
+        r.setAttribute('stroke-dasharray', '0.9,0.9');
+        r.setAttribute('rx', '0.4');
+        r.setAttribute('ry', '0.4');
         r.dataset.editorHelper = '1';
         r.dataset.selectionHelper = '1';
         if (data.transform) {
@@ -1599,21 +2266,142 @@
     Array.from(node.children || []).forEach(child => markEditableRecursive(child));
   }
 
+  function getSvgDimensions(targetSvg) {
+    if (!targetSvg) return { w: 100, h: 50 };
+    const vb = targetSvg.getAttribute('viewBox');
+    if (vb) {
+      const parts = vb.trim().split(/\s+/);
+      return {
+        w: parseFloat(parts[2]) || 100,
+        h: parseFloat(parts[3]) || 50
+      };
+    }
+    return {
+      w: parseFloat(targetSvg.getAttribute('width')) || 100,
+      h: parseFloat(targetSvg.getAttribute('height')) || 50
+    };
+  }
+
+  function applyImportedSvg(importedSvg) {
+    const container = document.getElementById('svgContainer');
+    if (!container || !importedSvg) return false;
+
+    importedSvg.id = 'svgCanvas';
+    if (!importedSvg.getAttribute('xmlns:xlink')) {
+      importedSvg.setAttribute('xmlns:xlink', xlinkNS);
+    }
+    markEditableRecursive(importedSvg);
+    removeSelectionGraphics(importedSvg);
+    bakeAllLineRotations(importedSvg);
+
+    selectedElement = null;
+    selectedElements = [];
+    multiSelectionRects = [];
+    isDragging = false;
+    isResizing = false;
+    isLasso = false;
+    interactionChanged = false;
+    startAttrs = null;
+
+    container.innerHTML = '';
+    container.appendChild(importedSvg);
+    svg = importedSvg;
+
+    initSelectionGraphics();
+    attachSvgInteraction();
+    ensureEditorBackgroundRect();
+    updateSelectionVisuals();
+
+    const { w, h } = getSvgDimensions(svg);
+    const sizeCustomRadio = document.getElementById('sizeCustom');
+    if (sizeCustomRadio) {
+      sizeCustomRadio.checked = true;
+    }
+    updateCanvasSize(w, h);
+    const customWidthInput = document.getElementById('customWidth');
+    const customHeightInput = document.getElementById('customHeight');
+    if (customWidthInput) customWidthInput.value = w;
+    if (customHeightInput) customHeightInput.value = h;
+    localStorage.setItem(SIZE_KEY, JSON.stringify({ w, h, preset: 'custom' }));
+    fitCanvasToContainer();
+    return true;
+  }
+
+  function applySvgSource(source) {
+    if (!source) return false;
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(source, 'image/svg+xml');
+    if (doc.querySelector('parsererror')) return false;
+    const loadedSvg = doc.querySelector('svg');
+    if (!loadedSvg) return false;
+    const importedSvg = document.importNode(loadedSvg, true);
+    return applyImportedSvg(importedSvg);
+  }
+
+  function serializeCurrentSvgState() {
+    if (!svg) return '';
+    const clone = svg.cloneNode(true);
+    removeSelectionGraphics(clone);
+    const serializer = new XMLSerializer();
+    return serializer.serializeToString(clone);
+  }
+
+  function resetUndoHistory() {
+    undoStack = [];
+    historyCurrentState = serializeCurrentSvgState();
+  }
+
+  function trackUndoState() {
+    if (suspendHistoryTracking) return false;
+    const nextState = serializeCurrentSvgState();
+    if (!nextState) return false;
+    if (!historyCurrentState) {
+      historyCurrentState = nextState;
+      return false;
+    }
+    if (nextState === historyCurrentState) return false;
+    undoStack.push(historyCurrentState);
+    if (undoStack.length > MAX_UNDO_STATES) {
+      undoStack.shift();
+    }
+    historyCurrentState = nextState;
+    return true;
+  }
+
+  function undoLastChange() {
+    if (!undoStack.length) return false;
+    const previousState = undoStack.pop();
+    const fallbackCurrent = historyCurrentState;
+    suspendHistoryTracking = true;
+    try {
+      const restored = applySvgSource(previousState);
+      if (!restored) {
+        undoStack.push(previousState);
+        historyCurrentState = fallbackCurrent;
+        return false;
+      }
+      historyCurrentState = previousState;
+      schedulePersist();
+      return true;
+    } finally {
+      suspendHistoryTracking = false;
+    }
+  }
+
   function schedulePersist() {
     if (persistTimer) {
       clearTimeout(persistTimer);
     }
     persistTimer = setTimeout(() => {
-      const clone = svg.cloneNode(true);
-      removeSelectionGraphics(clone);
-      const serializer = new XMLSerializer();
-      const source = serializer.serializeToString(clone);
+      const source = serializeCurrentSvgState();
+      if (!source) return;
       localStorage.setItem(DRAFT_KEY, source);
       hasDraft = true;
     }, 200);
   }
 
   function markDirty() {
+    trackUndoState();
     schedulePersist();
   }
 
@@ -1624,50 +2412,16 @@
     if (!ok) return;
 
     try {
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(stored, 'image/svg+xml');
-      const loadedSvg = doc.querySelector('svg');
-      if (!loadedSvg) return;
-      const container = document.getElementById('svgContainer');
-      const importedSvg = document.importNode(loadedSvg, true);
-      importedSvg.id = 'svgCanvas';
-      if (!importedSvg.getAttribute('xmlns:xlink')) {
-        importedSvg.setAttribute('xmlns:xlink', xlinkNS);
-      }
-      markEditableRecursive(importedSvg);
-      removeSelectionGraphics(importedSvg);
-      bakeAllLineRotations(importedSvg);
-      container.innerHTML = '';
-      container.appendChild(importedSvg);
-      svg = importedSvg;
-      initSelectionGraphics();
-      attachSvgInteraction();
-      ensureEditorBackgroundRect();
-
-      const vb = svg.getAttribute('viewBox');
-      let w, h;
-      if (vb) {
-        const parts = vb.split(' ');
-        w = parseFloat(parts[2]) || 100;
-        h = parseFloat(parts[3]) || 50;
-      } else {
-        const widthAttr = svg.getAttribute('width');
-        const heightAttr = svg.getAttribute('height');
-        w = parseFloat(widthAttr) || 100;
-        h = parseFloat(heightAttr) || 50;
-      }
-      updateCanvasSize(w, h);
-      document.getElementById('customWidth').value = w;
-      document.getElementById('customHeight').value = h;
-      document.getElementById('sizeCustom').checked = true;
-      localStorage.setItem(SIZE_KEY, JSON.stringify({ w, h, preset: 'custom' }));
+      const restored = applySvgSource(stored);
+      if (!restored) return;
       restoredDraft = true;
+      resetUndoHistory();
     } catch (err) {
       console.error('Misslyckades att återställa utkast', err);
     }
   }
 
-  function moveElement(el, dx, dy) {
+  function moveElement(el, dx, dy, commit = true) {
     const tag = el.tagName.toLowerCase();
     if (tag === 'rect' || tag === 'image') {
       const x = parseFloat(el.getAttribute('x') || 0) + dx;
@@ -1675,7 +2429,7 @@
       el.setAttribute('x', x);
       el.setAttribute('y', y);
       syncRotationCenter(el);
-      markDirty();
+      if (commit) markDirty();
     } else if (tag === 'line') {
       const x1 = parseFloat(el.getAttribute('x1') || 0) + dx;
       const y1 = parseFloat(el.getAttribute('y1') || 0) + dy;
@@ -1686,14 +2440,14 @@
       el.setAttribute('x2', x2);
       el.setAttribute('y2', y2);
       syncRotationCenter(el);
-      markDirty();
+      if (commit) markDirty();
     } else if (tag === 'text') {
       const x = parseFloat(el.getAttribute('x') || 0) + dx;
       const y = parseFloat(el.getAttribute('y') || 0) + dy;
       el.setAttribute('x', x);
       el.setAttribute('y', y);
       syncRotationCenter(el);
-      markDirty();
+      if (commit) markDirty();
     } else if (tag === 'g' && el.dataset.type === 'placeholder') {
       const rect = el.querySelector('rect');
       const text = el.querySelector('text');
@@ -1705,7 +2459,7 @@
       text.setAttribute('x', parseFloat(text.getAttribute('x') || 0) + dx);
       text.setAttribute('y', parseFloat(text.getAttribute('y') || 0) + dy);
       syncRotationCenter(el);
-      markDirty();
+      if (commit) markDirty();
     }
   }
 
@@ -1739,41 +2493,41 @@
           dy = (anchorBox.y + anchorBox.height / 2) - (box.y + box.height / 2);
           break;
       }
-      moveElement(el, dx, dy);
+      moveElement(el, dx, dy, false);
     });
     updateSelectionVisuals();
     markDirty();
   }
 
   function initMoveControls() {
-    if (moveModeFree) {
-      moveModeFree.addEventListener('change', () => {
-        if (moveModeFree.checked) {
-          moveMode = 'free';
-          moveStepXInput.disabled = true;
-          moveStepYInput.disabled = true;
-        }
-      });
+    const updateMode = () => {
+      const selected = moveModeSelect ? String(moveModeSelect.value || 'free') : 'free';
+      moveMode = selected === 'snap' ? 'snap' : 'free';
+      const showStepInputs = moveMode === 'snap';
+      if (moveStepInputsWrap) {
+        moveStepInputsWrap.style.display = showStepInputs ? 'inline-flex' : 'none';
+      }
+      if (moveStepXInput) moveStepXInput.disabled = !showStepInputs;
+      if (moveStepYInput) moveStepYInput.disabled = !showStepInputs;
+    };
+
+    if (moveModeSelect) {
+      moveModeSelect.addEventListener('change', updateMode);
     }
-    if (moveModeSnap) {
-      moveModeSnap.addEventListener('change', () => {
-        if (moveModeSnap.checked) {
-          moveMode = 'snap';
-          moveStepXInput.disabled = false;
-          moveStepYInput.disabled = false;
-        }
-      });
-    }
+
     const updateSteps = () => {
+      if (!moveStepXInput || !moveStepYInput) return;
       const sx = parseFloat(moveStepXInput.value);
       const sy = parseFloat(moveStepYInput.value);
       moveStepX = !isNaN(sx) && sx > 0 ? sx : moveStepX;
       moveStepY = !isNaN(sy) && sy > 0 ? sy : moveStepY;
     };
-    moveStepXInput.addEventListener('input', updateSteps);
-    moveStepYInput.addEventListener('input', updateSteps);
-    moveStepXInput.disabled = moveMode !== 'snap';
-    moveStepYInput.disabled = moveMode !== 'snap';
+
+    if (moveStepXInput) moveStepXInput.addEventListener('input', updateSteps);
+    if (moveStepYInput) moveStepYInput.addEventListener('input', updateSteps);
+
+    updateSteps();
+    updateMode();
   }
 
   function initAlignButtons() {
@@ -1865,7 +2619,10 @@
     } else if (tag === 'text') {
       startAttrs.x = parseFloat(el.getAttribute('x') || 0);
       startAttrs.y = parseFloat(el.getAttribute('y') || 0);
-      startAttrs.fontSize = parseFloat(el.getAttribute('font-size') || 3.5);
+      startAttrs.fontSize = getTextFontSizeValue(el, 3.5);
+      const boxData = getSelectionBoxData(el);
+      startAttrs.bboxW = Math.max(0.01, parseFloat(boxData.bbox.width) || 0.01);
+      startAttrs.bboxH = Math.max(0.01, parseFloat(boxData.bbox.height) || 0.01);
     } else if (tag === 'g' && el.dataset.type === 'placeholder') {
       const rect = el.querySelector('rect');
       const text = el.querySelector('text');
@@ -1875,7 +2632,7 @@
       startAttrs.rectH = parseFloat(rect.getAttribute('height') || 0);
       startAttrs.textX = parseFloat(text.getAttribute('x') || 0);
       startAttrs.textY = parseFloat(text.getAttribute('y') || 0);
-      startAttrs.textFontSize = parseFloat(text.getAttribute('font-size') || 3.5);
+      startAttrs.textFontSize = getTextFontSizeValue(text, 3.5);
     }
   }
 
@@ -1962,9 +2719,16 @@
       }
       interactionChanged = true;
     } else if (tag === 'text') {
-      const avgDelta = (localDx + localDy) / 2;
-      const newSize = Math.max(1, startAttrs.fontSize + avgDelta * 0.1);
-      el.setAttribute('font-size', newSize);
+      const startW = Math.max(0.01, startAttrs.bboxW || 0.01);
+      const startH = Math.max(0.01, startAttrs.bboxH || 0.01);
+      const nextW = Math.max(0.01, startW + localDx);
+      const nextH = Math.max(0.01, startH + localDy);
+      const startDiag = Math.hypot(startW, startH);
+      const nextDiag = Math.hypot(nextW, nextH);
+      // Diagonal-baserad skalning ger mer förutsägbart hörn-drag för text.
+      const scale = Math.max(0.1, nextDiag / Math.max(0.01, startDiag));
+      const newSize = Math.max(1, startAttrs.fontSize * scale);
+      setTextFontSizeValue(el, newSize);
       interactionChanged = true;
     } else if (tag === 'g' && el.dataset.type === 'placeholder') {
       const rect = el.querySelector('rect');
@@ -1976,7 +2740,7 @@
 
       const scaleY = newH / startAttrs.rectH;
       const newFont = Math.max(2, startAttrs.textFontSize * scaleY);
-      text.setAttribute('font-size', newFont);
+      setTextFontSizeValue(text, newFont);
       text.setAttribute('y', startAttrs.rectY + newH - 2.5);
       interactionChanged = true;
     }
@@ -1984,6 +2748,8 @@
   }
 
   function onSvgMouseDown(evt) {
+    if (evt.button !== 0) return;
+
     if (evt.target === resizeHandle) {
       if (!selectedElement) return;
       isResizing = true;
@@ -2105,8 +2871,8 @@
     const titleNode = textEl.querySelector('title');
     textPlaceholderInput.value = titleNode ? (titleNode.textContent || '') : '';
 
-    const size = parseFloat(textEl.getAttribute('font-size') || '4');
-    textSizeInput.value = size;
+    const size = getTextFontSizeValue(textEl, 4);
+    textSizeInput.value = String(Math.round(size * 100) / 100);
 
     const anchor = textEl.getAttribute('text-anchor') || 'start';
     alignButtons.forEach(btn => {
@@ -2137,7 +2903,7 @@
     if (!textEl) return;
     const v = parseFloat(textSizeInput.value);
     if (!isNaN(v) && v > 0) {
-      textEl.setAttribute('font-size', v);
+      setTextFontSizeValue(textEl, v);
 
       const parent = textEl.parentNode;
       if (parent && parent.dataset && parent.dataset.type === 'placeholder') {
@@ -2148,18 +2914,6 @@
       markDirty();
     }
   });
-
-
-  textSizeInput.addEventListener('input', () => {
-    const textEl = getActiveTextTarget();
-    if (!textEl) return;
-      const v = parseFloat(textSizeInput.value);
-      if (!isNaN(v) && v > 0) {
-        textEl.setAttribute('font-size', v);
-        updateSelectionVisuals();
-        markDirty();
-      }
-    });
 
   if (textPlaceholderInput) {
     textPlaceholderInput.addEventListener('input', () => {
@@ -2313,15 +3067,132 @@
     fitCanvasToContainer();
     localStorage.removeItem(DRAFT_KEY);
     hasDraft = false;
+    resetUndoHistory();
   }
 
   function initFileHandling() {
     const openFileInput = document.getElementById('openFile');
+    const openFileBtn = document.getElementById('openFileBtn');
     const saveBtn = document.getElementById('saveBtn');
+    const saveAsBtn = document.getElementById('saveAsBtn');
     const newTemplateBtn = document.getElementById('newTemplateBtn');
+    const closeDesignBtn = document.getElementById('closeDesignBtn');
+
+    function buildCurrentSvgSource() {
+      const clonedSvg = createExportClone();
+      const serializer = new XMLSerializer();
+      let source = serializer.serializeToString(clonedSvg);
+      if (!source.match(/^<\?xml/)) {
+        source = '<?xml version="1.0" standalone="no"?>\n' + source;
+      }
+      return source;
+    }
+
+    function downloadCurrentSvg(filename) {
+      const source = buildCurrentSvgSource();
+
+      const blob = new Blob([source], { type: 'image/svg+xml;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = normalizeSvgFilename(filename);
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      const draftSource = serializeCurrentSvgState();
+      if (draftSource) {
+        localStorage.setItem(DRAFT_KEY, draftSource);
+      }
+      hasDraft = false;
+    }
+
+    async function saveCurrentSvgToFile(options = {}) {
+      const { forceDialog = false } = options;
+      const suggestedName = normalizeSvgFilename(currentSvgFilename);
+
+      if (!supportsSavePicker) {
+        downloadCurrentSvg(suggestedName);
+        return true;
+      }
+
+      try {
+        let handle = forceDialog ? null : currentSvgFileHandle;
+        if (!handle) {
+          handle = await window.showSaveFilePicker({
+            suggestedName,
+            types: [
+              {
+                description: 'SVG-fil',
+                accept: { 'image/svg+xml': ['.svg'] }
+              }
+            ],
+            excludeAcceptAllOption: false
+          });
+        }
+        if (!handle) return false;
+
+        const writable = await handle.createWritable();
+        await writable.write(buildCurrentSvgSource());
+        await writable.close();
+
+        currentSvgFileHandle = handle;
+        currentSvgFilename = normalizeSvgFilename(handle.name || suggestedName);
+        const draftSource = serializeCurrentSvgState();
+        if (draftSource) {
+          localStorage.setItem(DRAFT_KEY, draftSource);
+        }
+        hasDraft = false;
+        return true;
+      } catch (err) {
+        if (err?.name === 'AbortError') return false;
+        if (!forceDialog) {
+          currentSvgFileHandle = null;
+          return saveCurrentSvgToFile({ forceDialog: true });
+        }
+        console.warn('Spara via filväljare misslyckades, använder nedladdning.', err);
+        downloadCurrentSvg(suggestedName);
+        return true;
+      }
+    }
+
+    async function openSvgViaPicker() {
+      try {
+        const [handle] = await window.showOpenFilePicker({
+          types: [
+            {
+              description: 'SVG-fil',
+              accept: { 'image/svg+xml': ['.svg'] }
+            }
+          ],
+          excludeAcceptAllOption: false,
+          multiple: false
+        });
+        if (!handle) return;
+        const file = await handle.getFile();
+        const text = await file.text();
+        currentSvgFilename = normalizeSvgFilename(handle.name || file.name || currentSvgFilename);
+        const loaded = applySvgSource(text);
+        if (!loaded) {
+          alert('Ingen <svg>-tagg hittades i filen.');
+          return;
+        }
+        currentSvgFileHandle = handle;
+        resetUndoHistory();
+      } catch (err) {
+        if (err?.name === 'AbortError') return;
+        console.warn('Öppna via filväljare misslyckades, använder filinput.', err);
+        if (openFileInput) {
+          openFileInput.value = '';
+          openFileInput.click();
+        }
+      }
+    }
 
     if (newTemplateBtn) {
       newTemplateBtn.addEventListener('click', () => {
+        closeAppMenu();
         const hasContent = canvasHasUserContent();
         if (hasContent) {
           const confirmed = confirm('Canvasen innehåller element. Rensa och skapa en ny tom mall?');
@@ -2331,98 +3202,75 @@
         createBlankCanvas(w, h);
         document.getElementById('customWidth').value = w;
         document.getElementById('customHeight').value = h;
+        currentSvgFilename = 'tickster-mall.svg';
+        currentSvgFileHandle = null;
       });
     }
 
-    openFileInput.addEventListener('change', event => {
-      const file = event.target.files[0];
-      if (!file) return;
-
-      const reader = new FileReader();
-      reader.onload = e => {
-        const text = e.target.result;
-        try {
-          const parser = new DOMParser();
-          const doc = parser.parseFromString(text, 'image/svg+xml');
-          const loadedSvg = doc.querySelector('svg');
-          if (!loadedSvg) {
-            alert('Ingen <svg>-tagg hittades i filen.');
-            return;
-          }
-          const container = document.getElementById('svgContainer');
-
-          const importedSvg = document.importNode(loadedSvg, true);
-          importedSvg.id = 'svgCanvas';
-          if (!importedSvg.getAttribute('xmlns:xlink')) {
-            importedSvg.setAttribute('xmlns:xlink', xlinkNS);
-          }
-          markEditableRecursive(importedSvg);
-      removeSelectionGraphics(importedSvg);
-      bakeAllLineRotations(importedSvg);
-
-      container.innerHTML = '';
-      container.appendChild(importedSvg);
-      svg = importedSvg;
-
-      initSelectionGraphics();
-      attachSvgInteraction();
-      ensureEditorBackgroundRect();
-      fitCanvasToContainer();
-
-      const vb = svg.getAttribute('viewBox');
-      let w, h;
-      if (vb) {
-            const parts = vb.split(' ');
-            w = parseFloat(parts[2]) || 100;
-            h = parseFloat(parts[3]) || 50;
-          } else {
-            const widthAttr = svg.getAttribute('width');
-            const heightAttr = svg.getAttribute('height');
-            w = parseFloat(widthAttr) || 100;
-            h = parseFloat(heightAttr) || 50;
-          }
-
-          updateCanvasSize(w, h);
-
-          document.getElementById('customWidth').value = w;
-          document.getElementById('customHeight').value = h;
-          document.getElementById('sizeCustom').checked = true;
-          localStorage.setItem(SIZE_KEY, JSON.stringify({ w, h, preset: 'custom' }));
-          markDirty();
-        } catch (err) {
-          console.error(err);
-          alert('Kunde inte läsa SVG-filen.');
+    if (openFileBtn && openFileInput) {
+      openFileBtn.addEventListener('click', async () => {
+        closeAppMenu();
+        if (supportsOpenPicker) {
+          await openSvgViaPicker();
+          return;
         }
-      };
-      reader.readAsText(file);
-    });
+        openFileInput.value = '';
+        openFileInput.click();
+      });
+    }
 
-    saveBtn.addEventListener('click', () => {
-      const clonedSvg = createExportClone();
+    if (openFileInput) {
+      openFileInput.addEventListener('change', event => {
+        const file = event.target.files[0];
+        if (!file) return;
+        closeAppMenu();
+        currentSvgFilename = normalizeSvgFilename(file.name || currentSvgFilename);
+        currentSvgFileHandle = null;
 
-      const serializer = new XMLSerializer();
-      let source = serializer.serializeToString(clonedSvg);
+        const reader = new FileReader();
+        reader.onload = e => {
+          const text = e.target.result;
+          try {
+            const loaded = applySvgSource(text);
+            if (!loaded) {
+              alert('Ingen <svg>-tagg hittades i filen.');
+              return;
+            }
+            resetUndoHistory();
+          } catch (err) {
+            console.error(err);
+            alert('Kunde inte läsa SVG-filen.');
+          }
+        };
+        reader.readAsText(file);
+      });
+    }
 
-      if (!source.match(/^<\?xml/)) {
-        source = '<?xml version="1.0" standalone="no"?>\n' + source;
-      }
+    if (saveBtn) {
+      saveBtn.addEventListener('click', async () => {
+        closeAppMenu();
+        await saveCurrentSvgToFile();
+      });
+    }
 
-      const blob = new Blob([source], { type: 'image/svg+xml;charset=utf-8' });
-      const url = URL.createObjectURL(blob);
-
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'tickster-mall.svg';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      localStorage.removeItem(DRAFT_KEY);
-      hasDraft = false;
-    });
+    if (saveAsBtn) {
+      saveAsBtn.addEventListener('click', async () => {
+        closeAppMenu();
+        if (supportsSavePicker) {
+          await saveCurrentSvgToFile({ forceDialog: true });
+          return;
+        }
+        const inputName = prompt('Spara som (SVG-filnamn):', currentSvgFilename);
+        if (inputName === null) return;
+        currentSvgFilename = normalizeSvgFilename(inputName);
+        currentSvgFileHandle = null;
+        downloadCurrentSvg(currentSvgFilename);
+      });
+    }
 
     if (savePngBtn) {
       savePngBtn.addEventListener('click', () => {
+        closeAppMenu();
         const clonedSvg = createExportClone();
         const { width, height } = getViewBoxSize();
         const serializer = new XMLSerializer();
@@ -2455,6 +3303,30 @@
         img.src = svgUrl;
       });
     }
+
+    if (closeDesignBtn) {
+      closeDesignBtn.addEventListener('click', () => {
+        closeAppMenu();
+        const hasContent = canvasHasUserContent();
+        if (hasContent) {
+          const confirmed = confirm('Stäng design och rensa canvasen?');
+          if (!confirmed) return;
+        }
+        const defaultPreset = document.querySelector('input[name="sizePreset"][value="152x76"]');
+        let w = 152;
+        let h = 76;
+        if (defaultPreset) {
+          defaultPreset.checked = true;
+          w = parseFloat(defaultPreset.dataset.w) || w;
+          h = parseFloat(defaultPreset.dataset.h) || h;
+        }
+        document.getElementById('customWidth').value = w;
+        document.getElementById('customHeight').value = h;
+        createBlankCanvas(w, h);
+        currentSvgFilename = 'tickster-mall.svg';
+        currentSvgFileHandle = null;
+      });
+    }
   }
 
   function initImageButton() {
@@ -2478,18 +3350,56 @@
     const btnOpen = document.getElementById('addPlaceholderBtn');
     const btnCancel = document.getElementById('placeholderCancelBtn');
     const btnAdd = document.getElementById('placeholderAddBtn');
+    if (!modal || !btnOpen || !btnCancel || !btnAdd) return;
     const backdrop = modal.querySelector('.modal-backdrop');
+    const tabButtons = Array.from(modal.querySelectorAll('[data-placeholder-tab]'));
+    const tabPanels = Array.from(modal.querySelectorAll('[data-placeholder-panel]'));
+    let activeTab = tabButtons.length ? tabButtons[0].dataset.placeholderTab : null;
+
+    const activateTab = tabId => {
+      if (!tabId) return;
+      activeTab = tabId;
+      tabButtons.forEach(btn => {
+        const isActive = btn.dataset.placeholderTab === tabId;
+        btn.classList.toggle('is-active', isActive);
+        btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
+        btn.tabIndex = isActive ? 0 : -1;
+      });
+      tabPanels.forEach(panel => {
+        const isActive = panel.dataset.placeholderPanel === tabId;
+        panel.classList.toggle('is-active', isActive);
+        panel.hidden = !isActive;
+      });
+    };
+
+    tabButtons.forEach((btn, index) => {
+      btn.addEventListener('click', () => {
+        activateTab(btn.dataset.placeholderTab);
+      });
+      btn.addEventListener('keydown', event => {
+        if (event.key !== 'ArrowRight' && event.key !== 'ArrowLeft') return;
+        event.preventDefault();
+        const direction = event.key === 'ArrowRight' ? 1 : -1;
+        const nextIndex = (index + direction + tabButtons.length) % tabButtons.length;
+        const nextButton = tabButtons[nextIndex];
+        activateTab(nextButton.dataset.placeholderTab);
+        nextButton.focus();
+      });
+    });
 
     const closeModal = () => {
       modal.classList.add('hidden');
     };
 
     btnOpen.addEventListener('click', () => {
+      activateTab(activeTab);
       modal.classList.remove('hidden');
     });
 
     btnCancel.addEventListener('click', closeModal);
-    backdrop.addEventListener('click', closeModal);
+    if (backdrop) {
+      backdrop.addEventListener('click', closeModal);
+    }
 
     btnAdd.addEventListener('click', () => {
       const checkboxes = modal.querySelectorAll('input[type="checkbox"]:checked');
@@ -2499,12 +3409,17 @@
       }
       closeModal();
     });
+
+    activateTab(activeTab);
   }
 
   function attachSvgInteraction() {
     svg.addEventListener('mousedown', onSvgMouseDown);
-    window.addEventListener('mousemove', onMouseMove);
-    window.addEventListener('mouseup', onMouseUp);
+    if (!interactionWindowEventsAttached) {
+      window.addEventListener('mousemove', onMouseMove);
+      window.addEventListener('mouseup', onMouseUp);
+      interactionWindowEventsAttached = true;
+    }
   }
 
   function initElementButtons() {
@@ -2524,10 +3439,15 @@
 
   window.addEventListener('DOMContentLoaded', () => {
     initSizeControls();
+    initAppMenu();
+    initSizeModal();
+    initHelpModal();
+    initCanvasContextMenu();
     initElementButtons();
     initFileHandling();
     initImageButton();
     initPlaceholderModal();
+    initKeyboardShortcuts();
     initSelectionGraphics();
     attachSvgInteraction();
     initMoveControls();
@@ -2538,8 +3458,7 @@
     }
 
     window.addEventListener('beforeunload', (e) => {
-      const hasStoredDraft = !!localStorage.getItem(DRAFT_KEY);
-      if (hasStoredDraft) {
+      if (hasDraft) {
         e.preventDefault();
         e.returnValue = '';
       }
@@ -2557,9 +3476,12 @@
       }
     }
     fitCanvasToContainer();
+    resetUndoHistory();
   });
 
   window.addEventListener('resize', fitCanvasToContainer);
 </script>
 </body>
 </html>
+
+
