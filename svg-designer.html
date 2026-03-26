@@ -582,7 +582,7 @@
       overflow: auto;
     }
 
-    /* Hindra att text markeras när man drar på canvasen */
+    /* Prevent text selection while dragging on the canvas */
     #svgContainer,
     #svgContainer * {
       -webkit-user-select: none;
@@ -923,36 +923,36 @@
 </head>
 <body>
 <div class="app">
-  <!-- Mitten: top-panel + canvas -->
+  <!-- Center: top panel + canvas -->
   <section class="center-area">
     <header class="top-panel">
       <button id="appMenuToggleBtn" class="c-button c-button--primary c-button--small" type="button" aria-haspopup="true" aria-expanded="false" aria-controls="appMenuPanel">
         <span class="menu-toggle__icon" aria-hidden="true"></span>
-        <span>Meny</span>
+        <span>Menu</span>
       </button>
-      <div class="top-panel__tools" aria-label="Verktyg">
+      <div class="top-panel__tools" aria-label="Tools">
         <div class="top-panel__group">
-          <button class="c-button c-button--ghost c-button--small" id="rotateCcwBtn" disabled type="button">↺ Rotera -90°</button>
-          <button class="c-button c-button--ghost c-button--small" id="rotateCwBtn" disabled type="button">↻ Rotera +90°</button>
+          <button class="c-button c-button--ghost c-button--small" id="rotateCcwBtn" disabled type="button">↺ Rotate -90°</button>
+          <button class="c-button c-button--ghost c-button--small" id="rotateCwBtn" disabled type="button">↻ Rotate +90°</button>
         </div>
         <div class="top-panel__group">
-          <button class="c-button c-button--ghost c-button--small" id="alignLeftBtnTools" disabled type="button">Vänster</button>
-          <button class="c-button c-button--ghost c-button--small" id="alignRightBtnTools" disabled type="button">Höger</button>
-          <button class="c-button c-button--ghost c-button--small" id="alignTopBtnTools" disabled type="button">Topp</button>
-          <button class="c-button c-button--ghost c-button--small" id="alignBottomBtnTools" disabled type="button">Botten</button>
-          <button class="c-button c-button--ghost c-button--small" id="alignCenterHBtnTools" disabled type="button">Centrera H</button>
-          <button class="c-button c-button--ghost c-button--small" id="alignCenterVBtnTools" disabled type="button">Centrera V</button>
+          <button class="c-button c-button--ghost c-button--small" id="alignLeftBtnTools" disabled type="button">Left</button>
+          <button class="c-button c-button--ghost c-button--small" id="alignRightBtnTools" disabled type="button">Right</button>
+          <button class="c-button c-button--ghost c-button--small" id="alignTopBtnTools" disabled type="button">Top</button>
+          <button class="c-button c-button--ghost c-button--small" id="alignBottomBtnTools" disabled type="button">Bottom</button>
+          <button class="c-button c-button--ghost c-button--small" id="alignCenterHBtnTools" disabled type="button">Center H</button>
+          <button class="c-button c-button--ghost c-button--small" id="alignCenterVBtnTools" disabled type="button">Center V</button>
         </div>
         <div class="top-panel__group top-panel__move">
-          <label class="u-font--smaller" for="moveModeSelect">Flyttläge</label>
+          <label class="u-font--smaller" for="moveModeSelect">Move mode</label>
           <select id="moveModeSelect" class="input-select">
-            <option value="free" selected>Flytta fritt</option>
-            <option value="snap">Stegvis (snappa)</option>
+            <option value="free" selected>Free move</option>
+            <option value="snap">Stepwise (snap)</option>
           </select>
           <div id="moveStepInputsWrap" class="u-font--smaller">
-            <label for="moveStepX">Steg X</label>
+            <label for="moveStepX">Step X</label>
             <input type="number" id="moveStepX" class="input-number" min="0.1" step="0.1" value="1">
-            <label for="moveStepY">Steg Y</label>
+            <label for="moveStepY">Step Y</label>
             <input type="number" id="moveStepY" class="input-number" min="0.1" step="0.1" value="1">
           </div>
         </div>
@@ -973,31 +973,31 @@
     </main>
   </section>
 
-  <!-- Höger: element och text-egenskaper -->
+  <!-- Right: element and text properties -->
   <div class="sidebar-right">
     <aside class="c-card">
 
       <div class="c-card__body">
-        <!-- Text-egenskaper: visas för både text och platshållare -->
+        <!-- Text properties: shown for both text and placeholders -->
         <div class="c-card__section" id="textInspector" style="display:none;">
-          <div class="u-font--small" style="margin-bottom:4px; font-weight:600;">Text-egenskaper</div>
+          <div class="u-font--small" style="margin-bottom:4px; font-weight:600;">Text properties</div>
           <div class="u-font--smaller" style="margin-bottom:6px; color:var(--tick-grey-400);" id="textInspectorLabel">
-            Redigerar markerat textelement.
+            Editing selected text element.
           </div>
 
-          <div class="u-font--smaller" style="margin-bottom:4px;">Textinnehåll</div>
-          <input type="text" id="textContentInput" class="input-text" placeholder="Text eller %Placeholder%">
+          <div class="u-font--smaller" style="margin-bottom:4px;">Text content</div>
+          <input type="text" id="textContentInput" class="input-text" placeholder="Text or %Placeholder%">
 
-          <div class="u-font--smaller" style="margin:8px 0 4px;">Platshållare (title)</div>
-          <input type="text" id="textPlaceholderInput" class="input-text" placeholder="t.ex. %EventName%">
+          <div class="u-font--smaller" style="margin:8px 0 4px;">Placeholder (title)</div>
+          <input type="text" id="textPlaceholderInput" class="input-text" placeholder="e.g. %EventName%">
 
           <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; margin-top:8px;">
             <div>
-              <div class="u-font--smaller" style="margin-bottom:2px;">Storlek (pt)</div>
+              <div class="u-font--smaller" style="margin-bottom:2px;">Size (pt)</div>
               <input type="number" id="textSizeInput" class="input-number" min="1" step="0.5" value="4">
             </div>
             <div style="flex:1;">
-              <div class="u-font--smaller" style="margin-bottom:2px;">Justering</div>
+              <div class="u-font--smaller" style="margin-bottom:2px;">Alignment</div>
               <div class="c-toolbar">
                 <button class="c-button c-button--ghost c-button--small" data-align="start" id="alignLeftBtn">⬅️</button>
                 <button class="c-button c-button--ghost c-button--small" data-align="middle" id="alignCenterBtn">|</button>
@@ -1008,24 +1008,24 @@
         </div>
 
         <div class="c-card__section" id="lineInspector" style="display:none;">
-          <div class="u-font--small" style="margin-bottom:6px; font-weight:600;">Linje-egenskaper</div>
+          <div class="u-font--small" style="margin-bottom:6px; font-weight:600;">Line properties</div>
           <div class="u-font--smaller" style="margin-bottom:6px; color:var(--tick-grey-400);" id="lineInspectorLabel">
-            Välj orientering och tjocklek för markerad linje.
+            Choose orientation and thickness for selected line.
           </div>
           <div class="c-toolbar" style="margin-bottom:8px;">
-            <button class="c-button c-button--ghost c-button--small" id="lineOrientationBtn">Byt orientering (horis./vert.)</button>
+            <button class="c-button c-button--ghost c-button--small" id="lineOrientationBtn">Toggle orientation (horiz./vert.)</button>
           </div>
           <div class="u-font--smaller" style="margin-bottom:4px;">Stroke-width (mm)</div>
           <input type="number" id="lineStrokeInput" class="input-number" min="0.1" step="0.1" value="0.3">
         </div>
 
         <div class="c-card__section">
-          <div class="u-font--small" style="margin-bottom:6px; font-weight:600;">Redigering</div>
+          <div class="u-font--small" style="margin-bottom:6px; font-weight:600;">Editing</div>
           <button class="c-button c-button--ghost c-button--small c-button--block" id="deleteElementBtn" disabled>
-            Radera markerat
+            Delete selected
           </button>
           <button class="c-button c-button--ghost c-button--small c-button--block" id="clearHelpersBtn" style="margin-top:6px;">
-            Rensa markeringar/stödlinjer
+            Clear selections/guides
           </button>
         </div>
       </div>
@@ -1034,237 +1034,237 @@
 </div>
 
 <div id="appMenuOverlay"></div>
-<div id="appMenuPanel" role="menu" aria-label="Designmeny">
-  <button class="c-button c-button--ghost c-button--small" id="newTemplateBtn" type="button">Skapa ny</button>
-  <button class="c-button c-button--ghost c-button--small" id="openFileBtn" type="button">Öppna</button>
-  <button class="c-button c-button--primary c-button--small" id="saveBtn" type="button">Spara</button>
-  <button class="c-button c-button--ghost c-button--small" id="saveAsBtn" type="button">Spara som</button>
-  <button class="c-button c-button--secondary c-button--small" id="savePngBtn" type="button">Exportera PNG</button>
-  <button class="c-button c-button--ghost c-button--small" id="openSizeModalBtn" type="button">Justera storlek</button>
-  <button class="c-button c-button--ghost c-button--small" id="openHelpModalBtn" type="button">Hjälp</button>
-  <button class="c-button c-button--danger c-button--small" id="closeDesignBtn" type="button">Stäng design</button>
+<div id="appMenuPanel" role="menu" aria-label="Design menu">
+  <button class="c-button c-button--ghost c-button--small" id="newTemplateBtn" type="button">New</button>
+  <button class="c-button c-button--ghost c-button--small" id="openFileBtn" type="button">Open</button>
+  <button class="c-button c-button--primary c-button--small" id="saveBtn" type="button">Save</button>
+  <button class="c-button c-button--ghost c-button--small" id="saveAsBtn" type="button">Save as</button>
+  <button class="c-button c-button--secondary c-button--small" id="savePngBtn" type="button">Export PNG</button>
+  <button class="c-button c-button--ghost c-button--small" id="openSizeModalBtn" type="button">Adjust size</button>
+  <button class="c-button c-button--ghost c-button--small" id="openHelpModalBtn" type="button">Help</button>
+  <button class="c-button c-button--danger c-button--small" id="closeDesignBtn" type="button">Close design</button>
 </div>
 
-<div id="canvasContextMenu" role="menu" aria-label="Lägg till">
-  <button class="c-button c-button--small" id="addSquareBtn" type="button">QR-kod</button>
-  <button class="c-button c-button--small" id="addLineBtn" type="button">Linje</button>
+<div id="canvasContextMenu" role="menu" aria-label="Add">
+  <button class="c-button c-button--small" id="addSquareBtn" type="button">QR code</button>
+  <button class="c-button c-button--small" id="addLineBtn" type="button">Line</button>
   <button class="c-button c-button--small" id="addTextBtn" type="button">Text</button>
-  <button class="c-button c-button--small" id="addImageBtn" type="button">Bild</button>
-  <button class="c-button c-button--small" id="addPlaceholderBtn" type="button">Fördefinierade platshållare</button>
+  <button class="c-button c-button--small" id="addImageBtn" type="button">Image</button>
+  <button class="c-button c-button--small" id="addPlaceholderBtn" type="button">Predefined placeholders</button>
 </div>
 
 <input type="file" id="openFile" accept=".svg,image/svg+xml" hidden>
 
-<!-- Fil-input för bild -->
+<!-- File input for image -->
 <input type="file" id="imageFileInput" accept="image/*">
 
-<!-- Modal för format/storlek -->
+<!-- Modal for format/size -->
 <div id="sizeModal" class="modal hidden">
   <div class="modal-backdrop"></div>
   <div class="modal-content" style="max-width:420px;">
     <div class="modal-header">
-      <h3>Format &amp; storlek</h3>
-      <p>Välj etikett- eller biljettstorlek i millimeter.</p>
+      <h3>Format &amp; size</h3>
+      <p>Choose label or ticket size in millimeters.</p>
     </div>
     <div class="placeholder-list">
       <div class="placeholder-group">
         <div class="size-option-group u-font--small">
           <label>
             <input type="radio" name="sizePreset" value="152x76" data-w="152" data-h="76" checked>
-            <span>152 × 76 mm (liggande)</span>
+            <span>152 × 76 mm (landscape)</span>
           </label>
           <label>
             <input type="radio" name="sizePreset" value="76x152" data-w="76" data-h="152">
-            <span>76 × 152 mm (stående)</span>
+            <span>76 × 152 mm (portrait)</span>
           </label>
           <label>
             <input type="radio" name="sizePreset" value="54x86" data-w="54" data-h="86">
-            <span>54 × 86 mm (stående)</span>
+            <span>54 × 86 mm (portrait)</span>
           </label>
           <label>
             <input type="radio" name="sizePreset" value="86x54" data-w="86" data-h="54">
-            <span>86 × 54 mm (liggande)</span>
+            <span>86 × 54 mm (landscape)</span>
           </label>
         </div>
       </div>
       <div class="placeholder-group u-font--small">
         <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
           <input type="radio" name="sizePreset" value="custom" id="sizeCustom">
-          <span>Valfri storlek</span>
+          <span>Custom size</span>
         </label>
         <div class="size-custom-grid u-font--smaller">
-          <span>Bredd</span>
+          <span>Width</span>
           <input type="number" id="customWidth" min="1" value="100">
-          <span>Höjd</span>
+          <span>Height</span>
           <input type="number" id="customHeight" min="1" value="50">
         </div>
         <div class="u-font--smaller" style="margin-top:6px; color:var(--tick-grey-400);">
-          När du ändrar egna mått aktiveras automatiskt “Valfri storlek”.
+          Changing custom dimensions automatically activates “Custom size”.
         </div>
       </div>
     </div>
     <div class="modal-footer">
-      <button class="c-button c-button--ghost c-button--small" id="sizeModalCloseBtn" type="button">Stäng</button>
+      <button class="c-button c-button--ghost c-button--small" id="sizeModalCloseBtn" type="button">Close</button>
     </div>
   </div>
 </div>
 
-<!-- Modal för hjälp och genvägar -->
+<!-- Modal for help and shortcuts -->
 <div id="helpModal" class="modal hidden">
   <div class="modal-backdrop"></div>
   <div class="modal-content" style="max-width:520px;">
     <div class="modal-header">
-      <h3>Hjälp &amp; genvägar</h3>
-      <p>Snabbkommandon i SVG-designer.</p>
+      <h3>Help &amp; shortcuts</h3>
+      <p>Keyboard shortcuts in SVG designer.</p>
     </div>
     <div class="help-shortcuts">
-      <div class="help-shortcut"><span class="help-shortcut-key">Ctrl/Cmd+S</span><span>Spara</span></div>
-      <div class="help-shortcut"><span class="help-shortcut-key">Ctrl/Cmd+O</span><span>Öppna SVG-fil</span></div>
-      <div class="help-shortcut"><span class="help-shortcut-key">Ctrl/Cmd+Z</span><span>Ångra senaste ändring</span></div>
-      <div class="help-shortcut"><span class="help-shortcut-key">Delete</span><span>Radera markerade element</span></div>
-      <div class="help-shortcut"><span class="help-shortcut-key">Ctrl/Cmd+D</span><span>Avmarkera element</span></div>
-      <div class="help-shortcut"><span class="help-shortcut-key">H</span><span>Öppna/Stäng denna hjälp</span></div>
+      <div class="help-shortcut"><span class="help-shortcut-key">Ctrl/Cmd+S</span><span>Save</span></div>
+      <div class="help-shortcut"><span class="help-shortcut-key">Ctrl/Cmd+O</span><span>Open SVG file</span></div>
+      <div class="help-shortcut"><span class="help-shortcut-key">Ctrl/Cmd+Z</span><span>Undo last change</span></div>
+      <div class="help-shortcut"><span class="help-shortcut-key">Delete</span><span>Delete selected elements</span></div>
+      <div class="help-shortcut"><span class="help-shortcut-key">Ctrl/Cmd+D</span><span>Deselect elements</span></div>
+      <div class="help-shortcut"><span class="help-shortcut-key">H</span><span>Open/close this help</span></div>
     </div>
     <div class="modal-footer">
-      <button class="c-button c-button--ghost c-button--small" id="helpModalCloseBtn" type="button">Stäng</button>
+      <button class="c-button c-button--ghost c-button--small" id="helpModalCloseBtn" type="button">Close</button>
     </div>
   </div>
 </div>
 
-<!-- Modal för platshållare -->
+<!-- Modal for placeholders -->
 <div id="placeholderModal" class="modal hidden placeholder-modal">
   <div class="modal-backdrop"></div>
   <div class="modal-content">
     <div class="modal-header">
-      <h3>Välj platshållare</h3>
-      <p>Markera en eller flera platshållare. I SVG-texten läggs de in som t.ex. <span class="u-font--mono">%EventName%</span>.</p>
+      <h3>Select placeholders</h3>
+      <p>Select one or more placeholders. In SVG text they are inserted as, for example, <span class="u-font--mono">%EventName%</span>.</p>
     </div>
     <div class="placeholder-list">
-      <div class="placeholder-tabs" role="tablist" aria-label="Platshållarkategorier">
-        <button class="placeholder-tab is-active" type="button" role="tab" id="placeholder-tab-unnumbered-ticket" aria-selected="true" aria-controls="placeholder-panel-unnumbered-ticket" data-placeholder-tab="unnumbered-ticket">Onumrerade biljetter</button>
-        <button class="placeholder-tab" type="button" role="tab" id="placeholder-tab-numbered-ticket" aria-selected="false" aria-controls="placeholder-panel-numbered-ticket" data-placeholder-tab="numbered-ticket" tabindex="-1">Numrerade biljetter</button>
-        <button class="placeholder-tab" type="button" role="tab" id="placeholder-tab-unnumbered-season" aria-selected="false" aria-controls="placeholder-panel-unnumbered-season" data-placeholder-tab="unnumbered-season" tabindex="-1">Onumrerade säsongskort</button>
-        <button class="placeholder-tab" type="button" role="tab" id="placeholder-tab-numbered-season" aria-selected="false" aria-controls="placeholder-panel-numbered-season" data-placeholder-tab="numbered-season" tabindex="-1">Numrerade säsongskort</button>
-        <button class="placeholder-tab" type="button" role="tab" id="placeholder-tab-voucher" aria-selected="false" aria-controls="placeholder-panel-voucher" data-placeholder-tab="voucher" tabindex="-1">Värdebevis</button>
-        <button class="placeholder-tab" type="button" role="tab" id="placeholder-tab-giftcard" aria-selected="false" aria-controls="placeholder-panel-giftcard" data-placeholder-tab="giftcard" tabindex="-1">Presentkort</button>
+      <div class="placeholder-tabs" role="tablist" aria-label="Placeholder categories">
+        <button class="placeholder-tab is-active" type="button" role="tab" id="placeholder-tab-unnumbered-ticket" aria-selected="true" aria-controls="placeholder-panel-unnumbered-ticket" data-placeholder-tab="unnumbered-ticket">Unnumbered tickets</button>
+        <button class="placeholder-tab" type="button" role="tab" id="placeholder-tab-numbered-ticket" aria-selected="false" aria-controls="placeholder-panel-numbered-ticket" data-placeholder-tab="numbered-ticket" tabindex="-1">Numbered tickets</button>
+        <button class="placeholder-tab" type="button" role="tab" id="placeholder-tab-unnumbered-season" aria-selected="false" aria-controls="placeholder-panel-unnumbered-season" data-placeholder-tab="unnumbered-season" tabindex="-1">Unnumbered season passes</button>
+        <button class="placeholder-tab" type="button" role="tab" id="placeholder-tab-numbered-season" aria-selected="false" aria-controls="placeholder-panel-numbered-season" data-placeholder-tab="numbered-season" tabindex="-1">Numbered season passes</button>
+        <button class="placeholder-tab" type="button" role="tab" id="placeholder-tab-voucher" aria-selected="false" aria-controls="placeholder-panel-voucher" data-placeholder-tab="voucher" tabindex="-1">Voucher</button>
+        <button class="placeholder-tab" type="button" role="tab" id="placeholder-tab-giftcard" aria-selected="false" aria-controls="placeholder-panel-giftcard" data-placeholder-tab="giftcard" tabindex="-1">Gift card</button>
       </div>
       <div class="placeholder-tab-panels">
         <div class="placeholder-tab-panel is-active" role="tabpanel" id="placeholder-panel-unnumbered-ticket" aria-labelledby="placeholder-tab-unnumbered-ticket" data-placeholder-panel="unnumbered-ticket">
           <div class="placeholder-group">
-            <h4>Onumrerade biljetter</h4>
-            <label><input type="checkbox" value="%TicketDesignation%"><span>TicketDesignation – Biljettens namn</span></label>
-            <label><input type="checkbox" value="%AuthCode%"><span>AuthCode – Biljettkod</span></label>
-            <label><input type="checkbox" value="%Price%"><span>Price – Pris inkl. moms</span></label>
-            <label><input type="checkbox" value="%PriceVat%"><span>PriceVat – Moms</span></label>
-            <label><input type="checkbox" value="%ServiceFee%"><span>ServiceFee – Serviceavgift inkl. moms</span></label>
-            <label><input type="checkbox" value="%ServiceFeeVat%"><span>ServiceFeeVat – Moms på serviceavgift</span></label>
-            <label><input type="checkbox" value="%EventName%"><span>EventName – Evenemangets namn</span></label>
-            <label><input type="checkbox" value="%Supertitle%"><span>Supertitle – Överrubrik för produktion</span></label>
-            <label><input type="checkbox" value="%Subtitle%"><span>Subtitle – Underrubrik för produktion</span></label>
-            <label><input type="checkbox" value="%EventDate%"><span>EventDate – Datum (fredag 30 mars 2020)</span></label>
-            <label><input type="checkbox" value="%EventDateShort%"><span>EventDateShort – Datum (YYYY-MM-DD)</span></label>
-            <label><input type="checkbox" value="%EventStartTime%"><span>EventStartTime – Starttid (HH:MM)</span></label>
-            <label><input type="checkbox" value="%EntryPermittedFrom%"><span>EntryPermittedFrom – Insläppstid (HH:MM)</span></label>
-            <label><input type="checkbox" value="%OrganizerName%"><span>OrganizerName – Arrangörens namn</span></label>
-            <label><input type="checkbox" value="%VenueName%"><span>VenueName – Arenans namn</span></label>
-            <label><input type="checkbox" value="%CityName%"><span>CityName – Stad</span></label>
-            <label><input type="checkbox" value="%AdmittedName%"><span>AdmittedName – Köparens namn</span></label>
-            <label><input type="checkbox" value="%TicketInformation%"><span>TicketInformation – Fritextinformation på biljett</span></label>
-            <label><input type="checkbox" value="%OrganizationName%"><span>OrganizationName – Köparens organisationsnamn</span></label>
-            <label><input type="checkbox" value="%PurchaseRefNo%"><span>PurchaseRefNo – Köpets referensnummer</span></label>
+            <h4>Unnumbered tickets</h4>
+            <label><input type="checkbox" value="%TicketDesignation%"><span>TicketDesignation – Ticket name</span></label>
+            <label><input type="checkbox" value="%AuthCode%"><span>AuthCode – Ticket code</span></label>
+            <label><input type="checkbox" value="%Price%"><span>Price – Price incl. VAT</span></label>
+            <label><input type="checkbox" value="%PriceVat%"><span>PriceVat – VAT</span></label>
+            <label><input type="checkbox" value="%ServiceFee%"><span>ServiceFee – Service fee incl. VAT</span></label>
+            <label><input type="checkbox" value="%ServiceFeeVat%"><span>ServiceFeeVat – VAT on service fee</span></label>
+            <label><input type="checkbox" value="%EventName%"><span>EventName – Event name</span></label>
+            <label><input type="checkbox" value="%Supertitle%"><span>Supertitle – Production supertitle</span></label>
+            <label><input type="checkbox" value="%Subtitle%"><span>Subtitle – Production subtitle</span></label>
+            <label><input type="checkbox" value="%EventDate%"><span>EventDate – Date (Friday 30 March 2020)</span></label>
+            <label><input type="checkbox" value="%EventDateShort%"><span>EventDateShort – Date (YYYY-MM-DD)</span></label>
+            <label><input type="checkbox" value="%EventStartTime%"><span>EventStartTime – Start time (HH:MM)</span></label>
+            <label><input type="checkbox" value="%EntryPermittedFrom%"><span>EntryPermittedFrom – Entry time (HH:MM)</span></label>
+            <label><input type="checkbox" value="%OrganizerName%"><span>OrganizerName – Organizer name</span></label>
+            <label><input type="checkbox" value="%VenueName%"><span>VenueName – Venue name</span></label>
+            <label><input type="checkbox" value="%CityName%"><span>CityName – City</span></label>
+            <label><input type="checkbox" value="%AdmittedName%"><span>AdmittedName – Buyer name</span></label>
+            <label><input type="checkbox" value="%TicketInformation%"><span>TicketInformation – Free-text ticket information</span></label>
+            <label><input type="checkbox" value="%OrganizationName%"><span>OrganizationName – Buyer organization name</span></label>
+            <label><input type="checkbox" value="%PurchaseRefNo%"><span>PurchaseRefNo – Purchase reference number</span></label>
           </div>
         </div>
 
         <div class="placeholder-tab-panel" role="tabpanel" id="placeholder-panel-numbered-ticket" aria-labelledby="placeholder-tab-numbered-ticket" data-placeholder-panel="numbered-ticket">
           <div class="placeholder-group">
-            <h4>Numrerade biljetter</h4>
-            <label><input type="checkbox" value="%Section%"><span>Section – Sektion</span></label>
-            <label><input type="checkbox" value="%Row%"><span>Row – Radnummer</span></label>
-            <label><input type="checkbox" value="%Seat%"><span>Seat – Platsnummer</span></label>
-            <label><input type="checkbox" value="%EntryVia%"><span>EntryVia – Ingång</span></label>
+            <h4>Numbered tickets</h4>
+            <label><input type="checkbox" value="%Section%"><span>Section – Section</span></label>
+            <label><input type="checkbox" value="%Row%"><span>Row – Row number</span></label>
+            <label><input type="checkbox" value="%Seat%"><span>Seat – Seat number</span></label>
+            <label><input type="checkbox" value="%EntryVia%"><span>EntryVia – Entrance</span></label>
           </div>
         </div>
 
         <div class="placeholder-tab-panel" role="tabpanel" id="placeholder-panel-unnumbered-season" aria-labelledby="placeholder-tab-unnumbered-season" data-placeholder-panel="unnumbered-season">
           <div class="placeholder-group">
-            <h4>Onumrerade säsongskort</h4>
-            <label><input type="checkbox" value="%Name%"><span>Name – Säsongskortets namn</span></label>
-            <label><input type="checkbox" value="%PriceCategory%"><span>PriceCategory – Prisgrupp</span></label>
-            <label><input type="checkbox" value="%TicketType%"><span>TicketType – Biljettyp</span></label>
-            <label><input type="checkbox" value="%AuthCode%"><span>AuthCode – Säsongskortskod</span></label>
-            <label><input type="checkbox" value="%Price%"><span>Price – Pris inkl. moms</span></label>
-            <label><input type="checkbox" value="%PriceVat%"><span>PriceVat – Moms</span></label>
-            <label><input type="checkbox" value="%ServiceFee%"><span>ServiceFee – Serviceavgift inkl. moms</span></label>
-            <label><input type="checkbox" value="%ServiceFeeVat%"><span>ServiceFeeVat – Moms på serviceavgift</span></label>
-            <label><input type="checkbox" value="%OrganizerName%"><span>OrganizerName – Arrangörens namn</span></label>
-            <label><input type="checkbox" value="%AdmittedName%"><span>AdmittedName – Köparens namn</span></label>
-            <label><input type="checkbox" value="%OrganizationName%"><span>OrganizationName – Köparens organisationsnamn</span></label>
-            <label><input type="checkbox" value="%SeasonOfferInformation%"><span>SeasonOfferInformation – Fritextinfo på säsongskort</span></label>
-            <label><input type="checkbox" value="%ReceiptText%"><span>ReceiptText – Benämning för säsongskort på kvitto</span></label>
+            <h4>Unnumbered season passes</h4>
+            <label><input type="checkbox" value="%Name%"><span>Name – Season pass name</span></label>
+            <label><input type="checkbox" value="%PriceCategory%"><span>PriceCategory – Price category</span></label>
+            <label><input type="checkbox" value="%TicketType%"><span>TicketType – Ticket type</span></label>
+            <label><input type="checkbox" value="%AuthCode%"><span>AuthCode – Season pass code</span></label>
+            <label><input type="checkbox" value="%Price%"><span>Price – Price incl. VAT</span></label>
+            <label><input type="checkbox" value="%PriceVat%"><span>PriceVat – VAT</span></label>
+            <label><input type="checkbox" value="%ServiceFee%"><span>ServiceFee – Service fee incl. VAT</span></label>
+            <label><input type="checkbox" value="%ServiceFeeVat%"><span>ServiceFeeVat – VAT on service fee</span></label>
+            <label><input type="checkbox" value="%OrganizerName%"><span>OrganizerName – Organizer name</span></label>
+            <label><input type="checkbox" value="%AdmittedName%"><span>AdmittedName – Buyer name</span></label>
+            <label><input type="checkbox" value="%OrganizationName%"><span>OrganizationName – Buyer organization name</span></label>
+            <label><input type="checkbox" value="%SeasonOfferInformation%"><span>SeasonOfferInformation – Free-text season pass information</span></label>
+            <label><input type="checkbox" value="%ReceiptText%"><span>ReceiptText – Season pass label on receipt</span></label>
           </div>
         </div>
 
         <div class="placeholder-tab-panel" role="tabpanel" id="placeholder-panel-numbered-season" aria-labelledby="placeholder-tab-numbered-season" data-placeholder-panel="numbered-season">
           <div class="placeholder-group">
-            <h4>Numrerade säsongskort</h4>
-            <label><input type="checkbox" value="%EntryVia%"><span>EntryVia – Ingång</span></label>
-            <label><input type="checkbox" value="%Row%"><span>Row – Rad</span></label>
-            <label><input type="checkbox" value="%Seat%"><span>Seat – Plats</span></label>
-            <label><input type="checkbox" value="%Section%"><span>Section – Sektion</span></label>
+            <h4>Numbered season passes</h4>
+            <label><input type="checkbox" value="%EntryVia%"><span>EntryVia – Entrance</span></label>
+            <label><input type="checkbox" value="%Row%"><span>Row – Row</span></label>
+            <label><input type="checkbox" value="%Seat%"><span>Seat – Seat</span></label>
+            <label><input type="checkbox" value="%Section%"><span>Section – Section</span></label>
           </div>
         </div>
 
         <div class="placeholder-tab-panel" role="tabpanel" id="placeholder-panel-voucher" aria-labelledby="placeholder-tab-voucher" data-placeholder-panel="voucher">
           <div class="placeholder-group">
-            <h4>Värdebevis</h4>
-            <label><input type="checkbox" value="%AuthCode%"><span>AuthCode – Värdebeviskod</span></label>
-            <label><input type="checkbox" value="%Price%"><span>Price – Pris inkl. moms</span></label>
-            <label><input type="checkbox" value="%PriceVat%"><span>PriceVat – Moms</span></label>
-            <label><input type="checkbox" value="%PurchaseRefNo%"><span>PurchaseRefNo – Köpets referensnummer</span></label>
-            <label><input type="checkbox" value="%ServiceFee%"><span>ServiceFee – Serviceavgift inkl. moms</span></label>
-            <label><input type="checkbox" value="%ServiceFeeVat%"><span>ServiceFeeVat – Moms på serviceavgift</span></label>
-            <label><input type="checkbox" value="%VoucherDesignation%"><span>VoucherDesignation – Värdebevisets namn</span></label>
-            <label><input type="checkbox" value="%VoucherInformation%"><span>VoucherInformation – Fritextinformation på värdebevis</span></label>
-            <label><input type="checkbox" value="%EventName%"><span>EventName – Evenemangets namn</span></label>
-            <label><input type="checkbox" value="%EventDate%"><span>EventDate – Datum (fredag 30 mars 2020)</span></label>
-            <label><input type="checkbox" value="%EventDateShort%"><span>EventDateShort – Datum (YYYY-MM-DD)</span></label>
-            <label><input type="checkbox" value="%EventStartTime%"><span>EventStartTime – Starttid (HH:MM)</span></label>
+            <h4>Voucher</h4>
+            <label><input type="checkbox" value="%AuthCode%"><span>AuthCode – Voucher code</span></label>
+            <label><input type="checkbox" value="%Price%"><span>Price – Price incl. VAT</span></label>
+            <label><input type="checkbox" value="%PriceVat%"><span>PriceVat – VAT</span></label>
+            <label><input type="checkbox" value="%PurchaseRefNo%"><span>PurchaseRefNo – Purchase reference number</span></label>
+            <label><input type="checkbox" value="%ServiceFee%"><span>ServiceFee – Service fee incl. VAT</span></label>
+            <label><input type="checkbox" value="%ServiceFeeVat%"><span>ServiceFeeVat – VAT on service fee</span></label>
+            <label><input type="checkbox" value="%VoucherDesignation%"><span>VoucherDesignation – Voucher name</span></label>
+            <label><input type="checkbox" value="%VoucherInformation%"><span>VoucherInformation – Free-text voucher information</span></label>
+            <label><input type="checkbox" value="%EventName%"><span>EventName – Event name</span></label>
+            <label><input type="checkbox" value="%EventDate%"><span>EventDate – Date (Friday 30 March 2020)</span></label>
+            <label><input type="checkbox" value="%EventDateShort%"><span>EventDateShort – Date (YYYY-MM-DD)</span></label>
+            <label><input type="checkbox" value="%EventStartTime%"><span>EventStartTime – Start time (HH:MM)</span></label>
           </div>
         </div>
 
         <div class="placeholder-tab-panel" role="tabpanel" id="placeholder-panel-giftcard" aria-labelledby="placeholder-tab-giftcard" data-placeholder-panel="giftcard">
           <div class="placeholder-group">
-            <h4>Presentkort</h4>
-            <label><input type="checkbox" value="%GiftCertificateDesignation%"><span>GiftCertificateDesignation – Presentkortets namn</span></label>
-            <label><input type="checkbox" value="%RedemptionCode%"><span>RedemptionCode – Presentkortskod</span></label>
-            <label><input type="checkbox" value="%Expiry%"><span>Expiry – Sista giltighetsdatum (YYYY-MM-DD)</span></label>
-            <label><input type="checkbox" value="%PurchaseRefNo%"><span>PurchaseRefNo – Köpets referensnummer</span></label>
-            <label><input type="checkbox" value="%Price%"><span>Price – Pris inkl. moms</span></label>
-            <label><input type="checkbox" value="%PriceVat%"><span>PriceVat – Moms</span></label>
-            <label><input type="checkbox" value="%GiftCertificateInformation%"><span>GiftCertificateInformation – Fritextinformation på presentkort</span></label>
+            <h4>Gift card</h4>
+            <label><input type="checkbox" value="%GiftCertificateDesignation%"><span>GiftCertificateDesignation – Gift card name</span></label>
+            <label><input type="checkbox" value="%RedemptionCode%"><span>RedemptionCode – Gift card code</span></label>
+            <label><input type="checkbox" value="%Expiry%"><span>Expiry – Expiration date (YYYY-MM-DD)</span></label>
+            <label><input type="checkbox" value="%PurchaseRefNo%"><span>PurchaseRefNo – Purchase reference number</span></label>
+            <label><input type="checkbox" value="%Price%"><span>Price – Price incl. VAT</span></label>
+            <label><input type="checkbox" value="%PriceVat%"><span>PriceVat – VAT</span></label>
+            <label><input type="checkbox" value="%GiftCertificateInformation%"><span>GiftCertificateInformation – Free-text gift card information</span></label>
           </div>
         </div>
       </div>
     </div>
     <div class="modal-footer">
-      <button class="c-button c-button--ghost c-button--small" id="placeholderCancelBtn">Avbryt</button>
-      <button class="c-button c-button--primary c-button--small" id="placeholderAddBtn">Lägg till i mall</button>
+      <button class="c-button c-button--ghost c-button--small" id="placeholderCancelBtn">Cancel</button>
+      <button class="c-button c-button--primary c-button--small" id="placeholderAddBtn">Add to template</button>
     </div>
   </div>
 </div>
 
-<!-- Modal för att välja QR-typ (biljett/presentkort) -->
+<!-- Modal for selecting QR type (ticket/gift card) -->
 <div id="giftCardConfirm" class="modal hidden">
   <div class="modal-backdrop"></div>
   <div class="modal-content" style="max-width:400px;">
     <div class="modal-header">
-      <h3>Vilken typ av QR-kod?</h3>
-      <p>Välj om koden gäller presentkort eller vanlig biljett.</p>
+      <h3>Which type of QR code?</h3>
+      <p>Choose whether the code applies to a gift card or a regular ticket.</p>
     </div>
     <div class="modal-footer" style="justify-content:flex-start;">
-      <button class="c-button c-button--secondary c-button--small" id="giftCardYesBtn">Ja, presentkort</button>
-      <button class="c-button c-button--primary c-button--small" id="giftCardNoBtn">Nej, biljett</button>
-      <button class="c-button c-button--ghost c-button--small" id="giftCardCancelBtn" style="margin-left:auto;">Avbryt</button>
+      <button class="c-button c-button--secondary c-button--small" id="giftCardYesBtn">Yes, gift card</button>
+      <button class="c-button c-button--primary c-button--small" id="giftCardNoBtn">No, ticket</button>
+      <button class="c-button c-button--ghost c-button--small" id="giftCardCancelBtn" style="margin-left:auto;">Cancel</button>
     </div>
   </div>
 </div>
@@ -1329,7 +1329,7 @@
   let hasDraft = false;
   let restoredDraft = false;
   let sizeRestored = false;
-  let currentSvgFilename = 'tickster-mall.svg';
+  let currentSvgFilename = 'tickster-template.svg';
   let currentSvgFileHandle = null;
   let appMenuOpen = false;
   let canvasContextMenuOpen = false;
@@ -1342,7 +1342,7 @@
 
   function normalizeSvgFilename(name) {
     const trimmed = String(name || '').trim();
-    if (!trimmed) return 'tickster-mall.svg';
+    if (!trimmed) return 'tickster-template.svg';
     return /\.svg$/i.test(trimmed) ? trimmed : `${trimmed}.svg`;
   }
 
@@ -1611,8 +1611,8 @@
     const rect = container.getBoundingClientRect();
     const { width, height } = getViewBoxSize();
     if (!width || !height) return;
-    const paddingX = 26; // extra luft från vänster/höger
-    const paddingY = 24; // extra luft från över-/underkant
+    const paddingX = 26; // extra breathing room from left/right
+    const paddingY = 24; // extra breathing room from top/bottom
     const availableW = Math.max(0, rect.width - paddingX);
     const availableH = Math.max(0, rect.height - paddingY);
     const widthPx = width * mmToPx;
@@ -1709,7 +1709,7 @@
         sizeRestored = true;
       }
     } catch (e) {
-      console.warn('Kunde inte läsa sparad storlek', e);
+      console.warn('Could not read saved size', e);
     }
   } 
 
@@ -1851,6 +1851,7 @@
       g.dataset.type = 'placeholder';
 
       const rect = document.createElementNS(svgNS, 'rect');
+      rect.dataset.placeholderFrame = '1';
       rect.setAttribute('x', startX);
       rect.setAttribute('y', currentY);
       rect.setAttribute('width', 60);
@@ -1887,7 +1888,7 @@
     const text = groupEl.querySelector('text');
     if (!rect || !text) return;
 
-    // Se till att elementet finns i DOM så getBBox fungerar
+    // Ensure the element exists in the DOM so getBBox works
     const bbox = text.getBBox();
     const paddingX = 1.5; // mm sidomarginal
     const paddingY = 1.0; // mm topp/botten
@@ -1898,6 +1899,16 @@
     rect.setAttribute('height', bbox.height + paddingY * 2);
   }
 
+  function refreshPlaceholderFrameVisibility() {
+    if (!svg) return;
+    const selectedSet = new Set((selectedElements || []).filter(Boolean));
+    svg.querySelectorAll('g[data-type="placeholder"]').forEach(groupEl => {
+      const rect = groupEl.querySelector('rect[data-placeholder-frame="1"]') || groupEl.querySelector('rect');
+      if (!rect) return;
+      rect.style.display = selectedSet.has(groupEl) ? '' : 'none';
+    });
+  }
+
 
   function removeSelectionGraphics(targetSvg) {
     if (!targetSvg) return;
@@ -1906,7 +1917,7 @@
         el.parentNode.removeChild(el);
       }
     });
-    // Rensa äldre sparade hjälplinjer som saknar data-selection-helper
+    // Clear older helper lines that lack data-selection-helper
     targetSvg.querySelectorAll('rect[data-editor-helper="1"][stroke="#14a0f4"], rect[data-editor-helper="1"][stroke="#94a3b8"], rect[data-editor-helper="1"][fill="#14a0f4"][width="4"][height="4"]').forEach(el => {
       if (el.parentNode) {
         el.parentNode.removeChild(el);
@@ -1965,20 +1976,20 @@
     return null;
   }
 
-  // Hitta "aktiv" textnod för inspector:
-  // - om vi har en <text> direkt: använd den
-  // - om vi har en <g data-type="placeholder">: ta dess <text>-barn
+  // Find active text node for inspector:
+  // - if we have a direct <text>, use it
+  // - if we have a <g data-type="placeholder">: take its <text> child
   function getActiveTextTarget() {
     if (!selectedElement) return null;
     const tag = selectedElement.tagName?.toLowerCase?.();
     if (tag === 'text') {
-      // vanlig text, eller placeholder-text som råkat bli root
+      // regular text, or placeholder text that became root
       return selectedElement;
     }
     if (tag === 'g' && selectedElement.dataset.type === 'placeholder') {
       return selectedElement.querySelector('text') || null;
     }
-    // Om man skulle lyckas klicka på recten i en placeholder-grupp
+    // If a rect inside a placeholder group is clicked
     if (tag === 'rect' && selectedElement.parentNode && selectedElement.parentNode.dataset?.type === 'placeholder') {
       return selectedElement.parentNode.querySelector('text') || null;
     }
@@ -2106,7 +2117,7 @@
   }
 
   function updateSelectionVisuals() {
-    // Rensa tidigare multi-ramar
+    // Clear previous multi-selection frames
     if (multiSelectionRects.length) {
       multiSelectionRects.forEach(r => r.parentNode && r.parentNode.removeChild(r));
       multiSelectionRects = [];
@@ -2114,6 +2125,8 @@
     if (lassoRect) {
       lassoRect.style.display = 'none';
     }
+
+    refreshPlaceholderFrameVisibility();
 
     if (!selectedElement) {
       selectionRect.style.display = 'none';
@@ -2146,7 +2159,7 @@
     }
     resizeHandle.style.display = 'block';
 
-    // Visa diskreta ramar runt övriga valda element
+    // Show subtle frames around other selected elements
     if (selectedElements.length > 1) {
       selectedElements.forEach(el => {
         if (el === selectedElement) return;
@@ -2408,7 +2421,7 @@
   function tryRestoreDraft() {
     const stored = localStorage.getItem(DRAFT_KEY);
     if (!stored) return;
-    const ok = confirm('Återställ osparat arbete från senaste sessionen?');
+    const ok = confirm('Restore unsaved work from the previous session?');
     if (!ok) return;
 
     try {
@@ -2417,7 +2430,7 @@
       restoredDraft = true;
       resetUndoHistory();
     } catch (err) {
-      console.error('Misslyckades att återställa utkast', err);
+      console.error('Failed to restore draft', err);
     }
   }
 
@@ -2580,7 +2593,7 @@
     clearSelection();
     removeSelectionGraphics(svg);
     multiSelectionRects = [];
-    initSelectionGraphics(); // återskapa markeringsgrafik efter rensning
+    initSelectionGraphics(); // recreate selection graphics after clearing
     updateSelectionVisuals();
   }
 
@@ -2707,7 +2720,7 @@
           newY2 = startAttrs.y1 + (len >= 0 ? minLen : -minLen);
         }
         el.setAttribute('y2', newY2);
-        el.setAttribute('x2', startAttrs.x2); // lås linjen vertikalt vid storleksändring
+        el.setAttribute('x2', startAttrs.x2); // lock line vertically while resizing
       } else {
         let newX2 = startAttrs.x2 + localDx;
         const len = newX2 - startAttrs.x1;
@@ -2715,7 +2728,7 @@
           newX2 = startAttrs.x1 + (len >= 0 ? minLen : -minLen);
         }
         el.setAttribute('x2', newX2);
-        el.setAttribute('y2', startAttrs.y2); // lås linjen horisontellt vid storleksändring
+        el.setAttribute('y2', startAttrs.y2); // lock line horizontally while resizing
       }
       interactionChanged = true;
     } else if (tag === 'text') {
@@ -2725,7 +2738,7 @@
       const nextH = Math.max(0.01, startH + localDy);
       const startDiag = Math.hypot(startW, startH);
       const nextDiag = Math.hypot(nextW, nextH);
-      // Diagonal-baserad skalning ger mer förutsägbart hörn-drag för text.
+      // Diagonal-based scaling gives more predictable corner-drag behavior for text.
       const scale = Math.max(0.1, nextDiag / Math.max(0.01, startDiag));
       const newSize = Math.max(1, startAttrs.fontSize * scale);
       setTextFontSizeValue(el, newSize);
@@ -2776,7 +2789,7 @@
     }
 
     if (evt.ctrlKey) {
-      // lägg till i multival, behåll första som anchor
+      // add to multi-select, keep first as anchor
       if (isLineElement(root)) {
         bakeLineRotation(root);
       }
@@ -2858,7 +2871,7 @@
     }
   }
 
-  // ==== Text inspector logic (vanlig text + platshållare) ====
+  // ==== Text inspector logic (regular text + placeholders) ====
   function updateTextInspector() {
     const textEl = getActiveTextTarget();
     if (!textEl) {
@@ -2959,7 +2972,7 @@
       lineInspector.style.display = 'none';
       return;
     }
-    // säkerställ att tidigare rotationer buntas in i koordinater
+    // ensure previous rotations are baked into coordinates
     bakeLineRotation(lineEl);
     lineInspector.style.display = 'block';
 
@@ -2974,7 +2987,7 @@
       lineStrokeInput.value = isNaN(strokeVal) ? '0.3' : strokeVal;
     }
     if (lineOrientationBtn) {
-      lineOrientationBtn.textContent = isHorizontal ? 'Byt till stående linje' : 'Byt till liggande linje';
+      lineOrientationBtn.textContent = isHorizontal ? 'Switch to vertical line' : 'Switch to horizontal line';
     }
   }
 
@@ -3124,7 +3137,7 @@
             suggestedName,
             types: [
               {
-                description: 'SVG-fil',
+                description: 'SVG file',
                 accept: { 'image/svg+xml': ['.svg'] }
               }
             ],
@@ -3151,7 +3164,7 @@
           currentSvgFileHandle = null;
           return saveCurrentSvgToFile({ forceDialog: true });
         }
-        console.warn('Spara via filväljare misslyckades, använder nedladdning.', err);
+        console.warn('Save via file picker failed, falling back to download.', err);
         downloadCurrentSvg(suggestedName);
         return true;
       }
@@ -3162,7 +3175,7 @@
         const [handle] = await window.showOpenFilePicker({
           types: [
             {
-              description: 'SVG-fil',
+                description: 'SVG file',
               accept: { 'image/svg+xml': ['.svg'] }
             }
           ],
@@ -3175,14 +3188,14 @@
         currentSvgFilename = normalizeSvgFilename(handle.name || file.name || currentSvgFilename);
         const loaded = applySvgSource(text);
         if (!loaded) {
-          alert('Ingen <svg>-tagg hittades i filen.');
+          alert('No <svg> tag was found in the file.');
           return;
         }
         currentSvgFileHandle = handle;
         resetUndoHistory();
       } catch (err) {
         if (err?.name === 'AbortError') return;
-        console.warn('Öppna via filväljare misslyckades, använder filinput.', err);
+        console.warn('Open via file picker failed, using file input.', err);
         if (openFileInput) {
           openFileInput.value = '';
           openFileInput.click();
@@ -3195,14 +3208,14 @@
         closeAppMenu();
         const hasContent = canvasHasUserContent();
         if (hasContent) {
-          const confirmed = confirm('Canvasen innehåller element. Rensa och skapa en ny tom mall?');
+          const confirmed = confirm('The canvas contains elements. Clear and create a new blank template?');
           if (!confirmed) return;
         }
         const { w, h } = getSelectedSizeFromControls();
         createBlankCanvas(w, h);
         document.getElementById('customWidth').value = w;
         document.getElementById('customHeight').value = h;
-        currentSvgFilename = 'tickster-mall.svg';
+        currentSvgFilename = 'tickster-template.svg';
         currentSvgFileHandle = null;
       });
     }
@@ -3233,13 +3246,13 @@
           try {
             const loaded = applySvgSource(text);
             if (!loaded) {
-              alert('Ingen <svg>-tagg hittades i filen.');
+              alert('No <svg> tag was found in the file.');
               return;
             }
             resetUndoHistory();
           } catch (err) {
             console.error(err);
-            alert('Kunde inte läsa SVG-filen.');
+            alert('Could not read the SVG file.');
           }
         };
         reader.readAsText(file);
@@ -3260,7 +3273,7 @@
           await saveCurrentSvgToFile({ forceDialog: true });
           return;
         }
-        const inputName = prompt('Spara som (SVG-filnamn):', currentSvgFilename);
+        const inputName = prompt('Save as (SVG filename):', currentSvgFilename);
         if (inputName === null) return;
         currentSvgFilename = normalizeSvgFilename(inputName);
         currentSvgFileHandle = null;
@@ -3293,7 +3306,7 @@
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'tickster-mall.png';
+            a.download = 'tickster-template.png';
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
@@ -3309,7 +3322,7 @@
         closeAppMenu();
         const hasContent = canvasHasUserContent();
         if (hasContent) {
-          const confirmed = confirm('Stäng design och rensa canvasen?');
+          const confirmed = confirm('Close design and clear the canvas?');
           if (!confirmed) return;
         }
         const defaultPreset = document.querySelector('input[name="sizePreset"][value="152x76"]');
@@ -3323,7 +3336,7 @@
         document.getElementById('customWidth').value = w;
         document.getElementById('customHeight').value = h;
         createBlankCanvas(w, h);
-        currentSvgFilename = 'tickster-mall.svg';
+        currentSvgFilename = 'tickster-template.svg';
         currentSvgFileHandle = null;
       });
     }
