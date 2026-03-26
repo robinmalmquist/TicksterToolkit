@@ -1041,20 +1041,61 @@
       padding: 0.45rem 0.55rem;
     }
 
-    .numbered-import-errors {
+    .numbered-import-issues {
       display: none;
       font-size: 0.74rem;
-      line-height: 1.35;
       color: #7f1d1d;
       background: #fee2e2;
       border: 1px solid #fecaca;
       border-radius: 8px;
       padding: 0.45rem 0.55rem;
-      white-space: pre-wrap;
     }
 
-    .numbered-import-errors.is-visible {
+    .numbered-import-issues.is-visible {
       display: block;
+    }
+
+    .numbered-import-issues__summary {
+      list-style: none;
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      cursor: pointer;
+      user-select: none;
+      font-weight: 600;
+      outline: none;
+    }
+
+    .numbered-import-issues__summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .numbered-import-issues__summary::before {
+      content: "";
+      width: 6px;
+      height: 6px;
+      border-right: 2px solid currentColor;
+      border-bottom: 2px solid currentColor;
+      transform: rotate(-45deg);
+      transition: transform var(--transition-fast);
+      flex: 0 0 auto;
+      margin-top: -1px;
+      opacity: 0.85;
+    }
+
+    .numbered-import-issues[open] .numbered-import-issues__summary::before {
+      transform: rotate(45deg);
+    }
+
+    .numbered-import-issues__summary:focus-visible {
+      box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.2);
+      border-radius: 6px;
+    }
+
+    .numbered-import-issues__content {
+      margin-top: 0.35rem;
+      line-height: 1.35;
+      white-space: pre-wrap;
     }
 
     .numbered-import-list {
@@ -2085,7 +2126,7 @@
       border-color: #1e293b;
     }
 
-    html[data-theme="dark"] .numbered-import-errors {
+    html[data-theme="dark"] .numbered-import-issues {
       color: #fecaca;
       background: rgba(127, 29, 29, 0.3);
       border-color: rgba(248, 113, 113, 0.5);
@@ -2794,7 +2835,10 @@
             <div id="numberedImportExcelState">Excel: not loaded</div>
             <div id="numberedImportValidationState">Validation: waiting for files</div>
           </div>
-          <div id="numberedImportErrors" class="numbered-import-errors"></div>
+          <details id="numberedImportIssues" class="numbered-import-issues">
+            <summary id="numberedImportIssuesSummary" class="numbered-import-issues__summary">Warnings (0)</summary>
+            <div id="numberedImportErrors" class="numbered-import-issues__content"></div>
+          </details>
           <div id="numberedImportPurchaseList" class="numbered-import-list"></div>
         </div>
       </div>
@@ -3462,6 +3506,8 @@
   const numberedImportLayoutState = document.getElementById("numberedImportLayoutState");
   const numberedImportExcelState = document.getElementById("numberedImportExcelState");
   const numberedImportValidationState = document.getElementById("numberedImportValidationState");
+  const numberedImportIssues = document.getElementById("numberedImportIssues");
+  const numberedImportIssuesSummary = document.getElementById("numberedImportIssuesSummary");
   const numberedImportErrors = document.getElementById("numberedImportErrors");
   const numberedImportPurchaseList = document.getElementById("numberedImportPurchaseList");
   const helpOverlay = document.getElementById("helpOverlay");
@@ -7562,7 +7608,7 @@ codePane.addEventListener("input", () => {
   }
 
   function setNumberedImportIssues(errors = [], warnings = []) {
-    if (!numberedImportErrors) return;
+    if (!numberedImportErrors || !numberedImportIssues || !numberedImportIssuesSummary) return;
     const lines = [];
     if (errors.length) {
       lines.push("Errors:");
@@ -7575,8 +7621,27 @@ codePane.addEventListener("input", () => {
       warnings.slice(0, 8).forEach((message) => lines.push(`- ${message}`));
       if (warnings.length > 8) lines.push(`- ... ${warnings.length - 8} more`);
     }
+
+    if (!lines.length) {
+      numberedImportErrors.textContent = "";
+      numberedImportIssues.classList.remove("is-visible");
+      numberedImportIssues.open = false;
+      return;
+    }
+
+    const warningCount = Array.isArray(warnings) ? warnings.length : 0;
+    const errorCount = Array.isArray(errors) ? errors.length : 0;
+    if (warningCount > 0) {
+      numberedImportIssuesSummary.textContent = errorCount > 0
+        ? `Warnings (${warningCount}) • Errors (${errorCount})`
+        : `Warnings (${warningCount})`;
+    } else {
+      numberedImportIssuesSummary.textContent = `Errors (${errorCount})`;
+    }
+
     numberedImportErrors.textContent = lines.join("\n");
-    numberedImportErrors.classList.toggle("is-visible", lines.length > 0);
+    numberedImportIssues.classList.add("is-visible");
+    numberedImportIssues.open = false;
   }
 
   function clearNumberedImportAssignments() {
