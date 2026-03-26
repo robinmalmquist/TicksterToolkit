@@ -3044,6 +3044,14 @@
           <input type="checkbox" id="exportSvgSupport" />
           Include stage etc
         </label>
+        <label class="export-option">
+          <input type="checkbox" id="exportFgSeats" />
+          Include FG seats
+        </label>
+        <label class="export-option">
+          <input type="checkbox" id="exportFgRows" />
+          Include FG rows
+        </label>
       </div>
       <div class="new-layout-actions">
         <button id="exportCancel" class="c-button c-button--ghost c-button--small">Cancel</button>
@@ -3430,6 +3438,8 @@
   const exportCss = document.getElementById("exportCss");
   const exportSvg = document.getElementById("exportSvg");
   const exportSvgSupport = document.getElementById("exportSvgSupport");
+  const exportFgSeats = document.getElementById("exportFgSeats");
+  const exportFgRows = document.getElementById("exportFgRows");
   const exportCancel = document.getElementById("exportCancel");
   const exportConfirm = document.getElementById("exportConfirm");
   const numberedImportModeBtn = document.getElementById("numberedImportModeBtn");
@@ -6212,25 +6222,34 @@ codePane.addEventListener("input", () => {
     updateSvgSupportOptionAvailability();
   }
 
-  function updateSvgSupportOptionAvailability() {
-    if (!exportSvgSupport) return;
-    const enabled = !!(exportSvg && !exportSvg.disabled && exportSvg.checked);
-    const tooltip = exportSvg?.disabled
-      ? (exportSvg.title || "Enable SVG export to include support graphics.")
-      : "Enable SVG export to include support graphics.";
-    const label = exportSvgSupport.closest(".export-option");
-    exportSvgSupport.disabled = !enabled;
+  function setSvgDependentExportOptionState(input, enabled, tooltip) {
+    if (!input) return;
+    const label = input.closest(".export-option");
+    input.disabled = !enabled;
     if (!enabled) {
-      exportSvgSupport.checked = false;
-      exportSvgSupport.title = tooltip;
+      input.checked = false;
+      input.title = tooltip;
     } else {
-      exportSvgSupport.removeAttribute("title");
+      input.removeAttribute("title");
     }
     if (label) {
       label.classList.toggle("export-option--disabled", !enabled);
       if (!enabled) label.title = tooltip;
       else label.removeAttribute("title");
     }
+  }
+
+  function updateSvgSupportOptionAvailability() {
+    const enabled = !!(exportSvg && !exportSvg.disabled && exportSvg.checked);
+    const supportTooltip = exportSvg?.disabled
+      ? (exportSvg.title || "Enable SVG export to include support graphics.")
+      : "Enable SVG export to include support graphics.";
+    const fgTooltip = exportSvg?.disabled
+      ? (exportSvg.title || "Enable SVG export to include FG seats and rows.")
+      : "Enable SVG export to include FG seats and rows.";
+    setSvgDependentExportOptionState(exportSvgSupport, enabled, supportTooltip);
+    setSvgDependentExportOptionState(exportFgSeats, enabled, fgTooltip);
+    setSvgDependentExportOptionState(exportFgRows, enabled, fgTooltip);
   }
 
   function openPriceRegionModal() {
@@ -6263,6 +6282,8 @@ codePane.addEventListener("input", () => {
     if (exportCss) exportCss.checked = true;
     if (exportSvg) exportSvg.checked = true;
     if (exportSvgSupport) exportSvgSupport.checked = false;
+    if (exportFgSeats) exportFgSeats.checked = false;
+    if (exportFgRows) exportFgRows.checked = false;
     updateExportOptionsAvailability();
   }
 
@@ -7475,11 +7496,9 @@ codePane.addEventListener("input", () => {
         if (fromIdentifier) numericId = fromIdentifier.numericId;
       }
       if (!numericId) {
-        issues.push(`Existing Purchases row ${rowIndex + 1}: missing NumericId.`);
-        continue;
-      }
-      if (!seatsByNumeric.has(numericId)) {
-        issues.push(`Existing Purchases row ${rowIndex + 1}: NumericId ${numericId} is missing in Seats sheet.`);
+        warnings.push(`Existing Purchases row ${rowIndex + 1}: missing NumericId. Row kept for ticket count only.`);
+      } else if (!seatsByNumeric.has(numericId)) {
+        warnings.push(`Existing Purchases row ${rowIndex + 1}: NumericId ${numericId} is missing in Seats sheet. Row kept for ticket count only.`);
       }
       const sectionName = sectionNameCol != null ? String(row[sectionNameCol] || "").trim() : "";
       const rowName = rowNameCol != null ? String(row[rowNameCol] || "").trim() : "";
@@ -8557,7 +8576,7 @@ codePane.addEventListener("input", () => {
       if (!excelIds.has(numericId)) missingInExcel.push(numericId);
     });
     if (missingInLayout.length) {
-      errors.push(`Seats mismatch: ${missingInLayout.length} seat(s) exist in Excel but not in TLT (e.g. ${missingInLayout.slice(0, 6).join(", ")}${missingInLayout.length > 6 ? ", ..." : ""}).`);
+      warnings.push(`Seats mismatch: ${missingInLayout.length} seat(s) exist in Excel but not in TLT. They are ignored for placement in this layout (e.g. ${missingInLayout.slice(0, 6).join(", ")}${missingInLayout.length > 6 ? ", ..." : ""}).`);
     }
     const blockedSeatIds = [];
     if (missingInExcel.length) {
@@ -8571,7 +8590,6 @@ codePane.addEventListener("input", () => {
     const grouped = new Map();
     parsed.existingRows.forEach((row) => {
       const seat = row.numericId ? numericToSeat.get(row.numericId) : null;
-      if (!allowsAllLayoutSeats && !seat) return;
       let purchase = grouped.get(row.refNo);
       if (!purchase) {
         purchase = {
@@ -8919,6 +8937,9 @@ codePane.addEventListener("input", () => {
       lines.push("");
       lines.push(priceCss);
     }
+    lines.push("");
+    lines.push(".fg-seat-marker { fill-opacity: 0.25; stroke: none; }");
+    lines.push(".fg-row-marker { fill: url(#fg-row-gradient); stroke: none; opacity: 0.45; }");
     return lines.join("\n");
   }
 
@@ -8934,6 +8955,106 @@ codePane.addEventListener("input", () => {
     const mid = Math.floor(sorted.length / 2);
     if (sorted.length % 2 === 1) return sorted[mid];
     return (sorted[mid - 1] + sorted[mid]) / 2;
+  }
+
+  function normalizeSvgVector(dx, dy) {
+    const len = Math.hypot(dx, dy);
+    if (len < 1e-6) return null;
+    return { x: dx / len, y: dy / len };
+  }
+
+  function computeSvgSemicircleSweep(startPoint, centerPoint, bulgePoint) {
+    const sv = {
+      x: startPoint.x - centerPoint.x,
+      y: startPoint.y - centerPoint.y
+    };
+    const perp = { x: -sv.y, y: sv.x };
+    const midSweep1 = { x: centerPoint.x + perp.x, y: centerPoint.y + perp.y };
+    const midSweep0 = { x: centerPoint.x - perp.x, y: centerPoint.y - perp.y };
+    const d1 = Math.hypot(midSweep1.x - bulgePoint.x, midSweep1.y - bulgePoint.y);
+    const d0 = Math.hypot(midSweep0.x - bulgePoint.x, midSweep0.y - bulgePoint.y);
+    return d1 <= d0 ? 1 : 0;
+  }
+
+  function buildSvgRowMarkerPath(rowSeats, markerRadius) {
+    if (!Array.isArray(rowSeats) || !rowSeats.length) return "";
+    const points = rowSeats.map((seat) => ({
+      x: Number.isFinite(seat?.centerX) ? seat.centerX : 0,
+      y: Number.isFinite(seat?.centerY) ? seat.centerY : 0
+    }));
+    const radius = Math.max(1, Number(markerRadius) || 1);
+
+    if (points.length === 1) {
+      const p = points[0];
+      const rr = formatSvgNumber(radius);
+      const rightX = formatSvgNumber(p.x + radius);
+      const leftX = formatSvgNumber(p.x - radius);
+      const cy = formatSvgNumber(p.y);
+      return `M ${rightX} ${cy} A ${rr} ${rr} 0 1 0 ${leftX} ${cy} A ${rr} ${rr} 0 1 0 ${rightX} ${cy} Z`;
+    }
+
+    const tangents = points.map((point, idx) => {
+      let tangent = null;
+      if (idx === 0) {
+        tangent = normalizeSvgVector(points[1].x - point.x, points[1].y - point.y);
+      } else if (idx === points.length - 1) {
+        tangent = normalizeSvgVector(point.x - points[idx - 1].x, point.y - points[idx - 1].y);
+      } else {
+        tangent = normalizeSvgVector(
+          points[idx + 1].x - points[idx - 1].x,
+          points[idx + 1].y - points[idx - 1].y
+        );
+      }
+      if (!tangent) {
+        tangent = idx > 0
+          ? normalizeSvgVector(point.x - points[idx - 1].x, point.y - points[idx - 1].y)
+          : normalizeSvgVector(points[idx + 1].x - point.x, points[idx + 1].y - point.y);
+      }
+      if (!tangent) tangent = { x: 1, y: 0 };
+      return tangent;
+    });
+
+    const normals = tangents.map((tangent) => ({
+      x: -tangent.y,
+      y: tangent.x
+    }));
+
+    const left = points.map((point, idx) => ({
+      x: point.x + normals[idx].x * radius,
+      y: point.y + normals[idx].y * radius
+    }));
+    const right = points.map((point, idx) => ({
+      x: point.x - normals[idx].x * radius,
+      y: point.y - normals[idx].y * radius
+    }));
+
+    const parts = [];
+    parts.push(`M ${formatSvgNumber(left[0].x)} ${formatSvgNumber(left[0].y)}`);
+    for (let i = 1; i < left.length; i++) {
+      parts.push(`L ${formatSvgNumber(left[i].x)} ${formatSvgNumber(left[i].y)}`);
+    }
+
+    const lastIdx = points.length - 1;
+    const endCapBulge = {
+      x: points[lastIdx].x + tangents[lastIdx].x * radius,
+      y: points[lastIdx].y + tangents[lastIdx].y * radius
+    };
+    const endSweep = computeSvgSemicircleSweep(left[lastIdx], points[lastIdx], endCapBulge);
+    parts.push(`A ${formatSvgNumber(radius)} ${formatSvgNumber(radius)} 0 0 ${endSweep} ${formatSvgNumber(right[lastIdx].x)} ${formatSvgNumber(right[lastIdx].y)}`);
+
+    for (let i = right.length - 2; i >= 0; i--) {
+      parts.push(`L ${formatSvgNumber(right[i].x)} ${formatSvgNumber(right[i].y)}`);
+    }
+
+    const startCapBulge = {
+      x: points[0].x - tangents[0].x * radius,
+      y: points[0].y - tangents[0].y * radius
+    };
+    const startSweep = computeSvgSemicircleSweep(right[0], points[0], startCapBulge);
+    parts.push(`A ${formatSvgNumber(radius)} ${formatSvgNumber(radius)} 0 0 ${startSweep} ${formatSvgNumber(left[0].x)} ${formatSvgNumber(left[0].y)}`);
+
+    parts.push("Z");
+    return parts.join(" ");
   }
 
   function computeRowStep(seats) {
@@ -9189,7 +9310,11 @@ codePane.addEventListener("input", () => {
     return lines.join("\n");
   }
 
-  function buildSvgFrontgroundMarkup(sectionOrder, outlineBySection, rowsBySection) {
+  function buildSvgFrontgroundMarkup(sectionOrder, outlineBySection, rowsBySection, options = {}) {
+    const includeFgSeats = !!options.includeFgSeats;
+    const includeFgRows = !!options.includeFgRows;
+    const includeFgSeatMap = includeFgSeats || includeFgRows;
+    const priceRegionLookups = Array.isArray(options.priceRegionLookups) ? options.priceRegionLookups : [];
     const lines = [
       "    <g id=\"frontground-graphics\" class=\"graphics\">",
       "      <title>frontground-graphics</title>",
@@ -9215,6 +9340,55 @@ codePane.addEventListener("input", () => {
 
       lines.push(`        <g class="section-visible-when-not-open section-${sectionCode}">`);
       lines.push(`          <title>section-visible-when-not-open section-${sectionCode}</title>`);
+
+      if (includeFgSeatMap) {
+        const parts = parseSectionIdParts(sectionId);
+        const dataId = parts.major != null ? String(parts.major) : String(sectionId || "");
+        const bboxWidth = Math.round(bounds.maxX - bounds.minX);
+        const bboxHeight = Math.round(bounds.maxY - bounds.minY);
+        const bboxAttr = ` data-bounding-box="${bounds.minX} ${bounds.minY} ${bboxWidth} ${bboxHeight};"`;
+
+        lines.push(`          <g id="fg-section-${sectionCode}" data-name="${escapeXml(sectionName)}" data-id="${escapeXml("fg-" + String(dataId))}"${bboxAttr}>`);
+        lines.push(`            <title>section-${sectionCode}</title>`);
+        lines.push(`            <g id="fg-rows-${sectionCode}">`);
+        lines.push(`              <title>rows-${sectionCode}</title>`);
+
+        const rows = rowsBySection.get(sectionId) || [];
+        rows.forEach((row) => {
+          const rowCode = rowIdToSvgCode(row.rowId);
+          const rowName = row.name || (row.rowId ? String(row.rowId).split(".")[2] : "");
+          lines.push(`              <g id="fg-row-${rowCode}" data-name="${escapeXml(rowName)}">`);
+          lines.push(`                <title>row-${rowCode}</title>`);
+
+          if (includeFgRows && row.seats && row.seats.length) {
+            const seatRadii = row.seats.map((seat) => Math.max(1, Math.round((Number.isFinite(seat.width) ? seat.width : 100) / 2)));
+            const markerRadius = Math.max(1, Math.round(medianValue(seatRadii) || seatRadii[0] || 50));
+            const markerPath = buildSvgRowMarkerPath(row.seats, markerRadius);
+            if (markerPath) {
+              lines.push(`                <path id="fg-row-marker-${rowCode}" class="fg-row-marker" d="${markerPath}"/>`);
+            }
+          }
+
+          if (includeFgSeats && row.seats && row.seats.length) {
+            row.seats.forEach((seat) => {
+              const seatCode = seatIdToSvgCode(seat.seatId);
+              const cx = Math.round(Number.isFinite(seat.centerX) ? seat.centerX : 0);
+              const cy = Math.round(Number.isFinite(seat.centerY) ? seat.centerY : 0);
+              const r = Math.max(1, Math.round((Number.isFinite(seat.width) ? seat.width : 100) / 2));
+              const regionId = getSeatPriceRegionRangeId(seat, priceRegionLookups);
+              const classParts = ["fg-seat-marker"];
+              if (regionId) classParts.push(`pr-${regionId}`);
+              lines.push(`                <circle id="fg-${seatCode}" cx="${cx}" cy="${cy}" r="${r}" class="${classParts.join(" ")}" data-name="${escapeXml(seat.name)}"/>`);
+            });
+          }
+
+          lines.push("              </g>");
+        });
+
+        lines.push("            </g>");
+        lines.push("          </g>");
+      }
+
       lines.push("          <g>");
       lines.push(`            <rect class="section-text-box" x="${formatSvgNumber(rectX)}" y="${formatSvgNumber(rectY)}" width="${formatSvgNumber(width)}" height="${formatSvgNumber(height)}" rx="${formatSvgNumber(radius)}" ry="${formatSvgNumber(radius)}"/>`);
       lines.push(`            <text class="section-text" x="${formatSvgNumber(centerX)}" y="${formatSvgNumber(centerY)}" text-anchor="middle" dominant-baseline="middle" style="white-space: pre;">${escapeXml(text)}</text>`);
@@ -9340,6 +9514,11 @@ codePane.addEventListener("input", () => {
       "<?xml version=\"1.0\" encoding=\"utf-8\"?>",
       `<svg id="venue" version="1.1" baseProfile="full" preserveAspectRatio="xMidYMid meet" viewBox="${viewBox}" xmlns="http://www.w3.org/2000/svg">`,
       "  <defs>",
+      "    <linearGradient id=\"fg-row-gradient\" x1=\"0%\" y1=\"0%\" x2=\"100%\" y2=\"100%\">",
+      "      <stop offset=\"0%\" stop-color=\"#c9cfd3\"/>",
+      "      <stop offset=\"55%\" stop-color=\"#b7bec3\"/>",
+      "      <stop offset=\"100%\" stop-color=\"#a5adb3\"/>",
+      "    </linearGradient>",
       "    <filter id=\"gaussian-blur-filter-0\" color-interpolation-filters=\"sRGB\" x=\"-50%\" y=\"-50%\" width=\"200%\" height=\"200%\">",
       "      <feGaussianBlur stdDeviation=\"50 50\" edgeMode=\"none\"/>",
       "    </filter>",
@@ -9431,6 +9610,8 @@ codePane.addEventListener("input", () => {
 
   async function buildSvgText(baseName, options = {}) {
     const includeSupportGraphics = !!options.includeSupportGraphics;
+    const includeFgSeats = !!options.includeFgSeats;
+    const includeFgRows = !!options.includeFgRows;
     if (!seats.length) {
       return [
         "<?xml version=\"1.0\" encoding=\"utf-8\"?>",
@@ -9499,7 +9680,11 @@ codePane.addEventListener("input", () => {
     const outlineMarkup = buildSvgSectionOutlines(sectionOrder, outlineBySection, supportAlwaysVisibleMarkup);
     const rowNumberMarkup = buildSvgRowNumberMarkup(sectionOrder, normalizedRowsBySection);
     const sectionsMarkup = buildSvgSectionsMarkup(sectionOrder, normalizedRowsBySection, outlineBySection, priceRegionLookups);
-    const frontgroundMarkup = buildSvgFrontgroundMarkup(sectionOrder, outlineBySection, normalizedRowsBySection);
+    const frontgroundMarkup = buildSvgFrontgroundMarkup(sectionOrder, outlineBySection, normalizedRowsBySection, {
+      includeFgSeats,
+      includeFgRows,
+      priceRegionLookups
+    });
     const cssText = buildSvgCssText();
 
     const viewBox = computeSvgViewBox(outlineBySection, normalizedRowsBySection);
@@ -9550,7 +9735,11 @@ codePane.addEventListener("input", () => {
     if (exportSvg?.checked) {
       files.push({
         name: `${baseName}.svg`,
-        text: await buildSvgText(baseName, { includeSupportGraphics: !!exportSvgSupport?.checked })
+        text: await buildSvgText(baseName, {
+          includeSupportGraphics: !!exportSvgSupport?.checked,
+          includeFgSeats: !!exportFgSeats?.checked,
+          includeFgRows: !!exportFgRows?.checked
+        })
       });
     }
 
