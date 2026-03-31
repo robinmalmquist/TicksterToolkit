@@ -648,6 +648,7 @@
     #seatEditOverlay,
     #rowEditOverlay,
     #sectionEditOverlay,
+    #priceRegionStaleOverlay,
     #highlightSeatsOverlay {
       position: fixed;
       inset: 0;
@@ -1294,12 +1295,24 @@
     .price-region-item {
       border: 1px solid #e1e6ef;
       border-radius: 8px;
-      padding: 0.5rem 1.8rem 0.5rem 0.6rem;
+      padding: 0.5rem 1.8rem 0.5rem 0.95rem;
       background: #f9fbff;
       display: flex;
       flex-direction: column;
       gap: 0.35rem;
       position: relative;
+    }
+
+    .price-region-item--dragging {
+      opacity: 0.55;
+    }
+
+    .price-region-item--drop-before {
+      box-shadow: inset 0 2px 0 #0c6ba5;
+    }
+
+    .price-region-item--drop-after {
+      box-shadow: inset 0 -2px 0 #0c6ba5;
     }
 
     .price-region-item__header {
@@ -1410,6 +1423,99 @@
     .price-region-item__actions .c-button {
       max-width: 100%;
       white-space: nowrap;
+    }
+
+    .price-region-item__drag-edge {
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 0.65rem;
+      border-radius: 8px 0 0 8px;
+      cursor: grab;
+      opacity: 0;
+      transition: opacity var(--transition-fast), background var(--transition-fast), box-shadow var(--transition-fast);
+    }
+
+    .price-region-item__drag-edge::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: 2px;
+      height: 22px;
+      border-radius: 999px;
+      background: rgba(17, 124, 121, 0.4);
+      opacity: 0;
+      transition: opacity var(--transition-fast), background var(--transition-fast);
+    }
+
+    .price-region-item:hover .price-region-item__drag-edge {
+      opacity: 1;
+      background: linear-gradient(to right, rgba(17, 124, 121, 0.2), rgba(17, 124, 121, 0.06));
+      box-shadow: inset -1px 0 0 rgba(17, 124, 121, 0.28);
+    }
+
+    .price-region-item:hover .price-region-item__drag-edge::after {
+      opacity: 1;
+    }
+
+    .price-region-item--dragging .price-region-item__drag-edge {
+      opacity: 1;
+      cursor: grabbing;
+      background: linear-gradient(to right, rgba(12, 107, 165, 0.28), rgba(12, 107, 165, 0.08));
+      box-shadow: inset -1px 0 0 rgba(12, 107, 165, 0.42);
+    }
+
+    .price-region-item--dragging .price-region-item__drag-edge::after {
+      opacity: 1;
+      background: rgba(12, 107, 165, 0.75);
+    }
+
+    .price-region-item__drag-edge:active {
+      cursor: grabbing;
+    }
+
+    .price-region-item__drag-edge--disabled {
+      cursor: default;
+      opacity: 0;
+      background: transparent;
+      box-shadow: none;
+    }
+
+    .price-region-item__drag-edge--disabled::after {
+      opacity: 0 !important;
+    }
+
+    .price-region-item__warning {
+      min-width: 2.1rem;
+      padding-inline: 0.5rem;
+      line-height: 1;
+      font-size: 0.95rem;
+    }
+
+    .price-region-item__warning--active {
+      background: #fff3cd;
+      border-color: #f3c66a;
+      color: #7a4a00;
+    }
+
+    .price-region-item__warning--active:hover:not(:disabled) {
+      background: #ffe7ad;
+      border-color: #e3aa3e;
+      color: #613900;
+    }
+
+    .price-region-item__warning--ok {
+      background: #e7f8ed;
+      border-color: #8fd6ab;
+      color: #0f7a41;
+    }
+
+    .price-region-item__warning--ok:disabled {
+      opacity: 1;
+      cursor: default;
     }
 
     .seat-block-item--active {
@@ -1634,6 +1740,7 @@
     #seatEditModal,
     #rowEditModal,
     #sectionEditModal,
+    #priceRegionStaleModal,
     #highlightSeatsModal {
       background: var(--card-bg);
       border-radius: 12px;
@@ -1647,7 +1754,8 @@
 
     #seatEditModal,
     #rowEditModal,
-    #sectionEditModal {
+    #sectionEditModal,
+    #priceRegionStaleModal {
       width: min(860px, 95vw);
     }
 
@@ -1659,6 +1767,7 @@
     #seatEditModal header,
     #rowEditModal header,
     #sectionEditModal header,
+    #priceRegionStaleModal header,
     #highlightSeatsModal header {
       display: flex;
       align-items: center;
@@ -1671,6 +1780,7 @@
     #seatEditModal main,
     #rowEditModal main,
     #sectionEditModal main,
+    #priceRegionStaleModal main,
     #highlightSeatsModal main {
       padding: 0.75rem 1rem;
       overflow: auto;
@@ -1681,6 +1791,7 @@
     #seatEditModal footer,
     #rowEditModal footer,
     #sectionEditModal footer,
+    #priceRegionStaleModal footer,
     #highlightSeatsModal footer {
       padding: 0.75rem 1rem;
       border-top: 1px solid #e5e9ef;
@@ -2012,6 +2123,7 @@
     html[data-theme="dark"] #seatEditOverlay,
     html[data-theme="dark"] #rowEditOverlay,
     html[data-theme="dark"] #sectionEditOverlay,
+    html[data-theme="dark"] #priceRegionStaleOverlay,
     html[data-theme="dark"] #highlightSeatsOverlay,
     html[data-theme="dark"] #attributeModalOverlay {
       background: var(--dark-overlay-bg);
@@ -2023,6 +2135,7 @@
     html[data-theme="dark"] #seatEditModal h3,
     html[data-theme="dark"] #rowEditModal h3,
     html[data-theme="dark"] #sectionEditModal h3,
+    html[data-theme="dark"] #priceRegionStaleModal h3,
     html[data-theme="dark"] #highlightSeatsModal h3,
     html[data-theme="dark"] #fileInfo,
     html[data-theme="dark"] strong {
@@ -2058,6 +2171,7 @@
     html[data-theme="dark"] #seatEditModal header,
     html[data-theme="dark"] #rowEditModal header,
     html[data-theme="dark"] #sectionEditModal header,
+    html[data-theme="dark"] #priceRegionStaleModal header,
     html[data-theme="dark"] #highlightSeatsModal header {
       border-color: var(--dark-border);
     }
@@ -2065,6 +2179,7 @@
     html[data-theme="dark"] #seatEditModal main,
     html[data-theme="dark"] #rowEditModal main,
     html[data-theme="dark"] #sectionEditModal main,
+    html[data-theme="dark"] #priceRegionStaleModal main,
     html[data-theme="dark"] #highlightSeatsModal main {
       background: var(--dark-bg);
       border-color: var(--dark-border);
@@ -2073,6 +2188,7 @@
     html[data-theme="dark"] #seatEditModal footer,
     html[data-theme="dark"] #rowEditModal footer,
     html[data-theme="dark"] #sectionEditModal footer,
+    html[data-theme="dark"] #priceRegionStaleModal footer,
     html[data-theme="dark"] #highlightSeatsModal footer {
       background: var(--dark-elevated);
       border-color: var(--dark-border);
@@ -2112,6 +2228,14 @@
       background: var(--dark-elevated);
       border-color: var(--dark-border);
       box-shadow: var(--dark-shadow-item);
+    }
+
+    html[data-theme="dark"] .price-region-item--drop-before {
+      box-shadow: inset 0 2px 0 #38bdf8;
+    }
+
+    html[data-theme="dark"] .price-region-item--drop-after {
+      box-shadow: inset 0 -2px 0 #38bdf8;
     }
 
     html[data-theme="dark"] #numberedImportModeBtn.c-button--active {
@@ -2206,6 +2330,44 @@
 
     html[data-theme="dark"] .price-region-item__color {
       background: transparent;
+    }
+
+    html[data-theme="dark"] .price-region-item:hover .price-region-item__drag-edge {
+      background: linear-gradient(to right, rgba(56, 189, 248, 0.28), rgba(56, 189, 248, 0.08));
+      box-shadow: inset -1px 0 0 rgba(56, 189, 248, 0.42);
+    }
+
+    html[data-theme="dark"] .price-region-item:hover .price-region-item__drag-edge::after {
+      opacity: 1;
+      background: rgba(125, 211, 252, 0.85);
+    }
+
+    html[data-theme="dark"] .price-region-item--dragging .price-region-item__drag-edge {
+      background: linear-gradient(to right, rgba(56, 189, 248, 0.4), rgba(56, 189, 248, 0.12));
+      box-shadow: inset -1px 0 0 rgba(56, 189, 248, 0.58);
+    }
+
+    html[data-theme="dark"] .price-region-item--dragging .price-region-item__drag-edge::after {
+      opacity: 1;
+      background: rgba(186, 230, 253, 0.95);
+    }
+
+    html[data-theme="dark"] .price-region-item__warning--active {
+      background: #4a3311;
+      border-color: #8b5e18;
+      color: #fcd34d;
+    }
+
+    html[data-theme="dark"] .price-region-item__warning--active:hover:not(:disabled) {
+      background: #5a3d14;
+      border-color: #a16f1c;
+      color: #fde68a;
+    }
+
+    html[data-theme="dark"] .price-region-item__warning--ok {
+      background: #143722;
+      border-color: #2e7d4f;
+      color: #86efac;
     }
 
     html[data-theme="dark"] .seat-block-item--active {
@@ -3013,6 +3175,26 @@
       </div>
     </div>
   </div>
+
+  <div id="priceRegionStaleOverlay">
+    <div id="priceRegionStaleModal">
+      <header>
+        <h3 id="priceRegionStaleTitle">Invalid seat mappings</h3>
+        <button id="priceRegionStaleClose" type="button" class="c-button c-button--ghost c-button--small">Close</button>
+      </header>
+      <main>
+        <div id="priceRegionStaleHint" class="u-font--small" style="margin-bottom:0.5rem;">
+          These seats are saved in the price region data but do not exist in the current layout.
+        </div>
+        <div id="priceRegionStaleList" class="edit-list"></div>
+      </main>
+      <footer>
+        <button id="priceRegionStaleClear" type="button" class="c-button c-button--secondary c-button--small">Clear from price region</button>
+        <button id="priceRegionStaleCancel" type="button" class="c-button c-button--ghost c-button--small">Close</button>
+      </footer>
+    </div>
+  </div>
+
   <div id="entryPointOverlay">
     <div id="entryPointModal">
       <h3>New entry point</h3>
@@ -3527,6 +3709,13 @@
   const priceRegionName = document.getElementById("priceRegionName");
   const priceRegionCancel = document.getElementById("priceRegionCancel");
   const priceRegionCreate = document.getElementById("priceRegionCreate");
+  const priceRegionStaleOverlay = document.getElementById("priceRegionStaleOverlay");
+  const priceRegionStaleTitle = document.getElementById("priceRegionStaleTitle");
+  const priceRegionStaleHint = document.getElementById("priceRegionStaleHint");
+  const priceRegionStaleList = document.getElementById("priceRegionStaleList");
+  const priceRegionStaleClose = document.getElementById("priceRegionStaleClose");
+  const priceRegionStaleCancel = document.getElementById("priceRegionStaleCancel");
+  const priceRegionStaleClear = document.getElementById("priceRegionStaleClear");
   const createEntryPointBtn = document.getElementById("createEntryPointBtn");
   const selectSeatsNoEntryPointBtn = document.getElementById("selectSeatsNoEntryPointBtn");
   const entryPointList = document.getElementById("entryPointList");
@@ -3761,6 +3950,8 @@
   let sectionDrafts = [];
   let activeSectionDraftId = null;
   let sectionDirty = false;
+  let activePriceRegionStaleRegionId = "";
+  let priceRegionDraggingRegionId = "";
   let forceSaveAs = false;
   let layoutActive = false;
   let numberedImportMode = false;
@@ -5601,6 +5792,99 @@ codePane.addEventListener("input", () => {
     saveSessionToLocalStorage();
   }
 
+  function getStaleSeatIdsForPriceRegion(region, existingSeatIds = null) {
+    if (!region || !Array.isArray(region.seats) || !region.seats.length) return [];
+    const existing = existingSeatIds || new Set(seats.map((s) => s.seatId));
+    const stale = [];
+    const seen = new Set();
+    region.seats.forEach((seatId) => {
+      const normalized = String(seatId || "").trim();
+      if (!normalized || seen.has(normalized)) return;
+      seen.add(normalized);
+      if (!existing.has(normalized)) stale.push(normalized);
+    });
+    stale.sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: "base" }));
+    return stale;
+  }
+
+  function renderPriceRegionStaleSeatList(region) {
+    if (!priceRegionStaleList) return [];
+    const staleSeatIds = getStaleSeatIdsForPriceRegion(region);
+    priceRegionStaleList.innerHTML = "";
+    if (priceRegionStaleTitle) {
+      const regionName = region?.name || region?.id || "Unknown";
+      priceRegionStaleTitle.textContent = `Invalid seat mappings: ${regionName}`;
+    }
+    if (priceRegionStaleHint) {
+      const count = staleSeatIds.length;
+      priceRegionStaleHint.textContent = count
+        ? `${count} seat(s) exist in this price region but not in the current layout.`
+        : "No invalid seat mappings were found for this price region.";
+    }
+    if (!staleSeatIds.length) {
+      const empty = document.createElement("div");
+      empty.className = "edit-item";
+      empty.textContent = "No invalid seat mappings.";
+      priceRegionStaleList.appendChild(empty);
+    } else {
+      staleSeatIds.forEach((seatId) => {
+        const item = document.createElement("div");
+        item.className = "edit-item";
+        item.textContent = seatId;
+        priceRegionStaleList.appendChild(item);
+      });
+    }
+    if (priceRegionStaleClear) priceRegionStaleClear.disabled = staleSeatIds.length === 0;
+    return staleSeatIds;
+  }
+
+  function clearStaleSeatMappingsFromPriceRegion(regionId) {
+    if (!regionId) return 0;
+    const region = priceRegions.find((r) => r.id === regionId);
+    if (!region) return 0;
+    const existingSeatIds = new Set(seats.map((s) => s.seatId));
+    const staleSeatIds = new Set(getStaleSeatIdsForPriceRegion(region, existingSeatIds));
+    if (!staleSeatIds.size) return 0;
+    const before = region.seats.length;
+    region.seats = region.seats.filter((seatId) => !staleSeatIds.has(String(seatId || "").trim()));
+    if (region.seats.length === before) return 0;
+    savePriceRegionsToStorage();
+    renderPriceRegionList();
+    updatePriceRegionUi();
+    if (showPriceRegions) renderCanvas();
+    return staleSeatIds.size;
+  }
+
+  function movePriceRegionToIndex(regionId, targetIndex) {
+    if (!regionId || !Number.isFinite(targetIndex)) return false;
+    const currentIndex = priceRegions.findIndex((region) => region.id === regionId);
+    if (currentIndex < 0) return false;
+    const boundedTarget = Math.max(0, Math.min(priceRegions.length, Math.floor(targetIndex)));
+    if (boundedTarget === currentIndex || boundedTarget === currentIndex + 1) return false;
+    const [region] = priceRegions.splice(currentIndex, 1);
+    if (!region) return false;
+    const insertIndex = currentIndex < boundedTarget ? boundedTarget - 1 : boundedTarget;
+    priceRegions.splice(insertIndex, 0, region);
+    savePriceRegionsToStorage();
+    renderPriceRegionList();
+    updatePriceRegionUi();
+    if (showPriceRegions) renderCanvas();
+    return true;
+  }
+
+  function clearPriceRegionDropMarkers() {
+    if (!priceRegionList) return;
+    priceRegionList.querySelectorAll(".price-region-item--drop-before, .price-region-item--drop-after").forEach((item) => {
+      item.classList.remove("price-region-item--drop-before", "price-region-item--drop-after");
+    });
+  }
+
+  function clearPriceRegionDragMarkers() {
+    clearPriceRegionDropMarkers();
+    if (!priceRegionList) return;
+    priceRegionList.querySelectorAll(".price-region-item--dragging").forEach((item) => item.classList.remove("price-region-item--dragging"));
+  }
+
   function renderPriceRegionList() {
     if (!priceRegionList) return;
     priceRegionList.innerHTML = "";
@@ -5612,9 +5896,12 @@ codePane.addEventListener("input", () => {
       priceRegionList.appendChild(empty);
       return;
     }
+    const existingSeatIds = new Set(seats.map((s) => s.seatId));
     priceRegions.forEach((region) => {
+      const staleSeatIds = getStaleSeatIdsForPriceRegion(region, existingSeatIds);
       const item = document.createElement("div");
       item.className = "price-region-item";
+      item.dataset.regionId = region.id;
 
       const header = document.createElement("div");
       header.className = "price-region-item__header";
@@ -5626,6 +5913,18 @@ codePane.addEventListener("input", () => {
       deleteBtn.textContent = "×";
       deleteBtn.dataset.role = "price-region-delete";
       deleteBtn.dataset.regionId = region.id;
+      const canReorder = !numberedImportMode && priceRegions.length > 1;
+      const dragEdge = document.createElement("div");
+      dragEdge.className = "price-region-item__drag-edge";
+      dragEdge.dataset.role = "price-region-drag";
+      dragEdge.dataset.regionId = region.id;
+      dragEdge.draggable = canReorder;
+      dragEdge.classList.toggle("price-region-item__drag-edge--disabled", !canReorder);
+      const dragTitle = canReorder
+        ? "Drag left edge to reorder"
+        : (numberedImportMode ? "Reordering is disabled in import mode" : "Need at least two price regions to reorder");
+      dragEdge.title = dragTitle;
+      dragEdge.setAttribute("aria-label", dragTitle);
       const colorInput = document.createElement("input");
       colorInput.type = "color";
       colorInput.className = "price-region-item__color";
@@ -5653,6 +5952,7 @@ codePane.addEventListener("input", () => {
       if (region.sections.length) parts.push(`Sections: ${region.sections.length}`);
       if (region.rows.length) parts.push(`Rows: ${region.rows.length}`);
       if (region.seats.length) parts.push(`Seats: ${region.seats.length}`);
+      if (staleSeatIds.length) parts.push(`Missing seats: ${staleSeatIds.length}`);
       meta.textContent = parts.length ? parts.join(" • ") : "No items added";
 
       const actions = document.createElement("div");
@@ -5675,10 +5975,25 @@ codePane.addEventListener("input", () => {
       clearBtn.textContent = "Clear";
       clearBtn.dataset.role = "price-region-clear";
       clearBtn.dataset.regionId = region.id;
+      const staleBtn = document.createElement("button");
+      staleBtn.type = "button";
+      staleBtn.className = "c-button c-button--ghost c-button--small price-region-item__warning";
+      const hasStaleSeatMappings = staleSeatIds.length > 0;
+      staleBtn.classList.add(hasStaleSeatMappings ? "price-region-item__warning--active" : "price-region-item__warning--ok");
+      staleBtn.textContent = hasStaleSeatMappings ? "\u26A0\uFE0F" : "\u2705";
+      staleBtn.dataset.role = "price-region-stale";
+      staleBtn.dataset.regionId = region.id;
+      const staleTitle = staleSeatIds.length
+        ? `${staleSeatIds.length} seat(s) are in this price region but missing in layout`
+        : "No invalid seat mappings";
+      staleBtn.title = staleTitle;
+      staleBtn.setAttribute("aria-label", staleTitle);
       actions.appendChild(addBtn);
       actions.appendChild(markBtn);
       actions.appendChild(clearBtn);
+      actions.appendChild(staleBtn);
 
+      item.appendChild(dragEdge);
       item.appendChild(deleteBtn);
       item.appendChild(header);
       item.appendChild(meta);
@@ -5691,6 +6006,7 @@ codePane.addEventListener("input", () => {
   function updatePriceRegionUi() {
     if (!priceRegionList) return;
     const hasSelection = !numberedImportMode && getSelectedSeats().length > 0;
+    const existingSeatIds = new Set(seats.map((s) => s.seatId));
     priceRegionList.querySelectorAll("[data-role='price-region-add']").forEach((btn) => {
       btn.disabled = !hasSelection;
       btn.classList.toggle("price-region-item__add--active", hasSelection);
@@ -5706,6 +6022,30 @@ codePane.addEventListener("input", () => {
       const region = priceRegions.find(r => r.id === regionId);
       const hasItems = region ? (region.sections.length + region.rows.length + region.seats.length) > 0 : false;
       btn.disabled = numberedImportMode || !hasItems;
+    });
+    const canReorder = !numberedImportMode && priceRegions.length > 1;
+    priceRegionList.querySelectorAll("[data-role='price-region-drag']").forEach((handle) => {
+      handle.draggable = canReorder;
+      handle.classList.toggle("price-region-item__drag-edge--disabled", !canReorder);
+      const title = canReorder
+        ? "Drag left edge to reorder"
+        : (numberedImportMode ? "Reordering is disabled in import mode" : "Need at least two price regions to reorder");
+      handle.title = title;
+      handle.setAttribute("aria-label", title);
+    });
+    priceRegionList.querySelectorAll("[data-role='price-region-stale']").forEach((btn) => {
+      const regionId = btn.dataset.regionId;
+      const region = priceRegions.find((r) => r.id === regionId);
+      const staleCount = region ? getStaleSeatIdsForPriceRegion(region, existingSeatIds).length : 0;
+      btn.disabled = numberedImportMode || staleCount <= 0;
+      btn.classList.toggle("price-region-item__warning--active", staleCount > 0);
+      btn.classList.toggle("price-region-item__warning--ok", staleCount <= 0);
+      btn.textContent = staleCount > 0 ? "\u26A0\uFE0F" : "\u2705";
+      const staleTitle = staleCount
+        ? `${staleCount} seat(s) are in this price region but missing in layout`
+        : "No invalid seat mappings";
+      btn.title = staleTitle;
+      btn.setAttribute("aria-label", staleTitle);
     });
   }
 
@@ -6310,6 +6650,20 @@ codePane.addEventListener("input", () => {
     if (priceRegionOverlay) priceRegionOverlay.style.display = "none";
   }
 
+  function openPriceRegionStaleModal(regionId) {
+    if (!regionId) return;
+    const region = priceRegions.find((r) => r.id === regionId);
+    if (!region) return;
+    activePriceRegionStaleRegionId = regionId;
+    renderPriceRegionStaleSeatList(region);
+    if (priceRegionStaleOverlay) priceRegionStaleOverlay.style.display = "flex";
+  }
+
+  function closePriceRegionStaleModal() {
+    if (priceRegionStaleOverlay) priceRegionStaleOverlay.style.display = "none";
+    activePriceRegionStaleRegionId = "";
+  }
+
   function openExportModal() {
     if (exportOverlay) exportOverlay.style.display = "flex";
     if (exportName) {
@@ -6343,6 +6697,28 @@ codePane.addEventListener("input", () => {
 
   function closeHelpModal() {
     if (helpOverlay) helpOverlay.style.display = "none";
+  }
+
+  function isOverlayOpen(overlayEl) {
+    return !!(overlayEl && overlayEl.style.display === "flex");
+  }
+
+  function isShortcutBlockingModalOpen() {
+    return (
+      isOverlayOpen(newLayoutOverlay) ||
+      isOverlayOpen(priceRegionOverlay) ||
+      isOverlayOpen(priceRegionStaleOverlay) ||
+      isOverlayOpen(entryPointOverlay) ||
+      isOverlayOpen(goodnessOverlay) ||
+      isOverlayOpen(exportOverlay) ||
+      isOverlayOpen(helpOverlay) ||
+      isOverlayOpen(attributeModalOverlay) ||
+      isOverlayOpen(seatEditOverlay) ||
+      isOverlayOpen(rowEditOverlay) ||
+      isOverlayOpen(sectionEditOverlay) ||
+      isOverlayOpen(highlightSeatsOverlay) ||
+      isOverlayOpen(codeModalOverlay)
+    );
   }
 
   function getExportBaseName() {
@@ -6382,7 +6758,7 @@ codePane.addEventListener("input", () => {
   function buildRangeId(region, index) {
     if (region && isValidRangeId(region.rangeId)) return String(region.rangeId);
     if (region && isValidRangeId(region.id)) return String(region.id);
-    const seed = `${region.id}|${region.name}|${index}`;
+    const seed = `${region?.id || ""}|price-region`;
     let hash = 0;
     for (let i = 0; i < seed.length; i++) {
       hash = (hash * 31 + seed.charCodeAt(i)) >>> 0;
@@ -10649,6 +11025,7 @@ codePane.addEventListener("input", () => {
     closeRowEditModal();
     closeSectionEditModal();
     closePriceRegionModal();
+    closePriceRegionStaleModal();
     closeEntryPointModal();
     closeGoodnessModal();
     closeHighlightSeatsModal();
@@ -10875,6 +11252,19 @@ codePane.addEventListener("input", () => {
     selectSeatsWithoutPriceRegions();
   });
   priceRegionCancel?.addEventListener("click", closePriceRegionModal);
+  priceRegionStaleClose?.addEventListener("click", closePriceRegionStaleModal);
+  priceRegionStaleCancel?.addEventListener("click", closePriceRegionStaleModal);
+  priceRegionStaleOverlay?.addEventListener("click", (e) => {
+    if (e.target === priceRegionStaleOverlay) closePriceRegionStaleModal();
+  });
+  priceRegionStaleClear?.addEventListener("click", () => {
+    const removedCount = clearStaleSeatMappingsFromPriceRegion(activePriceRegionStaleRegionId);
+    if (!removedCount) {
+      closePriceRegionStaleModal();
+      return;
+    }
+    closePriceRegionStaleModal();
+  });
   loadPriceRegionBtn?.addEventListener("click", () => {
     if (!seats.length) {
       alert("Load a layout (TLT) before importing price regions.");
@@ -11121,6 +11511,12 @@ codePane.addEventListener("input", () => {
       if (showPriceRegions) renderCanvas();
       return;
     }
+    const staleBtn = e.target.closest("[data-role='price-region-stale']");
+    if (staleBtn) {
+      const regionId = staleBtn.dataset.regionId;
+      if (regionId) openPriceRegionStaleModal(regionId);
+      return;
+    }
     const delBtn = e.target.closest("[data-role='price-region-delete']");
     if (!delBtn) return;
     const regionId = delBtn.dataset.regionId;
@@ -11133,6 +11529,83 @@ codePane.addEventListener("input", () => {
     renderPriceRegionList();
     updatePriceRegionUi();
     if (showPriceRegions) renderCanvas();
+  });
+
+  priceRegionList?.addEventListener("dragstart", (e) => {
+    const handle = e.target instanceof Element ? e.target.closest("[data-role='price-region-drag']") : null;
+    if (!handle || !(handle instanceof HTMLElement)) return;
+    if (numberedImportMode || !handle.draggable) {
+      e.preventDefault();
+      return;
+    }
+    const regionId = String(handle.dataset.regionId || "").trim();
+    if (!regionId) {
+      e.preventDefault();
+      return;
+    }
+    priceRegionDraggingRegionId = regionId;
+    clearPriceRegionDragMarkers();
+    const item = handle.closest(".price-region-item");
+    if (item) item.classList.add("price-region-item--dragging");
+    if (e.dataTransfer) {
+      e.dataTransfer.effectAllowed = "move";
+      e.dataTransfer.setData("text/plain", regionId);
+    }
+  });
+
+  priceRegionList?.addEventListener("dragover", (e) => {
+    const draggingId = String(priceRegionDraggingRegionId || e.dataTransfer?.getData("text/plain") || "").trim();
+    if (!draggingId) return;
+    e.preventDefault();
+    const target = e.target instanceof Element ? e.target.closest(".price-region-item") : null;
+    if (!target || !priceRegionList.contains(target)) {
+      clearPriceRegionDropMarkers();
+      return;
+    }
+    const targetId = String(target.dataset.regionId || "").trim();
+    if (!targetId || targetId === draggingId) {
+      clearPriceRegionDropMarkers();
+      return;
+    }
+    const rect = target.getBoundingClientRect();
+    const insertAfter = e.clientY > rect.top + rect.height / 2;
+    clearPriceRegionDropMarkers();
+    target.classList.add(insertAfter ? "price-region-item--drop-after" : "price-region-item--drop-before");
+    if (e.dataTransfer) e.dataTransfer.dropEffect = "move";
+  });
+
+  priceRegionList?.addEventListener("drop", (e) => {
+    const draggingId = String(priceRegionDraggingRegionId || e.dataTransfer?.getData("text/plain") || "").trim();
+    if (!draggingId) return;
+    e.preventDefault();
+    const target = e.target instanceof Element ? e.target.closest(".price-region-item") : null;
+    if (!target || !priceRegionList.contains(target)) {
+      movePriceRegionToIndex(draggingId, priceRegions.length);
+      priceRegionDraggingRegionId = "";
+      clearPriceRegionDragMarkers();
+      return;
+    }
+    const targetId = String(target.dataset.regionId || "").trim();
+    if (!targetId || targetId === draggingId) {
+      priceRegionDraggingRegionId = "";
+      clearPriceRegionDragMarkers();
+      return;
+    }
+    const rect = target.getBoundingClientRect();
+    const insertAfter = target.classList.contains("price-region-item--drop-after") || e.clientY > rect.top + rect.height / 2;
+    const targetIndex = priceRegions.findIndex((region) => region.id === targetId);
+    if (targetIndex >= 0) {
+      movePriceRegionToIndex(draggingId, targetIndex + (insertAfter ? 1 : 0));
+    }
+    priceRegionDraggingRegionId = "";
+    clearPriceRegionDragMarkers();
+  });
+
+  priceRegionList?.addEventListener("dragend", (e) => {
+    const handle = e.target instanceof Element ? e.target.closest("[data-role='price-region-drag']") : null;
+    if (!handle) return;
+    priceRegionDraggingRegionId = "";
+    clearPriceRegionDragMarkers();
   });
 
   entryPointList?.addEventListener("click", (e) => {
@@ -16471,9 +16944,30 @@ function nudgeSelection(dxScreen, dyScreen) {
 
     const altSectionManagerOpen = !!(altSectionManagerOverlay && altSectionManagerOverlay.style.display === "flex");
     if (altSectionManagerOpen) {
+      if (!isTextInput && !e.ctrlKey && !e.metaKey && key === "h") {
+        e.preventDefault();
+        if (helpOverlay && helpOverlay.style.display === "flex") {
+          closeHelpModal();
+        } else {
+          openHelpModal();
+        }
+        return;
+      }
       if (!isTextInput && (e.ctrlKey || e.metaKey) && !e.shiftKey && key === "z") {
         e.preventDefault();
         undoAltChange();
+      }
+      return;
+    }
+
+    if (isShortcutBlockingModalOpen()) {
+      if (!isTextInput && !e.ctrlKey && !e.metaKey && key === "h") {
+        e.preventDefault();
+        if (helpOverlay && helpOverlay.style.display === "flex") {
+          closeHelpModal();
+        } else {
+          openHelpModal();
+        }
       }
       return;
     }
