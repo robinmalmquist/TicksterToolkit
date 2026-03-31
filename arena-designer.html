@@ -3218,7 +3218,7 @@
     <div id="seatEditModal">
       <header>
         <h3>Edit seat(s)</h3>
-        <button id="seatEditClose" class="c-button c-button--ghost c-button--small">Close</button>
+        <button id="seatEditClose" type="button" class="c-button c-button--ghost c-button--small">Close</button>
       </header>
       <main>
         <div class="u-font--small" style="margin-bottom:0.5rem;">
@@ -3227,8 +3227,8 @@
         <div id="seatEditList" class="edit-list"></div>
       </main>
       <footer>
-        <button id="seatEditCancel" class="c-button c-button--ghost c-button--small">Cancel</button>
-        <button id="seatEditSave" class="c-button c-button--primary c-button--small">Save</button>
+        <button id="seatEditCancel" type="button" class="c-button c-button--ghost c-button--small">Cancel</button>
+        <button id="seatEditSave" type="button" class="c-button c-button--primary c-button--small">Save</button>
       </footer>
     </div>
   </div>
@@ -3237,7 +3237,7 @@
     <div id="rowEditModal">
       <header>
         <h3>Edit row(s)</h3>
-        <button id="rowEditClose" class="c-button c-button--ghost c-button--small">Close</button>
+        <button id="rowEditClose" type="button" class="c-button c-button--ghost c-button--small">Close</button>
       </header>
       <main>
         <div class="u-font--small" style="margin-bottom:0.5rem;">
@@ -3246,8 +3246,8 @@
         <div id="rowEditList" class="edit-list"></div>
       </main>
       <footer>
-        <button id="rowEditCancel" class="c-button c-button--ghost c-button--small">Cancel</button>
-        <button id="rowEditSave" class="c-button c-button--primary c-button--small">Save</button>
+        <button id="rowEditCancel" type="button" class="c-button c-button--ghost c-button--small">Cancel</button>
+        <button id="rowEditSave" type="button" class="c-button c-button--primary c-button--small">Save</button>
       </footer>
     </div>
   </div>
@@ -14636,6 +14636,7 @@ function nudgeSelection(dxScreen, dyScreen) {
 
   function openSeatEditModal() {
     buildSeatEditList();
+    if (!seatEditList || seatEditList.childElementCount === 0) return;
     if (seatEditOverlay) seatEditOverlay.style.display = "flex";
   }
 
@@ -14746,6 +14747,7 @@ function nudgeSelection(dxScreen, dyScreen) {
 
   function openRowEditModal() {
     buildRowEditList();
+    if (!rowEditList || rowEditList.childElementCount === 0) return;
     if (rowEditOverlay) rowEditOverlay.style.display = "flex";
   }
 
@@ -15784,6 +15786,12 @@ function nudgeSelection(dxScreen, dyScreen) {
       updateEntryPointUi();
       renderCanvas();
     }
+    if (changed || priceRegionChanged) {
+      hasUnsavedChanges = true;
+      updateSaveButton();
+      saveSessionToLocalStorage();
+      pushHistorySnapshot();
+    }
     closeSeatEditModal();
   });
 
@@ -15858,13 +15866,17 @@ function nudgeSelection(dxScreen, dyScreen) {
   });
   rowEditSave?.addEventListener("click", () => {
     if (!rowEditList) return;
-    const rows = getSelectedRows();
-    if (!rows.size) return;
+    const rowSeatsById = new Map();
+    seats.forEach((seat) => {
+      if (!seat.rowId) return;
+      if (!rowSeatsById.has(seat.rowId)) rowSeatsById.set(seat.rowId, []);
+      rowSeatsById.get(seat.rowId).push(seat);
+    });
     let changed = false;
 
     rowEditList.querySelectorAll(".edit-item").forEach((rowEl) => {
       const rowId = rowEl.dataset.rowId;
-      const rowSeats = rows.get(rowId);
+      const rowSeats = rowSeatsById.get(rowId);
       if (!rowSeats) return;
 
       const nameInput = rowEl.querySelector("input[data-role='row-name']");
@@ -16443,7 +16455,9 @@ function nudgeSelection(dxScreen, dyScreen) {
       activeEl &&
       (activeEl.tagName === "INPUT" ||
         activeEl.tagName === "TEXTAREA" ||
+        activeEl.tagName === "SELECT" ||
         activeEl.isContentEditable);
+    if (isTextInput && (e.ctrlKey || e.metaKey) && key !== "s") return;
 
     if (numberedImportMode) {
       if ((e.ctrlKey || e.metaKey) && key === "s") {
