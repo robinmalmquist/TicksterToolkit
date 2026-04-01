@@ -1026,6 +1026,18 @@
       padding-right: 0.2rem;
     }
 
+    .price-region-toolbar-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.35rem;
+      width: 100%;
+    }
+
+    .price-region-toolbar-grid .c-button {
+      width: 100%;
+      min-width: 0;
+    }
+
     #numberedImportCard[hidden] {
       display: none !important;
     }
@@ -2881,9 +2893,12 @@
           <button class="c-card__toggle" type="button" aria-expanded="true" aria-label="Toggle panel" onclick="toggleRightPanel(this)"></button>
         </div>
         <div class="c-card__body c-toolbar">
-          <button id="createPriceRegionBtn" class="c-button c-button--ghost c-button--small">Add price region</button>
-          <button id="loadPriceRegionBtn" class="c-button c-button--ghost c-button--small">Load price regions from file</button>
-          <button id="loadPriceRegionCssBtn" class="c-button c-button--ghost c-button--small">Load colors from CSS file</button>
+          <div class="price-region-toolbar-grid">
+            <button id="createPriceRegionBtn" class="c-button c-button--ghost c-button--small">Add</button>
+            <button id="loadPriceRegionBtn" class="c-button c-button--ghost c-button--small">Load TPR</button>
+            <button id="loadPriceRegionCssBtn" class="c-button c-button--ghost c-button--small">Load CSS</button>
+            <button id="removeAllPriceRegionsBtn" class="c-button c-button--ghost c-button--small">Remove all</button>
+          </div>
           <button id="selectSeatsNoPriceRegionBtn" class="c-button c-button--ghost c-button--small">Select seats without price regions</button>
           <div class="price-region-color-tools u-font--small">
             <label for="priceRegionColorModeSelect">Auto colors</label>
@@ -3697,6 +3712,7 @@
   const createPriceRegionBtn = document.getElementById("createPriceRegionBtn");
   const loadPriceRegionBtn = document.getElementById("loadPriceRegionBtn");
   const loadPriceRegionCssBtn = document.getElementById("loadPriceRegionCssBtn");
+  const removeAllPriceRegionsBtn = document.getElementById("removeAllPriceRegionsBtn");
   const selectSeatsNoPriceRegionBtn = document.getElementById("selectSeatsNoPriceRegionBtn");
   const priceRegionFileInput = document.getElementById("priceRegionFileInput");
   const priceRegionCssFileInput = document.getElementById("priceRegionCssFileInput");
@@ -11248,6 +11264,15 @@ codePane.addEventListener("input", () => {
   helpClose?.addEventListener("click", closeHelpModal);
 
   createPriceRegionBtn?.addEventListener("click", openPriceRegionModal);
+  removeAllPriceRegionsBtn?.addEventListener("click", () => {
+    if (!priceRegions.length) return;
+    if (!confirm(`Remove all ${priceRegions.length} price region(s)?`)) return;
+    priceRegions.length = 0;
+    savePriceRegionsToStorage();
+    renderPriceRegionList();
+    updatePriceRegionUi();
+    if (showPriceRegions) renderCanvas();
+  });
   selectSeatsNoPriceRegionBtn?.addEventListener("click", () => {
     selectSeatsWithoutPriceRegions();
   });
