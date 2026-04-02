@@ -129,6 +129,7 @@
     sourceData: null,
     manualSeatMap: new Map(),
     manualIntersectionMap: new Map(),
+    ticketToSeasonMap: new Map(),
     exportConfig: { ...EXPORT_CFG_DEFAULTS },
     logLines: [],
     isBusy: false,
@@ -177,8 +178,14 @@
   const intersectionMapSummary = document.getElementById("intersectionMapSummary");
   const intersectionMapNumberedTableBody = document.getElementById("intersectionMapNumberedTableBody");
   const intersectionMapUnnumberedTableBody = document.getElementById("intersectionMapUnnumberedTableBody");
+  const openTicketSeasonConfigBtn = document.getElementById("openTicketSeasonConfigBtn");
   const intersectionMapCancelBtn = document.getElementById("intersectionMapCancelBtn");
   const intersectionMapSaveBtn = document.getElementById("intersectionMapSaveBtn");
+  const ticketSeasonConfigOverlay = document.getElementById("ticketSeasonConfigOverlay");
+  const ticketSeasonConfigNumberedTableBody = document.getElementById("ticketSeasonConfigNumberedTableBody");
+  const ticketSeasonConfigUnnumberedTableBody = document.getElementById("ticketSeasonConfigUnnumberedTableBody");
+  const ticketSeasonConfigCancelBtn = document.getElementById("ticketSeasonConfigCancelBtn");
+  const ticketSeasonConfigSaveBtn = document.getElementById("ticketSeasonConfigSaveBtn");
 
   let uploadCollapsed = false;
   let cacheSaveTimer = null;
@@ -383,11 +390,15 @@
     return [normStr(seasonCard), normStr(category), normStr(ticket)].join(COMBO_SEP);
   }
 
+  function ticketSeasonConfigKey(axsTicket, numbered) {
+    return [normStr(axsTicket), numbered ? "1" : "0"].join(COMBO_SEP);
+  }
+
   function legacyIntersectionMapKey(seasonName, axsTicket, numbered) {
     return [normStr(seasonName), normStr(axsTicket), numbered ? "1" : "0"].join(COMBO_SEP);
   }
 
-  function intersectionMapKey(seasonName, axsTicket, axsPrice, numbered) {
+  function legacyIntersectionMapKeyV2(seasonName, axsTicket, axsPrice, numbered) {
     return [
       normStr(seasonName),
       normStr(axsTicket),
@@ -396,17 +407,41 @@
     ].join(COMBO_SEP);
   }
 
+  function intersectionMapKey(seasonName, axsTicket, axsPrice, axsSection, numbered) {
+    return [
+      normStr(seasonName),
+      normStr(axsTicket),
+      normPriceStr(axsPrice),
+      normStr(axsSection),
+      numbered ? "1" : "0",
+    ].join(COMBO_SEP);
+  }
+
+  function axsSectionFromRow(row, preferSittplats = true) {
+    const parsedSeat = parseAxsSeatFromRow(row, preferSittplats);
+    if (parsedSeat) {
+      const split = splitSeatKey(parsedSeat.seatKey);
+      if (split && split.section) {
+        return normStr(split.section);
+      }
+    }
+    return normStr(row.sektion);
+  }
+
   function axsIntersectionMapKeyFromRow(row, preferSittplats = true) {
     const seasonName = normSeasonName(row.sasong);
     const axsTicket = normStr(row.biljettyp);
     const numbered = Boolean(parseAxsSeatFromRow(row, preferSittplats));
     const axsPrice = axsPriceFromRow(row);
+    const axsSection = axsSectionFromRow(row, preferSittplats);
     return {
-      key: intersectionMapKey(seasonName, axsTicket, axsPrice, numbered),
+      key: intersectionMapKey(seasonName, axsTicket, axsPrice, axsSection, numbered),
+      legacyKeyV2: legacyIntersectionMapKeyV2(seasonName, axsTicket, axsPrice, numbered),
       legacyKey: legacyIntersectionMapKey(seasonName, axsTicket, numbered),
       seasonName,
       axsTicket,
       axsPrice,
+      axsSection,
       numbered,
     };
   }
@@ -565,6 +600,7 @@
       files: filesPayload,
       manualSeatMapEntries: [...state.manualSeatMap.entries()],
       manualIntersectionMapEntries: [...state.manualIntersectionMap.entries()],
+      ticketToSeasonMapEntries: [...state.ticketToSeasonMap.entries()],
       exportConfig: state.exportConfig,
       ui: {
         infoVisible: !infoPanel.hidden,
@@ -631,6 +667,11 @@
       state.manualIntersectionMap = new Map(
         Array.isArray(snapshot.manualIntersectionMapEntries)
           ? snapshot.manualIntersectionMapEntries
+          : []
+      );
+      state.ticketToSeasonMap = new Map(
+        Array.isArray(snapshot.ticketToSeasonMapEntries)
+          ? snapshot.ticketToSeasonMapEntries
           : []
       );
       state.sourceData = null;
@@ -825,8 +866,10 @@
       state.sourceData = null;
       state.manualSeatMap.clear();
       state.manualIntersectionMap.clear();
+      state.ticketToSeasonMap.clear();
       closeSeatMapModal();
       closeIntersectionMapModal();
+      closeTicketSeasonConfigModal();
       if (state.result && state.resultSourceSignature) {
         const currentSignature = currentFilesSignature();
         if (state.resultSourceSignature !== currentSignature) {
@@ -1051,12 +1094,14 @@
       }
     }
     unmatchedSeatKeys.sort((a, b) => a.localeCompare(b, "sv"));
+    const allSeatKeys = [...uniqueAxsSeatKeys].sort((a, b) => a.localeCompare(b, "sv"));
 
     return {
       totalCount: uniqueAxsSeatKeys.size,
       matchedCount,
       unmatchedCount: unmatchedSeatKeys.length,
       ignoredRows,
+      allSeatKeys,
       unmatchedSeatKeys,
     };
   }
@@ -1066,6 +1111,7 @@
       seatCheckPanel.hidden = true;
       seatCheckText.textContent = "-";
       openSeatMapBtn.disabled = true;
+      seatCheckPanel.classList.remove("mapping-ok", "mapping-warn");
       return;
     }
     seatCheckPanel.hidden = false;
@@ -1073,7 +1119,9 @@
       ? ` ${summary.ignoredRows} rader i AXS saknar formatet X/Y/Z och tolkas som ståplats.`
       : "";
     seatCheckText.textContent = `${summary.matchedCount} av ${summary.totalCount} platser kunde matchas. ${summary.unmatchedCount} platser i AXS saknar motsvarighet i Tickster.${ignored}`;
-    openSeatMapBtn.disabled = summary.unmatchedCount === 0;
+    openSeatMapBtn.disabled = summary.totalCount === 0;
+    seatCheckPanel.classList.toggle("mapping-warn", summary.unmatchedCount > 0);
+    seatCheckPanel.classList.toggle("mapping-ok", summary.unmatchedCount === 0);
   }
 
   function buildIntersectionMappingSummary(sourceData) {
@@ -1090,10 +1138,15 @@
           autoMissingRowCount: 0,
           autoMappedRowCount: 0,
           autoSotpciIdSet: new Set(),
+          axsSectionsSet: new Set(),
         });
       }
       const group = groups.get(keyInfo.key);
       group.rowCount += 1;
+      const section = normStr(keyInfo.axsSection);
+      if (section) {
+        group.axsSectionsSet.add(section);
+      }
       if (autoId) {
         group.autoMappedRowCount += 1;
         group.autoSotpciIdSet.add(autoId);
@@ -1118,6 +1171,10 @@
       if (priceCmp) {
         return priceCmp;
       }
+      const sectionCmp = a.axsSection.localeCompare(b.axsSection, "sv");
+      if (sectionCmp) {
+        return sectionCmp;
+      }
       return Number(b.numbered) - Number(a.numbered);
     });
 
@@ -1128,6 +1185,7 @@
     for (const entry of entries) {
       autoMissingRows += entry.autoMissingRowCount;
       const manualValue = state.manualIntersectionMap.get(entry.key)
+        || state.manualIntersectionMap.get(entry.legacyKeyV2)
         || state.manualIntersectionMap.get(entry.legacyKey);
       const manualSotpciId = getManualIntersectionSotpciId(manualValue);
       const autoSotpciIds = [...entry.autoSotpciIdSet].filter(Boolean);
@@ -1141,6 +1199,8 @@
         || (!entry.needsManual ? autoSotpciId : "")
         || "";
       entry.hasVisibleMapping = Boolean(entry.selectableSotpciId);
+      entry.axsSections = [...entry.axsSectionsSet].sort((a, b) => a.localeCompare(b, "sv"));
+      entry.axsSectionText = entry.axsSections.length ? entry.axsSections.join(", ") : "";
       if (entry.autoMissingRowCount > 0 && manualSotpciId) {
         manualCoveredRows += entry.autoMissingRowCount;
       }
@@ -1149,6 +1209,7 @@
         unmatchedEntries.push(entry);
       }
       delete entry.autoSotpciIdSet;
+      delete entry.axsSectionsSet;
     }
 
     return {
@@ -1168,6 +1229,7 @@
       intersectionCheckPanel.hidden = true;
       intersectionCheckText.textContent = "-";
       openIntersectionMapBtn.disabled = true;
+      intersectionCheckPanel.classList.remove("mapping-ok", "mapping-warn");
       return;
     }
     intersectionCheckPanel.hidden = false;
@@ -1176,6 +1238,8 @@
       : "";
     intersectionCheckText.textContent = `${summary.mappedCount} av ${summary.totalCount} kombinationer har ImportIntersectionId. ${summary.unmatchedCount} kombinationer saknar mappning (${summary.unresolvedRows} rader).${covered}`;
     openIntersectionMapBtn.disabled = summary.totalCount === 0;
+    intersectionCheckPanel.classList.toggle("mapping-warn", summary.unmatchedCount > 0);
+    intersectionCheckPanel.classList.toggle("mapping-ok", summary.unmatchedCount === 0);
   }
 
   function parsePrisregionTokens(text) {
@@ -1183,8 +1247,9 @@
     if (!raw) {
       return new Set();
     }
+    const normalized = raw.replace(/[;\/\\]+/g, ",");
     const tokens = new Set();
-    raw.split(/[;,/\\]+/).forEach((part) => {
+    normalized.split(",").forEach((part) => {
       const token = foldAscii(part).trim();
       if (token) {
         tokens.add(token.toUpperCase());
@@ -1226,6 +1291,25 @@
       }
     }
     return out;
+  }
+
+  function sectionMatchesPrisregion(sectionValue, prisregionTokens) {
+    const sectionFold = foldAscii(sectionValue).trim();
+    if (!sectionFold) {
+      return false;
+    }
+    const sectionToken = sectionFold.toUpperCase().replace(/\s+/g, "");
+    if (!sectionToken) {
+      return false;
+    }
+    if (prisregionTokens.has(sectionToken)) {
+      return true;
+    }
+    const letterMatch = sectionToken.match(/[A-Z]/);
+    if (letterMatch && prisregionTokens.has(letterMatch[0])) {
+      return true;
+    }
+    return false;
   }
 
   function regionScopeKeys(seasonName, ticket, token) {
@@ -1381,7 +1465,15 @@
       const combo = comboFromAxsRow(r, tokenToCategories);
       const parsedSeat = parseAxsSeatFromRow(r, preferSittplats);
       const numbered = Boolean(parsedSeat);
+      const axsSection = axsSectionFromRow(r, preferSittplats);
       const intersectionKey = intersectionMapKey(
+        combo.seasonName,
+        combo.axsTicket,
+        combo.axsPrice,
+        axsSection,
+        numbered
+      );
+      const legacyKeyV2 = legacyIntersectionMapKeyV2(
         combo.seasonName,
         combo.axsTicket,
         combo.axsPrice,
@@ -1391,6 +1483,7 @@
       const autoIntersectionId = seasonOverride.get(combo.key) || "";
       const manualIntersectionId = getManualIntersectionSotpciId(
         manualIntersectionMap.get(intersectionKey)
+        || manualIntersectionMap.get(legacyKeyV2)
         || manualIntersectionMap.get(legacyKey)
       );
       const importIntersectionId = manualIntersectionId || autoIntersectionId || "";
@@ -1496,14 +1589,19 @@
       sotpciidToName.set(r.sotpciid, label);
     });
     const idSeasonSet = new Set();
+    const idSeasonMeta = new Map();
     const idCategoriesBySeasonSet = new Map();
     const idTicketsBySeasonCategorySet = new Map();
+    const idCategoryMetaBySeason = new Map();
+    const idTicketMetaBySeasonCategory = new Map();
     const idRowsByChoice = new Map();
     const sotpciidToSeasonRow = new Map();
     for (const row of seasonRows) {
       const seasonCard = normStr(row.sasongskort);
       const category = normStr(row.kategori);
       const idTicket = normStr(row.biljettyp);
+      const prisregioner = normStr(row.prisregioner);
+      const hasPrisregion = Boolean(prisregioner);
       const idKey = seasonChoiceKey(seasonCard, category, idTicket);
       if (!idRowsByChoice.has(idKey)) {
         idRowsByChoice.set(idKey, []);
@@ -1517,16 +1615,55 @@
         continue;
       }
       idSeasonSet.add(seasonCard);
+      if (!idSeasonMeta.has(seasonCard)) {
+        idSeasonMeta.set(seasonCard, {
+          hasAnyPrisregion: false,
+          hasAnyWithoutPrisregion: false,
+        });
+      }
+      const seasonMeta = idSeasonMeta.get(seasonCard);
+      seasonMeta.hasAnyPrisregion = seasonMeta.hasAnyPrisregion || hasPrisregion;
+      seasonMeta.hasAnyWithoutPrisregion = seasonMeta.hasAnyWithoutPrisregion || !hasPrisregion;
+
       if (!idCategoriesBySeasonSet.has(seasonCard)) {
         idCategoriesBySeasonSet.set(seasonCard, new Set());
       }
       idCategoriesBySeasonSet.get(seasonCard).add(category);
+
+      if (!idCategoryMetaBySeason.has(seasonCard)) {
+        idCategoryMetaBySeason.set(seasonCard, new Map());
+      }
+      const categoryMetaMap = idCategoryMetaBySeason.get(seasonCard);
+      if (!categoryMetaMap.has(category)) {
+        categoryMetaMap.set(category, {
+          prisregionTokenSet: new Set(),
+          hasAnyPrisregion: false,
+        });
+      }
+      const categoryMeta = categoryMetaMap.get(category);
+      if (prisregioner) {
+        for (const token of parsePrisregionTokens(prisregioner)) {
+          categoryMeta.prisregionTokenSet.add(token);
+        }
+      }
+      categoryMeta.hasAnyPrisregion = categoryMeta.hasAnyPrisregion || hasPrisregion;
 
       const seasonCategoryKey = seasonCategoryChoiceKey(seasonCard, category);
       if (!idTicketsBySeasonCategorySet.has(seasonCategoryKey)) {
         idTicketsBySeasonCategorySet.set(seasonCategoryKey, new Set());
       }
       idTicketsBySeasonCategorySet.get(seasonCategoryKey).add(idTicket);
+      if (!idTicketMetaBySeasonCategory.has(seasonCategoryKey)) {
+        idTicketMetaBySeasonCategory.set(seasonCategoryKey, new Map());
+      }
+      const ticketMetaMap = idTicketMetaBySeasonCategory.get(seasonCategoryKey);
+      if (!ticketMetaMap.has(idTicket)) {
+        ticketMetaMap.set(idTicket, {
+          hasAnyPrisregion: false,
+        });
+      }
+      const ticketMeta = ticketMetaMap.get(idTicket);
+      ticketMeta.hasAnyPrisregion = ticketMeta.hasAnyPrisregion || hasPrisregion;
     }
     const idSeasonOptions = [...idSeasonSet].sort((a, b) => a.localeCompare(b, "sv"));
     const idCategoriesBySeason = new Map();
@@ -1553,17 +1690,31 @@
     }
 
     const combosMap = new Map();
+    const axsTicketSetNumbered = new Set();
+    const axsTicketSetUnnumbered = new Set();
     let unknownCategoryRows = 0;
     axsParsed.rows.forEach((r) => {
       const combo = comboFromAxsRow(r, tokenToCategories);
       if (!combosMap.has(combo.key)) {
         combosMap.set(combo.key, combo);
       }
+      const axsTicket = normStr(r.biljettyp);
+      if (axsTicket) {
+        if (parseAxsSeatFromRow(r, preferSittplats)) {
+          axsTicketSetNumbered.add(axsTicket);
+        } else {
+          axsTicketSetUnnumbered.add(axsTicket);
+        }
+      }
       if (!combo.axsCategory) {
         unknownCategoryRows += 1;
       }
     });
     const combos = [...combosMap.values()];
+    const axsTicketOptionsByNumbered = {
+      numbered: [...axsTicketSetNumbered].sort((a, b) => a.localeCompare(b, "sv")),
+      unnumbered: [...axsTicketSetUnnumbered].sort((a, b) => a.localeCompare(b, "sv")),
+    };
     const seasonOverride = buildSeasonAutoPreset(combos, seasonRows);
     const sortedSections = [...sectionsSet].sort((a, b) => a.localeCompare(b, "sv"));
     const rowsBySection = new Map();
@@ -1593,9 +1744,13 @@
       unknownCategoryRows,
       hasSittplatsColumn,
       preferSittplats,
+      axsTicketOptionsByNumbered,
       idSeasonOptions,
+      idSeasonMeta,
       idCategoriesBySeason,
       idTicketsBySeasonCategory,
+      idCategoryMetaBySeason,
+      idTicketMetaBySeasonCategory,
       idRowsByChoice,
       sotpciidToSeasonRow,
       sortedSections,
@@ -1714,20 +1869,131 @@
     intersectionMapNumberedTableBody.innerHTML = "";
     intersectionMapUnnumberedTableBody.innerHTML = "";
     intersectionMapSummary.textContent = "-";
+    closeTicketSeasonConfigModal();
+  }
+
+  function closeTicketSeasonConfigModal() {
+    ticketSeasonConfigOverlay.hidden = true;
+    ticketSeasonConfigNumberedTableBody.innerHTML = "";
+    ticketSeasonConfigUnnumberedTableBody.innerHTML = "";
+  }
+
+  function renderTicketSeasonConfigRows(sourceData) {
+    const numberedTickets = sourceData.axsTicketOptionsByNumbered
+      ? (sourceData.axsTicketOptionsByNumbered.numbered || [])
+      : [];
+    const unnumberedTickets = sourceData.axsTicketOptionsByNumbered
+      ? (sourceData.axsTicketOptionsByNumbered.unnumbered || [])
+      : [];
+
+    const renderGroup = (tableBodyEl, tickets, numbered, emptyText) => {
+      const seasonOptions = seasonOptionsForContext(sourceData, { numbered });
+      if (!tickets.length || !seasonOptions.length) {
+        tableBodyEl.innerHTML = `
+          <tr>
+            <td colspan="2" class="modal-empty">${escapeHtml(emptyText)}</td>
+          </tr>
+        `;
+        return 0;
+      }
+      tableBodyEl.innerHTML = tickets
+        .map((axsTicket) => `
+          <tr data-axs-ticket="${escapeHtml(axsTicket)}" data-numbered="${numbered ? "1" : "0"}">
+            <td>${escapeHtml(axsTicket)}</td>
+            <td><select class="modal-map-select" data-role="season-card"></select></td>
+          </tr>
+        `)
+        .join("");
+
+      const rows = Array.from(tableBodyEl.querySelectorAll("tr[data-axs-ticket]"));
+      for (const rowEl of rows) {
+        const axsTicket = normStr(rowEl.dataset.axsTicket);
+        const configKey = ticketSeasonConfigKey(axsTicket, numbered);
+        const seasonSelect = rowEl.querySelector('[data-role="season-card"]');
+        if (!seasonSelect) {
+          continue;
+        }
+        const selectedSeason = state.ticketToSeasonMap.get(configKey)
+          || state.ticketToSeasonMap.get(axsTicket)
+          || "";
+        setSelectOptions(seasonSelect, seasonOptions, "Välj Säsongskort", selectedSeason);
+      }
+      return rows.length;
+    };
+
+    const numberedCount = renderGroup(
+      ticketSeasonConfigNumberedTableBody,
+      numberedTickets,
+      true,
+      "Inga numrerade biljettyper att konfigurera."
+    );
+    const unnumberedCount = renderGroup(
+      ticketSeasonConfigUnnumberedTableBody,
+      unnumberedTickets,
+      false,
+      "Inga onumrerade biljettyper att konfigurera."
+    );
+    ticketSeasonConfigSaveBtn.disabled = numberedCount + unnumberedCount === 0;
+  }
+
+  async function openTicketSeasonConfigModal() {
+    let sourceData;
+    try {
+      sourceData = await ensureSourceDataLoaded();
+    } catch (err) {
+      setStatus(err.message || "Kunde inte läsa källdata för standardmappning.", "error");
+      log(err.message || "Kunde inte läsa källdata för standardmappning.", "error");
+      return;
+    }
+    renderTicketSeasonConfigRows(sourceData);
+    ticketSeasonConfigOverlay.hidden = false;
+  }
+
+  function applyTicketSeasonConfigFromModal() {
+    const rows = Array.from(ticketSeasonConfigOverlay.querySelectorAll("tr[data-axs-ticket]"));
+    const nextMap = new Map();
+    for (const rowEl of rows) {
+      const axsTicket = normStr(rowEl.dataset.axsTicket);
+      const numbered = rowEl.dataset.numbered === "1";
+      const seasonSelect = rowEl.querySelector('[data-role="season-card"]');
+      if (!axsTicket || !seasonSelect) {
+        continue;
+      }
+      const seasonCard = normStr(seasonSelect.value);
+      if (seasonCard) {
+        nextMap.set(ticketSeasonConfigKey(axsTicket, numbered), seasonCard);
+      }
+    }
+    state.ticketToSeasonMap = nextMap;
+    scheduleCacheSave();
+    closeTicketSeasonConfigModal();
+    setStatus("Standardmappning per AXS Biljettyp sparad.", "ready");
+    log(`Standardmappning uppdaterad (${state.ticketToSeasonMap.size} Biljettyp → Säsongskort).`);
+
+    if (!intersectionMapOverlay.hidden && state.sourceData) {
+      const summary = buildIntersectionMappingSummary(state.sourceData);
+      renderIntersectionMapModalRows(state.sourceData, summary);
+    }
   }
 
   function setCategorySelectOptions(selectEl, categories, selectedCategory = "") {
     const options = [`<option value="">Välj Kategori</option>`]
       .concat(
-        categories.map((category) => {
+        categories.map((categoryOption) => {
+          const category = normStr(categoryOption && categoryOption.value);
           const value = categoryToOptionValue(category);
-          const label = normStr(category) || "(tom)";
+          const label = normStr(categoryOption && categoryOption.label) || normStr(category) || "(tom)";
           return `<option value="${escapeHtml(value)}">${escapeHtml(label)}</option>`;
         })
       );
     selectEl.innerHTML = options.join("");
     const selectedValue = categoryToOptionValue(selectedCategory);
-    if (selectedCategory !== undefined && categories.some((c) => normStr(c) === normStr(selectedCategory))) {
+    if (
+      selectedCategory !== undefined
+      && categories.some((categoryOption) => (
+        normStr(categoryOption && categoryOption.value) === normStr(selectedCategory)
+      ))
+    ) {
       selectEl.value = selectedValue;
     } else {
       selectEl.value = "";
@@ -1735,14 +2001,79 @@
   }
 
   function categoriesForIdSeason(sourceData, seasonCard) {
-    return seasonCard ? (sourceData.idCategoriesBySeason.get(seasonCard) || []) : [];
+    return categoriesForIdSeasonWithContext(sourceData, seasonCard, {
+      numbered: true,
+      axsSections: [],
+    });
   }
 
-  function ticketsForIdSeasonCategory(sourceData, seasonCard, category) {
+  function seasonOptionsForContext(sourceData, context = {}) {
+    const numbered = Boolean(context.numbered);
+    const all = sourceData.idSeasonOptions || [];
+    return all.filter((seasonCard) => {
+      const meta = sourceData.idSeasonMeta.get(seasonCard);
+      if (!meta) {
+        return false;
+      }
+      if (numbered) {
+        return meta.hasAnyPrisregion;
+      }
+      return !meta.hasAnyPrisregion && meta.hasAnyWithoutPrisregion;
+    });
+  }
+
+  function categoriesForIdSeasonWithContext(sourceData, seasonCard, context = {}) {
     if (!seasonCard) {
       return [];
     }
-    return sourceData.idTicketsBySeasonCategory.get(seasonCategoryChoiceKey(seasonCard, category)) || [];
+    const numbered = Boolean(context.numbered);
+    const axsSections = Array.isArray(context.axsSections) ? context.axsSections : [];
+    const categories = sourceData.idCategoriesBySeason.get(seasonCard) || [];
+    const categoryMetaMap = sourceData.idCategoryMetaBySeason.get(seasonCard) || new Map();
+    const options = [];
+    for (const category of categories) {
+      const meta = categoryMetaMap.get(category) || {
+        prisregionTokenSet: new Set(),
+        hasAnyPrisregion: false,
+      };
+      if (!numbered && meta.hasAnyPrisregion) {
+        continue;
+      }
+      const prisregionTokens = [...meta.prisregionTokenSet]
+        .map((token) => normStr(token).toUpperCase())
+        .filter(Boolean)
+        .sort((a, b) => a.localeCompare(b, "sv"));
+      const prisregionTokenSet = new Set(prisregionTokens);
+      const matchesSection = numbered
+        && prisregionTokens.length > 0
+        && axsSections.some((section) => sectionMatchesPrisregion(section, prisregionTokenSet));
+      const baseLabel = normStr(category) || "(tom)";
+      const label = prisregionTokens.length
+        ? `${baseLabel} (${prisregionTokens.join(", ")})`
+        : baseLabel;
+      options.push({
+        value: category,
+        label,
+        matchesSection,
+      });
+    }
+    return options;
+  }
+
+  function ticketsForIdSeasonCategory(sourceData, seasonCard, category, numbered = true) {
+    if (!seasonCard) {
+      return [];
+    }
+    const seasonCategoryKey = seasonCategoryChoiceKey(seasonCard, category);
+    const tickets = sourceData.idTicketsBySeasonCategory.get(seasonCategoryKey) || [];
+    if (numbered) {
+      return tickets;
+    }
+    const ticketMetaMap = sourceData.idTicketMetaBySeasonCategory.get(seasonCategoryKey) || new Map();
+    return tickets.filter((ticket) => {
+      const meta = ticketMetaMap.get(ticket);
+      return !(meta && meta.hasAnyPrisregion);
+    });
   }
 
   function resolveManualIntersectionSelection(sourceData, mapValue) {
@@ -1779,28 +2110,60 @@
     if (!seasonSelect || !categorySelect || !ticketSelect) {
       return;
     }
+    const numbered = rowEl.dataset.numbered === "1";
+    const axsSections = normStr(rowEl.dataset.axsSections)
+      .split(COMBO_SEP)
+      .map((value) => normStr(value))
+      .filter(Boolean);
 
     const initial = resolveManualIntersectionSelection(sourceData, initialMapValue);
+    const seasonOptions = seasonOptionsForContext(sourceData, { numbered });
+    const axsTicket = normStr(rowEl.dataset.axsTicket);
+    const ticketMappedSeason = state.ticketToSeasonMap.get(ticketSeasonConfigKey(axsTicket, numbered))
+      || state.ticketToSeasonMap.get(axsTicket)
+      || "";
+    const initialSeason = initial ? initial.seasonCard : "";
+    const preferredSeason = initialSeason
+      || (
+        ticketMappedSeason
+        && seasonOptions.includes(ticketMappedSeason)
+          ? ticketMappedSeason
+          : ""
+      );
     setSelectOptions(
       seasonSelect,
-      sourceData.idSeasonOptions || [],
+      seasonOptions,
       "Välj Säsongskort",
-      initial ? initial.seasonCard : ""
+      preferredSeason
     );
 
     const refreshCategories = (preferredCategory = "") => {
       const seasonCard = normStr(seasonSelect.value);
-      const categories = categoriesForIdSeason(sourceData, seasonCard);
-      setCategorySelectOptions(categorySelect, categories, preferredCategory);
-      categorySelect.disabled = !seasonCard || categories.length === 0;
+      const categoryOptions = categoriesForIdSeasonWithContext(sourceData, seasonCard, {
+        numbered,
+        axsSections,
+      });
+      let selectedCategory = preferredCategory;
+      if (!selectedCategory && numbered) {
+        const sectionMatches = categoryOptions.filter((opt) => opt.matchesSection);
+        if (sectionMatches.length === 1) {
+          selectedCategory = sectionMatches[0].value;
+        }
+      }
+      if (!selectedCategory && categoryOptions.length === 1) {
+        selectedCategory = normStr(categoryOptions[0].value);
+      }
+      setCategorySelectOptions(categorySelect, categoryOptions, selectedCategory);
+      categorySelect.disabled = !seasonCard || categoryOptions.length === 0;
       categorySelect.classList.remove("invalid");
     };
 
     const refreshTickets = (preferredTicket = "") => {
       const seasonCard = normStr(seasonSelect.value);
       const category = optionValueToCategory(categorySelect.value);
-      const tickets = ticketsForIdSeasonCategory(sourceData, seasonCard, category);
-      setSelectOptions(ticketSelect, tickets, "Välj Biljettyp", preferredTicket);
+      const tickets = ticketsForIdSeasonCategory(sourceData, seasonCard, category, numbered);
+      const selectedTicket = !preferredTicket && tickets.length === 1 ? tickets[0] : preferredTicket;
+      setSelectOptions(ticketSelect, tickets, "Välj Biljettyp", selectedTicket);
       ticketSelect.disabled = !seasonCard || !categorySelect.value || tickets.length === 0;
       ticketSelect.classList.remove("invalid");
     };
@@ -1828,18 +2191,19 @@
       if (!entries.length) {
         tableBodyEl.innerHTML = `
           <tr>
-            <td colspan="7" class="modal-empty">${escapeHtml(emptyText)}</td>
+            <td colspan="8" class="modal-empty">${escapeHtml(emptyText)}</td>
           </tr>
         `;
         return;
       }
       tableBodyEl.innerHTML = entries
         .map((entry) => `
-          <tr data-map-key="${escapeHtml(entry.key)}" data-map-legacy-key="${escapeHtml(entry.legacyKey)}" data-auto-sotpciid="${escapeHtml(entry.autoSotpciId || "")}" data-needs-manual="${entry.needsManual ? "1" : "0"}">
+          <tr data-map-key="${escapeHtml(entry.key)}" data-map-legacy-key-v2="${escapeHtml(entry.legacyKeyV2 || "")}" data-map-legacy-key="${escapeHtml(entry.legacyKey)}" data-auto-sotpciid="${escapeHtml(entry.autoSotpciId || "")}" data-needs-manual="${entry.needsManual ? "1" : "0"}" data-numbered="${entry.numbered ? "1" : "0"}" data-axs-ticket="${escapeHtml(entry.axsTicket || "")}" data-axs-sections="${escapeHtml((entry.axsSections || []).join(COMBO_SEP))}">
             <td>${entry.hasVisibleMapping ? "✅" : ""}</td>
             <td>${escapeHtml(entry.seasonName)}</td>
             <td>${escapeHtml(entry.axsTicket)}</td>
             <td>${escapeHtml(entry.axsPrice || "-")}</td>
+            <td>${escapeHtml(entry.axsSectionText || "-")}</td>
             <td><select class="modal-map-select" data-role="id-season"></select></td>
             <td><select class="modal-map-select" data-role="id-category"></select></td>
             <td><select class="modal-map-select" data-role="id-ticket"></select></td>
@@ -1876,10 +2240,12 @@
     );
     for (const rowEl of rows) {
       const mapKey = normStr(rowEl.dataset.mapKey);
+      const legacyKeyV2 = normStr(rowEl.dataset.mapLegacyKeyV2);
       const legacyKey = normStr(rowEl.dataset.mapLegacyKey);
       const autoSotpciId = normStr(rowEl.dataset.autoSotpciid);
       const needsManual = rowEl.dataset.needsManual === "1";
       const initial = state.manualIntersectionMap.get(mapKey)
+        || state.manualIntersectionMap.get(legacyKeyV2)
         || state.manualIntersectionMap.get(legacyKey)
         || (!needsManual ? autoSotpciId : "")
         || null;
@@ -1912,7 +2278,9 @@
 
     for (const rowEl of rows) {
       const mapKey = normStr(rowEl.dataset.mapKey);
+      const legacyKeyV2 = normStr(rowEl.dataset.mapLegacyKeyV2);
       const legacyKey = normStr(rowEl.dataset.mapLegacyKey);
+      const needsManual = rowEl.dataset.needsManual === "1";
       const seasonSelect = rowEl.querySelector('[data-role="id-season"]');
       const categorySelect = rowEl.querySelector('[data-role="id-category"]');
       const ticketSelect = rowEl.querySelector('[data-role="id-ticket"]');
@@ -1930,12 +2298,25 @@
       const selectedCount = [seasonCard, categoryRaw, idTicket].filter(Boolean).length;
       if (selectedCount === 0) {
         nextMap.delete(mapKey);
+        if (legacyKeyV2 && legacyKeyV2 !== mapKey) {
+          nextMap.delete(legacyKeyV2);
+        }
         if (legacyKey && legacyKey !== mapKey) {
           nextMap.delete(legacyKey);
         }
         continue;
       }
       if (selectedCount < 3) {
+        if (!needsManual) {
+          nextMap.delete(mapKey);
+          if (legacyKeyV2 && legacyKeyV2 !== mapKey) {
+            nextMap.delete(legacyKeyV2);
+          }
+          if (legacyKey && legacyKey !== mapKey) {
+            nextMap.delete(legacyKey);
+          }
+          continue;
+        }
         invalidCount += 1;
         if (!seasonCard) {
           seasonSelect.classList.add("invalid");
@@ -1963,6 +2344,9 @@
         idTicket,
         sotpciid: normStr(candidates[0].sotpciid),
       });
+      if (legacyKeyV2 && legacyKeyV2 !== mapKey) {
+        nextMap.delete(legacyKeyV2);
+      }
       if (legacyKey && legacyKey !== mapKey) {
         nextMap.delete(legacyKey);
       }
@@ -2057,22 +2441,32 @@
   }
 
   function renderSeatMapModalRows(sourceData, seatSummary) {
+    const allSeatKeys = seatSummary.allSeatKeys || [];
     const unmatched = seatSummary.unmatchedSeatKeys || [];
-    if (!unmatched.length) {
+    const unmatchedSet = new Set(unmatched);
+    const displaySeatKeys = allSeatKeys.filter((seatKey) => (
+      unmatchedSet.has(seatKey) || state.manualSeatMap.has(seatKey)
+    ));
+    const manualVisibleCount = displaySeatKeys.reduce(
+      (acc, seatKey) => acc + (state.manualSeatMap.has(seatKey) ? 1 : 0),
+      0
+    );
+
+    if (!displaySeatKeys.length) {
       seatMapTableBody.innerHTML = `
         <tr>
-          <td colspan="2" class="modal-empty">Alla numrerade platser matchar redan.</td>
+          <td colspan="2" class="modal-empty">Alla numrerade platser matchar redan och inga manuella mappningar finns.</td>
         </tr>
       `;
-      seatMapSummary.textContent = "Inga omappade platser";
+      seatMapSummary.textContent = "Inga rader att justera";
       seatMapSaveBtn.disabled = true;
       return;
     }
 
     seatMapSaveBtn.disabled = false;
-    seatMapSummary.textContent = `${unmatched.length} omappade AXS-platser`;
+    seatMapSummary.textContent = `${unmatched.length} omappade AXS-platser, ${manualVisibleCount} manuella mappningar`;
 
-    seatMapTableBody.innerHTML = unmatched
+    seatMapTableBody.innerHTML = displaySeatKeys
       .map((axsSeatKey) => {
         return `
           <tr data-axs-seat-key="${escapeHtml(axsSeatKey)}">
@@ -2445,6 +2839,10 @@
     void openIntersectionMapModal();
   });
 
+  openTicketSeasonConfigBtn.addEventListener("click", () => {
+    void openTicketSeasonConfigModal();
+  });
+
   seatMapCancelBtn.addEventListener("click", () => {
     closeSeatMapModal();
   });
@@ -2461,6 +2859,14 @@
     applyIntersectionMappingFromModal();
   });
 
+  ticketSeasonConfigCancelBtn.addEventListener("click", () => {
+    closeTicketSeasonConfigModal();
+  });
+
+  ticketSeasonConfigSaveBtn.addEventListener("click", () => {
+    applyTicketSeasonConfigFromModal();
+  });
+
   seatMapOverlay.addEventListener("click", (event) => {
     if (event.target === seatMapOverlay) {
       closeSeatMapModal();
@@ -2470,6 +2876,12 @@
   intersectionMapOverlay.addEventListener("click", (event) => {
     if (event.target === intersectionMapOverlay) {
       closeIntersectionMapModal();
+    }
+  });
+
+  ticketSeasonConfigOverlay.addEventListener("click", (event) => {
+    if (event.target === ticketSeasonConfigOverlay) {
+      closeTicketSeasonConfigModal();
     }
   });
 
@@ -2483,6 +2895,10 @@
     }
     if (!logOverlay.hidden) {
       closeLogModal();
+      return;
+    }
+    if (!ticketSeasonConfigOverlay.hidden) {
+      closeTicketSeasonConfigModal();
       return;
     }
     if (!intersectionMapOverlay.hidden) {

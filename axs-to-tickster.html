@@ -357,6 +357,14 @@
       flex-wrap: wrap;
     }
 
+    .seat-check.mapping-warn {
+      border-color: #e08b9c;
+    }
+
+    .seat-check.mapping-ok {
+      border-color: #7ecfad;
+    }
+
     .seat-check__text {
       margin: 0;
       color: var(--ink-700);
@@ -379,7 +387,7 @@
     }
 
     .modal {
-      width: min(980px, 100%);
+      width: min(1440px, 100%);
       max-height: min(88vh, 900px);
       background: #fff;
       border: 1px solid #ccd7e2;
@@ -410,6 +418,18 @@
       margin: 0;
       font-size: 0.82rem;
       color: var(--ink-500);
+    }
+
+    .modal-head-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .modal--narrow {
+      width: min(820px, 100%);
     }
 
     .modal__body {
@@ -671,7 +691,7 @@
       </table>
       <section id="seatCheckPanel" class="seat-check" hidden>
         <p id="seatCheckText" class="seat-check__text">-</p>
-        <button id="openSeatMapBtn" class="btn-main" type="button" disabled>Mappa</button>
+        <button id="openSeatMapBtn" class="btn-main" type="button" disabled>Mappa Sittplatser</button>
       </section>
       <section id="intersectionCheckPanel" class="seat-check" hidden>
         <p id="intersectionCheckText" class="seat-check__text">-</p>
@@ -795,7 +815,7 @@
       <header class="modal__head">
         <div>
           <h2 id="seatMapTitle" class="modal__title">Mappa AXS-platser till Tickster</h2>
-          <p class="modal__sub">Välj Tickster-sektion, rad och plats för rader som saknar automatisk match.</p>
+          <p class="modal__sub">Välj Tickster-sektion, rad och plats för omappade rader eller för att justera manuella mappningar.</p>
         </div>
         <span id="seatMapSummary" class="hint">-</span>
       </header>
@@ -828,7 +848,10 @@
           <h2 id="intersectionMapTitle" class="modal__title">Mappa AXS till Säsongskorts-ID</h2>
           <p class="modal__sub">Välj Säsongskort, Kategori och Biljettyp från ID-filen för alla kombinationer.</p>
         </div>
-        <span id="intersectionMapSummary" class="hint">-</span>
+        <div class="modal-head-actions">
+          <button id="openTicketSeasonConfigBtn" class="btn-ghost" type="button">Konfigurera mappning</button>
+          <span id="intersectionMapSummary" class="hint">-</span>
+        </div>
       </header>
       <div class="modal__body">
         <section class="modal-section">
@@ -836,10 +859,11 @@
           <table class="modal-table">
             <thead>
               <tr>
-                <th>Mappad</th>
+                <th>✅</th>
                 <th>AXS Säsong</th>
                 <th>AXS Biljettyp</th>
                 <th>AXS Pris</th>
+                <th>AXS Sektion</th>
                 <th>ID: Säsongskort</th>
                 <th>ID: Kategori</th>
                 <th>ID: Biljettyp</th>
@@ -847,7 +871,7 @@
             </thead>
             <tbody id="intersectionMapNumberedTableBody">
               <tr>
-                <td colspan="7" class="modal-empty">Inga numrerade kombinationer att mappa.</td>
+                <td colspan="8" class="modal-empty">Inga numrerade kombinationer att mappa.</td>
               </tr>
             </tbody>
           </table>
@@ -861,6 +885,7 @@
                 <th>AXS Säsong</th>
                 <th>AXS Biljettyp</th>
                 <th>AXS Pris</th>
+                <th>AXS Sektion</th>
                 <th>ID: Säsongskort</th>
                 <th>ID: Kategori</th>
                 <th>ID: Biljettyp</th>
@@ -868,7 +893,7 @@
             </thead>
             <tbody id="intersectionMapUnnumberedTableBody">
               <tr>
-                <td colspan="7" class="modal-empty">Inga onumrerade kombinationer att mappa.</td>
+                <td colspan="8" class="modal-empty">Inga onumrerade kombinationer att mappa.</td>
               </tr>
             </tbody>
           </table>
@@ -881,8 +906,56 @@
     </section>
   </div>
 
+  <div id="ticketSeasonConfigOverlay" class="modal-overlay" hidden>
+    <section class="modal modal--narrow" role="dialog" aria-modal="true" aria-labelledby="ticketSeasonConfigTitle">
+      <header class="modal__head">
+        <div>
+          <h2 id="ticketSeasonConfigTitle" class="modal__title">Konfigurera AXS Biljettyp till Säsongskort</h2>
+          <p class="modal__sub">Välj standard-Säsongskort per AXS Biljettyp. Numrerade och onumrerade kort hanteras separat.</p>
+        </div>
+      </header>
+      <div class="modal__body">
+        <section class="modal-section">
+          <h3 class="modal-section__title">Numrerade</h3>
+          <table class="modal-table">
+            <thead>
+              <tr>
+                <th>AXS Biljettyp</th>
+                <th>ID: Säsongskort (standard)</th>
+              </tr>
+            </thead>
+            <tbody id="ticketSeasonConfigNumberedTableBody">
+              <tr>
+                <td colspan="2" class="modal-empty">Inga numrerade biljettyper att konfigurera.</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+        <section class="modal-section">
+          <h3 class="modal-section__title">Onumrerade</h3>
+          <table class="modal-table">
+            <thead>
+              <tr>
+                <th>AXS Biljettyp</th>
+                <th>ID: Säsongskort (standard)</th>
+              </tr>
+            </thead>
+            <tbody id="ticketSeasonConfigUnnumberedTableBody">
+              <tr>
+                <td colspan="2" class="modal-empty">Inga onumrerade biljettyper att konfigurera.</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+      </div>
+      <footer class="modal__foot">
+        <button id="ticketSeasonConfigCancelBtn" class="btn-ghost" type="button">Avbryt</button>
+        <button id="ticketSeasonConfigSaveBtn" class="btn-main" type="button">Spara</button>
+      </footer>
+    </section>
+  </div>
+
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="axs-to-tickster.js"></script>
 </body>
 </html>
-
