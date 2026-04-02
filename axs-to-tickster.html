@@ -697,6 +697,9 @@
         <p id="intersectionCheckText" class="seat-check__text">-</p>
         <button id="openIntersectionMapBtn" class="btn-main" type="button" disabled>Mappa Säsong/Biljettyp</button>
       </section>
+      <section id="emailCheckPanel" class="seat-check" hidden>
+        <p id="emailCheckText" class="seat-check__text">-</p>
+      </section>
       <div id="resultMeta" class="result-meta"></div>
       <section class="preview-panel">
         <div class="preview-head">
@@ -737,26 +740,22 @@
       <header class="modal__head">
         <div>
           <h2 id="exportConfigTitle" class="modal__title">Konfigurera export</h2>
-          <p class="modal__sub">Fyll i obligatoriska fält för att aktivera export.</p>
+          <p class="modal__sub">Fyll i exportvärden. </p>
         </div>
       </header>
       <div class="modal__body">
-        <p class="cfg-note"><span class="cfg-required">*</span> = obligatoriskt fält.</p>
+        <p class="cfg-note"><span class="cfg-required">*</span> = obligatoriskt fält. OBS! BookingType krävs bara om PurchaseType är tomt. BookingExpiryUtc krävs när BookingType är satt och ska anges som ÅÅÅÅ-MM-DD HH:mm.</p>
         <div class="cfg-grid">
           <label class="cfg-field">
             <span class="cfg-label"><span class="cfg-required">*</span>EventID</span>
             <input id="exportEventId" class="cfg-input" type="text" autocomplete="off" />
           </label>
           <label class="cfg-field">
-            <span class="cfg-label"><span class="cfg-required">*</span>BookingType</span>
-            <select id="exportBookingType" class="cfg-select">
-              <option value="">Välj BookingType</option>
-              <option value="plainbooking">plainbooking</option>
-              <option value="advanceinvoice">advancedinvoice</option>
-            </select>
+            <span class="cfg-label"><span class="cfg-required">*</span>PurchaseOperationId</span>
+            <input id="exportPurchaseOperationId" class="cfg-input" type="text" autocomplete="off" />
           </label>
           <label class="cfg-field">
-            <span class="cfg-label"><span class="cfg-required">*</span>PurchaseType</span>
+            <span class="cfg-label">PurchaseType</span>
             <select id="exportPurchaseType" class="cfg-select">
               <option value="">Välj PurchaseType</option>
               <option value="FreeTicket">FreeTicket</option>
@@ -765,7 +764,15 @@
             </select>
           </label>
           <label class="cfg-field">
-            <span class="cfg-label"><span class="cfg-required">*</span>BookingExpiryUtc</span>
+            <span class="cfg-label">BookingType</span>
+            <select id="exportBookingType" class="cfg-select">
+              <option value="">Välj BookingType</option>
+              <option value="plainbooking">plainbooking</option>
+              <option value="advanceinvoice">advancedinvoice</option>
+            </select>
+          </label>
+          <label class="cfg-field">
+            <span class="cfg-label">BookingExpiryUtc</span>
             <input id="exportBookingExpiryUtc" class="cfg-input" type="text" autocomplete="off" />
           </label>
           <label class="cfg-field">
@@ -796,7 +803,7 @@
               <option value="1">1</option>
             </select>
           </label>
-          <label class="cfg-field full">
+          <label class="cfg-field">
             <span class="cfg-label">CampaignActivationCode</span>
             <input id="exportCampaignActivationCode" class="cfg-input" type="text" autocomplete="off" />
           </label>

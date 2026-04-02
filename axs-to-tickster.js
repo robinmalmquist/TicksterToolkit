@@ -94,6 +94,7 @@
   const PURCHASE_TYPE_OPTIONS = new Set(["FreeTicket", "Inblanco", "CorporateInvoice"]);
   const EXPORT_CFG_DEFAULTS = {
     eventId: "",
+    purchaseOperationId: "",
     bookingType: "",
     purchaseType: "",
     bookingExpiryUtc: "",
@@ -150,6 +151,8 @@
   const intersectionCheckPanel = document.getElementById("intersectionCheckPanel");
   const intersectionCheckText = document.getElementById("intersectionCheckText");
   const openIntersectionMapBtn = document.getElementById("openIntersectionMapBtn");
+  const emailCheckPanel = document.getElementById("emailCheckPanel");
+  const emailCheckText = document.getElementById("emailCheckText");
   const resultMetaEl = document.getElementById("resultMeta");
   const previewWrapEl = document.getElementById("previewWrap");
   const previewHintEl = document.getElementById("previewHint");
@@ -158,6 +161,7 @@
   const closeLogBtn = document.getElementById("closeLogBtn");
   const exportConfigOverlay = document.getElementById("exportConfigOverlay");
   const exportEventIdInput = document.getElementById("exportEventId");
+  const exportPurchaseOperationIdInput = document.getElementById("exportPurchaseOperationId");
   const exportBookingTypeSelect = document.getElementById("exportBookingType");
   const exportPurchaseTypeSelect = document.getElementById("exportPurchaseType");
   const exportBookingExpiryUtcInput = document.getElementById("exportBookingExpiryUtc");
@@ -246,6 +250,17 @@
     return normStr(x).replace(/\s+/g, "");
   }
 
+  function isValidEmailAddress(value) {
+    const email = normStr(value);
+    if (!email) {
+      return false;
+    }
+    if (email.includes("..")) {
+      return false;
+    }
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  }
+
   function toBinaryFlag(value, fallback = 0) {
     const raw = normStr(value).toLowerCase();
     if (raw === "1" || raw === "ja" || raw === "yes" || raw === "true") {
@@ -260,14 +275,20 @@
   function normalizeExportConfig(rawCfg) {
     const raw = rawCfg || {};
     const bookingTypeRaw = normStr(raw.bookingType).toLowerCase();
-    const bookingType = BOOKING_TYPE_OPTIONS.has(bookingTypeRaw) ? bookingTypeRaw : "";
+    let bookingType = BOOKING_TYPE_OPTIONS.has(bookingTypeRaw) ? bookingTypeRaw : "";
     const purchaseTypeRaw = normStr(raw.purchaseType);
     const purchaseType = PURCHASE_TYPE_OPTIONS.has(purchaseTypeRaw) ? purchaseTypeRaw : "";
+    let bookingExpiryUtc = normStr(raw.bookingExpiryUtc);
+    if (purchaseType) {
+      bookingType = "";
+      bookingExpiryUtc = "";
+    }
     return {
       eventId: normStr(raw.eventId),
+      purchaseOperationId: normStr(raw.purchaseOperationId),
       bookingType,
       purchaseType,
-      bookingExpiryUtc: normStr(raw.bookingExpiryUtc),
+      bookingExpiryUtc,
       sendEmail: toBinaryFlag(raw.sendEmail, EXPORT_CFG_DEFAULTS.sendEmail),
       inhibitInvoiceFee: toBinaryFlag(raw.inhibitInvoiceFee, EXPORT_CFG_DEFAULTS.inhibitInvoiceFee),
       printAsPlasticCard: toBinaryFlag(raw.printAsPlasticCard, EXPORT_CFG_DEFAULTS.printAsPlasticCard),
@@ -282,20 +303,55 @@
     if (!cfg.eventId) {
       errors.push("EventID är obligatoriskt.");
     }
-    if (!cfg.bookingType) {
-      errors.push("BookingType är obligatoriskt.");
-    }
-    if (!cfg.purchaseType) {
-      errors.push("PurchaseType är obligatoriskt.");
+    if (!cfg.purchaseType && !cfg.bookingType) {
+      errors.push("BookingType är obligatoriskt när PurchaseType inte är satt.");
     }
     if (cfg.bookingType && !cfg.bookingExpiryUtc) {
       errors.push("BookingExpiryUtc är obligatoriskt när BookingType är vald.");
+    }
+    if (cfg.bookingType && cfg.bookingExpiryUtc && !isValidBookingExpiryUtc(cfg.bookingExpiryUtc)) {
+      errors.push("BookingExpiryUtc måste ha formatet ÅÅÅÅ-MM-DD HH:mm.");
     }
     return {
       valid: errors.length === 0,
       errors,
       cfg,
     };
+  }
+
+  function isValidBookingExpiryUtc(value) {
+    const text = normStr(value);
+    const match = text.match(/^(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2})$/);
+    if (!match) {
+      return false;
+    }
+    const year = Number(match[1]);
+    const month = Number(match[2]);
+    const day = Number(match[3]);
+    const hour = Number(match[4]);
+    const minute = Number(match[5]);
+
+    if (month < 1 || month > 12) {
+      return false;
+    }
+    if (day < 1 || day > 31) {
+      return false;
+    }
+    if (hour < 0 || hour > 23) {
+      return false;
+    }
+    if (minute < 0 || minute > 59) {
+      return false;
+    }
+
+    const dt = new Date(Date.UTC(year, month - 1, day, hour, minute));
+    return (
+      dt.getUTCFullYear() === year
+      && dt.getUTCMonth() + 1 === month
+      && dt.getUTCDate() === day
+      && dt.getUTCHours() === hour
+      && dt.getUTCMinutes() === minute
+    );
   }
 
   function normSeasonName(axsSeason) {
@@ -695,6 +751,7 @@
         renderResultMeta(state.result);
         renderSeatCheck(state.result.seatSummary || null);
         renderIntersectionCheck(state.result.intersectionSummary || null);
+        renderEmailCheck(state.result.emailSummary || null);
         renderPreview(state.result.importRows || []);
         updateExportButtonState();
       } else if (!infoPanel.hidden) {
@@ -773,6 +830,7 @@
 
   function syncExportConfigFormFromState() {
     exportEventIdInput.value = state.exportConfig.eventId || "";
+    exportPurchaseOperationIdInput.value = state.exportConfig.purchaseOperationId || "";
     exportBookingTypeSelect.value = state.exportConfig.bookingType || "";
     exportPurchaseTypeSelect.value = state.exportConfig.purchaseType || "";
     exportBookingExpiryUtcInput.value = state.exportConfig.bookingExpiryUtc || "";
@@ -781,11 +839,23 @@
     exportPrintAsPlasticCardSelect.value = String(state.exportConfig.printAsPlasticCard);
     exportSendPaymentLinkEmailSelect.value = String(state.exportConfig.sendPaymentLinkEmail);
     exportCampaignActivationCodeInput.value = state.exportConfig.campaignActivationCode || "";
+    updateBookingFieldsAvailability(false);
+  }
+
+  function updateBookingFieldsAvailability(clearWhenDisabled = false) {
+    const hasPurchaseType = Boolean(normStr(exportPurchaseTypeSelect.value));
+    exportBookingTypeSelect.disabled = hasPurchaseType;
+    exportBookingExpiryUtcInput.disabled = hasPurchaseType;
+    if (hasPurchaseType && clearWhenDisabled) {
+      exportBookingTypeSelect.value = "";
+      exportBookingExpiryUtcInput.value = "";
+    }
   }
 
   function readExportConfigFromForm() {
     return normalizeExportConfig({
       eventId: exportEventIdInput.value,
+      purchaseOperationId: exportPurchaseOperationIdInput.value,
       bookingType: exportBookingTypeSelect.value,
       purchaseType: exportPurchaseTypeSelect.value,
       bookingExpiryUtc: exportBookingExpiryUtcInput.value,
@@ -951,6 +1021,7 @@
     updateExportButtonState();
     renderSeatCheck(null);
     renderIntersectionCheck(null);
+    renderEmailCheck(null);
   }
 
   function findHeaderRowIndex(aoa, anchorKey) {
@@ -1242,6 +1313,25 @@
     intersectionCheckPanel.classList.toggle("mapping-ok", summary.unmatchedCount === 0);
   }
 
+  function renderEmailCheck(summary) {
+    if (!summary) {
+      emailCheckPanel.hidden = true;
+      emailCheckText.textContent = "-";
+      emailCheckPanel.classList.remove("mapping-ok", "mapping-warn");
+      return;
+    }
+    emailCheckPanel.hidden = false;
+    const invalidCount = Number(summary.invalidCount) || 0;
+    const totalCount = Number(summary.totalCount) || 0;
+    if (invalidCount > 0) {
+      emailCheckText.textContent = `${invalidCount} av ${totalCount} e-postadresser har ogiltigt format och ersätts med "no-valid-email@tickster.com".`;
+    } else {
+      emailCheckText.textContent = `Alla ${totalCount} e-postadresser har giltigt format.`;
+    }
+    emailCheckPanel.classList.toggle("mapping-warn", invalidCount > 0);
+    emailCheckPanel.classList.toggle("mapping-ok", invalidCount === 0);
+  }
+
   function parsePrisregionTokens(text) {
     const raw = normStr(text);
     if (!raw) {
@@ -1459,6 +1549,7 @@
     const outRows = [];
     const invalidRows = [];
     const axsValidSeats = new Set();
+    let invalidEmailCount = 0;
 
     for (let i = 0; i < axsRows.length; i += 1) {
       const r = axsRows[i];
@@ -1530,7 +1621,7 @@
         FirstName: normStr(r.fornamn),
         LastName: normStr(r.efternamn),
         OrganizationName: normStr(r.foretag),
-        EmailAddress: normStr(r.email),
+        EmailAddress: isValidEmailAddress(r.email) ? normStr(r.email) : "no-valid-email@tickster.com",
         MobilePhoneNo: normStr(r.telefon),
         PostalAddressLineOne: normStr(r.adress),
         PostalAddressLineTwo: "",
@@ -1546,7 +1637,7 @@
         PrintAsPlasticCard: cfg.printAsPlasticCard,
         SendPaymentLinkEmail: cfg.sendPaymentLinkEmail,
         CampaignActivationCode: cfg.campaignActivationCode,
-        PurchaseOperationId: ROW_DEFAULTS.purchaseOperationId,
+        PurchaseOperationId: cfg.purchaseOperationId || ROW_DEFAULTS.purchaseOperationId,
         PurchaseType: cfg.purchaseType,
         SendEmail: cfg.sendEmail,
         IsExtension: ROW_DEFAULTS.isExtension,
@@ -1557,10 +1648,13 @@
         ExternalAuthCode: normStr(r.pinnummer),
         TpuIdentityId: "",
       };
+      if (out.EmailAddress === "no-valid-email@tickster.com") {
+        invalidEmailCount += 1;
+      }
       outRows.push(out);
     }
 
-    return { outRows, invalidRows, axsValidSeats };
+    return { outRows, invalidRows, axsValidSeats, invalidEmailCount };
   }
 
   async function loadSourceData() {
@@ -1790,6 +1884,10 @@
       sourceData.preferSittplats
     );
     const intersectionSummary = buildIntersectionMappingSummary(sourceData);
+    const emailSummary = {
+      invalidCount: transformed.invalidEmailCount || 0,
+      totalCount: transformed.outRows.length,
+    };
 
     return {
       importRows: transformed.outRows,
@@ -1801,6 +1899,7 @@
       sourceStats: sourceData.sourceStats,
       seatSummary,
       intersectionSummary,
+      emailSummary,
       hasSittplatsColumn: sourceData.hasSittplatsColumn,
     };
   }
@@ -2364,6 +2463,7 @@
     state.resultSourceSignature = currentFilesSignature();
     renderSeatCheck(result.seatSummary || null);
     renderIntersectionCheck(result.intersectionSummary || null);
+    renderEmailCheck(result.emailSummary || null);
     renderResultMeta(result);
     renderPreview(result.importRows);
     updateExportButtonState();
@@ -2422,6 +2522,7 @@
           state.resultSourceSignature = currentFilesSignature();
           renderSeatCheck(result.seatSummary || null);
           renderIntersectionCheck(result.intersectionSummary || null);
+          renderEmailCheck(result.emailSummary || null);
           renderResultMeta(result);
           renderPreview(result.importRows);
         }
@@ -2649,6 +2750,7 @@
     state.resultSourceSignature = currentFilesSignature();
     renderSeatCheck(result.seatSummary || null);
     renderIntersectionCheck(result.intersectionSummary || null);
+    renderEmailCheck(result.emailSummary || null);
     renderResultMeta(result);
     renderPreview(result.importRows);
     updateExportButtonState();
@@ -2756,6 +2858,7 @@
     state.resultSourceSignature = currentFilesSignature();
     renderSeatCheck(result.seatSummary || null);
     renderIntersectionCheck(result.intersectionSummary || null);
+    renderEmailCheck(result.emailSummary || null);
     renderResultMeta(result);
     renderPreview(result.importRows);
     updateExportButtonState();
@@ -2776,6 +2879,9 @@
       `${result.seatSummary.matchedCount} av ${result.seatSummary.totalCount} platser kunde matchas. `
       + `${result.seatSummary.unmatchedCount} platser saknar motsvarighet i Tickster.`
     );
+    log(
+      `E-postkontroll: ${result.emailSummary.invalidCount} ogiltiga av ${result.emailSummary.totalCount} adresser ersatta med "no-valid-email@tickster.com".`
+    );
     if (!result.hasSittplatsColumn) {
       log("Kolumnen Sittplats saknas i AXS-fil. Fallback till Sektion/Rad/Plats används.", "warn");
     }
@@ -2793,12 +2899,6 @@
     closeLogModal();
   });
 
-  logOverlay.addEventListener("click", (event) => {
-    if (event.target === logOverlay) {
-      closeLogModal();
-    }
-  });
-
   openExportConfigBtn.addEventListener("click", () => {
     openExportConfigModal();
   });
@@ -2811,10 +2911,8 @@
     void applyExportConfigFromModal();
   });
 
-  exportConfigOverlay.addEventListener("click", (event) => {
-    if (event.target === exportConfigOverlay) {
-      closeExportConfigModal();
-    }
+  exportPurchaseTypeSelect.addEventListener("change", () => {
+    updateBookingFieldsAvailability(true);
   });
 
   exportCsvBtn.addEventListener("click", () => {
@@ -2865,24 +2963,6 @@
 
   ticketSeasonConfigSaveBtn.addEventListener("click", () => {
     applyTicketSeasonConfigFromModal();
-  });
-
-  seatMapOverlay.addEventListener("click", (event) => {
-    if (event.target === seatMapOverlay) {
-      closeSeatMapModal();
-    }
-  });
-
-  intersectionMapOverlay.addEventListener("click", (event) => {
-    if (event.target === intersectionMapOverlay) {
-      closeIntersectionMapModal();
-    }
-  });
-
-  ticketSeasonConfigOverlay.addEventListener("click", (event) => {
-    if (event.target === ticketSeasonConfigOverlay) {
-      closeTicketSeasonConfigModal();
-    }
   });
 
   window.addEventListener("keydown", (event) => {
