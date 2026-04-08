@@ -7,6 +7,7 @@
   <style>
 
     @import url('https://fonts.googleapis.com/css2?family=SUSE+Mono:ital,wght@0,100..800;1,100..800&family=SUSE:ital,wght@0,100..900;1,100..900&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,300..700,0..1,-50..200&display=block');
 
     * { box-sizing: border-box; }
 
@@ -46,6 +47,7 @@
       --shadow-modal-lg: 0 20px 50px rgba(0,0,0,0.25);
       --radius-card: 4px;
       --radius-pill: 4px;
+      --icon-button-size: 50px;
       --transition-fast: 0.15s ease-out;
       --font-main: "SUSE", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
       --font-mono: "SUSE Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Courier New", monospace;
@@ -73,7 +75,7 @@
     /* Layout-root */
     #app {
       display: grid;
-      grid-template-columns: 140px 1fr 300px;
+      grid-template-columns: 128px 1fr 300px;
       grid-template-rows: 1fr;
       gap: 0.5rem;
       height: 100vh;
@@ -134,11 +136,15 @@
 
     .bg-toggle-group {
       width: 100%;
+      display: grid;
+      grid-template-columns: repeat(2, var(--icon-button-size));
+      justify-content: start;
       gap: 0.4rem;
     }
 
     .bg-toggle-group .c-button {
-      flex: 1 1 0;
+      width: 100%;
+      min-width: 0;
       justify-content: center;
     }
 
@@ -196,8 +202,62 @@
     }
 
     .c-button--small {
-      padding: 0.25rem 0.7rem;
+      padding: 0.35rem 0.75rem;
       font-size: 0.88rem;
+    }
+
+    .material-symbols-outlined {
+      font-family: "Material Symbols Outlined", sans-serif;
+      font-weight: normal;
+      font-style: normal;
+      font-size: 1.2rem;
+      line-height: 1;
+      letter-spacing: normal;
+      text-transform: none;
+      display: inline-block;
+      white-space: nowrap;
+      word-wrap: normal;
+      direction: ltr;
+      font-feature-settings: "liga";
+      -webkit-font-smoothing: antialiased;
+      font-variation-settings:
+        "FILL" 0,
+        "wght" 500,
+        "GRAD" 0,
+        "opsz" 24;
+    }
+
+    .icon-only-button {
+      padding: 0;
+      font-size: 0;
+      line-height: 0;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .icon-only-button .material-symbols-outlined {
+      pointer-events: none;
+    }
+
+    .icon-only-button--square {
+      width: 100%;
+      min-width: 0;
+      aspect-ratio: 1 / 1;
+      min-height: var(--icon-button-size);
+      border-radius: 10px;
+    }
+
+    .icon-only-button--fixed {
+      width: var(--icon-button-size);
+      height: var(--icon-button-size);
+      min-width: var(--icon-button-size);
+      min-height: var(--icon-button-size);
+      border-radius: 10px;
+      flex: 0 0 auto;
+    }
+
+    .icon-only-button--rot90 .material-symbols-outlined {
+      transform: rotate(90deg);
     }
 
     .c-button--icon-left::before {
@@ -821,11 +881,25 @@
       gap: 0;
       margin-bottom: 0;
       min-height: 0;
+      padding: 0.6rem;
+    }
+
+    #left-toolbar .c-card__title {
+      font-size: 0.84rem;
+      letter-spacing: 0.07em;
     }
 
     #toolButtons {
-      display: flex;
-      flex-direction: column;
+      display: grid;
+      grid-template-columns: repeat(2, var(--icon-button-size));
+      justify-content: start;
+      gap: 0.35rem;
+    }
+
+    #selectionModeGroup .c-toolbar {
+      display: grid;
+      grid-template-columns: repeat(2, var(--icon-button-size));
+      justify-content: start;
       gap: 0.35rem;
     }
 
@@ -846,9 +920,21 @@
 
     #appMenuToggleBtn {
       width: 100%;
+      min-width: 0;
+      align-self: stretch;
       justify-content: center;
       text-align: center;
-      gap: 0.45rem;
+      gap: 0.35rem;
+      padding-inline: 0.5rem;
+      font-size: 0.84rem;
+    }
+
+    #openSectionManagerBtn {
+      width: 100%;
+      min-width: 0;
+      align-self: stretch;
+      padding-inline: 0.5rem;
+      font-size: 0.84rem;
     }
 
     #appMenuToggleBtn[aria-expanded="true"] {
@@ -914,6 +1000,10 @@
     .tool-button {
       width: 100%;
       text-align: left;
+    }
+
+    .tool-button.icon-only-button {
+      text-align: center;
     }
 
     .tool-button.active {
@@ -1519,13 +1609,27 @@
       color: #613900;
     }
 
+    .price-region-item__warning--error {
+      background: #fde8e8;
+      border-color: #f4a9a9;
+      color: #a61717;
+    }
+
+    .price-region-item__warning--error:hover:not(:disabled) {
+      background: #fbd5d5;
+      border-color: #ea8b8b;
+      color: #8b1111;
+    }
+
     .price-region-item__warning--ok {
       background: #e7f8ed;
       border-color: #8fd6ab;
       color: #0f7a41;
     }
 
-    .price-region-item__warning--ok:disabled {
+    .price-region-item__warning--active:disabled,
+    .price-region-item__warning--ok:disabled,
+    .price-region-item__warning--error:disabled {
       opacity: 1;
       cursor: default;
     }
@@ -2376,6 +2480,18 @@
       color: #fde68a;
     }
 
+    html[data-theme="dark"] .price-region-item__warning--error {
+      background: #4a1718;
+      border-color: #8b3031;
+      color: #fca5a5;
+    }
+
+    html[data-theme="dark"] .price-region-item__warning--error:hover:not(:disabled) {
+      background: #5a1d1e;
+      border-color: #a5383a;
+      color: #fecaca;
+    }
+
     html[data-theme="dark"] .price-region-item__warning--ok {
       background: #143722;
       border-color: #2e7d4f;
@@ -2422,6 +2538,15 @@
       align-items: center;
       align-content: center;
       margin-bottom: 0;
+    }
+
+    #alignBar > .icon-only-button,
+    #alignBar .align-rotate > .icon-only-button {
+      width: var(--icon-button-size);
+      height: var(--icon-button-size);
+      min-width: var(--icon-button-size);
+      min-height: var(--icon-button-size);
+      flex: 0 0 auto;
     }
 
     .align-grouping {
@@ -2689,41 +2814,41 @@
             <div class="c-card__title">Tools</div>
           </div>
           <div id="toolButtons" class="c-toolbar">
-            <button id="selectToolBtn" class="tool-button c-button c-button--ghost c-button--small c-button--active" title="Select (C)">
-              Select
+            <button id="selectToolBtn" class="tool-button c-button c-button--ghost c-button--small c-button--active icon-only-button icon-only-button--square" title="Select (C)" aria-label="Select (C)">
+              <span class="material-symbols-outlined" aria-hidden="true">select</span>
             </button>
-            <button id="panToolBtn" class="tool-button c-button c-button--ghost c-button--small" title="Pan">
-              Pan
+            <button id="panToolBtn" class="tool-button c-button c-button--ghost c-button--small icon-only-button icon-only-button--square" title="Pan" aria-label="Pan">
+              <span class="material-symbols-outlined" aria-hidden="true">pan_tool</span>
             </button>
-            <button id="moveToolBtn" class="tool-button c-button c-button--ghost c-button--small" disabled title="Move (V)">
-              Move
+            <button id="moveToolBtn" class="tool-button c-button c-button--ghost c-button--small icon-only-button icon-only-button--square" disabled title="Move (V)" aria-label="Move (V)">
+              <span class="material-symbols-outlined" aria-hidden="true">drag_pan</span>
             </button>
-            <button id="rotateToolBtn" class="tool-button c-button c-button--ghost c-button--small" disabled title="Rotate (R)">
-              Rotate
+            <button id="rotateToolBtn" class="tool-button c-button c-button--ghost c-button--small icon-only-button icon-only-button--square" disabled title="Rotate (R)" aria-label="Rotate (R)">
+              <span class="material-symbols-outlined" aria-hidden="true">rotate_right</span>
             </button>
-            <button id="resizeToolBtn" class="tool-button c-button c-button--ghost c-button--small" disabled title="Resize (Z)">
-              Resize
+            <button id="resizeToolBtn" class="tool-button c-button c-button--ghost c-button--small icon-only-button icon-only-button--square" disabled title="Resize (Z)" aria-label="Resize (Z)">
+              <span class="material-symbols-outlined" aria-hidden="true">resize</span>
             </button>
-            <button id="bendToolBtn" class="tool-button c-button c-button--ghost c-button--small" disabled title="Bend (B)">
-              Bend
+            <button id="bendToolBtn" class="tool-button c-button c-button--ghost c-button--small icon-only-button icon-only-button--square" disabled title="Bend (B)" aria-label="Bend (B)">
+              <span class="material-symbols-outlined" aria-hidden="true">line_curve</span>
             </button>
-            <button id="reshapeRowBtn" class="tool-button c-button c-button--ghost c-button--small" disabled title="Reshape row (E)">
-              Reshape row
+            <button id="reshapeRowBtn" class="tool-button c-button c-button--ghost c-button--small icon-only-button icon-only-button--square" disabled title="Reshape row (E)" aria-label="Reshape row (E)">
+              <span class="material-symbols-outlined" aria-hidden="true">diagonal_line</span>
             </button>
-            <button id="resetRowBtn" class="tool-button c-button c-button--ghost c-button--small" disabled title="Reset row (Q)">
-              Reset row
+            <button id="resetRowBtn" class="tool-button c-button c-button--ghost c-button--small icon-only-button icon-only-button--square" disabled title="Reset row (Q)" aria-label="Reset row (Q)">
+              <span class="material-symbols-outlined" aria-hidden="true">reset_settings</span>
             </button>
-            <button id="makeTableBtn" class="tool-button c-button c-button--ghost c-button--small" disabled title="Make table (T)">
-              Make table
+            <button id="makeTableBtn" class="tool-button c-button c-button--ghost c-button--small icon-only-button icon-only-button--square" disabled title="Make table (T)" aria-label="Make table (T)">
+              <span class="material-symbols-outlined" aria-hidden="true">table_large</span>
             </button>
-            <button id="deselectToolBtn" class="tool-button c-button c-button--ghost c-button--small" title="Deselect (CTRL+D)">
-              Deselect
+            <button id="deselectToolBtn" class="tool-button c-button c-button--ghost c-button--small icon-only-button icon-only-button--square" title="Deselect (CTRL+D)" aria-label="Deselect (CTRL+D)">
+              <span class="material-symbols-outlined" aria-hidden="true">deselect</span>
             </button>
-            <button id="updateOutlinesBtn" class="tool-button c-button c-button--ghost c-button--small" title="Update outlines">
-              Update outlines
+            <button id="updateOutlinesBtn" class="tool-button c-button c-button--ghost c-button--small icon-only-button icon-only-button--square" title="Update outlines" aria-label="Update outlines">
+              <span class="material-symbols-outlined" aria-hidden="true">activity_zone</span>
             </button>
-            <button id="updateRowIdsBtn" class="tool-button c-button c-button--ghost c-button--small" title="Update RowIds">
-              Update RowIds
+            <button id="updateRowIdsBtn" class="tool-button c-button c-button--ghost c-button--small icon-only-button icon-only-button--square" title="Update RowIds" aria-label="Update RowIds">
+              <span class="material-symbols-outlined" aria-hidden="true">update</span>
             </button>
           </div>
         </div>
@@ -2733,14 +2858,14 @@
             <div class="c-card__title">Selection</div>
           </div>
           <div class="c-toolbar">
-            <button id="modeSectionBtn" class="tool-button c-button c-button--ghost c-button--small c-button--active" title="Section (S)">
-              Section
+            <button id="modeSectionBtn" class="tool-button c-button c-button--ghost c-button--small c-button--active icon-only-button icon-only-button--square" title="Section (S)" aria-label="Section (S)">
+              <span class="material-symbols-outlined" aria-hidden="true">apps</span>
             </button>
-            <button id="modeRowBtn" class="tool-button c-button c-button--ghost c-button--small" title="Row (D)">
-              Row
+            <button id="modeRowBtn" class="tool-button c-button c-button--ghost c-button--small icon-only-button icon-only-button--square" title="Row (D)" aria-label="Row (D)">
+              <span class="material-symbols-outlined" aria-hidden="true">more_horiz</span>
             </button>
-            <button id="modeSeatBtn" class="tool-button c-button c-button--ghost c-button--small" title="Seat (F)">
-              Seat
+            <button id="modeSeatBtn" class="tool-button c-button c-button--ghost c-button--small icon-only-button icon-only-button--square" title="Seat (F)" aria-label="Seat (F)">
+              <span class="material-symbols-outlined" aria-hidden="true">event_seat</span>
             </button>
           </div>
         </div>
@@ -2751,12 +2876,20 @@
           </div>
           <div class="c-toolbar">
             <div class="c-toolbar c-toolbar--horizontal bg-toggle-group">
-              <button id="bgLoadBtn" class="c-button c-button--ghost c-button--small">Add</button>
-              <button id="bgToggleBtn" class="c-button c-button--ghost c-button--small" disabled>Show</button>
+              <button id="bgLoadBtn" class="c-button c-button--ghost c-button--small icon-only-button icon-only-button--square" title="Add background image" aria-label="Add background image">
+                <span class="material-symbols-outlined" aria-hidden="true">add_photo_alternate</span>
+              </button>
+              <button id="bgToggleBtn" class="c-button c-button--ghost c-button--small icon-only-button icon-only-button--square" disabled title="Show background image" aria-label="Show background image">
+                <span class="material-symbols-outlined" aria-hidden="true">visibility</span>
+              </button>
             </div>
             <div class="c-toolbar c-toolbar--horizontal bg-toggle-group">
-              <button id="bgMoveBtn" class="c-button c-button--ghost c-button--small" disabled>Move</button>
-              <button id="bgDeleteBtn" class="c-button c-button--ghost c-button--small" style="max-width: 50px" disabled>Delete</button>
+              <button id="bgMoveBtn" class="c-button c-button--ghost c-button--small icon-only-button icon-only-button--square" disabled title="Move background image" aria-label="Move background image">
+                <span class="material-symbols-outlined" aria-hidden="true">drag_pan</span>
+              </button>
+              <button id="bgDeleteBtn" class="c-button c-button--ghost c-button--small icon-only-button icon-only-button--square" disabled title="Delete background image" aria-label="Delete background image">
+                <span class="material-symbols-outlined" aria-hidden="true">delete</span>
+              </button>
             </div>
             <label class="bg-control u-font--small">
               Opacity
@@ -2776,12 +2909,24 @@
     <section id="center-area">
       <div id="top-bar">
         <div id="alignBar" class="c-toolbar c-toolbar--horizontal">
-          <button id="alignTopBtn" class="c-button c-button--ghost c-button--small" title="Align top">Align Up</button>
-          <button id="alignBottomBtn" class="c-button c-button--ghost c-button--small" title="Align bottom">Align Down</button>
-          <button id="alignLeftBtn" class="c-button c-button--ghost c-button--small" title="Align left">Align Left</button>
-          <button id="alignRightBtn" class="c-button c-button--ghost c-button--small" title="Align right">Align Right</button>
-          <button id="alignCenterHBtn" class="c-button c-button--ghost c-button--small" title="Center horizontally">Center H</button>
-          <button id="alignCenterVBtn" class="c-button c-button--ghost c-button--small" title="Center vertically">Center V</button>
+          <button id="alignTopBtn" class="c-button c-button--ghost c-button--small icon-only-button icon-only-button--fixed" title="Align top" aria-label="Align top">
+            <span class="material-symbols-outlined" aria-hidden="true">align_vertical_top</span>
+          </button>
+          <button id="alignBottomBtn" class="c-button c-button--ghost c-button--small icon-only-button icon-only-button--fixed" title="Align bottom" aria-label="Align bottom">
+            <span class="material-symbols-outlined" aria-hidden="true">align_vertical_bottom</span>
+          </button>
+          <button id="alignLeftBtn" class="c-button c-button--ghost c-button--small icon-only-button icon-only-button--fixed" title="Align left" aria-label="Align left">
+            <span class="material-symbols-outlined" aria-hidden="true">align_horizontal_left</span>
+          </button>
+          <button id="alignRightBtn" class="c-button c-button--ghost c-button--small icon-only-button icon-only-button--fixed" title="Align right" aria-label="Align right">
+            <span class="material-symbols-outlined" aria-hidden="true">align_horizontal_right</span>
+          </button>
+          <button id="alignCenterHBtn" class="c-button c-button--ghost c-button--small icon-only-button icon-only-button--fixed" title="Center horizontally" aria-label="Center horizontally">
+            <span class="material-symbols-outlined" aria-hidden="true">align_horizontal_center</span>
+          </button>
+          <button id="alignCenterVBtn" class="c-button c-button--ghost c-button--small icon-only-button icon-only-button--fixed" title="Center vertically" aria-label="Center vertically">
+            <span class="material-symbols-outlined" aria-hidden="true">align_vertical_center</span>
+          </button>
           <div class="align-grouping">
             <label for="alignGroupingSelect" class="u-font--small">Align as</label>
             <select id="alignGroupingSelect">
@@ -2791,13 +2936,21 @@
           </div>
           <div class="align-divider" aria-hidden="true"></div>
           <div class="align-rotate">
-            <button id="rotateCcwBtn" class="c-button c-button--ghost c-button--small" title="Rotate counter-clockwise">Rotate CCW</button>
+            <button id="rotateCcwBtn" class="c-button c-button--ghost c-button--small icon-only-button icon-only-button--fixed" title="Rotate counter-clockwise" aria-label="Rotate counter-clockwise">
+              <span class="material-symbols-outlined" aria-hidden="true">rotate_left</span>
+            </button>
             <input id="rotateDegreesInput" type="number" inputmode="decimal" step="1" placeholder="deg" />
-            <button id="rotateCwBtn" class="c-button c-button--ghost c-button--small" title="Rotate clockwise">Rotate CW</button>
+            <button id="rotateCwBtn" class="c-button c-button--ghost c-button--small icon-only-button icon-only-button--fixed" title="Rotate clockwise" aria-label="Rotate clockwise">
+              <span class="material-symbols-outlined" aria-hidden="true">rotate_right</span>
+            </button>
           </div>
           <div class="align-divider" aria-hidden="true"></div>
-          <button id="flipHBtn" class="c-button c-button--ghost c-button--small" title="Flip horizontally">Flip H</button>
-          <button id="flipVBtn" class="c-button c-button--ghost c-button--small" title="Flip vertically">Flip V</button>
+          <button id="flipHBtn" class="c-button c-button--ghost c-button--small icon-only-button icon-only-button--fixed" title="Flip horizontally" aria-label="Flip horizontally">
+            <span class="material-symbols-outlined" aria-hidden="true">flip</span>
+          </button>
+          <button id="flipVBtn" class="c-button c-button--ghost c-button--small icon-only-button icon-only-button--fixed icon-only-button--rot90" title="Flip vertically" aria-label="Flip vertically">
+            <span class="material-symbols-outlined" aria-hidden="true">flip</span>
+          </button>
         </div>
         <input type="file" id="fileInput" accept=".tlt" />
 
@@ -3059,6 +3212,7 @@
         <button id="editSectionsMenuItem" class="context-menu__item" type="button">Edit section</button>
         <button id="mergeRowsMenuItem" class="context-menu__item" type="button">Merge rows</button>
         <button id="splitRowMenuItem" class="context-menu__item" type="button">Split row at selection</button>
+        <button id="createSectionFromSelectionMenuItem" class="context-menu__item" type="button">Create section from selection</button>
         <div id="equalizeRowsSubmenuItem" class="context-submenu">
           <button id="equalizeRowsMenuItem" class="context-menu__item context-menu__item--submenu" type="button">Equalize row distance</button>
           <div class="context-submenu__panel">
@@ -3600,6 +3754,7 @@
   const editRowsMenuItem = document.getElementById("editRowsMenuItem");
   const mergeRowsMenuItem = document.getElementById("mergeRowsMenuItem");
   const splitRowMenuItem = document.getElementById("splitRowMenuItem");
+  const createSectionFromSelectionMenuItem = document.getElementById("createSectionFromSelectionMenuItem");
   const equalizeRowsSubmenuItem = document.getElementById("equalizeRowsSubmenuItem");
   const equalizeRowsMenuItem = document.getElementById("equalizeRowsMenuItem");
   const equalizeRowsByFirstSeatMenuItem = document.getElementById("equalizeRowsByFirstSeatMenuItem");
@@ -5006,17 +5161,29 @@
     renderCanvas();
   }
 
+  function setIconButtonGlyph(button, iconName) {
+    if (!button) return;
+    const iconEl = button.querySelector(".material-symbols-outlined");
+    if (iconEl) iconEl.textContent = iconName;
+  }
+
   function updateBackgroundMoveButtons() {
     const hasImage = !!backgroundState.img;
     const disabledByMode = numberedImportMode;
     if (bgToggleBtn) {
       bgToggleBtn.disabled = !hasImage || disabledByMode;
-      bgToggleBtn.textContent = backgroundState.enabled ? "Hide" : "Show";
+      const toggleLabel = backgroundState.enabled ? "Hide background image" : "Show background image";
+      setIconButtonGlyph(bgToggleBtn, backgroundState.enabled ? "visibility_off" : "visibility");
+      bgToggleBtn.title = toggleLabel;
+      bgToggleBtn.setAttribute("aria-label", toggleLabel);
       bgToggleBtn.classList.toggle("c-button--active", backgroundState.enabled && hasImage);
     }
     if (bgMoveBtn) {
       bgMoveBtn.disabled = !hasImage || disabledByMode;
-      bgMoveBtn.textContent = backgroundMoveMode ? "Lock" : "Move";
+      const moveLabel = backgroundMoveMode ? "Lock background movement" : "Move background image";
+      setIconButtonGlyph(bgMoveBtn, "drag_pan");
+      bgMoveBtn.title = moveLabel;
+      bgMoveBtn.setAttribute("aria-label", moveLabel);
       bgMoveBtn.classList.toggle("c-button--active", backgroundMoveMode && hasImage);
     }
     if (bgDeleteBtn) {
@@ -5823,6 +5990,47 @@ codePane.addEventListener("input", () => {
     return stale;
   }
 
+  const PRICE_REGION_WARNING_TONE_CLASSES = [
+    "price-region-item__warning--active",
+    "price-region-item__warning--ok",
+    "price-region-item__warning--error"
+  ];
+
+  function getPriceRegionWarningState(region, existingSeatIds = null) {
+    if (!region) {
+      return {
+        toneClass: "price-region-item__warning--active",
+        text: "\u26A0\uFE0F",
+        title: "Price region not found.",
+        disabled: true
+      };
+    }
+    const staleCount = getStaleSeatIdsForPriceRegion(region, existingSeatIds).length;
+    if (staleCount > 0) {
+      return {
+        toneClass: "price-region-item__warning--error",
+        text: "\u274C",
+        title: `${staleCount} seat(s) are in this price region but missing in layout`,
+        disabled: false
+      };
+    }
+    const seatCount = getPriceRegionSeatCount(region);
+    if (seatCount <= 0) {
+      return {
+        toneClass: "price-region-item__warning--active",
+        text: "\u26A0\uFE0F",
+        title: "No seats are assigned to this price region.",
+        disabled: true
+      };
+    }
+    return {
+      toneClass: "price-region-item__warning--ok",
+      text: "\u2705",
+      title: "No invalid seat mappings",
+      disabled: true
+    };
+  }
+
   function renderPriceRegionStaleSeatList(region) {
     if (!priceRegionStaleList) return [];
     const staleSeatIds = getStaleSeatIdsForPriceRegion(region);
@@ -5994,16 +6202,14 @@ codePane.addEventListener("input", () => {
       const staleBtn = document.createElement("button");
       staleBtn.type = "button";
       staleBtn.className = "c-button c-button--ghost c-button--small price-region-item__warning";
-      const hasStaleSeatMappings = staleSeatIds.length > 0;
-      staleBtn.classList.add(hasStaleSeatMappings ? "price-region-item__warning--active" : "price-region-item__warning--ok");
-      staleBtn.textContent = hasStaleSeatMappings ? "\u26A0\uFE0F" : "\u2705";
+      const warningState = getPriceRegionWarningState(region, existingSeatIds);
+      staleBtn.classList.add(warningState.toneClass);
+      staleBtn.textContent = warningState.text;
       staleBtn.dataset.role = "price-region-stale";
       staleBtn.dataset.regionId = region.id;
-      const staleTitle = staleSeatIds.length
-        ? `${staleSeatIds.length} seat(s) are in this price region but missing in layout`
-        : "No invalid seat mappings";
-      staleBtn.title = staleTitle;
-      staleBtn.setAttribute("aria-label", staleTitle);
+      staleBtn.disabled = numberedImportMode || warningState.disabled;
+      staleBtn.title = warningState.title;
+      staleBtn.setAttribute("aria-label", warningState.title);
       actions.appendChild(addBtn);
       actions.appendChild(markBtn);
       actions.appendChild(clearBtn);
@@ -6052,16 +6258,13 @@ codePane.addEventListener("input", () => {
     priceRegionList.querySelectorAll("[data-role='price-region-stale']").forEach((btn) => {
       const regionId = btn.dataset.regionId;
       const region = priceRegions.find((r) => r.id === regionId);
-      const staleCount = region ? getStaleSeatIdsForPriceRegion(region, existingSeatIds).length : 0;
-      btn.disabled = numberedImportMode || staleCount <= 0;
-      btn.classList.toggle("price-region-item__warning--active", staleCount > 0);
-      btn.classList.toggle("price-region-item__warning--ok", staleCount <= 0);
-      btn.textContent = staleCount > 0 ? "\u26A0\uFE0F" : "\u2705";
-      const staleTitle = staleCount
-        ? `${staleCount} seat(s) are in this price region but missing in layout`
-        : "No invalid seat mappings";
-      btn.title = staleTitle;
-      btn.setAttribute("aria-label", staleTitle);
+      const warningState = getPriceRegionWarningState(region, existingSeatIds);
+      btn.disabled = numberedImportMode || warningState.disabled;
+      btn.classList.remove(...PRICE_REGION_WARNING_TONE_CLASSES);
+      btn.classList.add(warningState.toneClass);
+      btn.textContent = warningState.text;
+      btn.title = warningState.title;
+      btn.setAttribute("aria-label", warningState.title);
     });
   }
 
@@ -10462,6 +10665,15 @@ codePane.addEventListener("input", () => {
     return null;
   }
 
+  function getSeatPriceRegionId(seat, lookups) {
+    for (const region of lookups) {
+      if (region.sections.has(seat.sectionId)) return region.id;
+      if (region.rows.has(seat.rowId)) return region.id;
+      if (region.seats.has(seat.seatId)) return region.id;
+    }
+    return "";
+  }
+
   function drawHexMarker(ctx, x, y, r, strokeWidth) {
     ctx.beginPath();
     for (let i = 0; i < 6; i++) {
@@ -14332,6 +14544,258 @@ function nudgeSelection(dxScreen, dyScreen) {
     return true;
   }
 
+  function createSectionFromSelection() {
+    if (selectionMode !== "seat" && selectionMode !== "row") return false;
+    const selected = getSelectedSeats();
+    if (!selected.length) return false;
+
+    const selectedSeatIds = new Set();
+    selected.forEach((seat) => {
+      const seatId = String(seat?.seatId || "").trim();
+      if (seatId) selectedSeatIds.add(seatId);
+    });
+    if (!selectedSeatIds.size) return false;
+
+    const previousRegionBySeatId = new Map();
+    if (priceRegions.length) {
+      const lookups = buildPriceRegionLookups();
+      selected.forEach((seat) => {
+        const seatId = String(seat?.seatId || "").trim();
+        if (!seatId) return;
+        const regionId = getSeatPriceRegionId(seat, lookups);
+        if (regionId) previousRegionBySeatId.set(seatId, regionId);
+      });
+    }
+
+    const newSectionId = computeNextSectionId();
+    if (!newSectionId) return false;
+    let newSectionName = `Section ${newSectionId.replace(/\./g, "-")}`;
+    while (true) {
+      const input = prompt("Name for new section:", newSectionName);
+      if (input == null) return false;
+      const nextName = String(input || "").trim();
+      const nameError = getSectionNameValidationError(nextName);
+      if (nameError) {
+        alert(nameError);
+        continue;
+      }
+      if (isDuplicateSectionName(newSectionId, nextName)) {
+        alert(`Section name "${nextName}" is already in use.`);
+        continue;
+      }
+      newSectionName = nextName;
+      break;
+    }
+
+    const rowsBySourceId = new Map();
+    selected.forEach((seat, index) => {
+      const currentSeatId = String(seat?.seatId || "").trim();
+      if (!currentSeatId) return;
+      let sourceRowId = String(seat?.rowId || "").trim();
+      if (!sourceRowId) {
+        const parts = currentSeatId.split(".");
+        if (parts.length >= 3) sourceRowId = `${parts[0]}.${parts[1]}.${parts[2]}`;
+      }
+      if (!sourceRowId) sourceRowId = `row-${index + 1}`;
+      if (!rowsBySourceId.has(sourceRowId)) {
+        const fallbackRowName = String(seat?.rowName || sourceRowId).trim() || sourceRowId;
+        rowsBySourceId.set(sourceRowId, {
+          rowId: sourceRowId,
+          rowName: fallbackRowName,
+          seats: [],
+          order: Infinity
+        });
+      }
+      const entry = rowsBySourceId.get(sourceRowId);
+      entry.seats.push(seat);
+      const seatOrder = typeof seat.selectedAt === "number" ? seat.selectedAt : Infinity;
+      if (seatOrder < entry.order) entry.order = seatOrder;
+    });
+
+    const rowEntries = Array.from(rowsBySourceId.values()).filter((entry) => entry.seats.length > 0);
+    if (!rowEntries.length) return false;
+
+    rowEntries.sort((a, b) => {
+      if (a.order !== b.order) return a.order - b.order;
+      const pa = parseRowIdParts(a.rowId);
+      const pb = parseRowIdParts(b.rowId);
+      if (pa.major != null && pb.major != null && pa.major !== pb.major) return pa.major - pb.major;
+      if (pa.major != null && pb.major == null) return -1;
+      if (pa.major == null && pb.major != null) return 1;
+      if (pa.minor != null && pb.minor != null && pa.minor !== pb.minor) return pa.minor - pb.minor;
+      if (pa.minor != null && pb.minor == null) return -1;
+      if (pa.minor == null && pb.minor != null) return 1;
+      if (pa.row != null && pb.row != null && pa.row !== pb.row) return pa.row - pb.row;
+      if (pa.row != null && pb.row == null) return -1;
+      if (pa.row == null && pb.row != null) return 1;
+      return String(a.rowId || "").localeCompare(String(b.rowId || ""), "sv", { numeric: true, sensitivity: "base" });
+    });
+
+    const seatIdMap = new Map();
+    let nextRowNumber = 1;
+    rowEntries.forEach((entry) => {
+      const nextRowId = `${newSectionId}.${nextRowNumber++}`;
+      const nextRowName = String(entry.rowName || nextRowId).trim() || nextRowId;
+      const orderedSeats = sortSeatsInRow(entry.seats);
+      orderedSeats.forEach((seat, index) => {
+        const oldSeatId = String(seat.seatId || "").trim();
+        if (!oldSeatId) return;
+        const nextSeatId = `${nextRowId}.${index + 1}`;
+        seatIdMap.set(oldSeatId, nextSeatId);
+        seat.sectionId = newSectionId;
+        seat.sectionName = newSectionName;
+        seat.rowId = nextRowId;
+        seat.rowName = nextRowName;
+        seat.seatId = nextSeatId;
+      });
+    });
+    if (!seatIdMap.size) return false;
+
+    sectionNames.set(newSectionId, newSectionName);
+
+    if (lastSelectedSeatId && seatIdMap.has(lastSelectedSeatId)) {
+      lastSelectedSeatId = seatIdMap.get(lastSelectedSeatId);
+    }
+    if (reshapePivotSeatId && seatIdMap.has(reshapePivotSeatId)) {
+      reshapePivotSeatId = seatIdMap.get(reshapePivotSeatId);
+    }
+
+    if (highlightedSeatIds.size) {
+      highlightedSeatIds = new Set(
+        Array.from(highlightedSeatIds).map((seatId) => seatIdMap.get(seatId) || seatId)
+      );
+      updateHighlightSeatsButtonLabel();
+    }
+
+    let priceRegionChanged = false;
+    const existingSeatIds = new Set(seats.map((s) => s.seatId));
+    const existingRowIds = new Set(seats.map((s) => s.rowId).filter(Boolean));
+    const existingSectionIds = new Set(seats.map((s) => s.sectionId).filter(Boolean));
+    priceRegions.forEach((region) => {
+      const seatRes = remapValueArray(region.seats, seatIdMap);
+      if (seatRes.changed) {
+        region.seats = seatRes.next;
+        priceRegionChanged = true;
+      }
+      const nextSections = region.sections.filter((id) => existingSectionIds.has(id));
+      const nextRows = region.rows.filter((id) => existingRowIds.has(id));
+      const nextSeats = region.seats.filter((id) => existingSeatIds.has(id));
+      if (nextSections.length !== region.sections.length) {
+        region.sections = nextSections;
+        priceRegionChanged = true;
+      }
+      if (nextRows.length !== region.rows.length) {
+        region.rows = nextRows;
+        priceRegionChanged = true;
+      }
+      if (nextSeats.length !== region.seats.length) {
+        region.seats = nextSeats;
+        priceRegionChanged = true;
+      }
+    });
+    previousRegionBySeatId.forEach((regionId, oldSeatId) => {
+      const mappedSeatId = seatIdMap.get(oldSeatId) || oldSeatId;
+      if (!mappedSeatId || !existingSeatIds.has(mappedSeatId)) return;
+      if (setSeatDirectPriceRegion(mappedSeatId, regionId)) {
+        priceRegionChanged = true;
+      }
+    });
+    if (priceRegionChanged) {
+      priceRegions.forEach((region) => normalizePriceRegionTargets(region));
+      savePriceRegionsToStorage();
+      renderPriceRegionList();
+      updatePriceRegionUi();
+    }
+
+    let seatBlockChanged = false;
+    seatBlocks.forEach((block) => {
+      const seatRes = remapValueArray(block.seats, seatIdMap);
+      if (seatRes.changed) {
+        block.seats = seatRes.next;
+        seatBlockChanged = true;
+      }
+    });
+    if (seatBlockChanged) {
+      saveSeatBlocksToStorage();
+      renderSeatBlockList();
+    }
+
+    let numberedImportChanged = false;
+    if (numberedImportAssignmentsBySeatId instanceof Map && numberedImportAssignmentsBySeatId.size) {
+      const nextAssignments = new Map();
+      numberedImportAssignmentsBySeatId.forEach((refNo, seatId) => {
+        const mappedSeatId = seatIdMap.get(seatId) || seatId;
+        if (mappedSeatId !== seatId) numberedImportChanged = true;
+        nextAssignments.set(mappedSeatId, refNo);
+      });
+      if (nextAssignments.size !== numberedImportAssignmentsBySeatId.size) {
+        numberedImportChanged = true;
+      }
+      numberedImportAssignmentsBySeatId = nextAssignments;
+    }
+    numberedImportPurchases.forEach((purchase) => {
+      const seatRes = remapValueArray(purchase?.assignedSeatIds, seatIdMap);
+      if (seatRes.changed) {
+        purchase.assignedSeatIds = seatRes.next;
+        numberedImportChanged = true;
+      }
+    });
+    if (numberedImportBlockedSeatIds instanceof Set && numberedImportBlockedSeatIds.size) {
+      const nextBlocked = new Set();
+      numberedImportBlockedSeatIds.forEach((seatId) => {
+        const mappedSeatId = seatIdMap.get(seatId) || seatId;
+        if (mappedSeatId !== seatId) numberedImportChanged = true;
+        nextBlocked.add(mappedSeatId);
+      });
+      numberedImportBlockedSeatIds = nextBlocked;
+    }
+    if (numberedImportHoverPreviewSeatId) {
+      const mappedSeatId = seatIdMap.get(numberedImportHoverPreviewSeatId) || numberedImportHoverPreviewSeatId;
+      if (mappedSeatId !== numberedImportHoverPreviewSeatId) {
+        numberedImportHoverPreviewSeatId = mappedSeatId;
+        numberedImportChanged = true;
+      }
+    }
+    if (numberedImportHoverPreviewSeatIds instanceof Set && numberedImportHoverPreviewSeatIds.size) {
+      const nextPreviewSet = new Set();
+      numberedImportHoverPreviewSeatIds.forEach((seatId) => {
+        const mappedSeatId = seatIdMap.get(seatId) || seatId;
+        if (mappedSeatId !== seatId) numberedImportChanged = true;
+        nextPreviewSet.add(mappedSeatId);
+      });
+      numberedImportHoverPreviewSeatIds = nextPreviewSet;
+    }
+    if (numberedImportChanged && numberedImportMode) {
+      refreshNumberedImportUi();
+    }
+
+    const normalizedStructure = normalizeLayoutStructureForPersist();
+    if (!normalizedStructure) {
+      const ensuredStructure = ensureSectionAndRowLinesForSeats();
+      const cleanedStructure = cleanupDanglingLayoutStructureLines();
+      if (!ensuredStructure && !cleanedStructure) rebuildSeatLineIndex();
+    }
+
+    rebuildSectionColors();
+    updateCountsAfterSeatChange();
+    updatePriceRegionStatus();
+    updateEntryPointUi();
+    if (!normalizedStructure) {
+      updateCodeFromSeats();
+    }
+    const newText = originalLines.join("\n");
+    if (codePane.value !== newText) {
+      codePane.value = newText;
+    }
+    renderCanvas();
+    updateMoveButtonState();
+    hasUnsavedChanges = true;
+    updateSaveButton();
+    saveSessionToLocalStorage();
+    pushHistorySnapshot();
+    return true;
+  }
+
   function ensureBendDefaults() {
     if (currentTool !== "bend") return;
     const rows = getSelectedRows();
@@ -14846,6 +15310,7 @@ function nudgeSelection(dxScreen, dyScreen) {
       editRowsMenuItem,
       mergeRowsMenuItem,
       splitRowMenuItem,
+      createSectionFromSelectionMenuItem,
       equalizeRowsSubmenuItem,
       equalizeSeatsMenuItem,
       reverseSeatNamesMenuItem,
@@ -14907,6 +15372,10 @@ function nudgeSelection(dxScreen, dyScreen) {
       if (splitRowMenuItem) {
         const splitInfo = selectionMode === "seat" ? getSplitRowSelectionInfo(selectedSeats) : null;
         splitRowMenuItem.disabled = !splitInfo;
+      }
+      if (createSectionFromSelectionMenuItem) {
+        const canCreateSection = selectedSeats.length > 0 && (selectionMode === "seat" || selectionMode === "row");
+        createSectionFromSelectionMenuItem.disabled = !canCreateSection;
       }
       const canEqualizeRows = selectionMode === "row" && rows.size >= 2;
       if (equalizeRowsMenuItem) {
@@ -15255,6 +15724,20 @@ function nudgeSelection(dxScreen, dyScreen) {
 
   function normalizeSectionName(name) {
     return String(name || "").trim().toLowerCase();
+  }
+
+  function getSectionNameValidationError(rawName) {
+    const name = String(rawName || "").trim();
+    if (!name) {
+      return "Section name is required.";
+    }
+    if (name.length > SECTION_NAME_MAX) {
+      return `Section name must be ${SECTION_NAME_MAX} characters or fewer.`;
+    }
+    if (name.includes(".")) {
+      return "Section name cannot contain '.'.";
+    }
+    return "";
   }
 
   function getDuplicateDraftSectionNames(drafts) {
@@ -16104,6 +16587,10 @@ function nudgeSelection(dxScreen, dyScreen) {
     closeSeatContextMenu();
     splitRowAtSelection();
   });
+  createSectionFromSelectionMenuItem?.addEventListener("click", () => {
+    closeSeatContextMenu();
+    createSectionFromSelection();
+  });
   function applyEqualizeRowsWithAnchor(anchorMode) {
     closeSeatContextMenu();
     const changed = equalizeRowDistanceForSelection(anchorMode);
@@ -16309,9 +16796,10 @@ function nudgeSelection(dxScreen, dyScreen) {
     const sectionId = sectionItem?.dataset.sectionId || sectionEditTargetId;
     if (sectionId) {
       const nameInput = sectionItem?.querySelector("input[data-role='section-name']");
-      const nextName = (nameInput?.value || "").trim() || sectionId;
-      if (nextName.length > SECTION_NAME_MAX) {
-        alert(`Section name must be ${SECTION_NAME_MAX} characters or fewer.`);
+      const nextName = (nameInput?.value || "").trim();
+      const nameError = getSectionNameValidationError(nextName);
+      if (nameError) {
+        alert(nameError);
         return;
       }
       if (isDuplicateSectionName(sectionId, nextName)) {
@@ -17698,8 +18186,9 @@ function nudgeSelection(dxScreen, dyScreen) {
         return;
       }
       const sectionSheetName = String(sheetName || "").trim();
-      if (sectionSheetName.length > SECTION_NAME_MAX) {
-        errors.push(`Section name "${sectionSheetName}" exceeds ${SECTION_NAME_MAX} characters.`);
+      const sectionNameError = getSectionNameValidationError(sectionSheetName);
+      if (sectionNameError) {
+        errors.push(`${sectionSheetName || sheetName}: ${sectionNameError}`);
         return;
       }
       const res = buildRowTextFromExcelSheet(sheet, sectionSheetName);
@@ -18410,12 +18899,9 @@ function nudgeSelection(dxScreen, dyScreen) {
     const raw = prompt("Section name:", defaultValue);
     if (raw == null) return null;
     const name = raw.trim();
-    if (!name) {
-      alert("Section name is required.");
-      return null;
-    }
-    if (name.length > SECTION_NAME_MAX) {
-      alert(`Section name must be ${SECTION_NAME_MAX} characters or fewer.`);
+    const nameError = getSectionNameValidationError(name);
+    if (nameError) {
+      alert(nameError);
       return null;
     }
     return name;
@@ -18434,7 +18920,11 @@ function nudgeSelection(dxScreen, dyScreen) {
 
   function addNewAltDraft(sectionName, rowCount) {
     const name = (sectionName || "").trim();
-    if (!name) return;
+    const nameError = getSectionNameValidationError(name);
+    if (nameError) {
+      alert(nameError);
+      return;
+    }
     const newDraft = {
       sectionId: computeNextSectionId(),
       sectionName: name,
@@ -19267,6 +19757,14 @@ function nudgeSelection(dxScreen, dyScreen) {
     if (tooLongNames.length) {
       const uniqueTooLong = Array.from(new Set(tooLongNames));
       alert(`Section names must be ${SECTION_NAME_MAX} characters or fewer. Too long: ${uniqueTooLong.join(", ")}`);
+      return false;
+    }
+    const dottedNames = sectionDrafts
+      .map(d => (d.sectionName || "").trim())
+      .filter(name => name.includes("."));
+    if (dottedNames.length) {
+      const uniqueDotted = Array.from(new Set(dottedNames));
+      alert(`Section names cannot contain '.'. Invalid: ${uniqueDotted.join(", ")}`);
       return false;
     }
 
