@@ -607,6 +607,54 @@
       grid-row: span 2;
     }
 
+    .alt-assist-tools {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      align-items: flex-start;
+      grid-row: span 2;
+      min-width: 230px;
+      padding: 0.35rem 0.45rem;
+      border: 1px dashed #c9d6e6;
+      border-radius: 8px;
+      background: #f8fbff;
+    }
+
+    .alt-assist-tools[hidden] {
+      display: none !important;
+    }
+
+    .alt-assist-tools__title {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: #2e3c47;
+    }
+
+    .alt-assist-tools__state {
+      font-size: 0.71rem;
+      line-height: 1.35;
+      color: #4d5a68;
+    }
+
+    .alt-assist-tools__actions {
+      display: flex;
+      gap: 0.35rem;
+      flex-wrap: wrap;
+    }
+
+    html[data-theme="dark"] .alt-assist-tools {
+      border-color: #334155;
+      background: #111a2c;
+    }
+
+    html[data-theme="dark"] .alt-assist-tools__title {
+      color: #e2e8f0;
+    }
+
+    html[data-theme="dark"] .alt-assist-tools__state {
+      color: #c0cbe1;
+    }
+
     .alt-seat-numbering__current {
       display: flex;
       align-items: center;
@@ -700,6 +748,7 @@
 
     /* Modal-overlays */
     #newLayoutOverlay,
+    #duplicateSectionOverlay,
     #priceRegionOverlay,
     #entryPointOverlay,
     #goodnessOverlay,
@@ -720,6 +769,7 @@
     }
 
     #newLayoutModal,
+    #duplicateSectionModal,
     #exportModal,
     #priceRegionModal,
     #entryPointModal,
@@ -734,6 +784,7 @@
     }
 
     #newLayoutModal,
+    #duplicateSectionModal,
     #exportModal {
       width: min(520px, 92vw);
     }
@@ -825,6 +876,7 @@
       cursor: not-allowed;
     }
     #newLayoutModal h3,
+    #duplicateSectionModal h3,
     #priceRegionModal h3,
     #entryPointModal h3,
     #goodnessModal h3,
@@ -1130,6 +1182,187 @@
 
     #numberedImportCard[hidden] {
       display: none !important;
+    }
+
+    .history-panel__controls {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      flex-wrap: wrap;
+    }
+
+    .history-panel__position {
+      margin-left: auto;
+      font-size: 0.72rem;
+      color: #5b6673;
+      border: 1px solid #dbe6f4;
+      border-radius: 999px;
+      padding: 0.12rem 0.48rem;
+      background: #f8fbff;
+    }
+
+    .history-panel__list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      max-height: 38vh;
+      overflow: auto;
+      padding-right: 0.15rem;
+    }
+
+    .history-panel__item {
+      width: 100%;
+      border: 1px solid #d7dfec;
+      background: #f8fbff;
+      border-radius: 8px;
+      padding: 0.35rem 0.45rem;
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      gap: 0.4rem;
+      cursor: pointer;
+      text-align: left;
+      color: #22303c;
+    }
+
+    .history-panel__item:hover {
+      border-color: #8bb3d8;
+      background: #f1f8ff;
+    }
+
+    .history-panel__item--active {
+      border-color: #0c6ba5;
+      box-shadow: 0 0 0 1px rgba(12, 107, 165, 0.24);
+      background: #ebf7ff;
+    }
+
+    .history-panel__item-index {
+      font-size: 0.68rem;
+      min-width: 1.6rem;
+      color: #4f5f6f;
+      font-family: var(--font-mono);
+    }
+
+    .history-panel__item-label {
+      font-size: 0.73rem;
+      line-height: 1.25;
+      color: inherit;
+    }
+
+    .history-panel__item-time {
+      font-size: 0.66rem;
+      color: #607080;
+      font-family: var(--font-mono);
+      white-space: nowrap;
+    }
+
+    .validation-summary {
+      font-size: 0.74rem;
+      color: #435264;
+      background: #f5f8fc;
+      border: 1px solid #dbe6f4;
+      border-radius: 8px;
+      padding: 0.35rem 0.5rem;
+    }
+
+    .validation-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      max-height: 38vh;
+      overflow: auto;
+      padding-right: 0.15rem;
+    }
+
+    .validation-item {
+      border: 1px solid #d7dfec;
+      border-radius: 8px;
+      background: #f8fbff;
+      padding: 0.42rem 0.5rem;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 0.5rem;
+    }
+
+    .validation-item__text {
+      font-size: 0.73rem;
+      line-height: 1.3;
+      color: #253342;
+      white-space: pre-wrap;
+    }
+
+    .validation-item--error {
+      border-color: #fecaca;
+      background: #fff1f1;
+    }
+
+    .validation-item--warning {
+      border-color: #fde68a;
+      background: #fffbeb;
+    }
+
+    .validation-item--ok {
+      border-color: #bbf7d0;
+      background: #f0fdf4;
+    }
+
+    html[data-theme="dark"] .history-panel__position {
+      color: #c7d3e5;
+      border-color: #334155;
+      background: #0f172a;
+    }
+
+    html[data-theme="dark"] .history-panel__item {
+      border-color: #334155;
+      background: #0f172a;
+      color: #e2e8f0;
+    }
+
+    html[data-theme="dark"] .history-panel__item:hover {
+      border-color: #3b82f6;
+      background: #111f3a;
+    }
+
+    html[data-theme="dark"] .history-panel__item--active {
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.35);
+      background: rgba(59, 130, 246, 0.16);
+    }
+
+    html[data-theme="dark"] .history-panel__item-index,
+    html[data-theme="dark"] .history-panel__item-time {
+      color: #a9b8cf;
+    }
+
+    html[data-theme="dark"] .validation-summary {
+      color: #c7d3e5;
+      border-color: #334155;
+      background: #0f172a;
+    }
+
+    html[data-theme="dark"] .validation-item {
+      border-color: #334155;
+      background: #111827;
+    }
+
+    html[data-theme="dark"] .validation-item__text {
+      color: #e2e8f0;
+    }
+
+    html[data-theme="dark"] .validation-item--error {
+      border-color: #7f1d1d;
+      background: #311313;
+    }
+
+    html[data-theme="dark"] .validation-item--warning {
+      border-color: #854d0e;
+      background: #2b2112;
+    }
+
+    html[data-theme="dark"] .validation-item--ok {
+      border-color: #166534;
+      background: #12251a;
     }
 
     .numbered-import-state {
@@ -2131,6 +2364,7 @@
     html[data-theme="dark"] #top-bar,
     html[data-theme="dark"] #codeModal,
     html[data-theme="dark"] #newLayoutModal,
+    html[data-theme="dark"] #duplicateSectionModal,
     html[data-theme="dark"] #exportModal,
     html[data-theme="dark"] #helpModal,
     html[data-theme="dark"] #goodnessModal,
@@ -2232,6 +2466,7 @@
     }
 
     html[data-theme="dark"] #codeModalOverlay,
+    html[data-theme="dark"] #duplicateSectionOverlay,
     html[data-theme="dark"] #altSectionManagerOverlay,
     html[data-theme="dark"] #exportOverlay,
     html[data-theme="dark"] #helpOverlay,
@@ -2246,6 +2481,7 @@
     }
 
     html[data-theme="dark"] #exportModal h3,
+    html[data-theme="dark"] #duplicateSectionModal h3,
     html[data-theme="dark"] #helpModal h3,
     html[data-theme="dark"] #goodnessModal h3,
     html[data-theme="dark"] #seatEditModal h3,
@@ -2804,7 +3040,7 @@
           </div>
           <div class="c-toolbar">
             <button id="openSectionManagerBtn" class="tool-button c-button c-button--primary c-button--small c-button--icon-left" data-icon="">
-              Manage
+              Create
             </button>
           </div>
         </div>
@@ -3099,6 +3335,32 @@
         </div>
       </div>
 
+            <div id="historyCard" class="c-card" data-collapsible="true" data-collapsed="true">
+        <div class="c-card__header">
+          <div class="c-card__title">History</div>
+          <button class="c-card__toggle" type="button" aria-expanded="true" aria-label="Toggle panel" onclick="toggleRightPanel(this)"></button>
+        </div>
+        <div class="c-card__body c-toolbar">
+          <div class="history-panel__controls">
+            <button id="historyBackBtn" class="c-button c-button--ghost c-button--small">Back</button>
+            <button id="historyForwardBtn" class="c-button c-button--ghost c-button--small">Forward</button>
+            <div id="historyPositionLabel" class="history-panel__position">0 / 0</div>
+          </div>
+          <div id="historyList" class="history-panel__list"></div>
+        </div>
+      </div>
+
+      <div id="validationCard" class="c-card" data-collapsible="true" data-collapsed="true">
+        <div class="c-card__header">
+          <div class="c-card__title">Validation <span id="validationStatusBadge" class="price-region-status">&#9888;&#65039;</span></div>
+          <button class="c-card__toggle" type="button" aria-expanded="true" aria-label="Toggle panel" onclick="toggleRightPanel(this)"></button>
+        </div>
+        <div class="c-card__body c-toolbar">
+          <div id="validationSummary" class="validation-summary">No checks yet.</div>
+          <div id="validationList" class="validation-list"></div>
+        </div>
+      </div>
+
       <div id="numberedImportCard" class="c-card" data-collapsible="true" data-collapsed="false" hidden>
         <div class="c-card__header">
           <div class="c-card__title">Import</div>
@@ -3210,6 +3472,8 @@
         <button id="editSeatsMenuItem" class="context-menu__item" type="button">Edit seat(s)</button>
         <button id="editRowsMenuItem" class="context-menu__item" type="button">Edit row(s)</button>
         <button id="editSectionsMenuItem" class="context-menu__item" type="button">Edit section</button>
+        <button id="duplicateSectionsMenuItem" class="context-menu__item" type="button">Duplicate section(s)</button>
+        <button id="mergeSectionsMenuItem" class="context-menu__item" type="button">Merge sections</button>
         <button id="mergeRowsMenuItem" class="context-menu__item" type="button">Merge rows</button>
         <button id="splitRowMenuItem" class="context-menu__item" type="button">Split row at selection</button>
         <button id="createSectionFromSelectionMenuItem" class="context-menu__item" type="button">Create section from selection</button>
@@ -3264,6 +3528,7 @@
             <div class="alt-section-toolbar__group alt-section-toolbar__group--tools">
               <button id="altToolSelectBtn" class="c-button c-button--ghost c-button--small c-button--active">Select (S)</button>
               <button id="altToolDrawBtn" class="c-button c-button--ghost c-button--small">Draw (D)</button>
+              <button id="altToolAssistBtn" class="c-button c-button--ghost c-button--small">Assist (A)</button>
               <button id="altUndoBtn" class="c-button c-button--ghost c-button--small" title="Undo (Ctrl/Cmd+Z)">Undo</button>
             </div>
             <div class="alt-section-toolbar__divider" aria-hidden="true"></div>
@@ -3293,6 +3558,18 @@
                   <input id="altContinuousStartSeat" class="alt-seat-numbering__input" type="text" inputmode="numeric" readonly />
                   <button id="altContinuousSkipBtn" class="c-button c-button--ghost c-button--small" type="button">Skip</button>
                 </div>
+              </div>
+            </div>
+            <div id="altAssistControls" class="alt-assist-tools" hidden>
+              <div class="alt-assist-tools__title">Assist: Interpolate rows</div>
+              <div id="altAssistState" class="alt-assist-tools__state">Pick two reference rows in the canvas.</div>
+              <label class="bg-control u-font--small">
+                <input type="checkbox" id="altAssistEmptyOnly" checked />
+                Fill only empty rows
+              </label>
+              <div class="alt-assist-tools__actions">
+                <button id="altAssistApplyBtn" class="c-button c-button--ghost c-button--small" type="button">Apply between rows</button>
+                <button id="altAssistResetBtn" class="c-button c-button--ghost c-button--small" type="button">Reset</button>
               </div>
             </div>
           </div>
@@ -3327,6 +3604,21 @@
       <div class="new-layout-actions">
         <button id="newLayoutCancel" class="c-button c-button--ghost c-button--small">Cancel</button>
         <button id="newLayoutStart" class="c-button c-button--primary c-button--small">Create</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="duplicateSectionOverlay">
+    <div id="duplicateSectionModal">
+      <h3>Duplicate section(s)</h3>
+      <div class="new-layout-field">
+        <label for="duplicateSectionNames">Section name(s)</label>
+        <textarea id="duplicateSectionNames" rows="4" placeholder="Enter one name per section"></textarea>
+        <div id="duplicateSectionHint" class="goodness-hint u-font--small"></div>
+      </div>
+      <div class="new-layout-actions">
+        <button id="duplicateSectionCancel" class="c-button c-button--ghost c-button--small">Cancel</button>
+        <button id="duplicateSectionCreate" class="c-button c-button--primary c-button--small">Duplicate</button>
       </div>
     </div>
   </div>
@@ -3754,6 +4046,8 @@
   const editRowsMenuItem = document.getElementById("editRowsMenuItem");
   const mergeRowsMenuItem = document.getElementById("mergeRowsMenuItem");
   const splitRowMenuItem = document.getElementById("splitRowMenuItem");
+  const duplicateSectionsMenuItem = document.getElementById("duplicateSectionsMenuItem");
+  const mergeSectionsMenuItem = document.getElementById("mergeSectionsMenuItem");
   const createSectionFromSelectionMenuItem = document.getElementById("createSectionFromSelectionMenuItem");
   const equalizeRowsSubmenuItem = document.getElementById("equalizeRowsSubmenuItem");
   const equalizeRowsMenuItem = document.getElementById("equalizeRowsMenuItem");
@@ -3823,6 +4117,11 @@
   const newLayoutCancel = document.getElementById("newLayoutCancel");
   const newProjectName = document.getElementById("newProjectName");
   const newVenueId = document.getElementById("newVenueId");
+  const duplicateSectionOverlay = document.getElementById("duplicateSectionOverlay");
+  const duplicateSectionNames = document.getElementById("duplicateSectionNames");
+  const duplicateSectionHint = document.getElementById("duplicateSectionHint");
+  const duplicateSectionCancel = document.getElementById("duplicateSectionCancel");
+  const duplicateSectionCreate = document.getElementById("duplicateSectionCreate");
   const exportBtn = document.getElementById("exportBtn");
   const exportOverlay = document.getElementById("exportOverlay");
   const exportName = document.getElementById("exportName");
@@ -3839,6 +4138,15 @@
   const exportCancel = document.getElementById("exportCancel");
   const exportConfirm = document.getElementById("exportConfirm");
   const numberedImportModeBtn = document.getElementById("numberedImportModeBtn");
+  const historyCard = document.getElementById("historyCard");
+  const historyBackBtn = document.getElementById("historyBackBtn");
+  const historyForwardBtn = document.getElementById("historyForwardBtn");
+  const historyPositionLabel = document.getElementById("historyPositionLabel");
+  const historyList = document.getElementById("historyList");
+  const validationCard = document.getElementById("validationCard");
+  const validationStatusBadge = document.getElementById("validationStatusBadge");
+  const validationSummary = document.getElementById("validationSummary");
+  const validationList = document.getElementById("validationList");
   const displayCard = document.getElementById("displayCard");
   const numberedImportCard = document.getElementById("numberedImportCard");
   const numberedImportLoadTltBtn = document.getElementById("numberedImportLoadTltBtn");
@@ -3917,6 +4225,12 @@
   const altSeatTooltip = document.getElementById("altSeatTooltip");
   const altToolSelectBtn = document.getElementById("altToolSelectBtn");
   const altToolDrawBtn = document.getElementById("altToolDrawBtn");
+  const altToolAssistBtn = document.getElementById("altToolAssistBtn");
+  const altAssistControls = document.getElementById("altAssistControls");
+  const altAssistState = document.getElementById("altAssistState");
+  const altAssistEmptyOnly = document.getElementById("altAssistEmptyOnly");
+  const altAssistApplyBtn = document.getElementById("altAssistApplyBtn");
+  const altAssistResetBtn = document.getElementById("altAssistResetBtn");
   const altUndoBtn = document.getElementById("altUndoBtn");
   const altGapNewBtn = document.getElementById("altGapNewBtn");
   const altReverseSeatOrderBtn = document.getElementById("altReverseSeatOrderBtn");
@@ -3970,6 +4284,8 @@
   let altDrawStart = null;
   let altDrawEnd = null;
   let altDrawLineIndex = null;
+  let altAssistAnchorLineIndex = null;
+  let altAssistTargetLineIndex = null;
   const ALT_SEAT_RADIUS = 8;
   const ALT_SEAT_SPACING = 18;
   const ALT_ROW_HEIGHT = 24;
@@ -4122,6 +4438,7 @@
   let activeSectionDraftId = null;
   let sectionDirty = false;
   let activePriceRegionStaleRegionId = "";
+  let duplicateSectionSourceIds = [];
   let priceRegionDraggingRegionId = "";
   let forceSaveAs = false;
   let layoutActive = false;
@@ -4225,9 +4542,12 @@
 
   let hoverSeat = null;
 
+  let validationRefreshRaf = null;
+
   // Historik (undo, inkl. markering)
   let history = [];
   let historyIndex = -1;
+  const HISTORY_LIMIT = 50;
 
   // Filhantering / kodsynk
   let currentFileHandle = null;
@@ -4746,11 +5066,11 @@
     // Historik: nollställ och lägg första snapshot
     history = [];
     historyIndex = -1;
+    hasUnsavedChanges = outlinesChangedOnLoad;
     pushHistorySnapshot();
 
     renderCanvas();
 
-    hasUnsavedChanges = outlinesChangedOnLoad;
     updateSaveButton();
 
     saveSessionToLocalStorage();
@@ -4805,19 +5125,340 @@
     updateMoveButtonState();
   }
 
-  function pushHistorySnapshot() {
-    if (!seats.length) return;
-    const snapshot = captureSeatState();
+  function captureHistoryState() {
+    return {
+      seats: seats.map((seat) => cloneLayoutSeat(seat)),
+      originalLines: Array.isArray(originalLines) ? [...originalLines] : [],
+      outlines: cloneJsonData(outlines, []),
+      sectionNames: Array.from(sectionNames.entries()),
+      sectionColors: Array.from(sectionColors.entries()),
+      sectionRawTextEntries: Array.from(sectionRawText.entries()),
+      highlightedSeatIds: Array.from(highlightedSeatIds),
+      selectionMode,
+      selectionOrderCounter,
+      lastSelectedSeatId: lastSelectedSeatId || "",
+      lastSelectionSource: lastSelectionSource || "click",
+      hasUnsavedChanges: !!hasUnsavedChanges,
+      layoutBounds: layoutBounds ? { ...layoutBounds } : null,
+      priceRegions: cloneJsonData(priceRegions, []),
+      entryPoints: cloneJsonData(entryPoints, []),
+      seatBlocks: cloneJsonData(seatBlocks, []),
+      activeSeatBlockId: activeSeatBlockId || "",
+      numberedImportAssignmentsBySeatId: Array.from(numberedImportAssignmentsBySeatId.entries()),
+      numberedImportPurchases: cloneJsonData(numberedImportPurchases, []),
+      numberedImportBlockedSeatIds: Array.from(numberedImportBlockedSeatIds),
+      numberedImportSelectedSectionKeys: Array.from(numberedImportSelectedSectionKeys),
+      numberedImportUseAllSections: !!numberedImportUseAllSections,
+      numberedImportPlacementMode: numberedImportPlacementMode || "all",
+      numberedImportAutoOrderMode: numberedImportAutoOrderMode || "row1",
+      numberedImportSelectedRefNo: numberedImportSelectedRefNo || "",
+      numberedImportDraggingRefNo: numberedImportDraggingRefNo || "",
+      numberedImportValidationErrors: Array.isArray(numberedImportValidationErrors) ? [...numberedImportValidationErrors] : [],
+      numberedImportValidationWarnings: Array.isArray(numberedImportValidationWarnings) ? [...numberedImportValidationWarnings] : [],
+      numberedImportReady: !!numberedImportReady,
+      numberedImportHoverPreviewRefNo: numberedImportHoverPreviewRefNo || "",
+      numberedImportHoverPreviewSeatId: numberedImportHoverPreviewSeatId || "",
+      numberedImportHoverPreviewSeatIds: Array.from(numberedImportHoverPreviewSeatIds),
+      numberedImportContextRefNo: numberedImportContextRefNo || "",
+      numberedImportContextRowId: numberedImportContextRowId || "",
+      reshapePivotSeatId: reshapePivotSeatId || ""
+    };
+  }
+
+  function applyHistoryState(state) {
+    if (!state || typeof state !== "object") return;
+
+    seats = Array.isArray(state.seats) ? state.seats.map((seat) => cloneLayoutSeat(seat)) : [];
+    originalLines = Array.isArray(state.originalLines) ? [...state.originalLines] : [];
+    outlines = Array.isArray(state.outlines) ? cloneJsonData(state.outlines, []) : [];
+
+    sectionNames = new Map(Array.isArray(state.sectionNames) ? state.sectionNames : []);
+    sectionColors = new Map(Array.isArray(state.sectionColors) ? state.sectionColors : []);
+    sectionRawText.clear();
+    if (Array.isArray(state.sectionRawTextEntries)) {
+      state.sectionRawTextEntries.forEach(([sectionId, rawText]) => {
+        if (!sectionId) return;
+        sectionRawText.set(sectionId, String(rawText || ""));
+      });
+    }
+
+    highlightedSeatIds = new Set(Array.isArray(state.highlightedSeatIds) ? state.highlightedSeatIds : []);
+    selectionOrderCounter = Number.isFinite(state.selectionOrderCounter) ? state.selectionOrderCounter : 1;
+    lastSelectedSeatId = state.lastSelectedSeatId || null;
+    lastSelectionSource = state.lastSelectionSource || "program";
+    hasUnsavedChanges = !!state.hasUnsavedChanges;
+    layoutBounds = state.layoutBounds && typeof state.layoutBounds === "object" ? { ...state.layoutBounds } : null;
+
+    priceRegions.length = 0;
+    const restoredPriceRegions = Array.isArray(state.priceRegions)
+      ? cloneJsonData(state.priceRegions, [])
+      : [];
+    restoredPriceRegions.forEach((region) => {
+      if (region && typeof region === "object") priceRegions.push(region);
+    });
+
+    entryPoints.length = 0;
+    const restoredEntryPoints = Array.isArray(state.entryPoints)
+      ? cloneJsonData(state.entryPoints, [])
+      : [];
+    restoredEntryPoints.forEach((entryPoint) => {
+      if (entryPoint && typeof entryPoint === "object") entryPoints.push(entryPoint);
+    });
+
+    seatBlocks.length = 0;
+    const restoredSeatBlocks = Array.isArray(state.seatBlocks)
+      ? cloneJsonData(state.seatBlocks, [])
+      : [];
+    restoredSeatBlocks.forEach((block) => {
+      if (block && typeof block === "object") seatBlocks.push(block);
+    });
+    ensureSeatBlockRangeIds();
+    activeSeatBlockId = state.activeSeatBlockId || "";
+    if (activeSeatBlockId && !seatBlocks.some((block) => block.id === activeSeatBlockId)) {
+      activeSeatBlockId = seatBlocks[0]?.id || "";
+    }
+
+    numberedImportAssignmentsBySeatId = new Map(
+      Array.isArray(state.numberedImportAssignmentsBySeatId) ? state.numberedImportAssignmentsBySeatId : []
+    );
+    numberedImportPurchases = Array.isArray(state.numberedImportPurchases)
+      ? cloneJsonData(state.numberedImportPurchases, [])
+      : [];
+    numberedImportPurchaseByRefNo = new Map(
+      numberedImportPurchases
+        .filter((purchase) => purchase && purchase.refNo != null)
+        .map((purchase) => [purchase.refNo, purchase])
+    );
+    numberedImportBlockedSeatIds = new Set(
+      Array.isArray(state.numberedImportBlockedSeatIds) ? state.numberedImportBlockedSeatIds : []
+    );
+    numberedImportSelectedSectionKeys = new Set(
+      Array.isArray(state.numberedImportSelectedSectionKeys) ? state.numberedImportSelectedSectionKeys : []
+    );
+    numberedImportUseAllSections = typeof state.numberedImportUseAllSections === "boolean"
+      ? state.numberedImportUseAllSections
+      : true;
+    numberedImportPlacementMode = state.numberedImportPlacementMode === "seat" ? "seat" : "all";
+    numberedImportAutoOrderMode = state.numberedImportAutoOrderMode === "goodness" ? "goodness" : "row1";
+    numberedImportSelectedRefNo = state.numberedImportSelectedRefNo || "";
+    numberedImportDraggingRefNo = state.numberedImportDraggingRefNo || "";
+    numberedImportValidationErrors = Array.isArray(state.numberedImportValidationErrors) ? [...state.numberedImportValidationErrors] : [];
+    numberedImportValidationWarnings = Array.isArray(state.numberedImportValidationWarnings) ? [...state.numberedImportValidationWarnings] : [];
+    numberedImportReady = !!state.numberedImportReady;
+    numberedImportHoverPreviewRefNo = state.numberedImportHoverPreviewRefNo || "";
+    numberedImportHoverPreviewSeatId = state.numberedImportHoverPreviewSeatId || "";
+    numberedImportHoverPreviewSeatIds = new Set(
+      Array.isArray(state.numberedImportHoverPreviewSeatIds) ? state.numberedImportHoverPreviewSeatIds : []
+    );
+    numberedImportContextRefNo = state.numberedImportContextRefNo || "";
+    numberedImportContextRowId = state.numberedImportContextRowId || "";
+    reshapePivotSeatId = state.reshapePivotSeatId || null;
+
+    const restoredSelectionMode = state.selectionMode === "row" || state.selectionMode === "seat"
+      ? state.selectionMode
+      : "section";
+    setSelectionMode(restoredSelectionMode);
+
+    rebuildSeatLineIndex();
+    const textFromLines = originalLines.join("\n");
+    if (codePane.value !== textFromLines) {
+      codePane.value = textFromLines;
+    }
+
+    updateHighlightSeatsButtonLabel();
+    renderPriceRegionList();
+    updatePriceRegionUi();
+    updatePriceRegionStatus();
+    syncEntryPointsFromSeats();
+    renderEntryPointList();
+    updateEntryPointUi();
+    renderSeatBlockList();
+    updateSeatBlockUi();
+    updateNumberedImportStateUi();
+
+    seatCountEl.textContent = seats.length.toString();
+    const uniqueSections = new Set(seats.map((seat) => seat.sectionId).filter(Boolean));
+    sectionCountEl.textContent = uniqueSections.size.toString();
+
+    updateMoveButtonState();
+    renderCanvas();
+    updateSaveButton();
+    updateHistoryPanel();
+    scheduleValidationPanelRefresh();
+    saveSessionToLocalStorage();
+  }
+
+  function countSelectedSeatsFromSnapshot(snapshot) {
+    if (!snapshot || !Array.isArray(snapshot.seats)) return 0;
+    let count = 0;
+    snapshot.seats.forEach((seat) => {
+      if (seat && seat.selected) count += 1;
+    });
+    return count;
+  }
+
+  function countUniqueSectionsFromSnapshot(snapshot) {
+    if (!snapshot || !Array.isArray(snapshot.seats)) return 0;
+    const sectionIds = new Set();
+    snapshot.seats.forEach((seat) => {
+      const sectionId = String(seat?.sectionId || "").trim();
+      if (sectionId) sectionIds.add(sectionId);
+    });
+    return sectionIds.size;
+  }
+
+  function buildHistorySnapshotLabel(previousSnapshot, snapshot, explicitLabel = "") {
+    const explicit = String(explicitLabel || "").trim();
+    if (explicit) return explicit;
+    if (!previousSnapshot) return "Initial state";
+
+    const prevSeatCount = Array.isArray(previousSnapshot.seats) ? previousSnapshot.seats.length : 0;
+    const nextSeatCount = Array.isArray(snapshot.seats) ? snapshot.seats.length : 0;
+    if (prevSeatCount !== nextSeatCount) {
+      const diff = Math.abs(nextSeatCount - prevSeatCount);
+      return nextSeatCount > prevSeatCount ? `Added ${diff} seat(s)` : `Removed ${diff} seat(s)`;
+    }
+
+    const prevSectionCount = countUniqueSectionsFromSnapshot(previousSnapshot);
+    const nextSectionCount = countUniqueSectionsFromSnapshot(snapshot);
+    if (prevSectionCount !== nextSectionCount) {
+      const diff = Math.abs(nextSectionCount - prevSectionCount);
+      return nextSectionCount > prevSectionCount ? `Added ${diff} section(s)` : `Removed ${diff} section(s)`;
+    }
+
+    const prevSelectionCount = countSelectedSeatsFromSnapshot(previousSnapshot);
+    const nextSelectionCount = countSelectedSeatsFromSnapshot(snapshot);
+    if (prevSelectionCount !== nextSelectionCount) {
+      return nextSelectionCount > prevSelectionCount ? "Selection expanded" : "Selection reduced";
+    }
+
+    const prevPriceRegionCount = Array.isArray(previousSnapshot.priceRegions) ? previousSnapshot.priceRegions.length : 0;
+    const nextPriceRegionCount = Array.isArray(snapshot.priceRegions) ? snapshot.priceRegions.length : 0;
+    if (prevPriceRegionCount !== nextPriceRegionCount) {
+      const diff = Math.abs(nextPriceRegionCount - prevPriceRegionCount);
+      return nextPriceRegionCount > prevPriceRegionCount
+        ? `Added ${diff} price region(s)`
+        : `Removed ${diff} price region(s)`;
+    }
+
+    const prevEntryPointCount = Array.isArray(previousSnapshot.entryPoints) ? previousSnapshot.entryPoints.length : 0;
+    const nextEntryPointCount = Array.isArray(snapshot.entryPoints) ? snapshot.entryPoints.length : 0;
+    if (prevEntryPointCount !== nextEntryPointCount) {
+      const diff = Math.abs(nextEntryPointCount - prevEntryPointCount);
+      return nextEntryPointCount > prevEntryPointCount
+        ? `Added ${diff} entry point(s)`
+        : `Removed ${diff} entry point(s)`;
+    }
+
+    const prevLineCount = Array.isArray(previousSnapshot.originalLines) ? previousSnapshot.originalLines.length : 0;
+    const nextLineCount = Array.isArray(snapshot.originalLines) ? snapshot.originalLines.length : 0;
+    if (prevLineCount !== nextLineCount) {
+      return "Layout updated";
+    }
+
+    return "Update";
+  }
+
+  function buildHistorySnapshotMeta(previousSnapshot, snapshot, explicitLabel = "") {
+    return {
+      label: buildHistorySnapshotLabel(previousSnapshot, snapshot, explicitLabel),
+      createdAt: Date.now()
+    };
+  }
+
+  function formatHistoryTime(value) {
+    const ts = Number(value);
+    if (!Number.isFinite(ts)) return "--:--:--";
+    try {
+      return new Date(ts).toLocaleTimeString("sv-SE", {
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit"
+      });
+    } catch (_) {
+      return "--:--:--";
+    }
+  }
+
+  function updateHistoryPanel() {
+    if (!historyList || !historyPositionLabel) return;
+    historyPositionLabel.textContent = `${historyIndex >= 0 ? historyIndex + 1 : 0} / ${history.length}`;
+    if (historyBackBtn) historyBackBtn.disabled = historyIndex <= 0;
+    if (historyForwardBtn) historyForwardBtn.disabled = historyIndex < 0 || historyIndex >= history.length - 1;
+
+    historyList.innerHTML = "";
+    if (!history.length) {
+      const empty = document.createElement("div");
+      empty.className = "u-font--small";
+      empty.style.color = "var(--tick-grey)";
+      empty.textContent = "No history yet.";
+      historyList.appendChild(empty);
+      return;
+    }
+
+    for (let i = history.length - 1; i >= 0; i--) {
+      const snapshot = history[i] || {};
+      const meta = snapshot._meta || {};
+      const item = document.createElement("button");
+      item.type = "button";
+      item.className = `history-panel__item${i === historyIndex ? " history-panel__item--active" : ""}`;
+      item.dataset.historyIndex = String(i);
+
+      const indexEl = document.createElement("span");
+      indexEl.className = "history-panel__item-index";
+      indexEl.textContent = `#${i + 1}`;
+
+      const labelEl = document.createElement("span");
+      labelEl.className = "history-panel__item-label";
+      labelEl.textContent = meta.label || "Update";
+
+      const timeEl = document.createElement("span");
+      timeEl.className = "history-panel__item-time";
+      timeEl.textContent = formatHistoryTime(meta.createdAt);
+
+      item.appendChild(indexEl);
+      item.appendChild(labelEl);
+      item.appendChild(timeEl);
+      historyList.appendChild(item);
+    }
+  }
+
+  function jumpToHistoryIndex(nextIndex) {
+    if (!history.length) return false;
+    const boundedIndex = Math.max(0, Math.min(history.length - 1, Math.floor(nextIndex)));
+    if (boundedIndex === historyIndex) return false;
+    historyIndex = boundedIndex;
+    const state = history[historyIndex];
+    applyHistoryState(state);
+    updateHistoryPanel();
+    return true;
+  }
+
+  function stepHistory(step) {
+    return jumpToHistoryIndex(historyIndex + step);
+  }
+
+  function pushHistorySnapshot(label = "") {
+    const snapshot = captureHistoryState();
+    const previousSnapshot = historyIndex >= 0 ? history[historyIndex] : null;
+    snapshot._meta = buildHistorySnapshotMeta(previousSnapshot, snapshot, label);
     history = history.slice(0, historyIndex + 1);
     history.push(snapshot);
+    if (history.length > HISTORY_LIMIT) {
+      const overflow = history.length - HISTORY_LIMIT;
+      history.splice(0, overflow);
+    }
     historyIndex = history.length - 1;
+    updateHistoryPanel();
+    scheduleValidationPanelRefresh();
   }
 
   function undoLast() {
     if (historyIndex > 0) {
       historyIndex--;
       const state = history[historyIndex];
-      applySeatState(state);
+      applyHistoryState(state);
+      updateHistoryPanel();
     }
   }
 
@@ -5787,6 +6428,9 @@ codePane.addEventListener("input", () => {
     forceSaveAs = true;
     currentFileName = baseName ? `${baseName}.tlt` : "";
     hasUnsavedChanges = false;
+    history = [];
+    historyIndex = -1;
+    pushHistorySnapshot();
     updateSaveButton();
     seatCountEl.textContent = "0";
     sectionCountEl.textContent = "0";
@@ -5821,6 +6465,10 @@ codePane.addEventListener("input", () => {
     currentFileName = "";
     forceSaveAs = true;
     hasUnsavedChanges = false;
+    history = [];
+    historyIndex = -1;
+    updateHistoryPanel();
+    scheduleValidationPanelRefresh();
     restoredSession = false;
     seatCountEl.textContent = "0";
     sectionCountEl.textContent = "0";
@@ -6782,20 +7430,22 @@ codePane.addEventListener("input", () => {
     const statusEl = document.getElementById("priceRegionStatus");
     if (!statusEl) return;
     if (!seats.length) {
-      statusEl.textContent = "❌";
+      statusEl.textContent = "\u274C";
       statusEl.title = "No seats in the layout";
       updateExportOptionsAvailability();
+      scheduleValidationPanelRefresh();
       return;
     }
     const { allCovered, hasStaleMappings } = getPriceRegionMappingStatus();
     const isOk = allCovered && !hasStaleMappings;
-    statusEl.textContent = hasStaleMappings ? "⚠️" : (isOk ? "✅" : "❌");
+    statusEl.textContent = hasStaleMappings ? "\u26A0\uFE0F" : (isOk ? "\u2705" : "\u274C");
     if (hasStaleMappings) {
       statusEl.title = "Price regions reference seats/rows/sections that do not exist in this layout";
     } else {
       statusEl.title = isOk ? "All seats belong to a price region" : "Some seats have no price region";
     }
     updateExportOptionsAvailability();
+    scheduleValidationPanelRefresh();
   }
 
   function updateExportOptionsAvailability() {
@@ -6827,6 +7477,222 @@ codePane.addEventListener("input", () => {
     updateSvgSupportOptionAvailability();
   }
 
+  function countSeatsWithoutPriceRegionsForValidation() {
+    if (!Array.isArray(seats) || !seats.length) return 0;
+    const lookups = buildPriceRegionLookups();
+    let count = 0;
+    seats.forEach((seat) => {
+      if (!getSeatPriceRegionColor(seat, lookups)) count += 1;
+    });
+    return count;
+  }
+
+  function countSeatsWithoutEntryPointsForValidation() {
+    if (!Array.isArray(seats) || !seats.length) return 0;
+    let count = 0;
+    seats.forEach((seat) => {
+      const entryVia = typeof seat?.entryVia === "string" ? seat.entryVia.trim() : "";
+      if (!entryVia || entryVia === "-") count += 1;
+    });
+    return count;
+  }
+
+  function countPriceRegionsWithStaleMappingsForValidation() {
+    if (!Array.isArray(priceRegions) || !priceRegions.length) return 0;
+    const existingSeatIds = new Set(seats.map((s) => s.seatId));
+    const existingRowIds = new Set(seats.map((s) => s.rowId).filter(Boolean));
+    const existingSectionIds = new Set(seats.map((s) => s.sectionId).filter(Boolean));
+    let staleCount = 0;
+    priceRegions.forEach((region) => {
+      if (!region) return;
+      const hasStale = (Array.isArray(region.sections) && region.sections.some((id) => !existingSectionIds.has(id)))
+        || (Array.isArray(region.rows) && region.rows.some((id) => !existingRowIds.has(id)))
+        || (Array.isArray(region.seats) && region.seats.some((id) => !existingSeatIds.has(id)));
+      if (hasStale) staleCount += 1;
+    });
+    return staleCount;
+  }
+
+  function collectDuplicateSectionNamesForValidation() {
+    const nameBySectionId = new Map();
+    seats.forEach((seat) => {
+      const sectionId = String(seat?.sectionId || "").trim();
+      if (!sectionId || nameBySectionId.has(sectionId)) return;
+      const fallbackName = sectionNames.get(sectionId) || seat.sectionName || sectionId;
+      const name = String(fallbackName || "").trim();
+      if (name) nameBySectionId.set(sectionId, name);
+    });
+
+    const buckets = new Map();
+    nameBySectionId.forEach((name) => {
+      const key = name.toLowerCase();
+      if (!buckets.has(key)) buckets.set(key, { name, count: 0 });
+      buckets.get(key).count += 1;
+    });
+
+    const duplicates = [];
+    buckets.forEach((entry) => {
+      if (entry.count > 1) duplicates.push(entry.name);
+    });
+    duplicates.sort((a, b) => a.localeCompare(b, "sv", { sensitivity: "base", numeric: true }));
+    return duplicates;
+  }
+
+  function collectValidationItems() {
+    const items = [];
+    if (!Array.isArray(seats) || !seats.length) {
+      items.push({
+        level: "warning",
+        text: "No seats in the layout.",
+        action: null
+      });
+      return items;
+    }
+
+    const seatsWithoutPrice = countSeatsWithoutPriceRegionsForValidation();
+    if (seatsWithoutPrice > 0) {
+      items.push({
+        level: "warning",
+        text: `${seatsWithoutPrice} seat(s) are missing a price region.`,
+        action: { id: "select-no-price", label: "Select" }
+      });
+    }
+
+    const stalePriceRegions = countPriceRegionsWithStaleMappingsForValidation();
+    if (stalePriceRegions > 0) {
+      items.push({
+        level: "error",
+        text: `${stalePriceRegions} price region(s) reference rows/sections/seats that do not exist.`,
+        action: { id: "open-price-regions", label: "Open" }
+      });
+    }
+
+    const seatsWithoutEntry = countSeatsWithoutEntryPointsForValidation();
+    if (seatsWithoutEntry > 0) {
+      items.push({
+        level: "warning",
+        text: `${seatsWithoutEntry} seat(s) are missing an entry point.`,
+        action: { id: "select-no-entry", label: "Select" }
+      });
+    }
+
+    const duplicateSectionNames = collectDuplicateSectionNamesForValidation();
+    if (duplicateSectionNames.length) {
+      const preview = duplicateSectionNames.slice(0, 5).join(", ");
+      const suffix = duplicateSectionNames.length > 5 ? ", ..." : "";
+      items.push({
+        level: "warning",
+        text: `Duplicate section names: ${preview}${suffix}`,
+        action: null
+      });
+    }
+
+    const integrityIssues = collectLayoutIntegrityIssuesFromLines(originalLines);
+    const integrityMessages = buildLayoutIntegrityMessages(integrityIssues);
+    integrityMessages.forEach((message) => {
+      items.push({
+        level: "error",
+        text: message,
+        action: null
+      });
+    });
+
+    if (numberedImportMode) {
+      if (numberedImportValidationErrors.length) {
+        items.push({
+          level: "error",
+          text: `Import validation has ${numberedImportValidationErrors.length} error(s).`,
+          action: { id: "open-import-panel", label: "Open" }
+        });
+      } else if (numberedImportValidationWarnings.length) {
+        items.push({
+          level: "warning",
+          text: `Import validation has ${numberedImportValidationWarnings.length} warning(s).`,
+          action: { id: "open-import-panel", label: "Open" }
+        });
+      }
+    }
+
+    if (!items.length) {
+      items.push({
+        level: "ok",
+        text: "No validation issues found.",
+        action: null
+      });
+    }
+    return items;
+  }
+
+  function updateValidationPanel() {
+    if (!validationList || !validationSummary || !validationStatusBadge) return;
+    const items = collectValidationItems();
+    const errorCount = items.filter((item) => item.level === "error").length;
+    const warningCount = items.filter((item) => item.level === "warning").length;
+    const okOnly = errorCount === 0 && warningCount === 0;
+
+    validationStatusBadge.textContent = errorCount > 0 ? "\u274C" : (warningCount > 0 ? "\u26A0\uFE0F" : "\u2705");
+    validationStatusBadge.title = errorCount > 0
+      ? `${errorCount} error(s)`
+      : (warningCount > 0 ? `${warningCount} warning(s)` : "No issues");
+
+    if (okOnly) {
+      validationSummary.textContent = "No warnings or errors.";
+    } else {
+      const parts = [];
+      if (errorCount > 0) parts.push(`${errorCount} error(s)`);
+      if (warningCount > 0) parts.push(`${warningCount} warning(s)`);
+      validationSummary.textContent = parts.join(" \u2022 ");
+    }
+
+    validationList.innerHTML = "";
+    items.forEach((item) => {
+      const row = document.createElement("div");
+      row.className = `validation-item validation-item--${item.level || "warning"}`;
+
+      const text = document.createElement("div");
+      text.className = "validation-item__text";
+      text.textContent = item.text || "";
+      row.appendChild(text);
+
+      if (item.action && item.action.id) {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "c-button c-button--ghost c-button--small";
+        btn.dataset.validationAction = item.action.id;
+        btn.textContent = item.action.label || "Open";
+        row.appendChild(btn);
+      }
+      validationList.appendChild(row);
+    });
+  }
+
+  function scheduleValidationPanelRefresh() {
+    if (validationRefreshRaf != null) return;
+    validationRefreshRaf = window.requestAnimationFrame(() => {
+      validationRefreshRaf = null;
+      updateValidationPanel();
+    });
+  }
+
+  function handleValidationAction(actionId) {
+    if (!actionId) return;
+    if (actionId === "select-no-price") {
+      selectSeatsWithoutPriceRegions();
+      return;
+    }
+    if (actionId === "select-no-entry") {
+      selectSeatsWithoutEntryPoints();
+      return;
+    }
+    if (actionId === "open-price-regions") {
+      openRightPanelCard(priceRegionList?.closest(".c-card"));
+      return;
+    }
+    if (actionId === "open-import-panel") {
+      if (numberedImportMode) openRightPanelCard(numberedImportCard);
+    }
+  }
+
   function setSvgDependentExportOptionState(input, enabled, tooltip) {
     if (!input) return;
     const label = input.closest(".export-option");
@@ -6855,6 +7721,103 @@ codePane.addEventListener("input", () => {
     setSvgDependentExportOptionState(exportSvgSupport, enabled, supportTooltip);
     setSvgDependentExportOptionState(exportFgSeats, enabled, fgTooltip);
     setSvgDependentExportOptionState(exportFgRows, enabled, fgTooltip);
+  }
+
+  function getSelectedSectionEntries() {
+    const selected = getSelectedSeats();
+    if (!selected.length) return [];
+    const bySection = new Map();
+    selected.forEach((seat) => {
+      const sectionId = String(seat?.sectionId || "").trim();
+      if (!sectionId) return;
+      if (!bySection.has(sectionId)) {
+        bySection.set(sectionId, {
+          sectionId,
+          order: Infinity
+        });
+      }
+      const entry = bySection.get(sectionId);
+      const seatOrder = Number.isFinite(seat.selectedAt) ? seat.selectedAt : Infinity;
+      if (seatOrder < entry.order) entry.order = seatOrder;
+    });
+    const entries = Array.from(bySection.values());
+    entries.sort((first, second) => {
+      if (first.order !== second.order) return first.order - second.order;
+      return compareSectionIdsForSort(first.sectionId, second.sectionId);
+    });
+    return entries;
+  }
+
+  function buildSectionRows(sectionId) {
+    const rowsById = new Map();
+    seats.forEach((seat) => {
+      if (!seat || seat.sectionId !== sectionId || !seat.rowId) return;
+      if (!rowsById.has(seat.rowId)) rowsById.set(seat.rowId, []);
+      rowsById.get(seat.rowId).push(seat);
+    });
+    const rowEntries = Array.from(rowsById.entries()).map(([rowId, rowSeats]) => ({ rowId, rowSeats }));
+    rowEntries.sort((first, second) => compareRowIdsForSort(first.rowId, second.rowId));
+    return rowEntries;
+  }
+
+  function buildDefaultDuplicateSectionNames(sectionIds) {
+    const existing = new Set();
+    sectionNames.forEach((name, sectionId) => {
+      const normalized = normalizeSectionName(name || sectionId);
+      if (normalized) existing.add(normalized);
+    });
+    const defaults = [];
+    sectionIds.forEach((sectionId) => {
+      const sourceName = (sectionNames.get(sectionId) || sectionId || "").trim() || sectionId;
+      const safeSourceName = sourceName.replace(/\./g, " ").trim() || `Section ${sectionId}`;
+      let suffix = 1;
+      let candidate = "";
+      while (true) {
+        const suffixText = suffix === 1 ? " Copy" : ` Copy ${suffix}`;
+        const maxBaseLength = Math.max(1, SECTION_NAME_MAX - suffixText.length);
+        const base = safeSourceName.slice(0, maxBaseLength).trim() || `Section ${sectionId}`;
+        candidate = `${base}${suffixText}`;
+        const key = normalizeSectionName(candidate);
+        if (!existing.has(key)) {
+          existing.add(key);
+          defaults.push(candidate);
+          break;
+        }
+        suffix += 1;
+      }
+    });
+    return defaults;
+  }
+
+  function parseDuplicateSectionNames(raw) {
+    return String(raw || "")
+      .split(/\r?\n|,/)
+      .map((part) => part.trim())
+      .filter(Boolean);
+  }
+
+  function openDuplicateSectionModal() {
+    if (selectionMode !== "section") return;
+    const entries = getSelectedSectionEntries();
+    if (!entries.length) return;
+    duplicateSectionSourceIds = entries.map((entry) => entry.sectionId);
+    const defaults = buildDefaultDuplicateSectionNames(duplicateSectionSourceIds);
+    if (duplicateSectionNames) {
+      duplicateSectionNames.value = defaults.join("\n");
+    }
+    if (duplicateSectionHint) {
+      const sourcePreview = duplicateSectionSourceIds.join(", ");
+      duplicateSectionHint.textContent = `${duplicateSectionSourceIds.length} section(s) selected: ${sourcePreview}`;
+    }
+    if (duplicateSectionOverlay) duplicateSectionOverlay.style.display = "flex";
+    if (duplicateSectionNames) {
+      setTimeout(() => duplicateSectionNames.focus(), 50);
+    }
+  }
+
+  function closeDuplicateSectionModal() {
+    if (duplicateSectionOverlay) duplicateSectionOverlay.style.display = "none";
+    duplicateSectionSourceIds = [];
   }
 
   function openPriceRegionModal() {
@@ -6925,6 +7888,7 @@ codePane.addEventListener("input", () => {
   function isShortcutBlockingModalOpen() {
     return (
       isOverlayOpen(newLayoutOverlay) ||
+      isOverlayOpen(duplicateSectionOverlay) ||
       isOverlayOpen(priceRegionOverlay) ||
       isOverlayOpen(priceRegionStaleOverlay) ||
       isOverlayOpen(entryPointOverlay) ||
@@ -7409,6 +8373,54 @@ codePane.addEventListener("input", () => {
       row: Number.isFinite(row) ? row : null,
       seat: Number.isFinite(seat) ? seat : null
     };
+  }
+
+  function compareSectionIdsForSort(firstSectionId, secondSectionId) {
+    const first = parseSectionIdParts(firstSectionId);
+    const second = parseSectionIdParts(secondSectionId);
+    if (first.major != null && second.major != null && first.major !== second.major) return first.major - second.major;
+    if (first.major != null && second.major == null) return -1;
+    if (first.major == null && second.major != null) return 1;
+    if (first.minor != null && second.minor != null && first.minor !== second.minor) return first.minor - second.minor;
+    if (first.minor != null && second.minor == null) return -1;
+    if (first.minor == null && second.minor != null) return 1;
+    return String(firstSectionId || "").localeCompare(String(secondSectionId || ""), "sv", { numeric: true, sensitivity: "base" });
+  }
+
+  function compareRowIdsForSort(firstRowId, secondRowId) {
+    const first = parseRowIdParts(firstRowId);
+    const second = parseRowIdParts(secondRowId);
+    if (first.major != null && second.major != null && first.major !== second.major) return first.major - second.major;
+    if (first.major != null && second.major == null) return -1;
+    if (first.major == null && second.major != null) return 1;
+    if (first.minor != null && second.minor != null && first.minor !== second.minor) return first.minor - second.minor;
+    if (first.minor != null && second.minor == null) return -1;
+    if (first.minor == null && second.minor != null) return 1;
+    if (first.row != null && second.row != null && first.row !== second.row) return first.row - second.row;
+    if (first.row != null && second.row == null) return -1;
+    if (first.row == null && second.row != null) return 1;
+    return String(firstRowId || "").localeCompare(String(secondRowId || ""), "sv", { numeric: true, sensitivity: "base" });
+  }
+
+  function cloneLayoutSeat(seat) {
+    if (!seat || typeof seat !== "object") return seat;
+    return {
+      ...seat,
+      attributes: Array.isArray(seat.attributes) ? [...seat.attributes] : []
+    };
+  }
+
+  function cloneJsonData(value, fallbackValue = null) {
+    if (typeof structuredClone === "function") {
+      try {
+        return structuredClone(value);
+      } catch (_) {}
+    }
+    try {
+      return JSON.parse(JSON.stringify(value));
+    } catch (_) {
+      return fallbackValue;
+    }
   }
 
   function rowIdToSvgCode(rowId) {
@@ -11011,6 +12023,7 @@ codePane.addEventListener("input", () => {
       const hasItems = entryPoint ? getEntryPointSeatIds(entryPoint).size > 0 : false;
       btn.disabled = numberedImportMode || !hasItems;
     });
+    scheduleValidationPanelRefresh();
   }
 
   function openEntryPointModal() {
@@ -11252,6 +12265,7 @@ codePane.addEventListener("input", () => {
     closeSeatEditModal();
     closeRowEditModal();
     closeSectionEditModal();
+    closeDuplicateSectionModal();
     closePriceRegionModal();
     closePriceRegionStaleModal();
     closeEntryPointModal();
@@ -11353,6 +12367,53 @@ codePane.addEventListener("input", () => {
   newLayoutBtn?.addEventListener("click", openNewLayoutModal);
   newLayoutCancel?.addEventListener("click", closeNewLayoutModal);
   newLayoutStart?.addEventListener("click", handleStartNewLayout);
+  duplicateSectionCancel?.addEventListener("click", closeDuplicateSectionModal);
+  duplicateSectionOverlay?.addEventListener("click", (e) => {
+    if (e.target === duplicateSectionOverlay) closeDuplicateSectionModal();
+  });
+  duplicateSectionCreate?.addEventListener("click", () => {
+    const sourceSectionIds = [...duplicateSectionSourceIds];
+    if (!sourceSectionIds.length) {
+      closeDuplicateSectionModal();
+      return;
+    }
+    const names = parseDuplicateSectionNames(duplicateSectionNames?.value || "");
+    if (names.length !== sourceSectionIds.length) {
+      alert(`Enter exactly ${sourceSectionIds.length} section name(s), one per line.`);
+      return;
+    }
+    const duplicateNames = new Set();
+    const existingKeys = new Set();
+    sectionNames.forEach((name, sectionId) => {
+      const key = normalizeSectionName(name || sectionId);
+      if (key) existingKeys.add(key);
+    });
+    for (const name of names) {
+      const error = getSectionNameValidationError(name);
+      if (error) {
+        alert(error);
+        return;
+      }
+      const key = normalizeSectionName(name);
+      if (duplicateNames.has(key)) {
+        alert(`Duplicate section name "${name}".`);
+        return;
+      }
+      if (existingKeys.has(key)) {
+        alert(`Section name "${name}" is already in use.`);
+        return;
+      }
+      duplicateNames.add(key);
+    }
+    const changed = duplicateSelectedSectionsWithNames(sourceSectionIds, names);
+    if (changed) closeDuplicateSectionModal();
+  });
+  duplicateSectionNames?.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+      e.preventDefault();
+      duplicateSectionCreate?.click();
+    }
+  });
   appMenuToggleBtn?.addEventListener("click", toggleAppMenu);
   appMenuOverlay?.addEventListener("click", (e) => {
     if (e.target === appMenuOverlay) closeAppMenu();
@@ -14544,6 +15605,382 @@ function nudgeSelection(dxScreen, dyScreen) {
     return true;
   }
 
+  function duplicateSelectedSectionsWithNames(sourceSectionIds, targetSectionNames) {
+    if (!Array.isArray(sourceSectionIds) || !Array.isArray(targetSectionNames)) return false;
+    if (!sourceSectionIds.length || sourceSectionIds.length !== targetSectionNames.length) return false;
+
+    const usedSectionIds = new Set();
+    sectionNames.forEach((_, sectionId) => usedSectionIds.add(sectionId));
+    seats.forEach((seat) => {
+      if (seat?.sectionId) usedSectionIds.add(seat.sectionId);
+    });
+    sectionDrafts?.forEach((draft) => {
+      if (draft?.sectionId) usedSectionIds.add(draft.sectionId);
+    });
+
+    const sectionIdMap = new Map();
+    const rowIdMap = new Map();
+    const seatIdMap = new Map();
+    const duplicatedSeats = [];
+    const createdSectionIds = [];
+    const createdTimestamp = buildTimestamp();
+
+    sourceSectionIds.forEach((sourceSectionId, sectionIndex) => {
+      const nextSectionId = computeNextSectionIdFromIds(usedSectionIds);
+      if (!nextSectionId) return;
+      usedSectionIds.add(nextSectionId);
+      sectionIdMap.set(sourceSectionId, nextSectionId);
+      createdSectionIds.push(nextSectionId);
+
+      const nextSectionName = String(targetSectionNames[sectionIndex] || "").trim() || nextSectionId;
+      sectionNames.set(nextSectionId, nextSectionName);
+      if (sectionRawText.has(sourceSectionId) && !sectionRawText.has(nextSectionId)) {
+        sectionRawText.set(nextSectionId, sectionRawText.get(sourceSectionId));
+      }
+
+      const rows = buildSectionRows(sourceSectionId);
+      let nextRowNumber = 1;
+      rows.forEach((rowEntry) => {
+        const nextRowId = `${nextSectionId}.${nextRowNumber++}`;
+        rowIdMap.set(rowEntry.rowId, nextRowId);
+        const rowName = String(rowEntry.rowSeats[0]?.rowName || rowEntry.rowId || nextRowId).trim() || nextRowId;
+        const orderedSeats = sortSeatsInRow(rowEntry.rowSeats);
+        orderedSeats.forEach((sourceSeat, seatIndex) => {
+          const oldSeatId = String(sourceSeat?.seatId || "").trim();
+          if (!oldSeatId) return;
+          const nextSeatId = `${nextRowId}.${seatIndex + 1}`;
+          seatIdMap.set(oldSeatId, nextSeatId);
+
+          const nextSeat = cloneLayoutSeat(sourceSeat);
+          nextSeat.seatId = nextSeatId;
+          nextSeat.sectionId = nextSectionId;
+          nextSeat.sectionName = nextSectionName;
+          nextSeat.rowId = nextRowId;
+          nextSeat.rowName = rowName;
+          nextSeat.selected = false;
+          nextSeat.selectedAt = null;
+          nextSeat.lineIndex = -1;
+          if (!nextSeat.timestamp) nextSeat.timestamp = createdTimestamp;
+          duplicatedSeats.push(nextSeat);
+        });
+      });
+    });
+
+    if (!duplicatedSeats.length) return false;
+
+    clearSelectionSeats(seats);
+    seats.push(...duplicatedSeats);
+    markSeatsSelected(duplicatedSeats, duplicatedSeats[duplicatedSeats.length - 1]?.seatId || null);
+
+    const appendMappedValues = (values, map) => {
+      if (!Array.isArray(values) || !values.length || !(map instanceof Map) || map.size === 0) {
+        return { next: values, changed: false };
+      }
+      const next = [...values];
+      const seen = new Set(next);
+      let changed = false;
+      values.forEach((value) => {
+        const mapped = map.get(value);
+        if (!mapped || seen.has(mapped)) return;
+        seen.add(mapped);
+        next.push(mapped);
+        changed = true;
+      });
+      return { next, changed };
+    };
+
+    let priceRegionChanged = false;
+    priceRegions.forEach((region) => {
+      const sectionRes = appendMappedValues(region.sections, sectionIdMap);
+      if (sectionRes.changed) {
+        region.sections = sectionRes.next;
+        priceRegionChanged = true;
+      }
+      const rowRes = appendMappedValues(region.rows, rowIdMap);
+      if (rowRes.changed) {
+        region.rows = rowRes.next;
+        priceRegionChanged = true;
+      }
+      const seatRes = appendMappedValues(region.seats, seatIdMap);
+      if (seatRes.changed) {
+        region.seats = seatRes.next;
+        priceRegionChanged = true;
+      }
+      if (priceRegionChanged) normalizePriceRegionTargets(region);
+    });
+    if (priceRegionChanged) {
+      savePriceRegionsToStorage();
+      renderPriceRegionList();
+      updatePriceRegionUi();
+    }
+
+    let seatBlockChanged = false;
+    seatBlocks.forEach((block) => {
+      if (!Array.isArray(block.seats) || !block.seats.length) return;
+      const existing = new Set(block.seats);
+      let didChangeBlock = false;
+      block.seats.forEach((seatId) => {
+        const mapped = seatIdMap.get(seatId);
+        if (!mapped || existing.has(mapped)) return;
+        existing.add(mapped);
+        block.seats.push(mapped);
+        didChangeBlock = true;
+      });
+      if (didChangeBlock) seatBlockChanged = true;
+    });
+    if (seatBlockChanged) {
+      saveSeatBlocksToStorage();
+      renderSeatBlockList();
+    }
+
+    if (highlightedSeatIds.size) {
+      const nextHighlight = new Set(highlightedSeatIds);
+      highlightedSeatIds.forEach((seatId) => {
+        const mapped = seatIdMap.get(seatId);
+        if (mapped) nextHighlight.add(mapped);
+      });
+      highlightedSeatIds = nextHighlight;
+      updateHighlightSeatsButtonLabel();
+    }
+
+    const normalizedStructure = normalizeLayoutStructureForPersist();
+    if (!normalizedStructure) {
+      const ensuredStructure = ensureSectionAndRowLinesForSeats();
+      const cleanedStructure = cleanupDanglingLayoutStructureLines();
+      if (!ensuredStructure && !cleanedStructure) rebuildSeatLineIndex();
+    }
+
+    rebuildSectionColors();
+    updateCountsAfterSeatChange();
+    syncEntryPointsFromSeats();
+    renderEntryPointList();
+    updatePriceRegionStatus();
+    updateEntryPointUi();
+    updateSeatBlockUi();
+    if (!normalizedStructure) {
+      updateCodeFromSeats();
+    }
+    const newText = originalLines.join("\n");
+    if (codePane.value !== newText) {
+      codePane.value = newText;
+    }
+    updateNumberedImportStateUi();
+    renderCanvas();
+    updateMoveButtonState();
+    hasUnsavedChanges = true;
+    updateSaveButton();
+    saveSessionToLocalStorage();
+    pushHistorySnapshot();
+    return createdSectionIds.length > 0;
+  }
+
+  function mergeSelectedSections() {
+    if (selectionMode !== "section") return false;
+    const selectedSections = getSelectedSectionEntries();
+    if (selectedSections.length !== 2) return false;
+
+    const orderedSections = [...selectedSections].sort((first, second) =>
+      compareSectionIdsForSort(first.sectionId, second.sectionId)
+    );
+    const keepSectionId = orderedSections[0]?.sectionId || "";
+    const mergeSectionId = orderedSections[1]?.sectionId || "";
+    if (!keepSectionId || !mergeSectionId || keepSectionId === mergeSectionId) return false;
+
+    const keepSectionName = String(
+      sectionNames.get(keepSectionId) ||
+      seats.find((seat) => seat.sectionId === keepSectionId)?.sectionName ||
+      keepSectionId
+    ).trim() || keepSectionId;
+    sectionNames.set(keepSectionId, keepSectionName);
+
+    const mergeRows = buildSectionRows(mergeSectionId);
+    if (!mergeRows.length) return false;
+
+    const keepLayout = getSectionRowLayout(keepSectionId);
+    let nextRowNumber = (keepLayout?.maxRowNumber || keepLayout?.entries?.length || 0) + 1;
+
+    const sectionIdMap = new Map([[mergeSectionId, keepSectionId]]);
+    const rowIdMap = new Map();
+    const seatIdMap = new Map();
+
+    mergeRows.forEach((rowEntry) => {
+      const nextRowId = `${keepSectionId}.${nextRowNumber++}`;
+      rowIdMap.set(rowEntry.rowId, nextRowId);
+      const nextRowName = String(rowEntry.rowSeats[0]?.rowName || rowEntry.rowId || nextRowId).trim() || nextRowId;
+      const orderedSeats = sortSeatsInRow(rowEntry.rowSeats);
+      orderedSeats.forEach((seat, seatIndex) => {
+        const oldSeatId = String(seat?.seatId || "").trim();
+        if (!oldSeatId) return;
+        const nextSeatId = `${nextRowId}.${seatIndex + 1}`;
+        seatIdMap.set(oldSeatId, nextSeatId);
+        seat.sectionId = keepSectionId;
+        seat.sectionName = keepSectionName;
+        seat.rowId = nextRowId;
+        seat.rowName = nextRowName;
+        seat.seatId = nextSeatId;
+      });
+    });
+
+    seats.forEach((seat) => {
+      if (seat.sectionId === keepSectionId) {
+        seat.sectionName = keepSectionName;
+      }
+    });
+
+    if (!seatIdMap.size) return false;
+
+    sectionNames.delete(mergeSectionId);
+    sectionColors.delete(mergeSectionId);
+    sectionRawText.delete(mergeSectionId);
+
+    if (lastSelectedSeatId && seatIdMap.has(lastSelectedSeatId)) {
+      lastSelectedSeatId = seatIdMap.get(lastSelectedSeatId);
+    }
+    if (reshapePivotSeatId && seatIdMap.has(reshapePivotSeatId)) {
+      reshapePivotSeatId = seatIdMap.get(reshapePivotSeatId);
+    }
+    if (highlightedSeatIds.size) {
+      highlightedSeatIds = new Set(
+        Array.from(highlightedSeatIds).map((seatId) => seatIdMap.get(seatId) || seatId)
+      );
+      updateHighlightSeatsButtonLabel();
+    }
+
+    let priceRegionChanged = false;
+    priceRegions.forEach((region) => {
+      const sectionRes = remapValueArray(region.sections, sectionIdMap);
+      if (sectionRes.changed) {
+        region.sections = sectionRes.next;
+        priceRegionChanged = true;
+      }
+      const rowRes = remapValueArray(region.rows, rowIdMap);
+      if (rowRes.changed) {
+        region.rows = rowRes.next;
+        priceRegionChanged = true;
+      }
+      const seatRes = remapValueArray(region.seats, seatIdMap);
+      if (seatRes.changed) {
+        region.seats = seatRes.next;
+        priceRegionChanged = true;
+      }
+      if (priceRegionChanged) normalizePriceRegionTargets(region);
+    });
+    if (priceRegionChanged) {
+      savePriceRegionsToStorage();
+      renderPriceRegionList();
+      updatePriceRegionUi();
+    }
+
+    let seatBlockChanged = false;
+    seatBlocks.forEach((block) => {
+      const seatRes = remapValueArray(block.seats, seatIdMap);
+      if (seatRes.changed) {
+        block.seats = seatRes.next;
+        seatBlockChanged = true;
+      }
+    });
+    if (seatBlockChanged) {
+      saveSeatBlocksToStorage();
+      renderSeatBlockList();
+    }
+
+    let numberedImportChanged = false;
+    if (numberedImportAssignmentsBySeatId instanceof Map && numberedImportAssignmentsBySeatId.size) {
+      const nextAssignments = new Map();
+      numberedImportAssignmentsBySeatId.forEach((refNo, seatId) => {
+        const mappedSeatId = seatIdMap.get(seatId) || seatId;
+        if (mappedSeatId !== seatId) numberedImportChanged = true;
+        nextAssignments.set(mappedSeatId, refNo);
+      });
+      if (nextAssignments.size !== numberedImportAssignmentsBySeatId.size) {
+        numberedImportChanged = true;
+      }
+      numberedImportAssignmentsBySeatId = nextAssignments;
+    }
+    numberedImportPurchases.forEach((purchase) => {
+      const seatRes = remapValueArray(purchase?.assignedSeatIds, seatIdMap);
+      if (seatRes.changed) {
+        purchase.assignedSeatIds = seatRes.next;
+        numberedImportChanged = true;
+      }
+    });
+    if (numberedImportBlockedSeatIds instanceof Set && numberedImportBlockedSeatIds.size) {
+      const nextBlocked = new Set();
+      numberedImportBlockedSeatIds.forEach((seatId) => {
+        const mappedSeatId = seatIdMap.get(seatId) || seatId;
+        if (mappedSeatId !== seatId) numberedImportChanged = true;
+        nextBlocked.add(mappedSeatId);
+      });
+      numberedImportBlockedSeatIds = nextBlocked;
+    }
+    if (numberedImportHoverPreviewSeatId) {
+      const mappedSeatId = seatIdMap.get(numberedImportHoverPreviewSeatId) || numberedImportHoverPreviewSeatId;
+      if (mappedSeatId !== numberedImportHoverPreviewSeatId) {
+        numberedImportHoverPreviewSeatId = mappedSeatId;
+        numberedImportChanged = true;
+      }
+    }
+    if (numberedImportHoverPreviewSeatIds instanceof Set && numberedImportHoverPreviewSeatIds.size) {
+      const nextPreviewSet = new Set();
+      numberedImportHoverPreviewSeatIds.forEach((seatId) => {
+        const mappedSeatId = seatIdMap.get(seatId) || seatId;
+        if (mappedSeatId !== seatId) numberedImportChanged = true;
+        nextPreviewSet.add(mappedSeatId);
+      });
+      numberedImportHoverPreviewSeatIds = nextPreviewSet;
+    }
+    if (numberedImportSelectedSectionKeys instanceof Set && numberedImportSelectedSectionKeys.size) {
+      const nextSelectedSections = new Set();
+      numberedImportSelectedSectionKeys.forEach((sectionKey) => {
+        nextSelectedSections.add(sectionIdMap.get(sectionKey) || sectionKey);
+      });
+      if (nextSelectedSections.size !== numberedImportSelectedSectionKeys.size ||
+          Array.from(nextSelectedSections).some((key) => !numberedImportSelectedSectionKeys.has(key))) {
+        numberedImportSelectedSectionKeys = nextSelectedSections;
+        if (!numberedImportSelectedSectionKeys.size) {
+          numberedImportUseAllSections = true;
+        }
+        numberedImportChanged = true;
+      }
+    }
+    if (numberedImportContextRowId && rowIdMap.has(numberedImportContextRowId)) {
+      numberedImportContextRowId = rowIdMap.get(numberedImportContextRowId);
+      numberedImportChanged = true;
+    }
+    if (numberedImportChanged && numberedImportMode) {
+      refreshNumberedImportUi();
+    } else {
+      updateNumberedImportStateUi();
+    }
+
+    const normalizedStructure = normalizeLayoutStructureForPersist();
+    if (!normalizedStructure) {
+      const ensuredStructure = ensureSectionAndRowLinesForSeats();
+      const cleanedStructure = cleanupDanglingLayoutStructureLines();
+      if (!ensuredStructure && !cleanedStructure) rebuildSeatLineIndex();
+    }
+
+    rebuildSectionColors();
+    updateCountsAfterSeatChange();
+    updatePriceRegionStatus();
+    updateEntryPointUi();
+    updateSeatBlockUi();
+    if (!normalizedStructure) {
+      updateCodeFromSeats();
+    }
+    const newText = originalLines.join("\n");
+    if (codePane.value !== newText) {
+      codePane.value = newText;
+    }
+    renderCanvas();
+    updateMoveButtonState();
+    hasUnsavedChanges = true;
+    updateSaveButton();
+    saveSessionToLocalStorage();
+    pushHistorySnapshot();
+    return true;
+  }
+
   function createSectionFromSelection() {
     if (selectionMode !== "seat" && selectionMode !== "row") return false;
     const selected = getSelectedSeats();
@@ -15308,6 +16745,8 @@ function nudgeSelection(dxScreen, dyScreen) {
     const selectionItems = [
       editSeatsMenuItem,
       editRowsMenuItem,
+      duplicateSectionsMenuItem,
+      mergeSectionsMenuItem,
       mergeRowsMenuItem,
       splitRowMenuItem,
       createSectionFromSelectionMenuItem,
@@ -15406,9 +16845,15 @@ function nudgeSelection(dxScreen, dyScreen) {
         const validRows = [...rows.values()].filter(r => r.length >= 2);
         mimicRowShapeMenuItem.disabled = selectionMode !== "row" || validRows.length < 2;
       }
+      const sections = new Set(selectedSeats.map(s => s.sectionId).filter(Boolean));
       if (editSectionsMenuItem) {
-        const sections = new Set(selectedSeats.map(s => s.sectionId).filter(Boolean));
         editSectionsMenuItem.disabled = selectionMode !== "section" || sections.size !== 1;
+      }
+      if (duplicateSectionsMenuItem) {
+        duplicateSectionsMenuItem.disabled = selectionMode !== "section" || sections.size < 1;
+      }
+      if (mergeSectionsMenuItem) {
+        mergeSectionsMenuItem.disabled = selectionMode !== "section" || sections.size !== 2;
       }
       if (goodnessFromPointMenuItem) {
         goodnessFromPointMenuItem.disabled = selectedSeats.length === 0;
@@ -16666,6 +18111,14 @@ function nudgeSelection(dxScreen, dyScreen) {
     closeSeatContextMenu();
     openSectionEditModal();
   });
+  duplicateSectionsMenuItem?.addEventListener("click", () => {
+    closeSeatContextMenu();
+    openDuplicateSectionModal();
+  });
+  mergeSectionsMenuItem?.addEventListener("click", () => {
+    closeSeatContextMenu();
+    mergeSelectedSections();
+  });
   deleteSelectionMenuItem?.addEventListener("click", () => {
     closeSeatContextMenu();
     deleteSelectionByMode();
@@ -17505,6 +18958,11 @@ function nudgeSelection(dxScreen, dyScreen) {
       if (key === "a") {
         e.preventDefault();
         selectAllSeats();
+        return;
+      }
+      if ((e.shiftKey && key === "z") || key === "y") {
+        e.preventDefault();
+        stepHistory(1);
         return;
       }
       if (!e.shiftKey && key === "z") {
@@ -18543,9 +20001,21 @@ function nudgeSelection(dxScreen, dyScreen) {
   }
 
   function setAltTool(tool) {
-    altSectionTool = tool === "draw" ? "draw" : "select";
+    if (tool === "draw") altSectionTool = "draw";
+    else if (tool === "assist") altSectionTool = "assist";
+    else altSectionTool = "select";
     if (altToolSelectBtn) altToolSelectBtn.classList.toggle("c-button--active", altSectionTool === "select");
     if (altToolDrawBtn) altToolDrawBtn.classList.toggle("c-button--active", altSectionTool === "draw");
+    if (altToolAssistBtn) altToolAssistBtn.classList.toggle("c-button--active", altSectionTool === "assist");
+    if (altSectionTool !== "draw") {
+      altIsDrawing = false;
+      altDrawStart = null;
+      altDrawEnd = null;
+      altDrawLineIndex = null;
+      setAltTooltip("", 0, 0, false);
+    }
+    updateAltAssistControls();
+    updateAltControls();
   }
 
   function setAltActiveLine(index) {
@@ -18558,6 +20028,335 @@ function nudgeSelection(dxScreen, dyScreen) {
     if (line && !line.activeBlockId && line.blocks[0]) {
       line.activeBlockId = line.blocks[0].id;
     }
+  }
+
+  function isAltLineEmpty(line) {
+    if (!line || !Array.isArray(line.slots)) return true;
+    return !line.slots.some((slot) => !!slot);
+  }
+
+  function getAltLineSeatIndexes(line) {
+    if (!line || !Array.isArray(line.slots)) return [];
+    const indexes = [];
+    for (let i = 0; i < line.slots.length; i++) {
+      const slot = line.slots[i];
+      if (slot && slot.type === "seat") indexes.push(i);
+    }
+    return indexes;
+  }
+
+  function getAltLineBlockCountWithSeats(line) {
+    if (!line || !Array.isArray(line.blocks) || !line.blocks.length) return 1;
+    const count = line.blocks.reduce((sum, block) => {
+      return sum + (getAltSeatCount(line, block.id) > 0 ? 1 : 0);
+    }, 0);
+    return Math.max(1, count);
+  }
+
+  function getAltLineBlockDirectionsWithSeats(line) {
+    if (!line || !Array.isArray(line.blocks) || !line.blocks.length) return [1];
+    const directions = [];
+    line.blocks.forEach((block) => {
+      if (getAltSeatCount(line, block.id) > 0) {
+        directions.push(block.direction === -1 ? -1 : 1);
+      }
+    });
+    return directions.length ? directions : [1];
+  }
+
+  function normalizeAltAssistSelection() {
+    const maxIndex = altRowLines.length - 1;
+    const isValid = (value) => Number.isInteger(value) && value >= 0 && value <= maxIndex;
+    if (!isValid(altAssistAnchorLineIndex)) altAssistAnchorLineIndex = null;
+    if (!isValid(altAssistTargetLineIndex)) altAssistTargetLineIndex = null;
+    if (altAssistAnchorLineIndex != null && altAssistTargetLineIndex != null && altAssistAnchorLineIndex === altAssistTargetLineIndex) {
+      altAssistTargetLineIndex = null;
+    }
+  }
+
+  function resetAltAssistSelection(shouldRender = true) {
+    altAssistAnchorLineIndex = null;
+    altAssistTargetLineIndex = null;
+    updateAltAssistControls();
+    if (shouldRender) renderAltSectionCanvas();
+  }
+
+  function pickAltAssistLine(lineIndex) {
+    if (!Number.isInteger(lineIndex) || lineIndex < 0 || lineIndex >= altRowLines.length) return;
+    if (altAssistAnchorLineIndex == null || (altAssistAnchorLineIndex != null && altAssistTargetLineIndex != null)) {
+      altAssistAnchorLineIndex = lineIndex;
+      altAssistTargetLineIndex = null;
+    } else if (lineIndex === altAssistAnchorLineIndex) {
+      altAssistTargetLineIndex = null;
+    } else {
+      altAssistTargetLineIndex = lineIndex;
+    }
+    updateAltAssistControls();
+  }
+
+  function formatAltAssistRowLabel(index) {
+    if (!Number.isInteger(index) || index < 0 || index >= altRowLines.length) return "";
+    const line = altRowLines[index];
+    const name = String(line?.name || `${index + 1}`).trim();
+    return `row ${index + 1} (${name})`;
+  }
+
+  function updateAltAssistControls() {
+    normalizeAltAssistSelection();
+    const hasDraft = !!getActiveDraft();
+    const assistActive = hasDraft && altSectionTool === "assist";
+    if (altAssistControls) altAssistControls.hidden = !assistActive;
+    if (!assistActive) return;
+
+    let stateText = "Pick two reference rows in the canvas.";
+    let canApply = false;
+
+    if (altAssistAnchorLineIndex == null) {
+      stateText = "Pick first reference row.";
+    } else if (altAssistTargetLineIndex == null) {
+      stateText = `${formatAltAssistRowLabel(altAssistAnchorLineIndex)} selected. Pick second reference row.`;
+    } else {
+      const first = Math.min(altAssistAnchorLineIndex, altAssistTargetLineIndex);
+      const last = Math.max(altAssistAnchorLineIndex, altAssistTargetLineIndex);
+      const between = Math.max(0, last - first - 1);
+      const firstSeats = getAltLineSeatIndexes(altRowLines[first]).length;
+      const lastSeats = getAltLineSeatIndexes(altRowLines[last]).length;
+      if (between <= 0) {
+        stateText = "Rows are adjacent. Pick rows with at least one row between them.";
+      } else if (!firstSeats || !lastSeats) {
+        stateText = "Both reference rows must contain seats.";
+      } else {
+        stateText = `Will generate ${between} row(s) between ${formatAltAssistRowLabel(first)} and ${formatAltAssistRowLabel(last)}.`;
+        canApply = true;
+      }
+    }
+
+    if (altAssistState) altAssistState.textContent = stateText;
+    if (altAssistApplyBtn) altAssistApplyBtn.disabled = !canApply;
+    if (altAssistResetBtn) altAssistResetBtn.disabled = altAssistAnchorLineIndex == null && altAssistTargetLineIndex == null;
+    if (altAssistEmptyOnly) altAssistEmptyOnly.disabled = !canApply;
+  }
+
+  function sampleAltSeatIndexAtRatio(indexes, ratio) {
+    if (!indexes.length) return 0;
+    if (indexes.length === 1) return indexes[0];
+    const safeRatio = Math.max(0, Math.min(1, Number.isFinite(ratio) ? ratio : 0));
+    const scaled = safeRatio * (indexes.length - 1);
+    const left = Math.floor(scaled);
+    const right = Math.ceil(scaled);
+    if (left === right) return indexes[left];
+    const blend = scaled - left;
+    return indexes[left] + (indexes[right] - indexes[left]) * blend;
+  }
+
+  function normalizeAltInterpolatedSeatIndexes(rawIndexes, desiredCount) {
+    const used = new Set();
+    const normalized = [];
+    const countGoal = Math.max(1, Math.min(ALT_MAX_SLOTS, Math.floor(desiredCount || 1)));
+
+    const reserveCandidate = (candidate) => {
+      const bounded = Math.max(0, Math.min(ALT_MAX_SLOTS - 1, Math.round(candidate)));
+      if (!used.has(bounded)) {
+        used.add(bounded);
+        return bounded;
+      }
+      for (let step = 1; step < ALT_MAX_SLOTS; step++) {
+        const left = bounded - step;
+        const right = bounded + step;
+        if (left >= 0 && !used.has(left)) {
+          used.add(left);
+          return left;
+        }
+        if (right < ALT_MAX_SLOTS && !used.has(right)) {
+          used.add(right);
+          return right;
+        }
+      }
+      return null;
+    };
+
+    rawIndexes.forEach((value) => {
+      const next = reserveCandidate(value);
+      if (next != null) normalized.push(next);
+    });
+
+    while (normalized.length < countGoal) {
+      const fallback = reserveCandidate(ALT_MAX_SLOTS / 2);
+      if (fallback == null) break;
+      normalized.push(fallback);
+    }
+
+    normalized.sort((a, b) => a - b);
+    return normalized.slice(0, countGoal);
+  }
+
+  function interpolateAltSeatIndexes(startIndexes, endIndexes, t) {
+    if (!startIndexes.length && !endIndexes.length) return [];
+    if (!startIndexes.length) return endIndexes.slice().sort((a, b) => a - b);
+    if (!endIndexes.length) return startIndexes.slice().sort((a, b) => a - b);
+    const clampedT = Math.max(0, Math.min(1, Number.isFinite(t) ? t : 0));
+    const desiredCount = Math.max(
+      1,
+      Math.round(startIndexes.length + (endIndexes.length - startIndexes.length) * clampedT)
+    );
+    const raw = [];
+    if (desiredCount === 1) {
+      const centerA = sampleAltSeatIndexAtRatio(startIndexes, 0.5);
+      const centerB = sampleAltSeatIndexAtRatio(endIndexes, 0.5);
+      raw.push(Math.round(centerA + (centerB - centerA) * clampedT));
+    } else {
+      for (let i = 0; i < desiredCount; i++) {
+        const ratio = i / (desiredCount - 1);
+        const posA = sampleAltSeatIndexAtRatio(startIndexes, ratio);
+        const posB = sampleAltSeatIndexAtRatio(endIndexes, ratio);
+        raw.push(Math.round(posA + (posB - posA) * clampedT));
+      }
+    }
+    return normalizeAltInterpolatedSeatIndexes(raw, desiredCount);
+  }
+
+  function buildAltSeatGroupsForAssist(seatIndexes, blockCount) {
+    const sorted = seatIndexes.slice().sort((a, b) => a - b);
+    if (!sorted.length) return [];
+    const safeBlockCount = Math.max(1, Math.min(sorted.length, Math.floor(blockCount || 1)));
+    const groups = Array.from({ length: safeBlockCount }, () => []);
+    sorted.forEach((seatIndex, idx) => {
+      const mapped = Math.floor((idx * safeBlockCount) / sorted.length);
+      const groupIndex = Math.max(0, Math.min(safeBlockCount - 1, mapped));
+      groups[groupIndex].push(seatIndex);
+    });
+    return groups.filter((group) => group.length);
+  }
+
+  function buildAltAssistDirectionTemplate(lineA, lineB, blockCount, t) {
+    const dirsA = getAltLineBlockDirectionsWithSeats(lineA);
+    const dirsB = getAltLineBlockDirectionsWithSeats(lineB);
+    const safeCount = Math.max(1, Math.floor(blockCount || 1));
+    const sampled = [];
+    const sampleDir = (dirs, idx) => {
+      if (!dirs.length) return 1;
+      const mapped = Math.floor((idx * dirs.length) / safeCount);
+      const bounded = Math.max(0, Math.min(dirs.length - 1, mapped));
+      return dirs[bounded] === -1 ? -1 : 1;
+    };
+    for (let i = 0; i < safeCount; i++) {
+      const dirA = sampleDir(dirsA, i);
+      const dirB = sampleDir(dirsB, i);
+      sampled.push(dirA === dirB ? dirA : (t < 0.5 ? dirA : dirB));
+    }
+    return sampled;
+  }
+
+  function applyInterpolatedAltLine(line, seatIndexes, blockCount, directionTemplate, nextContinuousSeat) {
+    const groups = buildAltSeatGroupsForAssist(seatIndexes, blockCount);
+    line.slots = [];
+    line.blocks = [];
+    let runningContinuous = normalizeAltContinuousStartSeat(nextContinuousSeat);
+
+    groups.forEach((group, groupIndex) => {
+      const block = createAltBlock();
+      block.direction = directionTemplate[groupIndex] === -1 ? -1 : 1;
+      block.lastDirection = { x: block.direction, y: 0 };
+      line.blocks.push(block);
+      group.forEach((slotIndex) => {
+        line.slots[slotIndex] = {
+          type: "seat",
+          blockId: block.id,
+          name: ""
+        };
+      });
+      if (altSeatNumberingMode === "continuous") {
+        block.startSeat = runningContinuous;
+        block.autoStartSeatAssigned = group.length > 0;
+        renumberAltBlockSeats(line, block);
+        runningContinuous += group.length;
+      }
+    });
+
+    if (!line.blocks.length) {
+      const fallback = createAltBlock();
+      line.blocks = [fallback];
+    }
+    line.activeBlockId = line.blocks[0].id;
+    return runningContinuous;
+  }
+
+  function applyAltAssistBetweenRows() {
+    normalizeAltAssistSelection();
+    if (altAssistAnchorLineIndex == null || altAssistTargetLineIndex == null) {
+      alert("Select two reference rows first.");
+      return;
+    }
+    const first = Math.min(altAssistAnchorLineIndex, altAssistTargetLineIndex);
+    const last = Math.max(altAssistAnchorLineIndex, altAssistTargetLineIndex);
+    if (last - first < 2) {
+      alert("Pick rows with at least one row between them.");
+      return;
+    }
+
+    const firstLine = altRowLines[first];
+    const lastLine = altRowLines[last];
+    const firstSeatIndexes = getAltLineSeatIndexes(firstLine);
+    const lastSeatIndexes = getAltLineSeatIndexes(lastLine);
+    if (!firstSeatIndexes.length || !lastSeatIndexes.length) {
+      alert("Both reference rows must contain seats.");
+      return;
+    }
+
+    const emptyOnly = altAssistEmptyOnly ? altAssistEmptyOnly.checked : true;
+    const firstBlockCount = getAltLineBlockCountWithSeats(firstLine);
+    const lastBlockCount = getAltLineBlockCountWithSeats(lastLine);
+    let changedRows = 0;
+    let skippedRows = 0;
+    let nextContinuousSeat = normalizeAltContinuousStartSeat(computeAltContinuousStartFromLines(altRowLines));
+
+    for (let lineIndex = first + 1; lineIndex < last; lineIndex++) {
+      const line = altRowLines[lineIndex];
+      if (!line) continue;
+      if (emptyOnly && !isAltLineEmpty(line)) {
+        skippedRows += 1;
+        continue;
+      }
+      const t = (lineIndex - first) / (last - first);
+      const seatIndexes = interpolateAltSeatIndexes(firstSeatIndexes, lastSeatIndexes, t);
+      if (!seatIndexes.length) {
+        skippedRows += 1;
+        continue;
+      }
+      const interpolatedBlockCount = Math.max(
+        1,
+        Math.min(
+          seatIndexes.length,
+          Math.round(firstBlockCount + (lastBlockCount - firstBlockCount) * t)
+        )
+      );
+      const directionTemplate = buildAltAssistDirectionTemplate(firstLine, lastLine, interpolatedBlockCount, t);
+      nextContinuousSeat = applyInterpolatedAltLine(
+        line,
+        seatIndexes,
+        interpolatedBlockCount,
+        directionTemplate,
+        nextContinuousSeat
+      );
+      changedRows += 1;
+    }
+
+    if (!changedRows) {
+      if (emptyOnly) {
+        alert("No rows were generated. Disable 'Fill only empty rows' to overwrite rows between the references.");
+      } else {
+        alert("No rows were generated.");
+      }
+      return;
+    }
+
+    if (altSeatNumberingMode === "continuous") {
+      setAltContinuousStartSeat(nextContinuousSeat, true);
+    }
+    if (skippedRows > 0 && altAssistState) {
+      altAssistState.textContent = `Generated ${changedRows} row(s). Skipped ${skippedRows} row(s).`;
+    }
+    commitAltChange();
   }
 
   function getAltCanvasMetrics() {
@@ -18777,6 +20576,12 @@ function nudgeSelection(dxScreen, dyScreen) {
       const top = padding + i * rowBlock;
       const bottom = top + rowHeight;
       const isActive = altActiveLineIndex === i;
+      const isAssistAnchor = altSectionTool === "assist" && altAssistAnchorLineIndex === i;
+      const isAssistTarget = altSectionTool === "assist" && altAssistTargetLineIndex === i;
+      if (isAssistAnchor || isAssistTarget) {
+        ctx.fillStyle = isAssistAnchor ? "rgba(12, 107, 165, 0.16)" : "rgba(22, 163, 74, 0.16)";
+        ctx.fillRect(padding + 1, top + 1, width - padding * 2 - 2, rowHeight - 2);
+      }
       drawAltRowBox(ctx, padding, top, width - padding * 2, rowHeight, 8, isActive);
       ctx.fillStyle = "#2e3c47";
       ctx.font = "12px 'SUSE', sans-serif";
@@ -18857,6 +20662,7 @@ function nudgeSelection(dxScreen, dyScreen) {
     if (altActiveLineIndex == null || altActiveLineIndex >= altRowLines.length) {
       altActiveLineIndex = altRowLines.length ? 0 : null;
     }
+    normalizeAltAssistSelection();
     syncAltContinuousStartSeatFromDraft(draft);
     renderAltSectionCanvas();
   }
@@ -18869,6 +20675,7 @@ function nudgeSelection(dxScreen, dyScreen) {
     altDrawStart = null;
     altDrawEnd = null;
     altDrawLineIndex = null;
+    resetAltAssistSelection(false);
     setAltTooltip("", 0, 0, false);
     setAltTool("select");
     altSeatNumberingMode = altSeatNumberingModeSelect?.value === "continuous" ? "continuous" : "row";
@@ -18953,6 +20760,7 @@ function nudgeSelection(dxScreen, dyScreen) {
     const hasBlock = !!block;
     if (altToolSelectBtn) altToolSelectBtn.disabled = !hasDraft;
     if (altToolDrawBtn) altToolDrawBtn.disabled = !hasDraft;
+    if (altToolAssistBtn) altToolAssistBtn.disabled = !hasDraft;
     if (altUndoBtn) altUndoBtn.disabled = altHistoryIndex <= 0;
     if (altGapNewBtn) altGapNewBtn.disabled = !hasBlock;
     if (altReverseSeatOrderBtn) altReverseSeatOrderBtn.disabled = !hasBlock;
@@ -18968,6 +20776,7 @@ function nudgeSelection(dxScreen, dyScreen) {
     if (altClearAllRowsBtn) altClearAllRowsBtn.disabled = !hasDraft;
     if (altSeatNumberingModeSelect) altSeatNumberingModeSelect.disabled = !hasDraft;
     updateAltContinuousControls();
+    updateAltAssistControls();
   }
 
   function getAltCanvasPoint(e) {
@@ -19835,13 +21644,32 @@ function nudgeSelection(dxScreen, dyScreen) {
   });
 
   // --- Right panel collapse ---
+  function getVisibleRightPanelCards() {
+    const panels = document.getElementById("right-panels");
+    if (!panels) return [];
+    return Array.from(panels.querySelectorAll(".c-card[data-collapsible='true']")).filter((card) => {
+      return !card.hidden && card.style.display !== "none";
+    });
+  }
+
+  function openRightPanelCard(card) {
+    if (!card) return;
+    const visibleCards = getVisibleRightPanelCards();
+    visibleCards.forEach((otherCard) => {
+      setRightPanelCollapsedState(otherCard, otherCard !== card);
+    });
+  }
+
   function toggleRightPanel(toggle) {
     const card = toggle?.closest(".c-card");
     const body = card?.querySelector(".c-card__body");
     if (!card || !body) return;
-    const collapsed = card.classList.toggle("c-card--collapsed");
-    body.hidden = collapsed;
-    toggle.setAttribute("aria-expanded", collapsed ? "false" : "true");
+    const isCollapsed = card.classList.contains("c-card--collapsed");
+    if (isCollapsed) {
+      openRightPanelCard(card);
+      return;
+    }
+    setRightPanelCollapsedState(card, true);
   }
 
   function setRightPanelCollapsedState(card, collapsed) {
@@ -19849,6 +21677,18 @@ function nudgeSelection(dxScreen, dyScreen) {
     const body = card.querySelector(".c-card__body");
     const toggle = card.querySelector(".c-card__toggle");
     if (!body || !toggle) return;
+    if (!collapsed) {
+      const visibleCards = getVisibleRightPanelCards();
+      visibleCards.forEach((otherCard) => {
+        if (otherCard !== card) {
+          otherCard.classList.add("c-card--collapsed");
+          const otherBody = otherCard.querySelector(".c-card__body");
+          const otherToggle = otherCard.querySelector(".c-card__toggle");
+          if (otherBody) otherBody.hidden = true;
+          if (otherToggle) otherToggle.setAttribute("aria-expanded", "false");
+        }
+      });
+    }
     card.classList.toggle("c-card--collapsed", collapsed);
     body.hidden = !!collapsed;
     toggle.setAttribute("aria-expanded", collapsed ? "false" : "true");
@@ -19868,6 +21708,10 @@ function nudgeSelection(dxScreen, dyScreen) {
       card.hidden = !shouldShow;
       card.style.display = shouldShow ? "" : "none";
     });
+    const openVisibleCards = getVisibleRightPanelCards().filter((card) => !card.classList.contains("c-card--collapsed"));
+    if (openVisibleCards.length > 1) {
+      openVisibleCards.slice(1).forEach((card) => setRightPanelCollapsedState(card, true));
+    }
   }
 
   function collapseRightPanelsForNumberedImport() {
@@ -19890,6 +21734,26 @@ function nudgeSelection(dxScreen, dyScreen) {
     body.hidden = startCollapsed;
     toggle.setAttribute("aria-expanded", startCollapsed ? "false" : "true");
   });
+  historyBackBtn?.addEventListener("click", () => {
+    stepHistory(-1);
+  });
+  historyForwardBtn?.addEventListener("click", () => {
+    stepHistory(1);
+  });
+  historyList?.addEventListener("click", (e) => {
+    const item = e.target.closest("[data-history-index]");
+    if (!item) return;
+    const index = Number(item.dataset.historyIndex);
+    if (!Number.isFinite(index)) return;
+    jumpToHistoryIndex(index);
+  });
+  validationList?.addEventListener("click", (e) => {
+    const actionBtn = e.target.closest("[data-validation-action]");
+    if (!actionBtn) return;
+    handleValidationAction(actionBtn.dataset.validationAction || "");
+  });
+  updateHistoryPanel();
+  scheduleValidationPanelRefresh();
 
   // --- Section manager events ---
   openSectionManagerBtn?.addEventListener("click", openAltSectionManager);
@@ -19941,6 +21805,13 @@ function nudgeSelection(dxScreen, dyScreen) {
 
   altToolSelectBtn?.addEventListener("click", () => setAltTool("select"));
   altToolDrawBtn?.addEventListener("click", () => setAltTool("draw"));
+  altToolAssistBtn?.addEventListener("click", () => setAltTool("assist"));
+  altAssistApplyBtn?.addEventListener("click", () => {
+    applyAltAssistBetweenRows();
+  });
+  altAssistResetBtn?.addEventListener("click", () => {
+    resetAltAssistSelection();
+  });
   altUndoBtn?.addEventListener("click", () => {
     undoAltChange();
   });
@@ -19988,6 +21859,17 @@ function nudgeSelection(dxScreen, dyScreen) {
       altDrawStart = clamped;
       altDrawEnd = clamped;
       altDrawLineIndex = lineIndex;
+      renderAltSectionCanvas();
+      return;
+    }
+    if (altSectionTool === "assist") {
+      const lineIndex = getAltLineIndexFromY(point.y, metrics);
+      if (lineIndex == null) {
+        renderAltSectionCanvas();
+        return;
+      }
+      setAltActiveLine(lineIndex);
+      pickAltAssistLine(lineIndex);
       renderAltSectionCanvas();
       return;
     }
@@ -20044,6 +21926,10 @@ function nudgeSelection(dxScreen, dyScreen) {
     if (e.key === "d" || e.key === "D") {
       e.preventDefault();
       setAltTool("draw");
+    }
+    if (e.key === "a" || e.key === "A") {
+      e.preventDefault();
+      setAltTool("assist");
     }
     if (e.key === "n" || e.key === "N") {
       e.preventDefault();
@@ -20137,6 +22023,8 @@ function nudgeSelection(dxScreen, dyScreen) {
     if (viewOverlayNone) viewOverlayNone.checked = overlayMode === "none";
     if (viewOverlayPrice) viewOverlayPrice.checked = overlayMode === "price";
     if (viewOverlayGoodness) viewOverlayGoodness.checked = overlayMode === "goodness";
+    updateHistoryPanel();
+    scheduleValidationPanelRefresh();
   });
 
   window.addEventListener("beforeunload", (e) => {
@@ -20152,3 +22040,7 @@ function nudgeSelection(dxScreen, dyScreen) {
 
   </body>
   </html>
+
+
+
+
