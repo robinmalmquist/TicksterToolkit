@@ -3736,7 +3736,7 @@
               <div class="help-tool-list">
                 <div class="help-tool">
                   <div class="help-tool__title">Reshape row (E)</div>
-                  <div class="help-tool__desc">On a selected row you can right click on any seat to create a temporary anchor point and then adjust the row from that anchor point by dragging the end seat. Hold down shift while dragging to rotate from anchor point.</div>
+                  <div class="help-tool__desc">Right click on a seat in any selected row to set/toggle that row's anchor point, then drag row end points or the anchor itself to reshape while preserving existing bends. With a single anchor, hold Shift while dragging a row end to rotate in 5° steps from the anchor while still adjusting row length. If two anchored rows are selected, dragging one anchored row reshapes all selected rows between them; hold Shift to move both anchored rows together. Press Esc to clear all anchors.</div>
                 </div>
                 <div class="help-tool">
                   <div class="help-tool__title">Reset row (Q)</div>
@@ -4444,11 +4444,13 @@
 
   // Reshape row
   let isReshapingRow = false;
-  let reshapeDragTarget = null; // "start" | "end"
+  let hasReshapedDuringDrag = false;
+  let reshapeDragTarget = null; // "start" | "end" | "anchor"
   let reshapeStartSnapshot = null;
   let reshapeSnapshotById = null;
-  let reshapeRowSeats = null;
-  let reshapePivotSeatId = null;
+  let reshapeRowsData = null;
+  let reshapeActiveRowId = null;
+  let reshapePivotSeatIdsByRow = new Map();
 
   // Ruta-markering
   let selectionRectActive = false;
@@ -4793,6 +4795,14 @@
     highlightedSeatIds.clear();
     updateHighlightSeatsButtonLabel();
     outlines = [];
+    reshapePivotSeatIdsByRow = new Map();
+    isReshapingRow = false;
+    hasReshapedDuringDrag = false;
+    reshapeDragTarget = null;
+    reshapeStartSnapshot = null;
+    reshapeSnapshotById = null;
+    reshapeRowsData = null;
+    reshapeActiveRowId = null;
     selectionOrderCounter = 1;
     lastSelectedSeatId = null;
     sectionNames = new Map();
@@ -5092,7 +5102,8 @@
       numberedImportHoverPreviewSeatIds: Array.from(numberedImportHoverPreviewSeatIds),
       numberedImportContextRefNo: numberedImportContextRefNo || "",
       numberedImportContextRowId: numberedImportContextRowId || "",
-      reshapePivotSeatId: reshapePivotSeatId || ""
+      reshapePivotSeatIdsByRow: Array.from(reshapePivotSeatIdsByRow.entries()),
+      reshapePivotSeatId: Array.from(reshapePivotSeatIdsByRow.values())[0] || ""
     };
   }
 
@@ -5183,7 +5194,25 @@
     );
     numberedImportContextRefNo = state.numberedImportContextRefNo || "";
     numberedImportContextRowId = state.numberedImportContextRowId || "";
-    reshapePivotSeatId = state.reshapePivotSeatId || null;
+    reshapePivotSeatIdsByRow = new Map();
+    if (Array.isArray(state.reshapePivotSeatIdsByRow)) {
+      state.reshapePivotSeatIdsByRow.forEach((entry) => {
+        if (!Array.isArray(entry) || entry.length < 2) return;
+        const rowId = String(entry[0] ?? "").trim();
+        const seatId = String(entry[1] ?? "").trim();
+        if (!rowId || !seatId) return;
+        reshapePivotSeatIdsByRow.set(rowId, seatId);
+      });
+    }
+    if (!reshapePivotSeatIdsByRow.size && state.reshapePivotSeatId) {
+      const legacyPivotSeatId = String(state.reshapePivotSeatId || "").trim();
+      if (legacyPivotSeatId) {
+        const pivotSeat = seats.find((seat) => seat.seatId === legacyPivotSeatId);
+        if (pivotSeat?.rowId) {
+          reshapePivotSeatIdsByRow.set(String(pivotSeat.rowId), legacyPivotSeatId);
+        }
+      }
+    }
 
     const restoredSelectionMode = state.selectionMode === "row" || state.selectionMode === "seat"
       ? state.selectionMode
@@ -5546,7 +5575,10 @@
 
       const labelEl = document.createElement("span");
       labelEl.className = "history-panel__item-label";
-      labelEl.textContent = meta.label || "Update";
+      const fallbackLabel = meta.label
+        ? ""
+        : buildHistorySnapshotLabel(i > 0 ? history[i - 1] : null, snapshot, "");
+      labelEl.textContent = meta.label || fallbackLabel || "State updated";
 
       const timeEl = document.createElement("span");
       timeEl.className = "history-panel__item-time";
@@ -6557,6 +6589,14 @@ codePane.addEventListener("input", () => {
     sectionNames = new Map();
     sectionColors = new Map();
     sectionRawText.clear();
+    reshapePivotSeatIdsByRow = new Map();
+    isReshapingRow = false;
+    hasReshapedDuringDrag = false;
+    reshapeDragTarget = null;
+    reshapeStartSnapshot = null;
+    reshapeSnapshotById = null;
+    reshapeRowsData = null;
+    reshapeActiveRowId = null;
     activeSectionDraftId = null;
     layoutBounds = null;
     codePane.value = originalLines.join("\n");
@@ -6594,6 +6634,14 @@ codePane.addEventListener("input", () => {
     sectionNames = new Map();
     sectionColors = new Map();
     sectionRawText.clear();
+    reshapePivotSeatIdsByRow = new Map();
+    isReshapingRow = false;
+    hasReshapedDuringDrag = false;
+    reshapeDragTarget = null;
+    reshapeStartSnapshot = null;
+    reshapeSnapshotById = null;
+    reshapeRowsData = null;
+    reshapeActiveRowId = null;
     activeSectionDraftId = null;
     layoutBounds = null;
     codePane.value = "";
@@ -10696,6 +10744,12 @@ codePane.addEventListener("input", () => {
       isResizingSelection = false;
       isBendingSelection = false;
       isReshapingRow = false;
+      hasReshapedDuringDrag = false;
+      reshapeDragTarget = null;
+      reshapeStartSnapshot = null;
+      reshapeSnapshotById = null;
+      reshapeRowsData = null;
+      reshapeActiveRowId = null;
       selectionRectActive = false;
       isPanning = false;
       isDraggingBackground = false;
@@ -13248,7 +13302,7 @@ codePane.addEventListener("input", () => {
     const allowTransform = anySelected;
     const allowResize = anySelected && (selectionMode === "section" || selectionMode === "row");
     const allowBend = selectionMode === "row" && selectedRowsCount === 1;
-    const allowReshape = selectionMode === "row" && selectedRowsCount === 1;
+    const allowReshape = selectionMode === "row" && selectedRowsCount >= 1;
     const allowResetRow = selectionMode === "row" && selectedRowsCount >= 1;
     const allowMakeTable = selectionMode === "row" && selectedRowsCount >= 1;
 
@@ -13771,11 +13825,24 @@ codePane.addEventListener("input", () => {
       ctx.restore();
     }
 
-    // Reshape-pivot-indikator
-    if (currentTool === "reshape" && reshapePivotSeatId) {
-      const pivotSeat = seats.find(s => s.seatId === reshapePivotSeatId);
-      if (pivotSeat) {
-        const r = (BASE_WORLD_RADIUS * 1) / Math.max(scale, 1e-6);
+    // Reshape-pivot-indikator(er)
+    if (currentTool === "reshape" && reshapePivotSeatIdsByRow.size) {
+      const seatById = new Map();
+      seats.forEach((seat) => {
+        const seatId = String(seat?.seatId || "").trim();
+        if (seatId) seatById.set(seatId, seat);
+      });
+      const selectedRowIds = new Set(Array.from(getSelectedRows().keys()).map((rowId) => String(rowId || "").trim()));
+      const drawnSeatIds = new Set();
+      const r = (BASE_WORLD_RADIUS * 1) / Math.max(scale, 1e-6);
+      reshapePivotSeatIdsByRow.forEach((pivotSeatId) => {
+        const seatId = String(pivotSeatId || "").trim();
+        if (!seatId || drawnSeatIds.has(seatId)) return;
+        const pivotSeat = seatById.get(seatId);
+        if (!pivotSeat) return;
+        const pivotRowId = String(pivotSeat.rowId || "").trim();
+        if (selectedRowIds.size && pivotRowId && !selectedRowIds.has(pivotRowId)) return;
+        drawnSeatIds.add(seatId);
         ctx.save();
         ctx.beginPath();
         ctx.arc(pivotSeat.vx, pivotSeat.vy, r, 0, Math.PI * 2);
@@ -13787,7 +13854,7 @@ codePane.addEventListener("input", () => {
         ctx.fillStyle = "rgba(230,126,34,0.2)";
         ctx.fill();
         ctx.restore();
-      }
+      });
     }
 
     if (!seats.length) {
@@ -14607,147 +14674,368 @@ function selectSeatsWithoutEntryPoints() {
     return changed;
   }
 
-  function applyReshapeDrag(target, newX, newY, shiftSnap = false) {
-    if (!reshapeRowSeats || !reshapeRowSeats.length || !reshapeSnapshotById) return;
-    const sorted = sortSeatsInRow(reshapeRowSeats);
-    if (!sorted.length) return;
-
-    const cumulative = shiftSnap ? getRowCumulativeDistances(sorted, reshapeSnapshotById) : null;
-
-    const pivotIndex = reshapePivotSeatId
-      ? sorted.findIndex(s => s.seatId === reshapePivotSeatId)
-      : -1;
-
-    const startSnap = reshapeSnapshotById.get(sorted[0].seatId);
-    const endSnap = reshapeSnapshotById.get(sorted[sorted.length - 1].seatId);
-    if (!startSnap || !endSnap) return;
-
-    if (target === "start") {
-      const anchorSnap = pivotIndex >= 0
-        ? reshapeSnapshotById.get(sorted[pivotIndex].seatId) || endSnap
-        : endSnap;
-      const segLen = pivotIndex >= 0 ? pivotIndex : sorted.length - 1;
-      let endX = newX;
-      let endY = newY;
-      if (shiftSnap) {
-        const dx = newX - anchorSnap.vx;
-        const dy = newY - anchorSnap.vy;
-        const angle = Math.atan2(dy, dx);
-        const dist = Math.hypot(dx, dy);
-        const snapStep = (5 * Math.PI) / 180;
-        const snapped = Math.round(angle / snapStep) * snapStep;
-        const anchorIndex = pivotIndex >= 0 ? pivotIndex : (sorted.length - 1);
-        const totalDist = cumulative
-          ? Math.abs(cumulative[0] - cumulative[anchorIndex])
-          : dist;
-        endX = anchorSnap.vx + Math.cos(snapped) * totalDist;
-        endY = anchorSnap.vy + Math.sin(snapped) * totalDist;
-      }
-      const dirX = endX - anchorSnap.vx;
-      const dirY = endY - anchorSnap.vy;
-      const dirLen = Math.hypot(dirX, dirY) || 1e-6;
-      const dirUnitX = dirX / dirLen;
-      const dirUnitY = dirY / dirLen;
-      for (let i = 0; i < sorted.length; i++) {
-        if (pivotIndex >= 0 && i > pivotIndex) {
-          const snap = reshapeSnapshotById.get(sorted[i].seatId);
-          if (snap) {
-            sorted[i].vx = snap.vx;
-            sorted[i].vy = snap.vy;
-            sorted[i].centerX = snap.vx;
-            sorted[i].centerY = snap.vy;
-          }
-          continue;
-        }
-        let x;
-        let y;
-        if (shiftSnap && cumulative) {
-          const anchorIndex = pivotIndex >= 0 ? pivotIndex : (sorted.length - 1);
-          const distFromAnchor = Math.abs(cumulative[i] - cumulative[anchorIndex]);
-          x = anchorSnap.vx + dirUnitX * distFromAnchor;
-          y = anchorSnap.vy + dirUnitY * distFromAnchor;
-        } else {
-          const t = segLen === 0 ? 0 : i / segLen;
-          x = endX + (anchorSnap.vx - endX) * t;
-          y = endY + (anchorSnap.vy - endY) * t;
-        }
-        sorted[i].vx = x;
-        sorted[i].vy = y;
-        sorted[i].centerX = x;
-        sorted[i].centerY = y;
-      }
-    } else if (target === "end") {
-      const anchorSnap = pivotIndex >= 0
-        ? reshapeSnapshotById.get(sorted[pivotIndex].seatId) || startSnap
-        : startSnap;
-      const startIndex = pivotIndex >= 0 ? pivotIndex : 0;
-      const segLen = pivotIndex >= 0 ? (sorted.length - 1 - pivotIndex) : (sorted.length - 1);
-      let endX = newX;
-      let endY = newY;
-      if (shiftSnap) {
-        const dx = newX - anchorSnap.vx;
-        const dy = newY - anchorSnap.vy;
-        const angle = Math.atan2(dy, dx);
-        const dist = Math.hypot(dx, dy);
-        const snapStep = (5 * Math.PI) / 180;
-        const snapped = Math.round(angle / snapStep) * snapStep;
-        const anchorIndex = pivotIndex >= 0 ? pivotIndex : 0;
-        const endIndex = sorted.length - 1;
-        const totalDist = cumulative
-          ? Math.abs(cumulative[endIndex] - cumulative[anchorIndex])
-          : dist;
-        endX = anchorSnap.vx + Math.cos(snapped) * totalDist;
-        endY = anchorSnap.vy + Math.sin(snapped) * totalDist;
-      }
-      const dirX = endX - anchorSnap.vx;
-      const dirY = endY - anchorSnap.vy;
-      const dirLen = Math.hypot(dirX, dirY) || 1e-6;
-      const dirUnitX = dirX / dirLen;
-      const dirUnitY = dirY / dirLen;
-      for (let i = 0; i < sorted.length; i++) {
-        if (i < startIndex) {
-          const snap = reshapeSnapshotById.get(sorted[i].seatId);
-          if (snap) {
-            sorted[i].vx = snap.vx;
-            sorted[i].vy = snap.vy;
-            sorted[i].centerX = snap.vx;
-            sorted[i].centerY = snap.vy;
-          }
-          continue;
-        }
-        let x;
-        let y;
-        if (shiftSnap && cumulative) {
-          const anchorIndex = pivotIndex >= 0 ? pivotIndex : 0;
-          const distFromAnchor = Math.abs(cumulative[i] - cumulative[anchorIndex]);
-          x = anchorSnap.vx + dirUnitX * distFromAnchor;
-          y = anchorSnap.vy + dirUnitY * distFromAnchor;
-        } else {
-          const t = segLen === 0 ? 0 : (i - startIndex) / segLen;
-          x = anchorSnap.vx + (endX - anchorSnap.vx) * t;
-          y = anchorSnap.vy + (endY - anchorSnap.vy) * t;
-        }
-        sorted[i].vx = x;
-        sorted[i].vy = y;
-        sorted[i].centerX = x;
-        sorted[i].centerY = y;
-      }
-    }
+  function getSelectedRowEntriesForReshape(rowsMap = null) {
+    const rows = rowsMap || getSelectedRows();
+    const entries = [];
+    rows.forEach((rowSeats, rowId) => {
+      const sortedSeats = sortSeatsInRow(rowSeats);
+      if (sortedSeats.length < 2) return;
+      entries.push({
+        rowId: String(rowId || ""),
+        seats: sortedSeats
+      });
+    });
+    entries.sort((a, b) => compareRowIdsForSort(a.rowId, b.rowId));
+    return entries;
   }
 
-  function getRowCumulativeDistances(sorted, snapshotMap) {
-    const cumulative = new Array(sorted.length).fill(0);
-    for (let i = 1; i < sorted.length; i++) {
-      const prev = snapshotMap.get(sorted[i - 1].seatId);
-      const curr = snapshotMap.get(sorted[i].seatId);
-      if (!prev || !curr) {
-        cumulative[i] = cumulative[i - 1];
-        continue;
-      }
-      const d = Math.hypot(curr.vx - prev.vx, curr.vy - prev.vy);
-      cumulative[i] = cumulative[i - 1] + d;
+  function getReshapePivotIndexForRow(sortedSeats, rowId, target, fallbackPivotRatio = null) {
+    if (!Array.isArray(sortedSeats) || !sortedSeats.length) return -1;
+    const key = String(rowId || "").trim();
+    if (key && reshapePivotSeatIdsByRow.has(key)) {
+      const pivotSeatId = reshapePivotSeatIdsByRow.get(key);
+      const explicitIndex = sortedSeats.findIndex((seat) => seat.seatId === pivotSeatId);
+      if (explicitIndex >= 0) return explicitIndex;
     }
-    return cumulative;
+    if (Number.isFinite(fallbackPivotRatio) && sortedSeats.length > 1) {
+      const clamped = clampValue(fallbackPivotRatio, 0, 1);
+      return Math.max(0, Math.min(sortedSeats.length - 1, Math.round(clamped * (sortedSeats.length - 1))));
+    }
+    return -1;
+  }
+
+  function getReshapeAnchorInfo(sortedSeats, rowId, target, fallbackPivotRatio = null) {
+    const pivotIndex = getReshapePivotIndexForRow(sortedSeats, rowId, target, fallbackPivotRatio);
+    if (target === "anchor") {
+      return {
+        pivotIndex,
+        anchorIndex: pivotIndex,
+        movingIndex: pivotIndex
+      };
+    }
+    if (target === "start") {
+      return {
+        pivotIndex,
+        anchorIndex: pivotIndex >= 0 ? pivotIndex : (sortedSeats.length - 1),
+        movingIndex: 0
+      };
+    }
+    return {
+      pivotIndex,
+      anchorIndex: pivotIndex >= 0 ? pivotIndex : 0,
+      movingIndex: sortedSeats.length - 1
+    };
+  }
+
+  function normalizeReshapeAngleDelta(value) {
+    let delta = Number.isFinite(value) ? value : 0;
+    while (delta > Math.PI) delta -= Math.PI * 2;
+    while (delta < -Math.PI) delta += Math.PI * 2;
+    return delta;
+  }
+
+  function buildReshapeTransformForRow(rowInfo, target, newX, newY, rotateOnly = false, fallbackPivotRatio = null) {
+    if (!rowInfo || !Array.isArray(rowInfo.seats) || !rowInfo.seats.length || !reshapeSnapshotById) return null;
+    const sorted = rowInfo.seats;
+    const anchorInfo = getReshapeAnchorInfo(sorted, rowInfo.rowId, target, fallbackPivotRatio);
+    const anchorSeat = sorted[anchorInfo.anchorIndex];
+    const movingSeat = sorted[anchorInfo.movingIndex];
+    const anchorSnap = reshapeSnapshotById.get(anchorSeat?.seatId || "");
+    const movingSnap = reshapeSnapshotById.get(movingSeat?.seatId || "");
+    if (!anchorSnap || !movingSnap) return null;
+
+    const baseVecX = movingSnap.vx - anchorSnap.vx;
+    const baseVecY = movingSnap.vy - anchorSnap.vy;
+    const baseLen = Math.hypot(baseVecX, baseVecY);
+    if (!Number.isFinite(baseLen) || baseLen < 1e-9) return null;
+
+    const pointerVecX = newX - anchorSnap.vx;
+    const pointerVecY = newY - anchorSnap.vy;
+    const pointerLen = Math.hypot(pointerVecX, pointerVecY);
+    let pointerAngle = Math.atan2(pointerVecY, pointerVecX);
+    if (rotateOnly) {
+      const snapStep = (5 * Math.PI) / 180;
+      pointerAngle = Math.round(pointerAngle / snapStep) * snapStep;
+    }
+
+    const baseAngle = Math.atan2(baseVecY, baseVecX);
+    const angleDelta = normalizeReshapeAngleDelta(pointerAngle - baseAngle);
+    // Shift snapping should quantize angle only; length remains freely adjustable.
+    const scaleFactor = Number.isFinite(pointerLen) && baseLen > 1e-9 ? pointerLen / baseLen : 1;
+    const pivotRatio = sorted.length > 1 ? anchorInfo.anchorIndex / (sorted.length - 1) : 0;
+    return {
+      angleDelta,
+      scaleFactor: Number.isFinite(scaleFactor) ? scaleFactor : 1,
+      pivotRatio
+    };
+  }
+
+  function applyReshapeTransformToRow(rowInfo, target, transform, fallbackPivotRatio = null) {
+    if (!rowInfo || !Array.isArray(rowInfo.seats) || !rowInfo.seats.length || !reshapeSnapshotById) return false;
+    if (target === "anchor") return false;
+    if (!transform || !Number.isFinite(transform.angleDelta) || !Number.isFinite(transform.scaleFactor)) return false;
+    const sorted = rowInfo.seats;
+    const anchorInfo = getReshapeAnchorInfo(sorted, rowInfo.rowId, target, fallbackPivotRatio);
+    const anchorSeat = sorted[anchorInfo.anchorIndex];
+    const anchorSnap = reshapeSnapshotById.get(anchorSeat?.seatId || "");
+    if (!anchorSnap) return false;
+
+    const cosA = Math.cos(transform.angleDelta);
+    const sinA = Math.sin(transform.angleDelta);
+    const scaleFactor = transform.scaleFactor;
+    let changed = false;
+
+    for (let i = 0; i < sorted.length; i++) {
+      const seat = sorted[i];
+      const snap = reshapeSnapshotById.get(seat.seatId);
+      if (!snap) continue;
+      const affectsSeat = target === "start" ? i <= anchorInfo.anchorIndex : i >= anchorInfo.anchorIndex;
+      let nextX = snap.vx;
+      let nextY = snap.vy;
+      if (affectsSeat) {
+        const relX = snap.vx - anchorSnap.vx;
+        const relY = snap.vy - anchorSnap.vy;
+        const rotatedX = relX * cosA - relY * sinA;
+        const rotatedY = relX * sinA + relY * cosA;
+        nextX = anchorSnap.vx + rotatedX * scaleFactor;
+        nextY = anchorSnap.vy + rotatedY * scaleFactor;
+      }
+      if (numberChanged(seat.vx, nextX) || numberChanged(seat.vy, nextY)) {
+        changed = true;
+      }
+      seat.vx = nextX;
+      seat.vy = nextY;
+      seat.centerX = nextX;
+      seat.centerY = nextY;
+    }
+    return changed;
+  }
+
+  function applyReshapeAnchorMoveToRow(rowInfo, targetAnchorX, targetAnchorY, fallbackPivotRatio = null) {
+    if (!rowInfo || !Array.isArray(rowInfo.seats) || !rowInfo.seats.length || !reshapeSnapshotById) return false;
+    if (!Number.isFinite(targetAnchorX) || !Number.isFinite(targetAnchorY)) return false;
+
+    const sorted = rowInfo.seats;
+    const anchorInfo = getReshapeAnchorInfo(sorted, rowInfo.rowId, "anchor", fallbackPivotRatio);
+    const anchorIndex = anchorInfo.anchorIndex;
+    if (!Number.isFinite(anchorIndex) || anchorIndex <= 0 || anchorIndex >= sorted.length - 1) return false;
+
+    const startSeat = sorted[0];
+    const endSeat = sorted[sorted.length - 1];
+    const anchorSeat = sorted[anchorIndex];
+    const startSnap = reshapeSnapshotById.get(startSeat?.seatId || "");
+    const endSnap = reshapeSnapshotById.get(endSeat?.seatId || "");
+    const anchorSnap = reshapeSnapshotById.get(anchorSeat?.seatId || "");
+    if (!startSnap || !endSnap || !anchorSnap) return false;
+
+    const applySegment = (originSnap, baseAnchorSnap, startIdx, endIdx) => {
+      const baseVecX = baseAnchorSnap.vx - originSnap.vx;
+      const baseVecY = baseAnchorSnap.vy - originSnap.vy;
+      const baseLen = Math.hypot(baseVecX, baseVecY);
+      if (!Number.isFinite(baseLen) || baseLen < 1e-9) return false;
+
+      const targetVecX = targetAnchorX - originSnap.vx;
+      const targetVecY = targetAnchorY - originSnap.vy;
+      const targetLen = Math.hypot(targetVecX, targetVecY);
+      const baseAngle = Math.atan2(baseVecY, baseVecX);
+      const targetAngle = Math.atan2(targetVecY, targetVecX);
+      const angleDelta = normalizeReshapeAngleDelta(targetAngle - baseAngle);
+      const scaleFactor = Number.isFinite(targetLen) ? (targetLen / baseLen) : 1;
+      const cosA = Math.cos(angleDelta);
+      const sinA = Math.sin(angleDelta);
+
+      let localChanged = false;
+      const step = startIdx <= endIdx ? 1 : -1;
+      for (let i = startIdx; step > 0 ? i <= endIdx : i >= endIdx; i += step) {
+        if (i === anchorIndex) continue;
+        const seat = sorted[i];
+        const snap = reshapeSnapshotById.get(seat.seatId);
+        if (!snap) continue;
+        const relX = snap.vx - originSnap.vx;
+        const relY = snap.vy - originSnap.vy;
+        const rotatedX = relX * cosA - relY * sinA;
+        const rotatedY = relX * sinA + relY * cosA;
+        const nextX = originSnap.vx + rotatedX * scaleFactor;
+        const nextY = originSnap.vy + rotatedY * scaleFactor;
+        if (numberChanged(seat.vx, nextX) || numberChanged(seat.vy, nextY)) {
+          localChanged = true;
+        }
+        seat.vx = nextX;
+        seat.vy = nextY;
+        seat.centerX = nextX;
+        seat.centerY = nextY;
+      }
+      return localChanged;
+    };
+
+    let changed = false;
+    changed = applySegment(startSnap, anchorSnap, 0, anchorIndex) || changed;
+    changed = applySegment(endSnap, anchorSnap, sorted.length - 1, anchorIndex) || changed;
+
+    if (numberChanged(anchorSeat.vx, targetAnchorX) || numberChanged(anchorSeat.vy, targetAnchorY)) {
+      changed = true;
+    }
+    anchorSeat.vx = targetAnchorX;
+    anchorSeat.vy = targetAnchorY;
+    anchorSeat.centerX = targetAnchorX;
+    anchorSeat.centerY = targetAnchorY;
+    return changed;
+  }
+
+  function applyReshapeDrag(target, newX, newY, shiftModifier = false) {
+    if (!reshapeRowsData || !reshapeRowsData.length || !reshapeSnapshotById || !reshapeActiveRowId) return false;
+    const activeRow = reshapeRowsData.find((row) => row.rowId === reshapeActiveRowId) || null;
+    if (!activeRow) return false;
+
+    const anchorRows = reshapeRowsData.filter((row) => {
+      const key = String(row.rowId || "").trim();
+      if (!key || !reshapePivotSeatIdsByRow.has(key)) return false;
+      const pivotSeatId = reshapePivotSeatIdsByRow.get(key);
+      return row.seats.some((seat) => seat.seatId === pivotSeatId);
+    });
+    const hasDualAnchors = reshapeRowsData.length > 1 && anchorRows.length >= 2;
+    const dualAnchorShiftSync = hasDualAnchors && !!shiftModifier;
+    const activeRowIndex = reshapeRowsData.findIndex((row) => row.rowId === activeRow.rowId);
+
+    if (target === "anchor") {
+      const anchorInfo = getReshapeAnchorInfo(activeRow.seats, activeRow.rowId, "anchor");
+      if (anchorInfo.anchorIndex < 0) return false;
+      const anchorSeat = activeRow.seats[anchorInfo.anchorIndex];
+      const anchorSnap = reshapeSnapshotById.get(anchorSeat?.seatId || "");
+      if (!anchorSnap) return false;
+
+      const activeDeltaX = newX - anchorSnap.vx;
+      const activeDeltaY = newY - anchorSnap.vy;
+      let changed = false;
+      let usedDualInterpolation = false;
+
+      if (hasDualAnchors) {
+        const orderedAnchorRows = [...anchorRows].sort((a, b) => compareRowIdsForSort(a.rowId, b.rowId));
+        const lowerAnchorRow = orderedAnchorRows[0];
+        const upperAnchorRow = orderedAnchorRows[orderedAnchorRows.length - 1];
+        const lowerIndexRaw = reshapeRowsData.findIndex((row) => row.rowId === lowerAnchorRow.rowId);
+        const upperIndexRaw = reshapeRowsData.findIndex((row) => row.rowId === upperAnchorRow.rowId);
+        const lowerIndex = Math.min(lowerIndexRaw, upperIndexRaw);
+        const upperIndex = Math.max(lowerIndexRaw, upperIndexRaw);
+        const isActiveAnchor = activeRowIndex === lowerIndex || activeRowIndex === upperIndex;
+
+        if (isActiveAnchor && lowerIndex >= 0 && upperIndex >= 0) {
+          usedDualInterpolation = true;
+          const lowerInfo = reshapeRowsData[lowerIndex];
+          const upperInfo = reshapeRowsData[upperIndex];
+          const lowerAnchorInfo = getReshapeAnchorInfo(lowerInfo.seats, lowerInfo.rowId, "anchor");
+          const upperAnchorInfo = getReshapeAnchorInfo(upperInfo.seats, upperInfo.rowId, "anchor");
+          const lowerPivotRatio = lowerInfo.seats.length > 1
+            ? lowerAnchorInfo.anchorIndex / (lowerInfo.seats.length - 1)
+            : 0;
+          const upperPivotRatio = upperInfo.seats.length > 1
+            ? upperAnchorInfo.anchorIndex / (upperInfo.seats.length - 1)
+            : 0;
+          const lowerDelta = {
+            dx: activeRowIndex === lowerIndex || dualAnchorShiftSync ? activeDeltaX : 0,
+            dy: activeRowIndex === lowerIndex || dualAnchorShiftSync ? activeDeltaY : 0
+          };
+          const upperDelta = {
+            dx: activeRowIndex === upperIndex || dualAnchorShiftSync ? activeDeltaX : 0,
+            dy: activeRowIndex === upperIndex || dualAnchorShiftSync ? activeDeltaY : 0
+          };
+
+          const range = Math.max(1, upperIndex - lowerIndex);
+          for (let i = 0; i < reshapeRowsData.length; i++) {
+            const row = reshapeRowsData[i];
+            const tRaw = range === 0 ? 0 : (i - lowerIndex) / range;
+            const t = clampValue(tRaw, 0, 1);
+            const dx = lowerDelta.dx + (upperDelta.dx - lowerDelta.dx) * t;
+            const dy = lowerDelta.dy + (upperDelta.dy - lowerDelta.dy) * t;
+            const fallbackPivotRatio = lowerPivotRatio + (upperPivotRatio - lowerPivotRatio) * t;
+            const rowAnchorInfo = getReshapeAnchorInfo(row.seats, row.rowId, "anchor", fallbackPivotRatio);
+            if (rowAnchorInfo.anchorIndex < 0) continue;
+            const rowAnchorSeat = row.seats[rowAnchorInfo.anchorIndex];
+            const rowAnchorSnap = reshapeSnapshotById.get(rowAnchorSeat?.seatId || "");
+            if (!rowAnchorSnap) continue;
+            const targetAnchorX = rowAnchorSnap.vx + dx;
+            const targetAnchorY = rowAnchorSnap.vy + dy;
+            changed = applyReshapeAnchorMoveToRow(row, targetAnchorX, targetAnchorY, fallbackPivotRatio) || changed;
+          }
+        }
+      }
+
+      if (!usedDualInterpolation) {
+        const fallbackPivotRatio = activeRow.seats.length > 1
+          ? anchorInfo.anchorIndex / (activeRow.seats.length - 1)
+          : 0;
+        for (const row of reshapeRowsData) {
+          const rowAnchorInfo = getReshapeAnchorInfo(row.seats, row.rowId, "anchor", fallbackPivotRatio);
+          if (rowAnchorInfo.anchorIndex < 0) continue;
+          const rowAnchorSeat = row.seats[rowAnchorInfo.anchorIndex];
+          const rowAnchorSnap = reshapeSnapshotById.get(rowAnchorSeat?.seatId || "");
+          if (!rowAnchorSnap) continue;
+          const targetAnchorX = rowAnchorSnap.vx + activeDeltaX;
+          const targetAnchorY = rowAnchorSnap.vy + activeDeltaY;
+          changed = applyReshapeAnchorMoveToRow(row, targetAnchorX, targetAnchorY, fallbackPivotRatio) || changed;
+        }
+      }
+      return changed;
+    }
+
+    const rotateOnly = !hasDualAnchors && !!shiftModifier;
+
+    const activeTransform = buildReshapeTransformForRow(activeRow, target, newX, newY, rotateOnly);
+    if (!activeTransform) return false;
+
+    let changed = false;
+    let usedDualInterpolation = false;
+
+    if (hasDualAnchors) {
+      const orderedAnchorRows = [...anchorRows].sort((a, b) => compareRowIdsForSort(a.rowId, b.rowId));
+      const lowerAnchorRow = orderedAnchorRows[0];
+      const upperAnchorRow = orderedAnchorRows[orderedAnchorRows.length - 1];
+      const lowerIndexRaw = reshapeRowsData.findIndex((row) => row.rowId === lowerAnchorRow.rowId);
+      const upperIndexRaw = reshapeRowsData.findIndex((row) => row.rowId === upperAnchorRow.rowId);
+      const lowerIndex = Math.min(lowerIndexRaw, upperIndexRaw);
+      const upperIndex = Math.max(lowerIndexRaw, upperIndexRaw);
+      const isActiveAnchor = activeRowIndex === lowerIndex || activeRowIndex === upperIndex;
+
+      if (isActiveAnchor && lowerIndex >= 0 && upperIndex >= 0) {
+        usedDualInterpolation = true;
+        const lowerInfo = reshapeRowsData[lowerIndex];
+        const upperInfo = reshapeRowsData[upperIndex];
+        const lowerAnchor = getReshapeAnchorInfo(lowerInfo.seats, lowerInfo.rowId, target);
+        const upperAnchor = getReshapeAnchorInfo(upperInfo.seats, upperInfo.rowId, target);
+        const lowerPivotRatio = lowerInfo.seats.length > 1 ? lowerAnchor.anchorIndex / (lowerInfo.seats.length - 1) : 0;
+        const upperPivotRatio = upperInfo.seats.length > 1 ? upperAnchor.anchorIndex / (upperInfo.seats.length - 1) : 0;
+
+        const lowerTransform = {
+          angleDelta: activeRowIndex === lowerIndex || dualAnchorShiftSync ? activeTransform.angleDelta : 0,
+          scaleFactor: activeRowIndex === lowerIndex || dualAnchorShiftSync ? activeTransform.scaleFactor : 1
+        };
+        const upperTransform = {
+          angleDelta: activeRowIndex === upperIndex || dualAnchorShiftSync ? activeTransform.angleDelta : 0,
+          scaleFactor: activeRowIndex === upperIndex || dualAnchorShiftSync ? activeTransform.scaleFactor : 1
+        };
+
+        const range = Math.max(1, upperIndex - lowerIndex);
+        for (let i = 0; i < reshapeRowsData.length; i++) {
+          const row = reshapeRowsData[i];
+          const tRaw = range === 0 ? 0 : (i - lowerIndex) / range;
+          const t = clampValue(tRaw, 0, 1);
+          const blendTransform = {
+            angleDelta: lowerTransform.angleDelta + (upperTransform.angleDelta - lowerTransform.angleDelta) * t,
+            scaleFactor: lowerTransform.scaleFactor + (upperTransform.scaleFactor - lowerTransform.scaleFactor) * t
+          };
+          const fallbackPivotRatio = lowerPivotRatio + (upperPivotRatio - lowerPivotRatio) * t;
+          changed = applyReshapeTransformToRow(row, target, blendTransform, fallbackPivotRatio) || changed;
+        }
+      }
+    }
+
+    if (!usedDualInterpolation) {
+      for (const row of reshapeRowsData) {
+        changed = applyReshapeTransformToRow(row, target, activeTransform, activeTransform.pivotRatio) || changed;
+      }
+    }
+
+    return changed;
   }
 
   function getAlignGroups() {
@@ -15167,6 +15455,21 @@ function nudgeSelection(dxScreen, dyScreen) {
     return { next, changed };
   }
 
+  function remapReshapePivots(seatIdMap, rowIdMap = null) {
+    if (!reshapePivotSeatIdsByRow.size) return;
+    const nextMap = new Map();
+    reshapePivotSeatIdsByRow.forEach((seatId, rowId) => {
+      const sourceSeatId = String(seatId || "").trim();
+      const sourceRowId = String(rowId || "").trim();
+      if (!sourceSeatId || !sourceRowId) return;
+      const mappedSeatId = (seatIdMap && seatIdMap.size) ? (seatIdMap.get(sourceSeatId) || sourceSeatId) : sourceSeatId;
+      const mappedRowId = (rowIdMap && rowIdMap.size) ? (rowIdMap.get(sourceRowId) || sourceRowId) : sourceRowId;
+      if (!mappedSeatId || !mappedRowId) return;
+      nextMap.set(mappedRowId, mappedSeatId);
+    });
+    reshapePivotSeatIdsByRow = nextMap;
+  }
+
   function reverseSeatNamesForSelectedRows() {
     if (selectionMode !== "row") return false;
     const rows = getSelectedRows();
@@ -15223,9 +15526,7 @@ function nudgeSelection(dxScreen, dyScreen) {
     if (lastSelectedSeatId && seatIdMap.has(lastSelectedSeatId)) {
       lastSelectedSeatId = seatIdMap.get(lastSelectedSeatId);
     }
-    if (reshapePivotSeatId && seatIdMap.has(reshapePivotSeatId)) {
-      reshapePivotSeatId = seatIdMap.get(reshapePivotSeatId);
-    }
+    remapReshapePivots(seatIdMap);
 
     if (highlightedSeatIds.size) {
       highlightedSeatIds = new Set(
@@ -15972,9 +16273,7 @@ function nudgeSelection(dxScreen, dyScreen) {
     if (lastSelectedSeatId && seatIdMap.has(lastSelectedSeatId)) {
       lastSelectedSeatId = seatIdMap.get(lastSelectedSeatId);
     }
-    if (reshapePivotSeatId && seatIdMap.has(reshapePivotSeatId)) {
-      reshapePivotSeatId = seatIdMap.get(reshapePivotSeatId);
-    }
+    remapReshapePivots(seatIdMap, rowIdMap);
     if (highlightedSeatIds.size) {
       highlightedSeatIds = new Set(
         Array.from(highlightedSeatIds).map((seatId) => seatIdMap.get(seatId) || seatId)
@@ -16204,10 +16503,12 @@ function nudgeSelection(dxScreen, dyScreen) {
       return String(a.rowId || "").localeCompare(String(b.rowId || ""), "sv", { numeric: true, sensitivity: "base" });
     });
 
+    const rowIdMap = new Map();
     const seatIdMap = new Map();
     let nextRowNumber = 1;
     rowEntries.forEach((entry) => {
       const nextRowId = `${newSectionId}.${nextRowNumber++}`;
+      rowIdMap.set(entry.rowId, nextRowId);
       const nextRowName = String(entry.rowName || nextRowId).trim() || nextRowId;
       const orderedSeats = sortSeatsInRow(entry.seats);
       orderedSeats.forEach((seat, index) => {
@@ -16229,9 +16530,7 @@ function nudgeSelection(dxScreen, dyScreen) {
     if (lastSelectedSeatId && seatIdMap.has(lastSelectedSeatId)) {
       lastSelectedSeatId = seatIdMap.get(lastSelectedSeatId);
     }
-    if (reshapePivotSeatId && seatIdMap.has(reshapePivotSeatId)) {
-      reshapePivotSeatId = seatIdMap.get(reshapePivotSeatId);
-    }
+    remapReshapePivots(seatIdMap, rowIdMap);
 
     if (highlightedSeatIds.size) {
       highlightedSeatIds = new Set(
@@ -16678,33 +16977,55 @@ function nudgeSelection(dxScreen, dyScreen) {
     }
 
     if (currentTool === "reshape") {
-      const rows = getSelectedRows();
-      if (rows.size !== 1) return;
-      const [, rowSeats] = rows.entries().next().value || [];
-      if (!rowSeats || rowSeats.length < 2) return;
+      const rowEntries = getSelectedRowEntriesForReshape();
+      if (!rowEntries.length) return;
 
-      const sorted = sortSeatsInRow(rowSeats);
-      const startSeat = sorted[0];
-      const endSeat = sorted[sorted.length - 1];
       const hitRadius = 12;
-      const startScreen = worldToScreen(startSeat.vx, startSeat.vy);
-      const endScreen = worldToScreen(endSeat.vx, endSeat.vy);
-      const distStart = Math.hypot(startScreen.x - canvasX, startScreen.y - canvasY);
-      const distEnd = Math.hypot(endScreen.x - canvasX, endScreen.y - canvasY);
+      let bestHit = null;
+      const considerHit = (distance, priority, rowId, target) => {
+        if (!Number.isFinite(distance) || distance > hitRadius) return;
+        const shouldReplace = !bestHit
+          || distance < (bestHit.distance - 1e-6)
+          || (Math.abs(distance - bestHit.distance) <= 1e-6 && priority > bestHit.priority);
+        if (!shouldReplace) return;
+        bestHit = { rowId, target, distance, priority };
+      };
+      rowEntries.forEach((entry) => {
+        const rowKey = String(entry.rowId || "").trim();
+        const sorted = entry.seats;
+        const startSeat = sorted[0];
+        const endSeat = sorted[sorted.length - 1];
+        const startScreen = worldToScreen(startSeat.vx, startSeat.vy);
+        const endScreen = worldToScreen(endSeat.vx, endSeat.vy);
+        const distStart = Math.hypot(startScreen.x - canvasX, startScreen.y - canvasY);
+        const distEnd = Math.hypot(endScreen.x - canvasX, endScreen.y - canvasY);
+        considerHit(distStart, 1, rowKey, "start");
+        considerHit(distEnd, 1, rowKey, "end");
 
+        const pivotSeatId = rowKey ? reshapePivotSeatIdsByRow.get(rowKey) : "";
+        if (pivotSeatId) {
+          const pivotSeat = sorted.find((seat) => seat.seatId === pivotSeatId);
+          if (pivotSeat) {
+            const pivotScreen = worldToScreen(pivotSeat.vx, pivotSeat.vy);
+            const distPivot = Math.hypot(pivotScreen.x - canvasX, pivotScreen.y - canvasY);
+            // Give anchor handle higher priority when distances are equal.
+            considerHit(distPivot, 2, rowKey, "anchor");
+          }
+        }
+      });
+
+      if (!bestHit) return;
       reshapeDragTarget = null;
-      if (distStart <= hitRadius) {
-        reshapeDragTarget = "start";
-      } else if (distEnd <= hitRadius) {
-        reshapeDragTarget = "end";
-      }
+      reshapeActiveRowId = bestHit.rowId;
+      reshapeDragTarget = bestHit.target;
       if (!reshapeDragTarget) return;
 
+      hasReshapedDuringDrag = false;
       reshapeStartSnapshot = captureSeatState();
       reshapeSnapshotById = new Map(reshapeStartSnapshot.map(s => [s.seatId, s]));
-      reshapeRowSeats = rowSeats;
+      reshapeRowsData = rowEntries;
       isReshapingRow = true;
-      applyReshapeDrag(reshapeDragTarget, worldX, worldY, e.shiftKey);
+      hasReshapedDuringDrag = applyReshapeDrag(reshapeDragTarget, worldX, worldY, e.shiftKey) || hasReshapedDuringDrag;
       renderCanvas();
       return;
     }
@@ -18556,9 +18877,19 @@ function nudgeSelection(dxScreen, dyScreen) {
     if (currentTool === "reshape") {
       const hit = hitTestSeat(worldX, worldY);
       const rows = getSelectedRows();
-      if (hit && hit.rowId && rows.size === 1 && rows.has(hit.rowId)) {
-        reshapePivotSeatId = hit.seatId;
+      if (hit && hit.rowId && rows.size >= 1 && rows.has(hit.rowId)) {
+        const rowId = String(hit.rowId || "").trim();
+        const seatId = String(hit.seatId || "").trim();
+        if (rowId && seatId) {
+          const currentPivot = reshapePivotSeatIdsByRow.get(rowId);
+          if (currentPivot === seatId) {
+            reshapePivotSeatIdsByRow.delete(rowId);
+          } else {
+            reshapePivotSeatIdsByRow.set(rowId, seatId);
+          }
+        }
         e.preventDefault();
+        renderCanvas();
         return;
       }
     }
@@ -18680,8 +19011,8 @@ function nudgeSelection(dxScreen, dyScreen) {
     }
 
     // Reshape-drag
-    if (isReshapingRow && reshapeRowSeats && reshapeDragTarget && reshapeSnapshotById) {
-      applyReshapeDrag(reshapeDragTarget, worldX, worldY, e.shiftKey);
+    if (isReshapingRow && reshapeRowsData && reshapeDragTarget && reshapeSnapshotById) {
+      hasReshapedDuringDrag = applyReshapeDrag(reshapeDragTarget, worldX, worldY, e.shiftKey) || hasReshapedDuringDrag;
       renderCanvas();
       return;
     }
@@ -18814,9 +19145,9 @@ function nudgeSelection(dxScreen, dyScreen) {
     }
   });
 
-  function commitSelectionGeometryChange() {
+  function commitSelectionGeometryChange(label = "") {
     syncSeatRotationsForSelectedRows();
-    pushHistorySnapshot();
+    pushHistorySnapshot(label);
     hasUnsavedChanges = true;
     updateCodeFromSeats();
     updateSaveButton();
@@ -18844,7 +19175,7 @@ function nudgeSelection(dxScreen, dyScreen) {
 
       if (didRotate) {
         // Rotation klar -> historik + kod + save-knapp
-        commitSelectionGeometryChange();
+        commitSelectionGeometryChange("Rotated selection");
       }
     }
 
@@ -18857,20 +19188,22 @@ function nudgeSelection(dxScreen, dyScreen) {
       bendDragTarget = null;
 
       if (didBend) {
-        commitSelectionGeometryChange();
+        commitSelectionGeometryChange("Bent row");
       }
     }
 
     if (isReshapingRow) {
-      const didReshape = !!reshapeDragTarget;
+      const didReshape = hasReshapedDuringDrag;
       isReshapingRow = false;
+      hasReshapedDuringDrag = false;
       reshapeDragTarget = null;
       reshapeStartSnapshot = null;
       reshapeSnapshotById = null;
-      reshapeRowSeats = null;
+      reshapeRowsData = null;
+      reshapeActiveRowId = null;
 
       if (didReshape) {
-        commitSelectionGeometryChange();
+        commitSelectionGeometryChange("Reshaped row(s)");
       }
     }
 
@@ -18886,7 +19219,7 @@ function nudgeSelection(dxScreen, dyScreen) {
       resizeStartVector = null;
 
       if (didResize) {
-        commitSelectionGeometryChange();
+        commitSelectionGeometryChange("Resized selection");
       }
     }
 
@@ -18895,7 +19228,7 @@ function nudgeSelection(dxScreen, dyScreen) {
       dragStartSnapshot = null;
 
       // Flytten är klar -> historik + kod + save-knapp
-      commitSelectionGeometryChange();
+      commitSelectionGeometryChange("Moved selection");
       return;
     }
 
@@ -18941,7 +19274,7 @@ function nudgeSelection(dxScreen, dyScreen) {
       rotateStartAngle = 0;
 
       if (didRotate) {
-        commitSelectionGeometryChange();
+        commitSelectionGeometryChange("Rotated selection");
       }
     }
     if (isBendingSelection) {
@@ -18952,19 +19285,21 @@ function nudgeSelection(dxScreen, dyScreen) {
       bendDragTarget = null;
 
       if (didBend) {
-        commitSelectionGeometryChange();
+        commitSelectionGeometryChange("Bent row");
       }
     }
     if (isReshapingRow) {
-      const didReshape = !!reshapeDragTarget;
+      const didReshape = hasReshapedDuringDrag;
       isReshapingRow = false;
+      hasReshapedDuringDrag = false;
       reshapeDragTarget = null;
       reshapeStartSnapshot = null;
       reshapeSnapshotById = null;
-      reshapeRowSeats = null;
+      reshapeRowsData = null;
+      reshapeActiveRowId = null;
 
       if (didReshape) {
-        commitSelectionGeometryChange();
+        commitSelectionGeometryChange("Reshaped row(s)");
       }
     }
     if (isResizingSelection) {
@@ -18979,14 +19314,14 @@ function nudgeSelection(dxScreen, dyScreen) {
       resizeStartVector = null;
 
       if (didResize) {
-        commitSelectionGeometryChange();
+        commitSelectionGeometryChange("Resized selection");
       }
     }
     if (isDraggingSelection) {
       isDraggingSelection = false;
       dragStartSnapshot = null;
 
-      commitSelectionGeometryChange();
+      commitSelectionGeometryChange("Moved selection");
     }
     if (selectionRectActive) {
       selectionRectActive = false;
@@ -19018,7 +19353,7 @@ function nudgeSelection(dxScreen, dyScreen) {
     const rowData = computeRowEndpoints(rowSeats);
     redistributeRowLinear(rowData);
 
-    commitSelectionGeometryChange();
+    commitSelectionGeometryChange("Reset bent row");
     renderCanvas();
   });
 
@@ -19111,6 +19446,13 @@ function nudgeSelection(dxScreen, dyScreen) {
 
     // Om man skriver i textfält: inga fler genvägar
     if (isTextInput) return;
+
+    if (key === "escape" && currentTool === "reshape" && reshapePivotSeatIdsByRow.size) {
+      e.preventDefault();
+      reshapePivotSeatIdsByRow.clear();
+      renderCanvas();
+      return;
+    }
 
     if (key === "h") {
       e.preventDefault();
@@ -19277,7 +19619,7 @@ function nudgeSelection(dxScreen, dyScreen) {
     if (resetRowBtn.disabled) return;
     const didReset = resetSelectedRowsLinear();
     if (didReset) {
-      commitSelectionGeometryChange();
+      commitSelectionGeometryChange("Reset row(s)");
       renderCanvas();
     }
   });
@@ -19285,7 +19627,7 @@ function nudgeSelection(dxScreen, dyScreen) {
     if (makeTableBtn.disabled) return;
     const didMake = makeTableFromSelectedRows();
     if (didMake) {
-      commitSelectionGeometryChange();
+      commitSelectionGeometryChange("Made table layout");
       renderCanvas();
     }
   });
@@ -19464,7 +19806,7 @@ function nudgeSelection(dxScreen, dyScreen) {
     const degrees = direction === "ccw" ? -Math.abs(value) : Math.abs(value);
     const didRotate = rotateSelectionByDegrees(degrees);
     if (didRotate) {
-      commitSelectionGeometryChange();
+      commitSelectionGeometryChange("Rotated selection");
       renderCanvas();
     }
   }
@@ -19472,7 +19814,7 @@ function nudgeSelection(dxScreen, dyScreen) {
   function handleFlip(axis) {
     const didFlip = flipSelection(axis);
     if (didFlip) {
-      commitSelectionGeometryChange();
+      commitSelectionGeometryChange("Flipped selection");
       renderCanvas();
     }
   }
@@ -19480,7 +19822,7 @@ function nudgeSelection(dxScreen, dyScreen) {
   function handleAlign(mode) {
     const didAlign = alignSelectedSeats(mode);
     if (didAlign) {
-      commitSelectionGeometryChange();
+      commitSelectionGeometryChange(`Aligned selection (${mode})`);
       renderCanvas();
     }
   }
