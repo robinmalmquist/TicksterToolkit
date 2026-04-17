@@ -607,54 +607,6 @@
       grid-row: span 2;
     }
 
-    .alt-assist-tools {
-      display: flex;
-      flex-direction: column;
-      gap: 0.35rem;
-      align-items: flex-start;
-      grid-row: span 2;
-      min-width: 230px;
-      padding: 0.35rem 0.45rem;
-      border: 1px dashed #c9d6e6;
-      border-radius: 8px;
-      background: #f8fbff;
-    }
-
-    .alt-assist-tools[hidden] {
-      display: none !important;
-    }
-
-    .alt-assist-tools__title {
-      font-size: 0.72rem;
-      font-weight: 600;
-      color: #2e3c47;
-    }
-
-    .alt-assist-tools__state {
-      font-size: 0.71rem;
-      line-height: 1.35;
-      color: #4d5a68;
-    }
-
-    .alt-assist-tools__actions {
-      display: flex;
-      gap: 0.35rem;
-      flex-wrap: wrap;
-    }
-
-    html[data-theme="dark"] .alt-assist-tools {
-      border-color: #334155;
-      background: #111a2c;
-    }
-
-    html[data-theme="dark"] .alt-assist-tools__title {
-      color: #e2e8f0;
-    }
-
-    html[data-theme="dark"] .alt-assist-tools__state {
-      color: #c0cbe1;
-    }
-
     .alt-seat-numbering__current {
       display: flex;
       align-items: center;
@@ -3528,7 +3480,6 @@
             <div class="alt-section-toolbar__group alt-section-toolbar__group--tools">
               <button id="altToolSelectBtn" class="c-button c-button--ghost c-button--small c-button--active">Select (S)</button>
               <button id="altToolDrawBtn" class="c-button c-button--ghost c-button--small">Draw (D)</button>
-              <button id="altToolAssistBtn" class="c-button c-button--ghost c-button--small">Assist (A)</button>
               <button id="altUndoBtn" class="c-button c-button--ghost c-button--small" title="Undo (Ctrl/Cmd+Z)">Undo</button>
             </div>
             <div class="alt-section-toolbar__divider" aria-hidden="true"></div>
@@ -3558,18 +3509,6 @@
                   <input id="altContinuousStartSeat" class="alt-seat-numbering__input" type="text" inputmode="numeric" readonly />
                   <button id="altContinuousSkipBtn" class="c-button c-button--ghost c-button--small" type="button">Skip</button>
                 </div>
-              </div>
-            </div>
-            <div id="altAssistControls" class="alt-assist-tools" hidden>
-              <div class="alt-assist-tools__title">Assist: Interpolate rows</div>
-              <div id="altAssistState" class="alt-assist-tools__state">Pick two reference rows in the canvas.</div>
-              <label class="bg-control u-font--small">
-                <input type="checkbox" id="altAssistEmptyOnly" checked />
-                Fill only empty rows
-              </label>
-              <div class="alt-assist-tools__actions">
-                <button id="altAssistApplyBtn" class="c-button c-button--ghost c-button--small" type="button">Apply between rows</button>
-                <button id="altAssistResetBtn" class="c-button c-button--ghost c-button--small" type="button">Reset</button>
               </div>
             </div>
           </div>
@@ -4225,12 +4164,6 @@
   const altSeatTooltip = document.getElementById("altSeatTooltip");
   const altToolSelectBtn = document.getElementById("altToolSelectBtn");
   const altToolDrawBtn = document.getElementById("altToolDrawBtn");
-  const altToolAssistBtn = document.getElementById("altToolAssistBtn");
-  const altAssistControls = document.getElementById("altAssistControls");
-  const altAssistState = document.getElementById("altAssistState");
-  const altAssistEmptyOnly = document.getElementById("altAssistEmptyOnly");
-  const altAssistApplyBtn = document.getElementById("altAssistApplyBtn");
-  const altAssistResetBtn = document.getElementById("altAssistResetBtn");
   const altUndoBtn = document.getElementById("altUndoBtn");
   const altGapNewBtn = document.getElementById("altGapNewBtn");
   const altReverseSeatOrderBtn = document.getElementById("altReverseSeatOrderBtn");
@@ -4284,8 +4217,6 @@
   let altDrawStart = null;
   let altDrawEnd = null;
   let altDrawLineIndex = null;
-  let altAssistAnchorLineIndex = null;
-  let altAssistTargetLineIndex = null;
   const ALT_SEAT_RADIUS = 8;
   const ALT_SEAT_SPACING = 18;
   const ALT_ROW_HEIGHT = 24;
@@ -5307,17 +5238,159 @@
     return sectionIds.size;
   }
 
+  function getSnapshotSeatMap(snapshot) {
+    const map = new Map();
+    if (!snapshot || !Array.isArray(snapshot.seats)) return map;
+    snapshot.seats.forEach((seat) => {
+      const seatId = String(seat?.seatId || "").trim();
+      if (!seatId) return;
+      map.set(seatId, seat);
+    });
+    return map;
+  }
+
+  function getSelectedSeatIdSetFromSnapshot(snapshot) {
+    const ids = new Set();
+    if (!snapshot || !Array.isArray(snapshot.seats)) return ids;
+    snapshot.seats.forEach((seat) => {
+      const seatId = String(seat?.seatId || "").trim();
+      if (!seatId || !seat?.selected) return;
+      ids.add(seatId);
+    });
+    return ids;
+  }
+
+  function areStringSetsEqual(first, second) {
+    if (first.size !== second.size) return false;
+    for (const value of first) {
+      if (!second.has(value)) return false;
+    }
+    return true;
+  }
+
+  function getSnapshotSeatIdDiff(previousSnapshot, snapshot) {
+    const prevMap = getSnapshotSeatMap(previousSnapshot);
+    const nextMap = getSnapshotSeatMap(snapshot);
+    const added = [];
+    const removed = [];
+
+    nextMap.forEach((_, seatId) => {
+      if (!prevMap.has(seatId)) added.push(seatId);
+    });
+    prevMap.forEach((_, seatId) => {
+      if (!nextMap.has(seatId)) removed.push(seatId);
+    });
+
+    return { prevMap, nextMap, added, removed };
+  }
+
+  function numberChanged(prevValue, nextValue) {
+    const prev = Number(prevValue);
+    const next = Number(nextValue);
+    const prevFinite = Number.isFinite(prev);
+    const nextFinite = Number.isFinite(next);
+    if (!prevFinite && !nextFinite) return false;
+    if (prevFinite !== nextFinite) return true;
+    return Math.abs(prev - next) > 1e-6;
+  }
+
+  function hasSeatGeometryChanges(prevMap, nextMap) {
+    for (const [seatId, prevSeat] of prevMap.entries()) {
+      const nextSeat = nextMap.get(seatId);
+      if (!nextSeat) continue;
+      if (
+        numberChanged(prevSeat?.vx, nextSeat?.vx) ||
+        numberChanged(prevSeat?.vy, nextSeat?.vy) ||
+        numberChanged(prevSeat?.centerX, nextSeat?.centerX) ||
+        numberChanged(prevSeat?.centerY, nextSeat?.centerY) ||
+        numberChanged(prevSeat?.rotation, nextSeat?.rotation)
+      ) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  function hasSeatFieldChanges(prevMap, nextMap, fields) {
+    for (const [seatId, prevSeat] of prevMap.entries()) {
+      const nextSeat = nextMap.get(seatId);
+      if (!nextSeat) continue;
+      for (const field of fields) {
+        const prevValue = prevSeat?.[field];
+        const nextValue = nextSeat?.[field];
+        if (prevValue == null && nextValue == null) continue;
+        if (String(prevValue ?? "") !== String(nextValue ?? "")) return true;
+      }
+    }
+    return false;
+  }
+
+  function hasSeatAttributesChanges(prevMap, nextMap) {
+    for (const [seatId, prevSeat] of prevMap.entries()) {
+      const nextSeat = nextMap.get(seatId);
+      if (!nextSeat) continue;
+      const prevAttributes = Array.isArray(prevSeat?.attributes) ? prevSeat.attributes : [];
+      const nextAttributes = Array.isArray(nextSeat?.attributes) ? nextSeat.attributes : [];
+      if (prevAttributes.length !== nextAttributes.length) return true;
+      for (let i = 0; i < prevAttributes.length; i++) {
+        if (String(prevAttributes[i] ?? "") !== String(nextAttributes[i] ?? "")) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  function normalizeSnapshotEntries(entries) {
+    const list = Array.isArray(entries) ? entries : [];
+    return list
+      .map((entry) => {
+        if (Array.isArray(entry)) return [String(entry[0] ?? ""), entry[1]];
+        return [String(entry ?? ""), null];
+      })
+      .sort((a, b) => a[0].localeCompare(b[0], "sv", { numeric: true, sensitivity: "base" }));
+  }
+
+  function snapshotEntriesEqual(previousEntries, nextEntries) {
+    const prev = normalizeSnapshotEntries(previousEntries);
+    const next = normalizeSnapshotEntries(nextEntries);
+    if (prev.length !== next.length) return false;
+    for (let i = 0; i < prev.length; i++) {
+      const [prevKey, prevValue] = prev[i];
+      const [nextKey, nextValue] = next[i];
+      if (prevKey !== nextKey) return false;
+      if (!snapshotJsonEqual(prevValue, nextValue)) return false;
+    }
+    return true;
+  }
+
+  function snapshotJsonEqual(previousValue, nextValue) {
+    try {
+      return JSON.stringify(previousValue ?? null) === JSON.stringify(nextValue ?? null);
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function snapshotStringArrayEqual(previousArray, nextArray) {
+    const prev = Array.isArray(previousArray) ? previousArray : [];
+    const next = Array.isArray(nextArray) ? nextArray : [];
+    if (prev.length !== next.length) return false;
+    for (let i = 0; i < prev.length; i++) {
+      if (String(prev[i] ?? "") !== String(next[i] ?? "")) return false;
+    }
+    return true;
+  }
+
   function buildHistorySnapshotLabel(previousSnapshot, snapshot, explicitLabel = "") {
     const explicit = String(explicitLabel || "").trim();
     if (explicit) return explicit;
     if (!previousSnapshot) return "Initial state";
 
-    const prevSeatCount = Array.isArray(previousSnapshot.seats) ? previousSnapshot.seats.length : 0;
-    const nextSeatCount = Array.isArray(snapshot.seats) ? snapshot.seats.length : 0;
-    if (prevSeatCount !== nextSeatCount) {
-      const diff = Math.abs(nextSeatCount - prevSeatCount);
-      return nextSeatCount > prevSeatCount ? `Added ${diff} seat(s)` : `Removed ${diff} seat(s)`;
-    }
+    const { prevMap, nextMap, added, removed } = getSnapshotSeatIdDiff(previousSnapshot, snapshot);
+    if (added.length && !removed.length) return `Added ${added.length} seat(s)`;
+    if (removed.length && !added.length) return `Removed ${removed.length} seat(s)`;
+    if (added.length || removed.length) return `Seat set changed (+${added.length}/-${removed.length})`;
 
     const prevSectionCount = countUniqueSectionsFromSnapshot(previousSnapshot);
     const nextSectionCount = countUniqueSectionsFromSnapshot(snapshot);
@@ -5326,10 +5399,45 @@
       return nextSectionCount > prevSectionCount ? `Added ${diff} section(s)` : `Removed ${diff} section(s)`;
     }
 
-    const prevSelectionCount = countSelectedSeatsFromSnapshot(previousSnapshot);
-    const nextSelectionCount = countSelectedSeatsFromSnapshot(snapshot);
-    if (prevSelectionCount !== nextSelectionCount) {
-      return nextSelectionCount > prevSelectionCount ? "Selection expanded" : "Selection reduced";
+    if (previousSnapshot.selectionMode !== snapshot.selectionMode) {
+      return "Selection mode changed";
+    }
+
+    const prevSelected = getSelectedSeatIdSetFromSnapshot(previousSnapshot);
+    const nextSelected = getSelectedSeatIdSetFromSnapshot(snapshot);
+    if (!areStringSetsEqual(prevSelected, nextSelected)) {
+      const prevSelectionCount = prevSelected.size;
+      const nextSelectionCount = nextSelected.size;
+      if (prevSelectionCount !== nextSelectionCount) {
+        return nextSelectionCount > prevSelectionCount ? "Selection expanded" : "Selection reduced";
+      }
+      return "Selection changed";
+    }
+
+    if (hasSeatGeometryChanges(prevMap, nextMap)) {
+      return "Seat geometry updated";
+    }
+    if (hasSeatFieldChanges(prevMap, nextMap, ["name", "rowName"])) {
+      return "Seat labels updated";
+    }
+    if (hasSeatFieldChanges(prevMap, nextMap, ["entryVia"])) {
+      return "Seat entry points updated";
+    }
+    if (hasSeatFieldChanges(prevMap, nextMap, ["goodness"])) {
+      return "Seat goodness updated";
+    }
+    if (hasSeatAttributesChanges(prevMap, nextMap)) {
+      return "Seat attributes updated";
+    }
+    if (hasSeatFieldChanges(prevMap, nextMap, ["sectionId", "rowId", "sectionName"])) {
+      return "Seat section/row mapping updated";
+    }
+
+    if (!snapshotEntriesEqual(previousSnapshot.sectionNames, snapshot.sectionNames)) {
+      return "Section names updated";
+    }
+    if (!snapshotEntriesEqual(previousSnapshot.sectionColors, snapshot.sectionColors)) {
+      return "Section colors updated";
     }
 
     const prevPriceRegionCount = Array.isArray(previousSnapshot.priceRegions) ? previousSnapshot.priceRegions.length : 0;
@@ -5340,6 +5448,9 @@
         ? `Added ${diff} price region(s)`
         : `Removed ${diff} price region(s)`;
     }
+    if (!snapshotJsonEqual(previousSnapshot.priceRegions, snapshot.priceRegions)) {
+      return "Price regions updated";
+    }
 
     const prevEntryPointCount = Array.isArray(previousSnapshot.entryPoints) ? previousSnapshot.entryPoints.length : 0;
     const nextEntryPointCount = Array.isArray(snapshot.entryPoints) ? snapshot.entryPoints.length : 0;
@@ -5349,14 +5460,39 @@
         ? `Added ${diff} entry point(s)`
         : `Removed ${diff} entry point(s)`;
     }
+    if (!snapshotJsonEqual(previousSnapshot.entryPoints, snapshot.entryPoints)) {
+      return "Entry points updated";
+    }
+
+    if (!snapshotJsonEqual(previousSnapshot.seatBlocks, snapshot.seatBlocks)) {
+      return "Seat blocks updated";
+    }
+
+    if (
+      !snapshotEntriesEqual(previousSnapshot.numberedImportAssignmentsBySeatId, snapshot.numberedImportAssignmentsBySeatId) ||
+      !snapshotJsonEqual(previousSnapshot.numberedImportPurchases, snapshot.numberedImportPurchases) ||
+      !snapshotJsonEqual(previousSnapshot.numberedImportBlockedSeatIds, snapshot.numberedImportBlockedSeatIds) ||
+      previousSnapshot.numberedImportPlacementMode !== snapshot.numberedImportPlacementMode ||
+      previousSnapshot.numberedImportAutoOrderMode !== snapshot.numberedImportAutoOrderMode
+    ) {
+      return "Import placement updated";
+    }
 
     const prevLineCount = Array.isArray(previousSnapshot.originalLines) ? previousSnapshot.originalLines.length : 0;
     const nextLineCount = Array.isArray(snapshot.originalLines) ? snapshot.originalLines.length : 0;
     if (prevLineCount !== nextLineCount) {
-      return "Layout updated";
+      return "Layout structure updated";
     }
 
-    return "Update";
+    if (!snapshotStringArrayEqual(previousSnapshot.originalLines, snapshot.originalLines)) {
+      return "Layout data updated";
+    }
+
+    if (!snapshotJsonEqual(previousSnapshot.outlines, snapshot.outlines)) {
+      return "Outlines updated";
+    }
+
+    return "State updated";
   }
 
   function buildHistorySnapshotMeta(previousSnapshot, snapshot, explicitLabel = "") {
@@ -20001,12 +20137,9 @@ function nudgeSelection(dxScreen, dyScreen) {
   }
 
   function setAltTool(tool) {
-    if (tool === "draw") altSectionTool = "draw";
-    else if (tool === "assist") altSectionTool = "assist";
-    else altSectionTool = "select";
+    altSectionTool = tool === "draw" ? "draw" : "select";
     if (altToolSelectBtn) altToolSelectBtn.classList.toggle("c-button--active", altSectionTool === "select");
     if (altToolDrawBtn) altToolDrawBtn.classList.toggle("c-button--active", altSectionTool === "draw");
-    if (altToolAssistBtn) altToolAssistBtn.classList.toggle("c-button--active", altSectionTool === "assist");
     if (altSectionTool !== "draw") {
       altIsDrawing = false;
       altDrawStart = null;
@@ -20014,7 +20147,6 @@ function nudgeSelection(dxScreen, dyScreen) {
       altDrawLineIndex = null;
       setAltTooltip("", 0, 0, false);
     }
-    updateAltAssistControls();
     updateAltControls();
   }
 
@@ -20028,335 +20160,6 @@ function nudgeSelection(dxScreen, dyScreen) {
     if (line && !line.activeBlockId && line.blocks[0]) {
       line.activeBlockId = line.blocks[0].id;
     }
-  }
-
-  function isAltLineEmpty(line) {
-    if (!line || !Array.isArray(line.slots)) return true;
-    return !line.slots.some((slot) => !!slot);
-  }
-
-  function getAltLineSeatIndexes(line) {
-    if (!line || !Array.isArray(line.slots)) return [];
-    const indexes = [];
-    for (let i = 0; i < line.slots.length; i++) {
-      const slot = line.slots[i];
-      if (slot && slot.type === "seat") indexes.push(i);
-    }
-    return indexes;
-  }
-
-  function getAltLineBlockCountWithSeats(line) {
-    if (!line || !Array.isArray(line.blocks) || !line.blocks.length) return 1;
-    const count = line.blocks.reduce((sum, block) => {
-      return sum + (getAltSeatCount(line, block.id) > 0 ? 1 : 0);
-    }, 0);
-    return Math.max(1, count);
-  }
-
-  function getAltLineBlockDirectionsWithSeats(line) {
-    if (!line || !Array.isArray(line.blocks) || !line.blocks.length) return [1];
-    const directions = [];
-    line.blocks.forEach((block) => {
-      if (getAltSeatCount(line, block.id) > 0) {
-        directions.push(block.direction === -1 ? -1 : 1);
-      }
-    });
-    return directions.length ? directions : [1];
-  }
-
-  function normalizeAltAssistSelection() {
-    const maxIndex = altRowLines.length - 1;
-    const isValid = (value) => Number.isInteger(value) && value >= 0 && value <= maxIndex;
-    if (!isValid(altAssistAnchorLineIndex)) altAssistAnchorLineIndex = null;
-    if (!isValid(altAssistTargetLineIndex)) altAssistTargetLineIndex = null;
-    if (altAssistAnchorLineIndex != null && altAssistTargetLineIndex != null && altAssistAnchorLineIndex === altAssistTargetLineIndex) {
-      altAssistTargetLineIndex = null;
-    }
-  }
-
-  function resetAltAssistSelection(shouldRender = true) {
-    altAssistAnchorLineIndex = null;
-    altAssistTargetLineIndex = null;
-    updateAltAssistControls();
-    if (shouldRender) renderAltSectionCanvas();
-  }
-
-  function pickAltAssistLine(lineIndex) {
-    if (!Number.isInteger(lineIndex) || lineIndex < 0 || lineIndex >= altRowLines.length) return;
-    if (altAssistAnchorLineIndex == null || (altAssistAnchorLineIndex != null && altAssistTargetLineIndex != null)) {
-      altAssistAnchorLineIndex = lineIndex;
-      altAssistTargetLineIndex = null;
-    } else if (lineIndex === altAssistAnchorLineIndex) {
-      altAssistTargetLineIndex = null;
-    } else {
-      altAssistTargetLineIndex = lineIndex;
-    }
-    updateAltAssistControls();
-  }
-
-  function formatAltAssistRowLabel(index) {
-    if (!Number.isInteger(index) || index < 0 || index >= altRowLines.length) return "";
-    const line = altRowLines[index];
-    const name = String(line?.name || `${index + 1}`).trim();
-    return `row ${index + 1} (${name})`;
-  }
-
-  function updateAltAssistControls() {
-    normalizeAltAssistSelection();
-    const hasDraft = !!getActiveDraft();
-    const assistActive = hasDraft && altSectionTool === "assist";
-    if (altAssistControls) altAssistControls.hidden = !assistActive;
-    if (!assistActive) return;
-
-    let stateText = "Pick two reference rows in the canvas.";
-    let canApply = false;
-
-    if (altAssistAnchorLineIndex == null) {
-      stateText = "Pick first reference row.";
-    } else if (altAssistTargetLineIndex == null) {
-      stateText = `${formatAltAssistRowLabel(altAssistAnchorLineIndex)} selected. Pick second reference row.`;
-    } else {
-      const first = Math.min(altAssistAnchorLineIndex, altAssistTargetLineIndex);
-      const last = Math.max(altAssistAnchorLineIndex, altAssistTargetLineIndex);
-      const between = Math.max(0, last - first - 1);
-      const firstSeats = getAltLineSeatIndexes(altRowLines[first]).length;
-      const lastSeats = getAltLineSeatIndexes(altRowLines[last]).length;
-      if (between <= 0) {
-        stateText = "Rows are adjacent. Pick rows with at least one row between them.";
-      } else if (!firstSeats || !lastSeats) {
-        stateText = "Both reference rows must contain seats.";
-      } else {
-        stateText = `Will generate ${between} row(s) between ${formatAltAssistRowLabel(first)} and ${formatAltAssistRowLabel(last)}.`;
-        canApply = true;
-      }
-    }
-
-    if (altAssistState) altAssistState.textContent = stateText;
-    if (altAssistApplyBtn) altAssistApplyBtn.disabled = !canApply;
-    if (altAssistResetBtn) altAssistResetBtn.disabled = altAssistAnchorLineIndex == null && altAssistTargetLineIndex == null;
-    if (altAssistEmptyOnly) altAssistEmptyOnly.disabled = !canApply;
-  }
-
-  function sampleAltSeatIndexAtRatio(indexes, ratio) {
-    if (!indexes.length) return 0;
-    if (indexes.length === 1) return indexes[0];
-    const safeRatio = Math.max(0, Math.min(1, Number.isFinite(ratio) ? ratio : 0));
-    const scaled = safeRatio * (indexes.length - 1);
-    const left = Math.floor(scaled);
-    const right = Math.ceil(scaled);
-    if (left === right) return indexes[left];
-    const blend = scaled - left;
-    return indexes[left] + (indexes[right] - indexes[left]) * blend;
-  }
-
-  function normalizeAltInterpolatedSeatIndexes(rawIndexes, desiredCount) {
-    const used = new Set();
-    const normalized = [];
-    const countGoal = Math.max(1, Math.min(ALT_MAX_SLOTS, Math.floor(desiredCount || 1)));
-
-    const reserveCandidate = (candidate) => {
-      const bounded = Math.max(0, Math.min(ALT_MAX_SLOTS - 1, Math.round(candidate)));
-      if (!used.has(bounded)) {
-        used.add(bounded);
-        return bounded;
-      }
-      for (let step = 1; step < ALT_MAX_SLOTS; step++) {
-        const left = bounded - step;
-        const right = bounded + step;
-        if (left >= 0 && !used.has(left)) {
-          used.add(left);
-          return left;
-        }
-        if (right < ALT_MAX_SLOTS && !used.has(right)) {
-          used.add(right);
-          return right;
-        }
-      }
-      return null;
-    };
-
-    rawIndexes.forEach((value) => {
-      const next = reserveCandidate(value);
-      if (next != null) normalized.push(next);
-    });
-
-    while (normalized.length < countGoal) {
-      const fallback = reserveCandidate(ALT_MAX_SLOTS / 2);
-      if (fallback == null) break;
-      normalized.push(fallback);
-    }
-
-    normalized.sort((a, b) => a - b);
-    return normalized.slice(0, countGoal);
-  }
-
-  function interpolateAltSeatIndexes(startIndexes, endIndexes, t) {
-    if (!startIndexes.length && !endIndexes.length) return [];
-    if (!startIndexes.length) return endIndexes.slice().sort((a, b) => a - b);
-    if (!endIndexes.length) return startIndexes.slice().sort((a, b) => a - b);
-    const clampedT = Math.max(0, Math.min(1, Number.isFinite(t) ? t : 0));
-    const desiredCount = Math.max(
-      1,
-      Math.round(startIndexes.length + (endIndexes.length - startIndexes.length) * clampedT)
-    );
-    const raw = [];
-    if (desiredCount === 1) {
-      const centerA = sampleAltSeatIndexAtRatio(startIndexes, 0.5);
-      const centerB = sampleAltSeatIndexAtRatio(endIndexes, 0.5);
-      raw.push(Math.round(centerA + (centerB - centerA) * clampedT));
-    } else {
-      for (let i = 0; i < desiredCount; i++) {
-        const ratio = i / (desiredCount - 1);
-        const posA = sampleAltSeatIndexAtRatio(startIndexes, ratio);
-        const posB = sampleAltSeatIndexAtRatio(endIndexes, ratio);
-        raw.push(Math.round(posA + (posB - posA) * clampedT));
-      }
-    }
-    return normalizeAltInterpolatedSeatIndexes(raw, desiredCount);
-  }
-
-  function buildAltSeatGroupsForAssist(seatIndexes, blockCount) {
-    const sorted = seatIndexes.slice().sort((a, b) => a - b);
-    if (!sorted.length) return [];
-    const safeBlockCount = Math.max(1, Math.min(sorted.length, Math.floor(blockCount || 1)));
-    const groups = Array.from({ length: safeBlockCount }, () => []);
-    sorted.forEach((seatIndex, idx) => {
-      const mapped = Math.floor((idx * safeBlockCount) / sorted.length);
-      const groupIndex = Math.max(0, Math.min(safeBlockCount - 1, mapped));
-      groups[groupIndex].push(seatIndex);
-    });
-    return groups.filter((group) => group.length);
-  }
-
-  function buildAltAssistDirectionTemplate(lineA, lineB, blockCount, t) {
-    const dirsA = getAltLineBlockDirectionsWithSeats(lineA);
-    const dirsB = getAltLineBlockDirectionsWithSeats(lineB);
-    const safeCount = Math.max(1, Math.floor(blockCount || 1));
-    const sampled = [];
-    const sampleDir = (dirs, idx) => {
-      if (!dirs.length) return 1;
-      const mapped = Math.floor((idx * dirs.length) / safeCount);
-      const bounded = Math.max(0, Math.min(dirs.length - 1, mapped));
-      return dirs[bounded] === -1 ? -1 : 1;
-    };
-    for (let i = 0; i < safeCount; i++) {
-      const dirA = sampleDir(dirsA, i);
-      const dirB = sampleDir(dirsB, i);
-      sampled.push(dirA === dirB ? dirA : (t < 0.5 ? dirA : dirB));
-    }
-    return sampled;
-  }
-
-  function applyInterpolatedAltLine(line, seatIndexes, blockCount, directionTemplate, nextContinuousSeat) {
-    const groups = buildAltSeatGroupsForAssist(seatIndexes, blockCount);
-    line.slots = [];
-    line.blocks = [];
-    let runningContinuous = normalizeAltContinuousStartSeat(nextContinuousSeat);
-
-    groups.forEach((group, groupIndex) => {
-      const block = createAltBlock();
-      block.direction = directionTemplate[groupIndex] === -1 ? -1 : 1;
-      block.lastDirection = { x: block.direction, y: 0 };
-      line.blocks.push(block);
-      group.forEach((slotIndex) => {
-        line.slots[slotIndex] = {
-          type: "seat",
-          blockId: block.id,
-          name: ""
-        };
-      });
-      if (altSeatNumberingMode === "continuous") {
-        block.startSeat = runningContinuous;
-        block.autoStartSeatAssigned = group.length > 0;
-        renumberAltBlockSeats(line, block);
-        runningContinuous += group.length;
-      }
-    });
-
-    if (!line.blocks.length) {
-      const fallback = createAltBlock();
-      line.blocks = [fallback];
-    }
-    line.activeBlockId = line.blocks[0].id;
-    return runningContinuous;
-  }
-
-  function applyAltAssistBetweenRows() {
-    normalizeAltAssistSelection();
-    if (altAssistAnchorLineIndex == null || altAssistTargetLineIndex == null) {
-      alert("Select two reference rows first.");
-      return;
-    }
-    const first = Math.min(altAssistAnchorLineIndex, altAssistTargetLineIndex);
-    const last = Math.max(altAssistAnchorLineIndex, altAssistTargetLineIndex);
-    if (last - first < 2) {
-      alert("Pick rows with at least one row between them.");
-      return;
-    }
-
-    const firstLine = altRowLines[first];
-    const lastLine = altRowLines[last];
-    const firstSeatIndexes = getAltLineSeatIndexes(firstLine);
-    const lastSeatIndexes = getAltLineSeatIndexes(lastLine);
-    if (!firstSeatIndexes.length || !lastSeatIndexes.length) {
-      alert("Both reference rows must contain seats.");
-      return;
-    }
-
-    const emptyOnly = altAssistEmptyOnly ? altAssistEmptyOnly.checked : true;
-    const firstBlockCount = getAltLineBlockCountWithSeats(firstLine);
-    const lastBlockCount = getAltLineBlockCountWithSeats(lastLine);
-    let changedRows = 0;
-    let skippedRows = 0;
-    let nextContinuousSeat = normalizeAltContinuousStartSeat(computeAltContinuousStartFromLines(altRowLines));
-
-    for (let lineIndex = first + 1; lineIndex < last; lineIndex++) {
-      const line = altRowLines[lineIndex];
-      if (!line) continue;
-      if (emptyOnly && !isAltLineEmpty(line)) {
-        skippedRows += 1;
-        continue;
-      }
-      const t = (lineIndex - first) / (last - first);
-      const seatIndexes = interpolateAltSeatIndexes(firstSeatIndexes, lastSeatIndexes, t);
-      if (!seatIndexes.length) {
-        skippedRows += 1;
-        continue;
-      }
-      const interpolatedBlockCount = Math.max(
-        1,
-        Math.min(
-          seatIndexes.length,
-          Math.round(firstBlockCount + (lastBlockCount - firstBlockCount) * t)
-        )
-      );
-      const directionTemplate = buildAltAssistDirectionTemplate(firstLine, lastLine, interpolatedBlockCount, t);
-      nextContinuousSeat = applyInterpolatedAltLine(
-        line,
-        seatIndexes,
-        interpolatedBlockCount,
-        directionTemplate,
-        nextContinuousSeat
-      );
-      changedRows += 1;
-    }
-
-    if (!changedRows) {
-      if (emptyOnly) {
-        alert("No rows were generated. Disable 'Fill only empty rows' to overwrite rows between the references.");
-      } else {
-        alert("No rows were generated.");
-      }
-      return;
-    }
-
-    if (altSeatNumberingMode === "continuous") {
-      setAltContinuousStartSeat(nextContinuousSeat, true);
-    }
-    if (skippedRows > 0 && altAssistState) {
-      altAssistState.textContent = `Generated ${changedRows} row(s). Skipped ${skippedRows} row(s).`;
-    }
-    commitAltChange();
   }
 
   function getAltCanvasMetrics() {
@@ -20576,12 +20379,6 @@ function nudgeSelection(dxScreen, dyScreen) {
       const top = padding + i * rowBlock;
       const bottom = top + rowHeight;
       const isActive = altActiveLineIndex === i;
-      const isAssistAnchor = altSectionTool === "assist" && altAssistAnchorLineIndex === i;
-      const isAssistTarget = altSectionTool === "assist" && altAssistTargetLineIndex === i;
-      if (isAssistAnchor || isAssistTarget) {
-        ctx.fillStyle = isAssistAnchor ? "rgba(12, 107, 165, 0.16)" : "rgba(22, 163, 74, 0.16)";
-        ctx.fillRect(padding + 1, top + 1, width - padding * 2 - 2, rowHeight - 2);
-      }
       drawAltRowBox(ctx, padding, top, width - padding * 2, rowHeight, 8, isActive);
       ctx.fillStyle = "#2e3c47";
       ctx.font = "12px 'SUSE', sans-serif";
@@ -20662,7 +20459,6 @@ function nudgeSelection(dxScreen, dyScreen) {
     if (altActiveLineIndex == null || altActiveLineIndex >= altRowLines.length) {
       altActiveLineIndex = altRowLines.length ? 0 : null;
     }
-    normalizeAltAssistSelection();
     syncAltContinuousStartSeatFromDraft(draft);
     renderAltSectionCanvas();
   }
@@ -20675,7 +20471,6 @@ function nudgeSelection(dxScreen, dyScreen) {
     altDrawStart = null;
     altDrawEnd = null;
     altDrawLineIndex = null;
-    resetAltAssistSelection(false);
     setAltTooltip("", 0, 0, false);
     setAltTool("select");
     altSeatNumberingMode = altSeatNumberingModeSelect?.value === "continuous" ? "continuous" : "row";
@@ -20760,7 +20555,6 @@ function nudgeSelection(dxScreen, dyScreen) {
     const hasBlock = !!block;
     if (altToolSelectBtn) altToolSelectBtn.disabled = !hasDraft;
     if (altToolDrawBtn) altToolDrawBtn.disabled = !hasDraft;
-    if (altToolAssistBtn) altToolAssistBtn.disabled = !hasDraft;
     if (altUndoBtn) altUndoBtn.disabled = altHistoryIndex <= 0;
     if (altGapNewBtn) altGapNewBtn.disabled = !hasBlock;
     if (altReverseSeatOrderBtn) altReverseSeatOrderBtn.disabled = !hasBlock;
@@ -20776,7 +20570,6 @@ function nudgeSelection(dxScreen, dyScreen) {
     if (altClearAllRowsBtn) altClearAllRowsBtn.disabled = !hasDraft;
     if (altSeatNumberingModeSelect) altSeatNumberingModeSelect.disabled = !hasDraft;
     updateAltContinuousControls();
-    updateAltAssistControls();
   }
 
   function getAltCanvasPoint(e) {
@@ -21805,13 +21598,6 @@ function nudgeSelection(dxScreen, dyScreen) {
 
   altToolSelectBtn?.addEventListener("click", () => setAltTool("select"));
   altToolDrawBtn?.addEventListener("click", () => setAltTool("draw"));
-  altToolAssistBtn?.addEventListener("click", () => setAltTool("assist"));
-  altAssistApplyBtn?.addEventListener("click", () => {
-    applyAltAssistBetweenRows();
-  });
-  altAssistResetBtn?.addEventListener("click", () => {
-    resetAltAssistSelection();
-  });
   altUndoBtn?.addEventListener("click", () => {
     undoAltChange();
   });
@@ -21859,17 +21645,6 @@ function nudgeSelection(dxScreen, dyScreen) {
       altDrawStart = clamped;
       altDrawEnd = clamped;
       altDrawLineIndex = lineIndex;
-      renderAltSectionCanvas();
-      return;
-    }
-    if (altSectionTool === "assist") {
-      const lineIndex = getAltLineIndexFromY(point.y, metrics);
-      if (lineIndex == null) {
-        renderAltSectionCanvas();
-        return;
-      }
-      setAltActiveLine(lineIndex);
-      pickAltAssistLine(lineIndex);
       renderAltSectionCanvas();
       return;
     }
@@ -21926,10 +21701,6 @@ function nudgeSelection(dxScreen, dyScreen) {
     if (e.key === "d" || e.key === "D") {
       e.preventDefault();
       setAltTool("draw");
-    }
-    if (e.key === "a" || e.key === "A") {
-      e.preventDefault();
-      setAltTool("assist");
     }
     if (e.key === "n" || e.key === "N") {
       e.preventDefault();
@@ -22040,7 +21811,3 @@ function nudgeSelection(dxScreen, dyScreen) {
 
   </body>
   </html>
-
-
-
-
