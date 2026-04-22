@@ -13444,13 +13444,33 @@ codePane.addEventListener("input", () => {
     });
   }
   function getLabelTextColor(color) {
-    if (!color) return "#fff";
+    if (!color) return "#e7ebf0";
     if (labelColorCache.has(color)) return labelColorCache.get(color);
     const { r, g, b } = hexToRgb(color);
     const lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-    const txt = lum > 0.55 ? "#0f1d2a" : "#ffffff";
+    const txt = lum > 0.55 ? "#0f1d2a" : "#dddddd";
     labelColorCache.set(color, txt);
     return txt;
+  }
+
+  function splitSeatLabelLines(label) {
+    const text = String(label || "").trim();
+    if (!text) return [];
+    if (text.length <= 4 || !text.includes(" ")) return [text];
+    const words = text.split(/\s+/).filter(Boolean);
+    if (words.length < 2) return [text];
+    const midpoint = text.length / 2;
+    let best = null;
+    for (let i = 1; i < words.length; i++) {
+      const first = words.slice(0, i).join(" ");
+      const second = words.slice(i).join(" ");
+      if (!first || !second) continue;
+      const diff = Math.abs(first.length - midpoint);
+      if (!best || diff < best.diff) {
+        best = { diff, lines: [first, second] };
+      }
+    }
+    return best?.lines || [text];
   }
 
   function computeGoodnessStats() {
@@ -13816,15 +13836,25 @@ codePane.addEventListener("input", () => {
           if (label) {
             const fontPx = Math.max(26, Math.min(48, 33 / Math.max(scale, 0.001)));
             const textColor = getLabelTextColor(baseColor);
+            const wrapAtSpace = seatLabelMode === "row" || seatLabelMode === "seat";
+            const labelLines = wrapAtSpace ? splitSeatLabelLines(label) : [String(label).trim()];
+            const drawLines = labelLines.length ? labelLines : [label];
+            const isMultiline = drawLines.length > 1;
+            const effectiveFontPx = isMultiline ? fontPx * 0.99 : fontPx;
+            const lineHeight = effectiveFontPx * 0.95;
+            const startY = s.vy - ((drawLines.length - 1) * lineHeight) / 2;
             ctx.save();
             ctx.fillStyle = textColor;
             ctx.strokeStyle = "rgba(0,0,0,0.0)";
             ctx.lineWidth = 0 / Math.max(scale, 0.001);
-            ctx.font = `${fontPx}px "SUSE Mono", "Segoe UI", system-ui, sans-serif`;
+            ctx.font = `${effectiveFontPx}px "SUSE Mono", "Segoe UI", system-ui, sans-serif`;
             ctx.textAlign = "center";
             ctx.textBaseline = "middle";
-            ctx.strokeText(label, s.vx, s.vy);
-            ctx.fillText(label, s.vx, s.vy);
+            drawLines.forEach((line, idx) => {
+              const y = startY + idx * lineHeight;
+              ctx.strokeText(line, s.vx, y);
+              ctx.fillText(line, s.vx, y);
+            });
             ctx.restore();
           }
         }
