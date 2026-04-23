@@ -3222,6 +3222,10 @@
             <input type="checkbox" id="viewSectionNamesToggle" />
             Display section name
           </label>
+          <label class="bg-control u-font--small">
+            <input type="checkbox" id="viewForceSimplifiedToggle" />
+            Always use simplified view (2500+ mode)
+          </label>
           <div class="u-font--small" style="display:flex; flex-direction:column; gap:0.35rem;">
             <div>Overlay (O)</div>
             <label class="bg-control">
@@ -4085,6 +4089,7 @@
   const bgScaleRange = document.getElementById("bgScaleRange");
   const viewHoverToggle = document.getElementById("viewHoverToggle");
   const viewSectionNamesToggle = document.getElementById("viewSectionNamesToggle");
+  const viewForceSimplifiedToggle = document.getElementById("viewForceSimplifiedToggle");
   const highlightSeatsBtn = document.getElementById("highlightSeatsBtn");
   const viewOverlayNone = document.getElementById("viewOverlayNone");
   const viewOverlayPrice = document.getElementById("viewOverlayPrice");
@@ -4405,6 +4410,7 @@
   let renderGrayscale = false;
   let showHoverInfo = true;
   let showSectionNames = false;
+  let forceSimplifiedView = viewForceSimplifiedToggle?.checked ?? false;
   let showPriceRegions = false;
   let showGoodnessHeatmap = false;
   let overlayMode = "none";
@@ -4520,6 +4526,8 @@
   let lastVisibleSeatCount = 0;
   const RECT_DOT_THRESHOLD = 2500; // över detta: små fyrkanter
   const HOVER_VISIBLE_LIMIT = 4000; // över detta: ingen tooltip/hover-info
+  const SIMPLIFIED_SELECTION_BATCH_THRESHOLD = 250; // över detta: batcha markering i simplified mode
+  const SIMPLIFIED_SELECTION_INNER_STROKE_LIMIT = 1500; // över detta: hoppa inre markering för bättre fps
   let renderSeatsAsSquares = false;
 
   let hoverSeat = null;
@@ -6229,6 +6237,7 @@ function saveSessionToLocalStorage() {
         grayscale: !!renderGrayscale,
         hoverInfo: !!showHoverInfo,
         sectionNames: !!showSectionNames,
+        forceSimplified: !!forceSimplifiedView,
         overlayMode: overlayMode || "none",
         priceRegions: !!showPriceRegions,
         seatLabelMode: seatLabelMode || "none"
@@ -6375,11 +6384,13 @@ async function tryRestoreSessionFromLocalStorage() {
       renderGrayscale = false;
       showHoverInfo = !!data.view.hoverInfo;
       showSectionNames = !!data.view.sectionNames;
+      forceSimplifiedView = !!data.view.forceSimplified;
       const overlay = data.view.overlayMode || (data.view.priceRegions ? "price" : "none");
       setOverlayMode(overlay, true, false);
       seatLabelMode = data.view.seatLabelMode || "none";
       if (viewHoverToggle) viewHoverToggle.checked = showHoverInfo;
       if (viewSectionNamesToggle) viewSectionNamesToggle.checked = showSectionNames;
+      if (viewForceSimplifiedToggle) viewForceSimplifiedToggle.checked = forceSimplifiedView;
       setSeatLabelMode(seatLabelMode, true);
     }
 
@@ -13515,18 +13526,22 @@ codePane.addEventListener("input", () => {
 
     // Först: räkna synliga platser
     let visibleCount = 0;
+    let visibleSelectedCount = 0;
     for (const s of seats) {
       if (
         s.vx < worldMinX || s.vx > worldMaxX ||
         s.vy < worldMinY || s.vy > worldMaxY
       ) continue;
       visibleCount++;
+      if (s.selected) visibleSelectedCount++;
     }
     lastVisibleSeatCount = visibleCount;
 
-    const useRectDots = !renderSeatsAsSquares && visibleCount > RECT_DOT_THRESHOLD;
+    const useRectDots = !!forceSimplifiedView || (!renderSeatsAsSquares && visibleCount > RECT_DOT_THRESHOLD);
     const rectScreenSize = 2;
     const rectSizeWorld = rectScreenSize / scale;
+    const useFastSimplifiedSelection = useRectDots && visibleSelectedCount > SIMPLIFIED_SELECTION_BATCH_THRESHOLD;
+    const simplifiedSelectedRectCoords = useFastSimplifiedSelection ? [] : null;
 
     ctx.save();
     ctx.translate(translateX, translateY);
@@ -13595,22 +13610,26 @@ codePane.addEventListener("input", () => {
         );
 
         if (s.selected) {
-          ctx.lineWidth = selectionStroke.outerWidth / scale;
-          ctx.strokeStyle = selectionStroke.outerColor;
-          ctx.strokeRect(
-            s.vx - rectSizeWorld,
-            s.vy - rectSizeWorld,
-            rectSizeWorld * 2,
-            rectSizeWorld * 2
-          );
-          ctx.lineWidth = selectionStroke.innerWidth / scale;
-          ctx.strokeStyle = selectionStroke.innerColor;
-          ctx.strokeRect(
-            s.vx - rectSizeWorld,
-            s.vy - rectSizeWorld,
-            rectSizeWorld * 2,
-            rectSizeWorld * 2
-          );
+          if (useFastSimplifiedSelection && simplifiedSelectedRectCoords) {
+            simplifiedSelectedRectCoords.push(s.vx - rectSizeWorld, s.vy - rectSizeWorld);
+          } else {
+            ctx.lineWidth = selectionStroke.outerWidth / scale;
+            ctx.strokeStyle = selectionStroke.outerColor;
+            ctx.strokeRect(
+              s.vx - rectSizeWorld,
+              s.vy - rectSizeWorld,
+              rectSizeWorld * 2,
+              rectSizeWorld * 2
+            );
+            ctx.lineWidth = selectionStroke.innerWidth / scale;
+            ctx.strokeStyle = selectionStroke.innerColor;
+            ctx.strokeRect(
+              s.vx - rectSizeWorld,
+              s.vy - rectSizeWorld,
+              rectSizeWorld * 2,
+              rectSizeWorld * 2
+            );
+          }
         }
         if (isActiveAssignedSeat) {
           ctx.lineWidth = 1.6 / scale;
@@ -13702,21 +13721,28 @@ codePane.addEventListener("input", () => {
         if (pxRadius < MIN_SEAT_SCREEN_RADIUS) {
           pxRadius = MIN_SEAT_SCREEN_RADIUS;
         }
+        const isTinySeatRender = pxRadius <= (MIN_SEAT_SCREEN_RADIUS + 0.001);
         const worldRadius = pxRadius / scale;
-        const drawAsSquare = renderSeatsAsSquares;
+        // Tiny seats at low zoom are faster as axis-aligned squares than arcs.
+        const drawAsSquare = renderSeatsAsSquares || isTinySeatRender;
         const seatRotation = Number.isFinite(s.rotation) ? s.rotation : 0;
         const seatRotationRad = (seatRotation * Math.PI) / 180;
-        const hasSeatRotation = Math.abs(seatRotationRad) > 1e-6;
+        // Skip per-seat rotation work when seats are tiny on screen.
+        const hasSeatRotation = !isTinySeatRender && Math.abs(seatRotationRad) > 1e-6;
         const seatSize = worldRadius * 2;
 
         const fillSeatShape = () => {
           if (drawAsSquare) {
-            ctx.save();
-            ctx.translate(s.vx, s.vy);
-            if (hasSeatRotation) ctx.rotate(seatRotationRad);
             ctx.fillStyle = baseColor;
-            ctx.fillRect(-worldRadius, -worldRadius, seatSize, seatSize);
-            ctx.restore();
+            if (hasSeatRotation) {
+              ctx.save();
+              ctx.translate(s.vx, s.vy);
+              ctx.rotate(seatRotationRad);
+              ctx.fillRect(-worldRadius, -worldRadius, seatSize, seatSize);
+              ctx.restore();
+            } else {
+              ctx.fillRect(s.vx - worldRadius, s.vy - worldRadius, seatSize, seatSize);
+            }
             return;
           }
           ctx.beginPath();
@@ -13727,13 +13753,17 @@ codePane.addEventListener("input", () => {
 
         const strokeSeatShape = (lineWidth, strokeStyle) => {
           if (drawAsSquare) {
-            ctx.save();
-            ctx.translate(s.vx, s.vy);
-            if (hasSeatRotation) ctx.rotate(seatRotationRad);
             ctx.lineWidth = lineWidth;
             ctx.strokeStyle = strokeStyle;
-            ctx.strokeRect(-worldRadius, -worldRadius, seatSize, seatSize);
-            ctx.restore();
+            if (hasSeatRotation) {
+              ctx.save();
+              ctx.translate(s.vx, s.vy);
+              ctx.rotate(seatRotationRad);
+              ctx.strokeRect(-worldRadius, -worldRadius, seatSize, seatSize);
+              ctx.restore();
+            } else {
+              ctx.strokeRect(s.vx - worldRadius, s.vy - worldRadius, seatSize, seatSize);
+            }
             return;
           }
           ctx.lineWidth = lineWidth;
@@ -13750,7 +13780,7 @@ codePane.addEventListener("input", () => {
           strokeSeatShape(1.6 / scale, "rgba(17,24,39,0.9)");
         } else if (isAssignedSeat) {
           strokeSeatShape(1.6 / scale, "rgba(17,24,39,0.55)");
-        } else {
+        } else if (!isTinySeatRender) {
           strokeSeatShape(1.2 / scale, "rgba(0,0,0,0.25)");
         }
         if (isActiveAssignedSeat) {
@@ -13768,15 +13798,16 @@ codePane.addEventListener("input", () => {
           strokeSeatShape(3.4 / scale, "rgba(239,68,68,0.98)");
         }
         if (isBlockedNumberedSeat) {
-          ctx.save();
-          if (drawAsSquare) {
+          const useLocalSquareCoords = drawAsSquare && hasSeatRotation;
+          if (useLocalSquareCoords) {
+            ctx.save();
             ctx.translate(s.vx, s.vy);
-            if (hasSeatRotation) ctx.rotate(seatRotationRad);
+            ctx.rotate(seatRotationRad);
           }
           ctx.lineWidth = 1.8 / scale;
           ctx.strokeStyle = "rgba(17,24,39,0.9)";
           ctx.beginPath();
-          if (drawAsSquare) {
+          if (useLocalSquareCoords) {
             ctx.moveTo(-worldRadius * 0.75, -worldRadius * 0.75);
             ctx.lineTo(worldRadius * 0.75, worldRadius * 0.75);
             ctx.moveTo(worldRadius * 0.75, -worldRadius * 0.75);
@@ -13788,18 +13819,19 @@ codePane.addEventListener("input", () => {
             ctx.lineTo(s.vx - worldRadius * 0.75, s.vy + worldRadius * 0.75);
           }
           ctx.stroke();
-          ctx.restore();
+          if (useLocalSquareCoords) ctx.restore();
         }
         if (isSeatBlocked) {
-          ctx.save();
-          if (drawAsSquare) {
+          const useLocalSquareCoords = drawAsSquare && hasSeatRotation;
+          if (useLocalSquareCoords) {
+            ctx.save();
             ctx.translate(s.vx, s.vy);
-            if (hasSeatRotation) ctx.rotate(seatRotationRad);
+            ctx.rotate(seatRotationRad);
           }
           ctx.lineWidth = 2.2 / scale;
           ctx.strokeStyle = "rgba(220,38,38,0.98)";
           ctx.beginPath();
-          if (drawAsSquare) {
+          if (useLocalSquareCoords) {
             ctx.moveTo(-worldRadius * 0.88, -worldRadius * 0.88);
             ctx.lineTo(worldRadius * 0.88, worldRadius * 0.88);
             ctx.moveTo(worldRadius * 0.88, -worldRadius * 0.88);
@@ -13811,7 +13843,7 @@ codePane.addEventListener("input", () => {
             ctx.lineTo(s.vx - worldRadius * 0.88, s.vy + worldRadius * 0.88);
           }
           ctx.stroke();
-          ctx.restore();
+          if (useLocalSquareCoords) ctx.restore();
         }
 
         if (seatLabelMode !== "none") {
@@ -13859,12 +13891,55 @@ codePane.addEventListener("input", () => {
           }
         }
 
-        if (s.attributes && s.attributes.length) {
+        if (!isTinySeatRender && s.attributes && s.attributes.length) {
           ctx.save();
           ctx.fillStyle = "rgba(0,0,0,0.15)";
           ctx.strokeStyle = "rgba(255,255,255,0.7)";
           drawHexMarker(ctx, s.vx, s.vy, worldRadius * 0.6, 1.6 / scale);
           ctx.restore();
+        }
+      }
+
+      if (useFastSimplifiedSelection && simplifiedSelectedRectCoords && simplifiedSelectedRectCoords.length) {
+        const selectedCount = Math.floor(simplifiedSelectedRectCoords.length / 2);
+        const rectSize = rectSizeWorld * 2;
+        if (typeof Path2D === "function") {
+          const selectionPath = new Path2D();
+          for (let i = 0; i < simplifiedSelectedRectCoords.length; i += 2) {
+            selectionPath.rect(
+              simplifiedSelectedRectCoords[i],
+              simplifiedSelectedRectCoords[i + 1],
+              rectSize,
+              rectSize
+            );
+          }
+          ctx.lineWidth = selectionStroke.outerWidth / scale;
+          ctx.strokeStyle = selectionStroke.outerColor;
+          ctx.stroke(selectionPath);
+          if (selectedCount <= SIMPLIFIED_SELECTION_INNER_STROKE_LIMIT) {
+            ctx.lineWidth = selectionStroke.innerWidth / scale;
+            ctx.strokeStyle = selectionStroke.innerColor;
+            ctx.stroke(selectionPath);
+          }
+        } else {
+          const strokeSelectionRects = (lineWidth, strokeStyle) => {
+            ctx.beginPath();
+            for (let i = 0; i < simplifiedSelectedRectCoords.length; i += 2) {
+              ctx.rect(
+                simplifiedSelectedRectCoords[i],
+                simplifiedSelectedRectCoords[i + 1],
+                rectSize,
+                rectSize
+              );
+            }
+            ctx.lineWidth = lineWidth;
+            ctx.strokeStyle = strokeStyle;
+            ctx.stroke();
+          };
+          strokeSelectionRects(selectionStroke.outerWidth / scale, selectionStroke.outerColor);
+          if (selectedCount <= SIMPLIFIED_SELECTION_INNER_STROKE_LIMIT) {
+            strokeSelectionRects(selectionStroke.innerWidth / scale, selectionStroke.innerColor);
+          }
         }
       }
 
@@ -19872,6 +19947,11 @@ function nudgeSelection(dxScreen, dyScreen) {
     renderCanvas();
     saveSessionToLocalStorage();
   });
+  viewForceSimplifiedToggle?.addEventListener("change", (e) => {
+    forceSimplifiedView = e.target.checked;
+    renderCanvas();
+    saveSessionToLocalStorage();
+  });
   [viewOverlayNone, viewOverlayPrice, viewOverlayGoodness].forEach((el) => {
     el?.addEventListener("change", (e) => {
       if (!e.target.checked) return;
@@ -22265,6 +22345,7 @@ function nudgeSelection(dxScreen, dyScreen) {
       renderGrayscale = false;
       showHoverInfo = viewHoverToggle?.checked ?? true;
       showSectionNames = viewSectionNamesToggle?.checked ?? false;
+      forceSimplifiedView = viewForceSimplifiedToggle?.checked ?? false;
       if (viewSeatLabelRow?.checked) seatLabelMode = "row";
       else if (viewSeatLabelSeat?.checked) seatLabelMode = "seat";
       else if (viewSeatLabelSeatId?.checked) seatLabelMode = "seatId";
@@ -22289,6 +22370,7 @@ function nudgeSelection(dxScreen, dyScreen) {
     // se till att UI-speglas
     if (viewHoverToggle) viewHoverToggle.checked = showHoverInfo;
     if (viewSectionNamesToggle) viewSectionNamesToggle.checked = showSectionNames;
+    if (viewForceSimplifiedToggle) viewForceSimplifiedToggle.checked = forceSimplifiedView;
     if (viewOverlayNone) viewOverlayNone.checked = overlayMode === "none";
     if (viewOverlayPrice) viewOverlayPrice.checked = overlayMode === "price";
     if (viewOverlayGoodness) viewOverlayGoodness.checked = overlayMode === "goodness";
