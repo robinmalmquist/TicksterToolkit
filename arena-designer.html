@@ -812,6 +812,12 @@
       gap: 0.5rem;
       padding: 0.4rem 0;
     }
+    .export-quick-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      margin-top: 0.35rem;
+    }
     .export-option {
       display: flex;
       align-items: center;
@@ -3682,6 +3688,12 @@
         <label for="exportVenueId">VenueId</label>
         <input id="exportVenueId" type="text" placeholder="Enter VenueId" />
       </div>
+      <div class="export-quick-actions">
+        <button id="exportSelectAllTypesBtn" type="button" class="c-button c-button--ghost c-button--small">Alla filtyper</button>
+        <button id="exportSelectLayoutTypesBtn" type="button" class="c-button c-button--ghost c-button--small">Endast layoutfiler</button>
+        <button id="exportSelectDesignTypesBtn" type="button" class="c-button c-button--ghost c-button--small">Endast designfiler</button>
+        <button id="exportClearAllTypesBtn" type="button" class="c-button c-button--ghost c-button--small">Avmarkera samtliga</button>
+      </div>
       <div class="export-options">
         <label class="export-option">
           <input type="checkbox" id="exportTlc" checked />
@@ -3694,6 +3706,10 @@
         <label class="export-option">
           <input type="checkbox" id="exportTpr" checked />
           TPR
+        </label>
+        <label class="export-option">
+          <input type="checkbox" id="exportLayoutSummaryXlsx" />
+          Excel Summary
         </label>
         <label class="export-option">
           <input type="checkbox" id="exportTlm" />
@@ -4128,6 +4144,11 @@
   const exportSvgSupport = document.getElementById("exportSvgSupport");
   const exportFgSeats = document.getElementById("exportFgSeats");
   const exportFgRows = document.getElementById("exportFgRows");
+  const exportLayoutSummaryXlsx = document.getElementById("exportLayoutSummaryXlsx");
+  const exportSelectAllTypesBtn = document.getElementById("exportSelectAllTypesBtn");
+  const exportSelectLayoutTypesBtn = document.getElementById("exportSelectLayoutTypesBtn");
+  const exportSelectDesignTypesBtn = document.getElementById("exportSelectDesignTypesBtn");
+  const exportClearAllTypesBtn = document.getElementById("exportClearAllTypesBtn");
   const exportCancel = document.getElementById("exportCancel");
   const exportConfirm = document.getElementById("exportConfirm");
   const numberedImportModeBtn = document.getElementById("numberedImportModeBtn");
@@ -4543,6 +4564,8 @@
   let currentFileHandle = null;
   let currentFileName = "";
   let hasUnsavedChanges = false;
+  let hasLoadedTltFileForExport = false;
+  let hasLoadedTprFileForExport = false;
 
   let originalLines = [];
   let seatIdToLineIndex = new Map();
@@ -6222,6 +6245,10 @@ function saveSessionToLocalStorage() {
     const payload = {
       tltText: codePane.value || "",
       fileName: sessionFileName,
+      exportLoadedSources: {
+        tlt: !!hasLoadedTltFileForExport,
+        tpr: !!hasLoadedTprFileForExport
+      },
       translateX,
       translateY,
       scale,
@@ -6352,12 +6379,27 @@ async function tryRestoreSessionFromLocalStorage() {
 
     // Återställ filnamn-info (om vi hade ett)
     currentFileName = data.fileName || "";
+    const restoredSourceState = (data.exportLoadedSources && typeof data.exportLoadedSources === "object")
+      ? data.exportLoadedSources
+      : null;
+    const hasExplicitRestoredTprState = !!(restoredSourceState && typeof restoredSourceState.tpr === "boolean");
+    const restoredTltLoaded = restoredSourceState && typeof restoredSourceState.tlt === "boolean"
+      ? restoredSourceState.tlt
+      : isTltFileName(currentFileName);
+    const restoredTprLoaded = restoredSourceState && typeof restoredSourceState.tpr === "boolean"
+      ? restoredSourceState.tpr
+      : false;
+    setExportLoadedSourcesState({ tlt: restoredTltLoaded, tpr: restoredTprLoaded });
     if (currentFileName) {
       fileInfo.textContent = `Recovered session \n${currentFileName}`;
     } else {
       fileInfo.textContent = "Recovered session \n(file not saved)";
     }
     loadPriceRegionsFromStorage();
+    // Backward compatibility: older saved sessions had no explicit TPR source flag.
+    if (!hasExplicitRestoredTprState && hasLoadedTltFileForExport && priceRegions.length > 0) {
+      setExportLoadedSourcesState({ tpr: true });
+    }
     loadEntryPointsFromStorage();
     loadSeatBlocksFromStorage();
     loadGoodnessSettingsFromStorage();
@@ -6427,6 +6469,23 @@ codePane.addEventListener("input", () => {
     return /\.tlt$/i.test(String(name || "").trim());
   }
 
+  function setExportLoadedSourcesState(next = {}) {
+    let changed = false;
+    if (Object.prototype.hasOwnProperty.call(next, "tlt") && typeof next.tlt === "boolean") {
+      if (hasLoadedTltFileForExport !== next.tlt) {
+        hasLoadedTltFileForExport = next.tlt;
+        changed = true;
+      }
+    }
+    if (Object.prototype.hasOwnProperty.call(next, "tpr") && typeof next.tpr === "boolean") {
+      if (hasLoadedTprFileForExport !== next.tpr) {
+        hasLoadedTprFileForExport = next.tpr;
+        changed = true;
+      }
+    }
+    if (changed) updateExportOptionsAvailability();
+  }
+
   async function loadTltFromHandle(handle) {
     const file = await handle.getFile();
     if (!isTltFileName(file?.name)) {
@@ -6445,6 +6504,7 @@ codePane.addEventListener("input", () => {
     fileInfo.textContent = currentFileName ? `Opened file (${currentFileName})` : "Opened file";
     hasUnsavedChanges = false;
     updateSaveButton();
+    setExportLoadedSourcesState({ tlt: true, tpr: false });
     setLayoutActive(true);
     saveSessionToLocalStorage();
     loadPriceRegionsFromStorage();
@@ -6567,6 +6627,7 @@ codePane.addEventListener("input", () => {
     fileInfo.textContent = currentFileName ? `Opened file (${currentFileName})` : "Opened file";
     hasUnsavedChanges = false;
     updateSaveButton();
+    setExportLoadedSourcesState({ tlt: true, tpr: false });
     setLayoutActive(true);
     saveSessionToLocalStorage();
     loadPriceRegionsFromStorage();
@@ -6664,6 +6725,7 @@ codePane.addEventListener("input", () => {
     forceSaveAs = true;
     currentFileName = baseName ? `${baseName}.tlt` : "";
     hasUnsavedChanges = false;
+    setExportLoadedSourcesState({ tlt: false, tpr: false });
     history = [];
     historyIndex = -1;
     pushHistorySnapshot();
@@ -6709,6 +6771,7 @@ codePane.addEventListener("input", () => {
     currentFileName = "";
     forceSaveAs = true;
     hasUnsavedChanges = false;
+    setExportLoadedSourcesState({ tlt: false, tpr: false });
     history = [];
     historyIndex = -1;
     updateHistoryPanel();
@@ -6828,6 +6891,7 @@ codePane.addEventListener("input", () => {
 
   function loadPriceRegionsFromStorage() {
     priceRegions.length = 0;
+    let loadedFromTpr = null;
     try {
       const raw = localStorage.getItem(getPriceRegionStorageKey());
       if (raw) {
@@ -6848,9 +6912,15 @@ codePane.addEventListener("input", () => {
             }
           });
         }
+        if (data && typeof data.loadedFromTpr === "boolean") {
+          loadedFromTpr = data.loadedFromTpr;
+        }
       }
     } catch (err) {
       console.warn("Kunde inte läsa prisregioner:", err);
+    }
+    if (typeof loadedFromTpr === "boolean") {
+      setExportLoadedSourcesState({ tpr: loadedFromTpr });
     }
     renderPriceRegionList();
     updatePriceRegionUi();
@@ -6860,7 +6930,10 @@ codePane.addEventListener("input", () => {
 
   function savePriceRegionsToStorage() {
     try {
-      localStorage.setItem(getPriceRegionStorageKey(), JSON.stringify({ regions: priceRegions }));
+      localStorage.setItem(getPriceRegionStorageKey(), JSON.stringify({
+        regions: priceRegions,
+        loadedFromTpr: !!hasLoadedTprFileForExport
+      }));
     } catch (err) {
       console.warn("Kunde inte spara prisregioner:", err);
     }
@@ -7692,14 +7765,67 @@ codePane.addEventListener("input", () => {
     scheduleValidationPanelRefresh();
   }
 
+  function getExportOptionCheckboxes() {
+    return [
+      exportTlc,
+      exportTlt,
+      exportTpr,
+      exportLayoutSummaryXlsx,
+      exportTlm,
+      exportCss,
+      exportSvg,
+      exportSvgSupport,
+      exportFgSeats,
+      exportFgRows
+    ].filter(Boolean);
+  }
+
+  function setExportCheckboxState(input, checked) {
+    if (!input) return;
+    if (input.disabled) {
+      input.checked = false;
+      return;
+    }
+    input.checked = !!checked;
+  }
+
+  function applyExportSelectionPreset(preset) {
+    const mode = String(preset || "").trim();
+    if (!mode) return;
+
+    if (mode === "none") {
+      getExportOptionCheckboxes().forEach((input) => setExportCheckboxState(input, false));
+      updateExportOptionsAvailability();
+      return;
+    }
+
+    if (mode === "all") {
+      getExportOptionCheckboxes().forEach((input) => setExportCheckboxState(input, true));
+      updateExportOptionsAvailability();
+      return;
+    }
+
+    setExportCheckboxState(exportTlc, mode === "layout");
+    setExportCheckboxState(exportTlt, mode === "layout");
+    setExportCheckboxState(exportTpr, mode === "layout");
+    setExportCheckboxState(exportLayoutSummaryXlsx, false);
+    setExportCheckboxState(exportTlm, false);
+    setExportCheckboxState(exportCss, mode === "design");
+    setExportCheckboxState(exportSvg, mode === "design");
+    setExportCheckboxState(exportSvgSupport, false);
+    setExportCheckboxState(exportFgSeats, false);
+    setExportCheckboxState(exportFgRows, false);
+    updateExportOptionsAvailability();
+  }
+
   function updateExportOptionsAvailability() {
     const hasRegions = priceRegions.length > 0;
     const { allCovered, hasStaleMappings } = getPriceRegionMappingStatus();
-    const enabled = hasRegions && allCovered && !hasStaleMappings;
-    const tooltip = hasStaleMappings
+    const regionDependentEnabled = hasRegions && allCovered && !hasStaleMappings;
+    const regionDependentTooltip = hasStaleMappings
       ? "Price regions reference seats/rows/sections that do not exist in this layout. Update them before exporting TPR/CSS/SVG."
       : "Price regions must be created and assigned to all seats before exporting TPR/CSS/SVG.";
-    const applyState = (input) => {
+    const applyState = (input, enabled, tooltip) => {
       if (!input) return;
       const label = input.closest(".export-option");
       input.disabled = !enabled;
@@ -7715,9 +7841,17 @@ codePane.addEventListener("input", () => {
         else label.removeAttribute("title");
       }
     };
-    applyState(exportTpr);
-    applyState(exportCss);
-    applyState(exportSvg);
+    applyState(exportTpr, regionDependentEnabled, regionDependentTooltip);
+    applyState(exportCss, regionDependentEnabled, regionDependentTooltip);
+    applyState(exportSvg, regionDependentEnabled, regionDependentTooltip);
+
+    const hasLoadedFiles = hasLoadedTltFileForExport && hasLoadedTprFileForExport;
+    const layoutSummaryEnabled = regionDependentEnabled && hasLoadedFiles;
+    const layoutSummaryTooltip = !hasLoadedFiles
+      ? "Load both TLT and TPR files before exporting Layout Summary XLSX."
+      : regionDependentTooltip;
+    applyState(exportLayoutSummaryXlsx, layoutSummaryEnabled, layoutSummaryTooltip);
+
     updateSvgSupportOptionAvailability();
   }
 
@@ -8107,6 +8241,7 @@ codePane.addEventListener("input", () => {
     if (exportTlm) exportTlm.checked = hasAnySeatBlockAssignments();
     if (exportCss) exportCss.checked = true;
     if (exportSvg) exportSvg.checked = true;
+    if (exportLayoutSummaryXlsx) exportLayoutSummaryXlsx.checked = false;
     if (exportSvgSupport) exportSvgSupport.checked = false;
     if (exportFgSeats) exportFgSeats.checked = false;
     if (exportFgRows) exportFgRows.checked = false;
@@ -11625,6 +11760,131 @@ codePane.addEventListener("input", () => {
     URL.revokeObjectURL(url);
   }
 
+  function downloadBinaryFile(filename, data, mimeType = "application/octet-stream") {
+    const blob = data instanceof Blob ? data : new Blob([data], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  function formatShortSeatIdForSummary(seatId) {
+    const parts = parseSeatIdParts(seatId);
+    if (parts.major == null || parts.minor == null || parts.row == null || parts.seat == null) {
+      return String(seatId || "");
+    }
+    return `${parts.major}.${parts.minor}.${parts.row}.${parts.seat}`;
+  }
+
+  function splitSeatAttributesForSummary(attributes) {
+    const internal = [];
+    const external = [];
+    const normalized = Array.isArray(attributes)
+      ? attributes.map((attr) => String(attr || "").trim()).filter(Boolean)
+      : [];
+    normalized.forEach((attr) => {
+      if (attr.startsWith(".")) {
+        const token = attr.slice(1).trim();
+        if (token) internal.push(token);
+      } else {
+        external.push(attr);
+      }
+    });
+    return {
+      internal: Array.from(new Set(internal)),
+      external: Array.from(new Set(external))
+    };
+  }
+
+  function buildLayoutSummaryWorkbook() {
+    const workbook = XLSX.utils.book_new();
+    const lookups = buildPriceRegionLookups();
+    const blockedSeatIds = getAllSeatBlockSeatIds();
+    const sortedSeats = [...seats].sort((a, b) => compareSeatIdsForExport(a?.seatId, b?.seatId));
+    const layoutSummaryRows = [[
+      "SeatId",
+      "SeatId (short)",
+      "Section Name",
+      "Row Name",
+      "Seat Name",
+      "Entry point",
+      "Price Region",
+      "Section / Row / Seat",
+      "Internal attributes",
+      "External attributes",
+      "Blocked"
+    ]];
+
+    sortedSeats.forEach((seat) => {
+      const seatIdShort = formatShortSeatIdForSummary(seat?.seatId || "");
+      const seatIdLong = String(seatIdToSvgCode(seatIdShort) || "");
+      const sectionName = String(seat?.sectionName || sectionNames.get(seat?.sectionId) || seat?.sectionId || "").trim();
+      const rowName = String(seat?.rowName || seat?.rowId || "").trim();
+      const seatName = String(seat?.name || "").trim();
+      const sectionRowSeat = `${sectionName || "-"} / ${rowName || "-"} / ${seatName || "-"}`;
+      const entryPoint = String(seat?.entryVia || "").trim() || "-";
+      const priceRegionName = String(getSeatPriceRegionName(seat, lookups) || "").trim();
+      const attrs = splitSeatAttributesForSummary(seat?.attributes);
+      const blocked = blockedSeatIds.has(seat?.seatId) ? "yes" : "no";
+      layoutSummaryRows.push([
+        seatIdLong,
+        seatIdShort,
+        sectionName,
+        rowName,
+        seatName,
+        entryPoint,
+        priceRegionName,
+        sectionRowSeat,
+        attrs.internal.join(", "),
+        attrs.external.join(", "),
+        blocked
+      ]);
+    });
+
+    const layoutSummarySheet = XLSX.utils.aoa_to_sheet(layoutSummaryRows);
+    layoutSummarySheet["!autofilter"] = {
+      ref: `A1:K${Math.max(1, layoutSummaryRows.length)}`
+    };
+    layoutSummarySheet["!cols"] = [
+      { wch: 16 },
+      { wch: 16 },
+      { wch: 24 },
+      { wch: 16 },
+      { wch: 16 },
+      { wch: 20 },
+      { wch: 24 },
+      { wch: 52 },
+      { wch: 34 },
+      { wch: 34 },
+      { wch: 10 }
+    ];
+    XLSX.utils.book_append_sheet(workbook, layoutSummarySheet, "Layout Summary");
+
+    const sortedRegions = [...priceRegions].sort((a, b) => {
+      const nameA = String(a?.name || a?.id || "");
+      const nameB = String(b?.name || b?.id || "");
+      return nameA.localeCompare(nameB, "sv", { sensitivity: "base", numeric: true });
+    });
+    const priceRegionRows = [["Price Region", "Seat Count"]];
+    sortedRegions.forEach((region) => {
+      priceRegionRows.push([
+        String(region?.name || region?.id || ""),
+        getPriceRegionSeatCount(region)
+      ]);
+    });
+    const priceRegionSheet = XLSX.utils.aoa_to_sheet(priceRegionRows);
+    priceRegionSheet["!autofilter"] = {
+      ref: `A1:B${Math.max(1, priceRegionRows.length)}`
+    };
+    priceRegionSheet["!cols"] = [{ wch: 36 }, { wch: 12 }];
+    XLSX.utils.book_append_sheet(workbook, priceRegionSheet, "Price Regions");
+    return workbook;
+  }
+
   async function exportFiles() {
     const baseName = getExportBaseName();
     const metaVenueId = getLayoutMeta().venueId || "";
@@ -11664,6 +11924,30 @@ codePane.addEventListener("input", () => {
         })
       });
     }
+    if (exportLayoutSummaryXlsx?.checked) {
+      const { allCovered, hasStaleMappings } = getPriceRegionMappingStatus();
+      const hasRegions = priceRegions.length > 0;
+      const hasLoadedFiles = hasLoadedTltFileForExport && hasLoadedTprFileForExport;
+      if (!hasLoadedFiles) {
+        alert("Load both TLT and TPR files before exporting Layout Summary XLSX.");
+        return;
+      }
+      if (!hasRegions || !allCovered || hasStaleMappings) {
+        alert("All seats must belong to valid price regions before exporting Layout Summary XLSX.");
+        return;
+      }
+      if (typeof XLSX === "undefined") {
+        alert("Excel export requires XLSX library.");
+        return;
+      }
+      const workbook = buildLayoutSummaryWorkbook();
+      const workbookData = XLSX.write(workbook, { bookType: "xlsx", type: "array", compression: true });
+      files.push({
+        name: `${baseName}-layout-summary.xlsx`,
+        binary: workbookData,
+        mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+      });
+    }
 
     if (!files.length) {
       alert("Select at least one file to export.");
@@ -11676,7 +11960,8 @@ codePane.addEventListener("input", () => {
         for (const file of files) {
           const handle = await dir.getFileHandle(file.name, { create: true });
           const writable = await handle.createWritable();
-          await writable.write(file.text);
+          const payload = Object.prototype.hasOwnProperty.call(file, "binary") ? file.binary : file.text;
+          await writable.write(payload);
           await writable.close();
         }
         return;
@@ -11686,7 +11971,13 @@ codePane.addEventListener("input", () => {
       }
     }
 
-    files.forEach((file) => downloadTextFile(file.name, file.text));
+    files.forEach((file) => {
+      if (Object.prototype.hasOwnProperty.call(file, "binary")) {
+        downloadBinaryFile(file.name, file.binary, file.mimeType);
+      } else {
+        downloadTextFile(file.name, file.text);
+      }
+    });
   }
 
   function buildPriceRegionTargetsFromSelection() {
@@ -12680,6 +12971,18 @@ codePane.addEventListener("input", () => {
     await exportFiles();
     closeExportModal();
   });
+  exportSelectAllTypesBtn?.addEventListener("click", () => {
+    applyExportSelectionPreset("all");
+  });
+  exportSelectLayoutTypesBtn?.addEventListener("click", () => {
+    applyExportSelectionPreset("layout");
+  });
+  exportSelectDesignTypesBtn?.addEventListener("click", () => {
+    applyExportSelectionPreset("design");
+  });
+  exportClearAllTypesBtn?.addEventListener("click", () => {
+    applyExportSelectionPreset("none");
+  });
   exportSvg?.addEventListener("change", updateSvgSupportOptionAvailability);
   exportName?.addEventListener("keydown", (e) => {
     if (e.key === "Enter") {
@@ -12842,6 +13145,7 @@ codePane.addEventListener("input", () => {
       }
       priceRegions.length = 0;
       regions.forEach(r => priceRegions.push(r));
+      setExportLoadedSourcesState({ tpr: true });
       savePriceRegionsToStorage();
       renderPriceRegionList();
       updatePriceRegionUi();
