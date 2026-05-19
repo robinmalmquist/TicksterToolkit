@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="sv">
 <head>
   <meta charset="UTF-8" />
@@ -874,7 +874,7 @@
       color: #5b6673;
     }
 
-    /* ---------- Vänster verktygspalett ---------- */
+    /* ---------- VÃ¤nster verktygspalett ---------- */
 
     #left-toolbar {
       border: none;
@@ -1047,7 +1047,7 @@
       border-radius: 4px;
     }
 
-    /* ---------- Höger panel ---------- */
+    /* ---------- HÃ¶ger panel ---------- */
 
     #right-panels {
       padding: 0;
@@ -1436,7 +1436,7 @@
     }
 
     .numbered-import-item.is-complete::after {
-      content: "✅";
+      content: "âœ…";
       position: absolute;
       left: 50%;
       top: 50%;
@@ -2267,18 +2267,18 @@
     }
 
     #top-bar .file-info::before {
-      content: "●";
+      content: "â—";
       font-size: 0.6rem;
       color: var(--tick-green);
     }
 
     #openFileBtnTop {
-      /* primär handling */
+      /* primÃ¤r handling */
       color: #fff;
     }
 
     #saveBtn {
-      /* sekundär visuell – men fortfarande .c-button--primary i HTML om du vill */
+      /* sekundÃ¤r visuell â€“ men fortfarande .c-button--primary i HTML om du vill */
       color: #fff;
     }
 
@@ -3016,7 +3016,7 @@
 </head>
 <body>
   <div id="app">
-    <!-- Vänster: verktyg -->
+    <!-- VÃ¤nster: verktyg -->
     <aside id="left-toolbar">
       <div class="c-card">
 
@@ -3193,7 +3193,7 @@
       </div>
     </section>
 
-    <!-- Höger: paneler -->
+    <!-- HÃ¶ger: paneler -->
     <aside id="right-panels">
       <div class="c-card" data-collapsible="true" data-collapsed="true">
         <div class="c-card__header">
@@ -3277,7 +3277,7 @@
 
       <div class="c-card" data-collapsible="true" data-collapsed="true">
         <div class="c-card__header">
-          <div class="c-card__title">Price Regions <span id="priceRegionStatus" class="price-region-status">❌</span></div>
+          <div class="c-card__title">Price Regions <span id="priceRegionStatus" class="price-region-status">âŒ</span></div>
           <button class="c-card__toggle" type="button" aria-expanded="true" aria-label="Toggle panel" onclick="toggleRightPanel(this)"></button>
         </div>
         <div class="c-card__body c-toolbar">
@@ -3757,7 +3757,7 @@
           </div>
           <div class="help-text">
             <div class="help-panel__title">Basic Work flow</div>
-            <div class="help-placeholder">Click 'Create new' to create a new layout. Name it and set a Venue Id. Select working folder (same structure as legacy Layout Editor recommended (e g GXFS/Venue/[VenueId]/Layouts)). Create sections as described in Sections Modal. Save and close when ready. Make adjustments needed using tools. Create price regions and Entry points, and assign seats to them. Entry points are not mandatory, but still recommended. Price regions panel will show a ✅ when all seats are assigned. This is crucial. Once satisfied press Export and export all files. Continue work in Boxy SVG.</div>
+            <div class="help-placeholder">Click 'Create new' to create a new layout. Name it and set a Venue Id. Select working folder (same structure as legacy Layout Editor recommended (e g GXFS/Venue/[VenueId]/Layouts)). Create sections as described in Sections Modal. Save and close when ready. Make adjustments needed using tools. Create price regions and Entry points, and assign seats to them. Entry points are not mandatory, but still recommended. Price regions panel will show a âœ… when all seats are assigned. This is crucial. Once satisfied press Export and export all files. Continue work in Boxy SVG.</div>
           </div>
         </div>
         <div class="help-modal__section">
@@ -3793,7 +3793,7 @@
               <div class="help-tool-list">
                 <div class="help-tool">
                   <div class="help-tool__title">Reshape row (E)</div>
-                  <div class="help-tool__desc">Right click on a seat in any selected row to set/toggle that row's anchor point, then drag row end points or the anchor itself to reshape while preserving existing bends. With a single anchor, hold Shift while dragging a row end to rotate in 5° steps from the anchor while still adjusting row length. If two anchored rows are selected, dragging one anchored row reshapes all selected rows between them; hold Shift to move both anchored rows together. Press Esc to clear all anchors.</div>
+                  <div class="help-tool__desc">Right click on a seat in any selected row to set/toggle that row's anchor point, then drag row end points or the anchor itself to reshape while preserving existing bends. With a single anchor, hold Shift while dragging a row end to rotate in 5Â° steps from the anchor while still adjusting row length. If two anchored rows are selected, dragging one anchored row reshapes all selected rows between them; hold Shift to move both anchored rows together. Press Esc to clear all anchors.</div>
                 </div>
                 <div class="help-tool">
                   <div class="help-tool__title">Reset row (Q)</div>
@@ -4488,7 +4488,7 @@
   let isDraggingSelection = false;
   let dragStartWorldX = 0;
   let dragStartWorldY = 0;
-  let dragStartSnapshot = null; // startpositioner för alla seats vid move
+  let dragStartSnapshot = null; // startpositioner fÃ¶r alla seats vid move
 
   // Rotation av markerade
   let isRotatingSelection = false;
@@ -4535,7 +4535,7 @@
   let rectEndCanvasX = 0;
   let rectEndCanvasY = 0;
 
-  // Verktyg & markeringsläge
+  // Verktyg & markeringslÃ¤ge
   let currentTool = "select";   // "select" | "move" | "rotate" | "resize" | "bend" | "reshape"
   let selectionMode = "section";   // "section" | "row" | "seat"
   let selectionOrderCounter = 1;
@@ -4545,10 +4545,11 @@
 
   // Smart rendering / prestanda
   let lastVisibleSeatCount = 0;
-  const RECT_DOT_THRESHOLD = 2500; // över detta: små fyrkanter
-  const HOVER_VISIBLE_LIMIT = 4000; // över detta: ingen tooltip/hover-info
-  const SIMPLIFIED_SELECTION_BATCH_THRESHOLD = 250; // över detta: batcha markering i simplified mode
+  const RECT_DOT_THRESHOLD = 2500; // Ã¶ver detta: smÃ¥ fyrkanter
+  const HOVER_VISIBLE_LIMIT = 4000; // Ã¶ver detta: ingen tooltip/hover-info
+  const SIMPLIFIED_SELECTION_BATCH_THRESHOLD = 250; // Ã¶ver detta: batcha markering i simplified mode
   const SIMPLIFIED_SELECTION_INNER_STROKE_LIMIT = 1500; // över detta: hoppa inre markering för bättre fps
+  const SIMPLIFIED_SELECTION_STROKE_BATCH_RECTS = 900; // antal rektanglar per stroke-batch
   let renderSeatsAsSquares = false;
 
   let hoverSeat = null;
@@ -4570,8 +4571,8 @@
   let originalLines = [];
   let seatIdToLineIndex = new Map();
 
-  const MIN_SEAT_SCREEN_RADIUS = 3;  // px vid långt utzoomat
-  const BASE_WORLD_RADIUS = 50;      // i "layoutvärlden"
+  const MIN_SEAT_SCREEN_RADIUS = 3;  // px vid lÃ¥ngt utzoomat
+  const BASE_WORLD_RADIUS = 50;      // i "layoutvÃ¤rlden"
   const SESSION_STORAGE_KEY = "arenaEditorSessionV1";
 
   const DB_NAME = "arenaEditorFileHandles";
@@ -4609,7 +4610,7 @@
     };
   }
 
-  // --- Färger per sektion ---
+  // --- FÃ¤rger per sektion ---
   function hslToHex(h, s, l) {
     const sat = Math.max(0, Math.min(1, s / 100));
     const light = Math.max(0, Math.min(1, l / 100));
@@ -5084,7 +5085,7 @@
       translateY = canvas.height / 2 - cyWorld * scale;
     }
 
-    // Historik: nollställ och lägg första snapshot
+    // Historik: nollstÃ¤ll och lÃ¤gg fÃ¶rsta snapshot
     history = [];
     historyIndex = -1;
     hasUnsavedChanges = outlinesChangedOnLoad;
@@ -5098,7 +5099,7 @@
     return outlinesChangedOnLoad;
   }
 
-  // --- Historik (undo) – nu inkl. markering ---
+  // --- Historik (undo) â€“ nu inkl. markering ---
   function captureSeatState() {
     return seats.map(s => ({
       seatId: s.seatId,
@@ -5137,7 +5138,7 @@
     rebuildSelectionOrderFromSelection();
     renderCanvas();
 
-    // Markera ändringar & kod om geometri (position/rotation) ändrats
+    // Markera Ã¤ndringar & kod om geometri (position/rotation) Ã¤ndrats
     if (anyGeometryChanged) {
       hasUnsavedChanges = true;
       updateCodeFromSeats();
@@ -6299,7 +6300,7 @@ function openHandleDB() {
       resolve(e.target.result);
     };
     req.onerror = (e) => {
-      reject(e.target.error || new Error("Kunde inte öppna DB"));
+      reject(e.target.error || new Error("Kunde inte Ã¶ppna DB"));
     };
   });
 }
@@ -6334,7 +6335,7 @@ async function loadCurrentFileHandleFromDB() {
       };
     });
   } catch (err) {
-    console.warn("Kunde inte läsa fileHandle från IndexedDB:", err);
+    console.warn("Kunde inte lÃ¤sa fileHandle frÃ¥n IndexedDB:", err);
     return null;
   }
 }
@@ -6373,11 +6374,11 @@ async function tryRestoreSessionFromLocalStorage() {
       updatePriceRegionColorModeUi();
     }
 
-    // Återställ tlt-texten
+    // Ã…terstÃ¤ll tlt-texten
     codePane.value = data.tltText;
     parseTlt(data.tltText);
 
-    // Återställ filnamn-info (om vi hade ett)
+    // Ã…terstÃ¤ll filnamn-info (om vi hade ett)
     currentFileName = data.fileName || "";
     const restoredSourceState = (data.exportLoadedSources && typeof data.exportLoadedSources === "object")
       ? data.exportLoadedSources
@@ -6404,7 +6405,7 @@ async function tryRestoreSessionFromLocalStorage() {
     loadSeatBlocksFromStorage();
     loadGoodnessSettingsFromStorage();
 
-    // Återställ zoom/pan om vi har dem
+    // Ã…terstÃ¤ll zoom/pan om vi har dem
     if (typeof data.translateX === "number") translateX = data.translateX;
     if (typeof data.translateY === "number") translateY = data.translateY;
     if (typeof data.scale === "number")      scale      = data.scale;
@@ -6442,19 +6443,19 @@ async function tryRestoreSessionFromLocalStorage() {
 
     renderCanvas();
 
-    // Vi betraktar detta som osparade ändringar (kan ju vara viktigare än filen)
+    // Vi betraktar detta som osparade Ã¤ndringar (kan ju vara viktigare Ã¤n filen)
     hasUnsavedChanges = true;
     updateSaveButton();
 
     loadCurrentFileHandleFromDB().then((handle) => {
       if (handle) {
         currentFileHandle = handle;
-        // fileInfo-texten är redan satt utifrån currentFileName
+        // fileInfo-texten Ã¤r redan satt utifrÃ¥n currentFileName
       }
     });
 
   } catch (err) {
-    console.warn("Kunde inte läsa session från localStorage:", err);
+    console.warn("Kunde inte lÃ¤sa session frÃ¥n localStorage:", err);
   }
 }
 
@@ -6535,7 +6536,7 @@ codePane.addEventListener("input", () => {
         await loadTltFromHandle(handle);
       }
     } catch (err) {
-      console.warn("Öppna via picker misslyckades, provar filinput:", err);
+      console.warn("Ã–ppna via picker misslyckades, provar filinput:", err);
       fileInput?.click();
     }
   }
@@ -6581,7 +6582,7 @@ codePane.addEventListener("input", () => {
       return true;
     } catch (err) {
       if (err?.name === "AbortError") {
-        console.warn("Spara avbrutet av användare.");
+        console.warn("Spara avbrutet av anvÃ¤ndare.");
         return false;
       }
       console.warn("Spara via picker misslyckades, provar nedladdning:", err);
@@ -6917,7 +6918,7 @@ codePane.addEventListener("input", () => {
         }
       }
     } catch (err) {
-      console.warn("Kunde inte läsa prisregioner:", err);
+      console.warn("Kunde inte lÃ¤sa prisregioner:", err);
     }
     if (typeof loadedFromTpr === "boolean") {
       setExportLoadedSourcesState({ tpr: loadedFromTpr });
@@ -7099,7 +7100,7 @@ codePane.addEventListener("input", () => {
       const deleteBtn = document.createElement("button");
       deleteBtn.type = "button";
       deleteBtn.className = "price-region-item__delete";
-      deleteBtn.textContent = "×";
+      deleteBtn.textContent = "Ã—";
       deleteBtn.dataset.role = "price-region-delete";
       deleteBtn.dataset.regionId = region.id;
       const canReorder = !numberedImportMode && priceRegions.length > 1;
@@ -7142,7 +7143,7 @@ codePane.addEventListener("input", () => {
       if (region.rows.length) parts.push(`Rows: ${region.rows.length}`);
       if (region.seats.length) parts.push(`Seats: ${region.seats.length}`);
       if (staleSeatIds.length) parts.push(`Missing seats: ${staleSeatIds.length}`);
-      meta.textContent = parts.length ? parts.join(" • ") : "No items added";
+      meta.textContent = parts.length ? parts.join(" â€¢ ") : "No items added";
 
       const actions = document.createElement("div");
       actions.className = "price-region-item__actions";
@@ -8688,26 +8689,26 @@ codePane.addEventListener("input", () => {
   }
 
   const ATTRIBUTE_TRANSLATIONS = {
-    Wheelchair: "Tillgänglighetsanpassad plats",
+    Wheelchair: "TillgÃ¤nglighetsanpassad plats",
     AccompanyingPerson: "Ledsagarplats",
     ObstructedView: "Skymd sikt",
     SomewhatObstructedView: "Sikt delvis skymd",
-    SomewhatObstructedViewPole: "Synfält något begränsat p.g.a smal stolpe",
-    SomewhatObstructedViewRail: "Synfält något begränsat p.g.a räcke",
+    SomewhatObstructedViewPole: "SynfÃ¤lt nÃ¥got begrÃ¤nsat p.g.a smal stolpe",
+    SomewhatObstructedViewRail: "SynfÃ¤lt nÃ¥got begrÃ¤nsat p.g.a rÃ¤cke",
     ListeningLocations: "Lyssnarplats",
     NoVisibility: "Helt skymd sikt",
-    HearingLoop: "Hörselslinga",
-    NoHearingLoop: "Ej hörselslinga",
-    SomewhatRestrictedLegroom: "Benutrymme något begränsat",
+    HearingLoop: "HÃ¶rselslinga",
+    NoHearingLoop: "Ej hÃ¶rselslinga",
+    SomewhatRestrictedLegroom: "Benutrymme nÃ¥got begrÃ¤nsat",
     ExtraLegroom: "Extra benutrymme",
-    LessComfortable: "Sämre komfortnivå",
-    HighStageEdge: "Hög scenkant",
-    SomewhatHighStageEdge: "Något hög scenkant",
+    LessComfortable: "SÃ¤mre komfortnivÃ¥",
+    HighStageEdge: "HÃ¶g scenkant",
+    SomewhatHighStageEdge: "NÃ¥got hÃ¶g scenkant",
     ExtraStep: "Extra trappsteg",
     SingleSeat: "Singelplats",
-    SingleSeatByRails: "Singelplats vid räcke",
+    SingleSeatByRails: "Singelplats vid rÃ¤cke",
     ActiveSeat: "Aktiv sittplats",
-    VolumeMayBeLoud: "Ljudvolymen kan upplevas hög"
+    VolumeMayBeLoud: "Ljudvolymen kan upplevas hÃ¶g"
   };
 
   function escapeXml(value) {
@@ -9619,7 +9620,7 @@ codePane.addEventListener("input", () => {
     const errorCount = Array.isArray(errors) ? errors.length : 0;
     if (warningCount > 0) {
       numberedImportIssuesSummary.textContent = errorCount > 0
-        ? `Warnings (${warningCount}) • Errors (${errorCount})`
+        ? `Warnings (${warningCount}) â€¢ Errors (${errorCount})`
         : `Warnings (${warningCount})`;
     } else {
       numberedImportIssuesSummary.textContent = `Errors (${errorCount})`;
@@ -10566,9 +10567,9 @@ codePane.addEventListener("input", () => {
         const totalSeats = numberedImportPurchases.reduce((sum, purchase) => sum + purchase.ticketCount, 0);
         const placedSeats = numberedImportPurchases.reduce((sum, purchase) => sum + (purchase.assignedSeatIds?.length || 0), 0);
         const blockedSuffix = numberedImportBlockedSeatIds.size
-          ? ` • Blocked ${numberedImportBlockedSeatIds.size}`
+          ? ` â€¢ Blocked ${numberedImportBlockedSeatIds.size}`
           : "";
-        numberedImportValidationState.textContent = `Validation: OK • Purchases ${numberedImportPurchases.length} • Placed ${placedSeats}/${totalSeats}${blockedSuffix}`;
+        numberedImportValidationState.textContent = `Validation: OK â€¢ Purchases ${numberedImportPurchases.length} â€¢ Placed ${placedSeats}/${totalSeats}${blockedSuffix}`;
       }
     }
     const allPlaced = numberedImportReady && numberedImportPurchases.every((purchase) => {
@@ -11675,7 +11676,7 @@ codePane.addEventListener("input", () => {
         "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1200\" height=\"800\">",
         "  <rect width=\"100%\" height=\"100%\" fill=\"#f3f6f9\" />",
         "  <text x=\"50%\" y=\"50%\" text-anchor=\"middle\" fill=\"#7b8794\" font-size=\"20\" font-family=\"Arial, sans-serif\">",
-        "    SVG-export kräver en layout",
+        "    SVG-export krÃ¤ver en layout",
         "  </text>",
         "</svg>"
       ].join("\n");
@@ -12839,7 +12840,7 @@ codePane.addEventListener("input", () => {
     }
     const venueIdVal = (newVenueId?.value || "").trim();
     if (venueIdVal && !/^\d+$/.test(venueIdVal)) {
-      alert("VenueId får bara innehålla siffror.");
+      alert("VenueId fÃ¥r bara innehÃ¥lla siffror.");
       newVenueId?.focus();
       return;
     }
@@ -12889,7 +12890,7 @@ codePane.addEventListener("input", () => {
       }
     }
 
-    // Markera som osparad så användaren sparar manuellt
+    // Markera som osparad sÃ¥ anvÃ¤ndaren sparar manuellt
     if (!createdFile) {
       currentFileName = defaultFileName;
       fileInfo.textContent = "New layout (not saved)";
@@ -13632,7 +13633,7 @@ codePane.addEventListener("input", () => {
     if (showPriceRegions) renderCanvas();
   });
 
-  // Försök återanvända senaste handle direkt vid start (utan att öppna filen automatiskt)
+  // FÃ¶rsÃ¶k Ã¥teranvÃ¤nda senaste handle direkt vid start (utan att Ã¶ppna filen automatiskt)
   loadCurrentFileHandleFromDB().then((handle) => {
     if (handle) {
       currentFileHandle = handle;
@@ -13722,7 +13723,7 @@ codePane.addEventListener("input", () => {
     if (rotateCwBtn) rotateCwBtn.disabled = !hasSelection;
   }
 
-  // Hjälpfunktioner för färgkontrast på etiketter
+  // HjÃ¤lpfunktioner fÃ¶r fÃ¤rgkontrast pÃ¥ etiketter
   const labelColorCache = new Map();
   function hexToRgb(hex) {
     const h = hex.replace("#", "").trim();
@@ -13828,7 +13829,7 @@ codePane.addEventListener("input", () => {
     const worldMinY = (-translateY) / scale;
     const worldMaxY = (canvas.height - translateY) / scale;
 
-    // Först: räkna synliga platser
+    // FÃ¶rst: rÃ¤kna synliga platser
     let visibleCount = 0;
     let visibleSelectedCount = 0;
     for (const s of seats) {
@@ -13903,7 +13904,7 @@ codePane.addEventListener("input", () => {
         baseColor = getNumberedImportPurchaseColor(assignedRefNo);
       }
 
-      // Fyrkantsläge (massor av platser)
+      // FyrkantslÃ¤ge (massor av platser)
       if (useRectDots) {
         ctx.fillStyle = baseColor;
         ctx.fillRect(
@@ -14020,7 +14021,7 @@ codePane.addEventListener("input", () => {
         continue;
       }
 
-        // Normal-läge: cirkel eller roterad fyrkant
+        // Normal-lÃ¤ge: cirkel eller roterad fyrkant
         let pxRadius = BASE_WORLD_RADIUS * scale;
         if (pxRadius < MIN_SEAT_SCREEN_RADIUS) {
           pxRadius = MIN_SEAT_SCREEN_RADIUS;
@@ -14207,28 +14208,18 @@ codePane.addEventListener("input", () => {
       if (useFastSimplifiedSelection && simplifiedSelectedRectCoords && simplifiedSelectedRectCoords.length) {
         const selectedCount = Math.floor(simplifiedSelectedRectCoords.length / 2);
         const rectSize = rectSizeWorld * 2;
-        if (typeof Path2D === "function") {
-          const selectionPath = new Path2D();
-          for (let i = 0; i < simplifiedSelectedRectCoords.length; i += 2) {
-            selectionPath.rect(
-              simplifiedSelectedRectCoords[i],
-              simplifiedSelectedRectCoords[i + 1],
-              rectSize,
-              rectSize
-            );
-          }
-          ctx.lineWidth = selectionStroke.outerWidth / scale;
-          ctx.strokeStyle = selectionStroke.outerColor;
-          ctx.stroke(selectionPath);
-          if (selectedCount <= SIMPLIFIED_SELECTION_INNER_STROKE_LIMIT) {
-            ctx.lineWidth = selectionStroke.innerWidth / scale;
-            ctx.strokeStyle = selectionStroke.innerColor;
-            ctx.stroke(selectionPath);
-          }
-        } else {
-          const strokeSelectionRects = (lineWidth, strokeStyle) => {
+        const batchRectCount = Math.max(100, SIMPLIFIED_SELECTION_STROKE_BATCH_RECTS);
+        const hasInnerStroke = selectedCount <= SIMPLIFIED_SELECTION_INNER_STROKE_LIMIT;
+        const outerStrokeColor = !hasInnerStroke && overlayMode !== "none"
+          ? "#ff3b30"
+          : selectionStroke.outerColor;
+        const strokeSelectionRects = (lineWidth, strokeStyle) => {
+          const coordsLength = simplifiedSelectedRectCoords.length;
+          const batchStride = batchRectCount * 2;
+          for (let start = 0; start < coordsLength; start += batchStride) {
+            const end = Math.min(coordsLength, start + batchStride);
             ctx.beginPath();
-            for (let i = 0; i < simplifiedSelectedRectCoords.length; i += 2) {
+            for (let i = start; i < end; i += 2) {
               ctx.rect(
                 simplifiedSelectedRectCoords[i],
                 simplifiedSelectedRectCoords[i + 1],
@@ -14239,11 +14230,11 @@ codePane.addEventListener("input", () => {
             ctx.lineWidth = lineWidth;
             ctx.strokeStyle = strokeStyle;
             ctx.stroke();
-          };
-          strokeSelectionRects(selectionStroke.outerWidth / scale, selectionStroke.outerColor);
-          if (selectedCount <= SIMPLIFIED_SELECTION_INNER_STROKE_LIMIT) {
-            strokeSelectionRects(selectionStroke.innerWidth / scale, selectionStroke.innerColor);
           }
+        };
+        strokeSelectionRects(selectionStroke.outerWidth / scale, outerStrokeColor);
+        if (hasInnerStroke) {
+          strokeSelectionRects(selectionStroke.innerWidth / scale, selectionStroke.innerColor);
         }
       }
 
@@ -14351,14 +14342,14 @@ codePane.addEventListener("input", () => {
 
     ctx.restore();
 
-    // Tooltip-hantering utanför transform
+    // Tooltip-hantering utanfÃ¶r transform
     if (showHoverInfo && hoverSeat && lastVisibleSeatCount <= HOVER_VISIBLE_LIMIT) {
       tooltipEl.style.display = "block";
     } else {
       tooltipEl.style.display = "none";
     }
 
-    // Resize-overlay (handtag) ritas ovanpå allt
+    // Resize-overlay (handtag) ritas ovanpÃ¥ allt
     if (currentTool === "resize") {
       const selected = getSelectedSeats();
       if (selected.length) {
@@ -14514,10 +14505,10 @@ codePane.addEventListener("input", () => {
   if (lastAdded) lastSelectedSeatId = lastAdded.seatId;
   lastSelectionSource = "program";
 
-  // Aktivera Move-verktyget (det är bara knappen som ska bli aktiverbar)
+  // Aktivera Move-verktyget (det Ã¤r bara knappen som ska bli aktiverbar)
   moveToolBtn.disabled = false;
 
-  // Lägg detta i historiken så att Ctrl+Z även ångrar "markera alla"
+  // LÃ¤gg detta i historiken sÃ¥ att Ctrl+Z Ã¤ven Ã¥ngrar "markera alla"
   if (typeof pushHistorySnapshot === "function") {
     pushHistorySnapshot();
   }
@@ -14850,7 +14841,7 @@ function selectSeatsWithoutEntryPoints() {
   }
 
   function sortSeatsInRow(rowSeats) {
-    // Försök numerisk sort på name, annars seatId-suffix, annars vx/vy
+    // FÃ¶rsÃ¶k numerisk sort pÃ¥ name, annars seatId-suffix, annars vx/vy
     const parseKey = (seat) => {
       const num = parseFloat(seat.name);
       if (!Number.isNaN(num)) return { kind: "num", value: num };
@@ -17192,7 +17183,7 @@ function nudgeSelection(dxScreen, dyScreen) {
     return best;
   }
 
-  // --- Markerings-läge: vilken grupp hör en klickad plats till? ---
+  // --- Markerings-lÃ¤ge: vilken grupp hÃ¶r en klickad plats till? ---
   function getGroupForSeat(seat) {
     if (!seat) return [];
     if (selectionMode === "seat") {
@@ -17205,7 +17196,7 @@ function nudgeSelection(dxScreen, dyScreen) {
     return [seat];
   }
 
-  // --- Markerings-ruta beroende på läge ---
+  // --- Markerings-ruta beroende pÃ¥ lÃ¤ge ---
   function selectByRect(rectWorld, additive) {
     const { minX, maxX, minY, maxY } = rectWorld;
 
@@ -17385,7 +17376,7 @@ function nudgeSelection(dxScreen, dyScreen) {
 
     if (currentTool === "bend") {
       const rows = getSelectedRows();
-      if (rows.size !== 1) return; // endast en rad åt gången för stabil riktning
+      if (rows.size !== 1) return; // endast en rad Ã¥t gÃ¥ngen fÃ¶r stabil riktning
 
       const [, rowSeats] = rows.entries().next().value || [];
       const thisRowId = rowSeats && rowSeats.length ? rowSeats[0].rowId : null;
@@ -17395,7 +17386,7 @@ function nudgeSelection(dxScreen, dyScreen) {
       for (const [, rowSeats] of rows) {
         if (rowSeats.length < 2) continue;
         bendRowsData.push(computeRowEndpoints(rowSeats));
-        break; // bara första (enda) raden
+        break; // bara fÃ¶rsta (enda) raden
       }
       if (!bendRowsData.length) return;
 
@@ -17428,7 +17419,7 @@ function nudgeSelection(dxScreen, dyScreen) {
       hasBentDuringDrag = true;
       isBendingSelection = true;
 
-      // Initial böjning direkt vid klick
+      // Initial bÃ¶jning direkt vid klick
       applyRowBend(rowData, thisRowId);
       renderCanvas();
       return;
@@ -17510,7 +17501,7 @@ function nudgeSelection(dxScreen, dyScreen) {
       resizeSnapshotById = new Map();
       for (const snap of resizeStartSnapshot) resizeSnapshotById.set(snap.seatId, snap);
 
-      // pivot beror pГҐ vilket handtag vi drar
+      // pivot beror pÐ“Ò vilket handtag vi drar
       const { minX, maxX, minY, maxY, centerX, centerY } = bounds;
       const pivotMap = {
         nw: { x: maxX, y: maxY },
@@ -17531,7 +17522,7 @@ function nudgeSelection(dxScreen, dyScreen) {
 
     if (currentTool === "select") {
       const hit = hitTestSeat(worldX, worldY);
-      const additiveClick = e.metaKey || e.shiftKey || e.altKey; // enkel: ctrl används för pan, så låt t.ex. Shift/Alt/Cmd bli additive
+      const additiveClick = e.metaKey || e.shiftKey || e.altKey; // enkel: ctrl anvÃ¤nds fÃ¶r pan, sÃ¥ lÃ¥t t.ex. Shift/Alt/Cmd bli additive
 
       let selectionChanged = false;
 
@@ -17574,14 +17565,14 @@ function nudgeSelection(dxScreen, dyScreen) {
         return;
       }
 
-      // Ingen träff: starta ruta-markering
+      // Ingen trÃ¤ff: starta ruta-markering
       selectionRectActive = true;
       rectStartCanvasX = canvasX;
       rectStartCanvasY = canvasY;
       rectEndCanvasX = canvasX;
       rectEndCanvasY = canvasY;
 
-      // additive rect: om shift/meta/alt = lägg till
+      // additive rect: om shift/meta/alt = lÃ¤gg till
       selectionRectAdditive = !!(e.metaKey || e.shiftKey || e.altKey);
       return;
     }
@@ -17594,7 +17585,7 @@ function nudgeSelection(dxScreen, dyScreen) {
       isDraggingSelection = true;
       dragStartWorldX = worldX;
       dragStartWorldY = worldY;
-      dragStartSnapshot = captureSeatState(); // för relativ flytt
+      dragStartSnapshot = captureSeatState(); // fÃ¶r relativ flytt
       return;
     }
   });
@@ -17633,14 +17624,14 @@ function nudgeSelection(dxScreen, dyScreen) {
     { label: "No hearing loop", value: "NoHearingLoop" },
     { label: "Limited legroom", value: "SomewhatRestrictedLegroom" },
     { label: "Extra legroom", value: "ExtraLegroom" },
-    { label: "Sämre komfortnivå", value: "LessComfortable" },
-    { label: "Hög scenkant", value: "HighStageEdge" },
-    { label: "Något hög scenkant", value: "SomewhatHighStageEdge" },
+    { label: "SÃ¤mre komfortnivÃ¥", value: "LessComfortable" },
+    { label: "HÃ¶g scenkant", value: "HighStageEdge" },
+    { label: "NÃ¥got hÃ¶g scenkant", value: "SomewhatHighStageEdge" },
     { label: "Extra trappsteg", value: "ExtraStep" },
     { label: "Singelplats", value: "SingleSeat" },
-    { label: "Singelplats vid räcke", value: "SingleSeatByRails" },
+    { label: "Singelplats vid rÃ¤cke", value: "SingleSeatByRails" },
     { label: "Aktiv sittplats", value: "ActiveSeat" },
-    { label: "Ljudvolym kan upplevas hög", value: "VolumeMayBeLoud" }
+    { label: "Ljudvolym kan upplevas hÃ¶g", value: "VolumeMayBeLoud" }
   ];
 
   function closeSeatContextMenu() {
@@ -18262,7 +18253,7 @@ function nudgeSelection(dxScreen, dyScreen) {
     const firstNum = getSeatIdSuffix(first.seatId);
     const secondNum = getSeatIdSuffix(second.seatId);
     if (!Number.isFinite(firstNum) || !Number.isFinite(secondNum)) return null;
-    if (Math.abs(firstNum - secondNum) !== 1) return null;
+    if (firstNum === secondNum) return null;
     const lowSeatSuffix = Math.min(firstNum, secondNum);
     const highSeatSuffix = Math.max(firstNum, secondNum);
     const lowSeatId = firstNum < secondNum ? first.seatId : second.seatId;
@@ -19562,7 +19553,7 @@ function nudgeSelection(dxScreen, dyScreen) {
       let scaleX = resizeStartVector.x === 0 ? 1 : dx / resizeStartVector.x;
       let scaleY = resizeStartVector.y === 0 ? 1 : dy / resizeStartVector.y;
 
-      // LСҖs axlar fСЧr kant-handtag
+      // LÐ¡Ò–s axlar fÐ¡Ð§r kant-handtag
       if (resizeHandleId === "n" || resizeHandleId === "s") {
         scaleX = 1;
       } else if (resizeHandleId === "e" || resizeHandleId === "w") {
@@ -19719,7 +19710,7 @@ function nudgeSelection(dxScreen, dyScreen) {
       isBendingSelection = false;
       hasBentDuringDrag = false;
       bendStartSnapshot = null;
-      // Behåll anchor/handle mellan interaktioner; nollställ bara drag-target
+      // BehÃ¥ll anchor/handle mellan interaktioner; nollstÃ¤ll bara drag-target
       bendDragTarget = null;
 
       if (didBend) {
@@ -19762,7 +19753,7 @@ function nudgeSelection(dxScreen, dyScreen) {
       isDraggingSelection = false;
       dragStartSnapshot = null;
 
-      // Flytten är klar -> historik + kod + save-knapp
+      // Flytten Ã¤r klar -> historik + kod + save-knapp
       commitSelectionGeometryChange("Moved selection");
       return;
     }
@@ -19892,7 +19883,7 @@ function nudgeSelection(dxScreen, dyScreen) {
     renderCanvas();
   });
 
-  // --- Tangentbord / genvägar ---
+  // --- Tangentbord / genvÃ¤gar ---
   window.addEventListener("keydown", (e) => {
     const key = e.key.toLowerCase();
     const activeEl = document.activeElement;
@@ -19979,7 +19970,7 @@ function nudgeSelection(dxScreen, dyScreen) {
       return;
     }
 
-    // Om man skriver i textfält: inga fler genvägar
+    // Om man skriver i textfÃ¤lt: inga fler genvÃ¤gar
     if (isTextInput) return;
 
     if (key === "escape" && currentTool === "reshape" && reshapePivotSeatIdsByRow.size) {
@@ -20030,13 +20021,13 @@ function nudgeSelection(dxScreen, dyScreen) {
       return;
     }
 
-    // Home = zooma så att allt syns
+    // Home = zooma sÃ¥ att allt syns
     if (e.key === "Home") {
       e.preventDefault();
       zoomToFitAllSeats();
       return;
     }
-    // Tangent 1 = zoom-to-fit (bekväm snabbe)
+    // Tangent 1 = zoom-to-fit (bekvÃ¤m snabbe)
     if (key === "1") {
       e.preventDefault();
       zoomToFitAllSeats();
@@ -20180,7 +20171,7 @@ function nudgeSelection(dxScreen, dyScreen) {
       lastSelectedSeatId = null;
     }
     if (changed) {
-      pushHistorySnapshot();    // ångra deselect
+      pushHistorySnapshot();    // Ã¥ngra deselect
       updateMoveButtonState();
       renderCanvas();
     }
@@ -20194,7 +20185,7 @@ function nudgeSelection(dxScreen, dyScreen) {
     updateRowIdsFromSeats();
   });
 
-  // --- Markeringsnivå-knappar ---
+  // --- MarkeringsnivÃ¥-knappar ---
   function setSelectionMode(mode) {
     selectionMode = mode;
     setButtonActive(modeSectionBtn, mode === "section");
@@ -21217,7 +21208,7 @@ function nudgeSelection(dxScreen, dyScreen) {
       renameBtn.type = "button";
       renameBtn.title = "Rename section";
       renameBtn.setAttribute("aria-label", "Rename section");
-      renameBtn.textContent = "✎";
+      renameBtn.textContent = "âœŽ";
 
       const meta = document.createElement("div");
       meta.className = "section-card__meta";
@@ -22094,10 +22085,10 @@ function nudgeSelection(dxScreen, dyScreen) {
   }
 
   function removeSectionData(sectionId) {
-    // Ta bort seats för sektionen
+    // Ta bort seats fÃ¶r sektionen
     seats = seats.filter(s => s.sectionId !== sectionId);
 
-    // Filtrera originalLines från Section/Row/Seat/Outline som tillhör sektionen
+    // Filtrera originalLines frÃ¥n Section/Row/Seat/Outline som tillhÃ¶r sektionen
     const matchSection = (line) => {
       if (!line) return false;
       const outlineCode = sectionIdToOutlineCode(sectionId);
@@ -22270,7 +22261,7 @@ function nudgeSelection(dxScreen, dyScreen) {
     });
 
     if (anyChanged) {
-      // Säkerställ att varje rad har en RowAdd-rad (om något fallit bort)
+      // SÃ¤kerstÃ¤ll att varje rad har en RowAdd-rad (om nÃ¥got fallit bort)
       // Ensure SectionAdd and RowAdd lines exist before seats in affected sections.
       ensureSectionAndRowLinesForSeats();
 
@@ -22561,7 +22552,7 @@ function nudgeSelection(dxScreen, dyScreen) {
       const total = existingSeats + newCount;
       const startSeat = altSeatNumberingMode === "continuous" ? altContinuousStartSeat : block.startSeat;
       const lastSeat = normalizeAltContinuousStartSeat(startSeat) + Math.max(0, (altSeatNumberingMode === "continuous" ? newCount : total) - 1);
-      setAltTooltip(`No. of seats: ${newCount} · Last seat name: ${lastSeat}`, e.clientX, e.clientY, true);
+      setAltTooltip(`No. of seats: ${newCount} Â· Last seat name: ${lastSeat}`, e.clientX, e.clientY, true);
     }
     renderAltSectionCanvas();
   });
@@ -22639,7 +22630,7 @@ function nudgeSelection(dxScreen, dyScreen) {
   // --- Init ---
 
   window.addEventListener("load", async () => {
-    // Försök återställa en tidigare session (om det finns)
+    // FÃ¶rsÃ¶k Ã¥terstÃ¤lla en tidigare session (om det finns)
     await tryRestoreSessionFromLocalStorage();
     setLayoutActive(restoredSession);
     updateHighlightSeatsButtonLabel();
@@ -22670,7 +22661,7 @@ function nudgeSelection(dxScreen, dyScreen) {
     loadSeatBlocksFromStorage();
     renderCanvas();
 
-    // Om det finns sparad vyinfo i localStorage som ännu inte applicerats (t.ex. ingen session vald)
+    // Om det finns sparad vyinfo i localStorage som Ã¤nnu inte applicerats (t.ex. ingen session vald)
     // se till att UI-speglas
     if (viewHoverToggle) viewHoverToggle.checked = showHoverInfo;
     if (viewSectionNamesToggle) viewSectionNamesToggle.checked = showSectionNames;
@@ -22686,7 +22677,7 @@ function nudgeSelection(dxScreen, dyScreen) {
     saveSessionToLocalStorage();
     if (!hasUnsavedChanges) return;
 
-    // Detta magiska returnValue krävs för att vissa browsers ska visa varningen
+    // Detta magiska returnValue krÃ¤vs fÃ¶r att vissa browsers ska visa varningen
     e.preventDefault();
     e.returnValue = "";
   });
@@ -22695,3 +22686,5 @@ function nudgeSelection(dxScreen, dyScreen) {
 
   </body>
   </html>
+
+
