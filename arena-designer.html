@@ -16360,116 +16360,107 @@ function nudgeSelection(dxScreen, dyScreen) {
   function splitRowAtSelection() {
     if (selectionMode !== "seat") return false;
     const selected = getSelectedSeats();
-    const info = getSplitRowSelectionInfo(selected);
-    if (!info) return false;
+    const splitInfos = getSplitRowSelectionInfos(selected);
+    if (!splitInfos || !splitInfos.length) return false;
 
-    const rowParts = parseRowIdParts(info.rowId);
-    if (!Number.isFinite(rowParts.row)) return false;
-    const rowNumber = rowParts.row;
-    const newRowNumber = rowNumber + 1;
-    const sectionId = info.sectionId;
-    const newRowId = `${sectionId}.${newRowNumber}`;
-
-    const rowSeats = seats.filter(s => s.rowId === info.rowId);
-    if (!rowSeats.length) return false;
-
-    const seatsToMove = rowSeats.filter((seat) => {
-      const suffix = getSeatIdSuffix(seat.seatId);
-      return Number.isFinite(suffix) && suffix >= info.highSeatSuffix;
-    });
-    if (!seatsToMove.length) return false;
-    const rowName = rowSeats[0]?.rowName || info.rowId;
-    const sectionName = rowSeats[0]?.sectionName || sectionNames.get(sectionId) || sectionId;
-
-    const rowNumberById = new Map();
-    seats.forEach((seat) => {
-      if (seat.sectionId !== sectionId || !seat.rowId) return;
-      if (rowNumberById.has(seat.rowId)) return;
-      const parts = parseRowIdParts(seat.rowId);
-      if (Number.isFinite(parts.row)) rowNumberById.set(seat.rowId, parts.row);
-    });
-
-    const rowIdMap = new Map();
-    rowNumberById.forEach((num, rowId) => {
-      if (num >= newRowNumber) {
-        rowIdMap.set(rowId, `${sectionId}.${num + 1}`);
-      }
-    });
-
-    const seatIdMap = new Map();
-    seats.forEach((seat) => {
-      if (seat.sectionId !== sectionId || !seat.rowId) return;
-      const suffix = getSeatIdSuffix(seat.seatId);
-      if (!Number.isFinite(suffix)) return;
-      if (seat.rowId === info.rowId && suffix >= info.highSeatSuffix) {
-        seatIdMap.set(seat.seatId, `${newRowId}.${suffix}`);
-      } else if (rowIdMap.has(seat.rowId)) {
-        const mappedRowId = rowIdMap.get(seat.rowId);
-        seatIdMap.set(seat.seatId, `${mappedRowId}.${suffix}`);
-      }
-    });
-
-    seats.forEach((seat) => {
-      if (seat.sectionId !== sectionId || !seat.rowId) return;
-      const suffix = getSeatIdSuffix(seat.seatId);
-      if (!Number.isFinite(suffix)) return;
-      if (seat.rowId === info.rowId && suffix >= info.highSeatSuffix) {
-        const nextSeatId = seatIdMap.get(seat.seatId) || seat.seatId;
-        seat.rowId = newRowId;
-        seat.rowName = rowName;
-        seat.sectionName = sectionName;
-        seat.seatId = nextSeatId;
-      } else if (rowIdMap.has(seat.rowId)) {
-        const nextRowId = rowIdMap.get(seat.rowId);
-        const nextSeatId = seatIdMap.get(seat.seatId) || seat.seatId;
-        seat.rowId = nextRowId;
-        seat.sectionName = sectionName;
-        seat.seatId = nextSeatId;
-      }
-    });
-
-    rebuildSectionRowsInLines(sectionId);
-
-    if (lastSelectedSeatId && seatIdMap.has(lastSelectedSeatId)) {
-      lastSelectedSeatId = seatIdMap.get(lastSelectedSeatId);
-    }
-
+    let changed = false;
     let priceRegionChanged = false;
-    if (seatIdMap.size || rowIdMap.size) {
-      const remapValues = (values, map) => {
-        if (!Array.isArray(values) || !values.length) return { next: values, changed: false };
-        const seen = new Set();
-        const next = [];
-        let changed = false;
-        values.forEach((val) => {
-          const mapped = map.get(val) || val;
-          if (mapped !== val) changed = true;
-          if (!seen.has(mapped)) {
-            seen.add(mapped);
-            next.push(mapped);
-          } else if (mapped !== val) {
-            changed = true;
-          }
-        });
-        return { next, changed };
-      };
-      priceRegions.forEach((region) => {
-        const seatRes = remapValues(region.seats, seatIdMap);
-        if (seatRes.changed) {
-          region.seats = seatRes.next;
-          priceRegionChanged = true;
-        }
-        const rowRes = remapValues(region.rows, rowIdMap);
-        if (rowRes.changed) {
-          region.rows = rowRes.next;
-          priceRegionChanged = true;
-        }
-        if (Array.isArray(region.rows) && region.rows.includes(info.rowId) && !region.rows.includes(newRowId)) {
-          region.rows.push(newRowId);
-          priceRegionChanged = true;
+
+    splitInfos.forEach((info) => {
+      const rowParts = parseRowIdParts(info.rowId);
+      if (!Number.isFinite(rowParts.row)) return;
+      const rowNumber = rowParts.row;
+      const newRowNumber = rowNumber + 1;
+      const sectionId = info.sectionId;
+      const newRowId = `${sectionId}.${newRowNumber}`;
+
+      const rowSeats = seats.filter((s) => s.rowId === info.rowId);
+      if (!rowSeats.length) return;
+
+      const seatsToMove = rowSeats.filter((seat) => {
+        const suffix = getSeatIdSuffix(seat.seatId);
+        return Number.isFinite(suffix) && suffix >= info.highSeatSuffix;
+      });
+      if (!seatsToMove.length) return;
+
+      const rowName = rowSeats[0]?.rowName || info.rowId;
+      const sectionName = rowSeats[0]?.sectionName || sectionNames.get(sectionId) || sectionId;
+
+      const rowNumberById = new Map();
+      seats.forEach((seat) => {
+        if (seat.sectionId !== sectionId || !seat.rowId) return;
+        if (rowNumberById.has(seat.rowId)) return;
+        const parts = parseRowIdParts(seat.rowId);
+        if (Number.isFinite(parts.row)) rowNumberById.set(seat.rowId, parts.row);
+      });
+
+      const rowIdMap = new Map();
+      rowNumberById.forEach((num, rowId) => {
+        if (num >= newRowNumber) {
+          rowIdMap.set(rowId, `${sectionId}.${num + 1}`);
         }
       });
-    }
+
+      const seatIdMap = new Map();
+      seats.forEach((seat) => {
+        if (seat.sectionId !== sectionId || !seat.rowId) return;
+        const suffix = getSeatIdSuffix(seat.seatId);
+        if (!Number.isFinite(suffix)) return;
+        if (seat.rowId === info.rowId && suffix >= info.highSeatSuffix) {
+          seatIdMap.set(seat.seatId, `${newRowId}.${suffix}`);
+        } else if (rowIdMap.has(seat.rowId)) {
+          const mappedRowId = rowIdMap.get(seat.rowId);
+          seatIdMap.set(seat.seatId, `${mappedRowId}.${suffix}`);
+        }
+      });
+
+      seats.forEach((seat) => {
+        if (seat.sectionId !== sectionId || !seat.rowId) return;
+        const suffix = getSeatIdSuffix(seat.seatId);
+        if (!Number.isFinite(suffix)) return;
+        if (seat.rowId === info.rowId && suffix >= info.highSeatSuffix) {
+          const nextSeatId = seatIdMap.get(seat.seatId) || seat.seatId;
+          seat.rowId = newRowId;
+          seat.rowName = rowName;
+          seat.sectionName = sectionName;
+          seat.seatId = nextSeatId;
+        } else if (rowIdMap.has(seat.rowId)) {
+          const nextRowId = rowIdMap.get(seat.rowId);
+          const nextSeatId = seatIdMap.get(seat.seatId) || seat.seatId;
+          seat.rowId = nextRowId;
+          seat.sectionName = sectionName;
+          seat.seatId = nextSeatId;
+        }
+      });
+
+      rebuildSectionRowsInLines(sectionId);
+      changed = true;
+
+      if (lastSelectedSeatId && seatIdMap.has(lastSelectedSeatId)) {
+        lastSelectedSeatId = seatIdMap.get(lastSelectedSeatId);
+      }
+
+      if (seatIdMap.size || rowIdMap.size) {
+        priceRegions.forEach((region) => {
+          const seatRes = remapValueArray(region.seats, seatIdMap);
+          if (seatRes.changed) {
+            region.seats = seatRes.next;
+            priceRegionChanged = true;
+          }
+          const rowRes = remapValueArray(region.rows, rowIdMap);
+          if (rowRes.changed) {
+            region.rows = rowRes.next;
+            priceRegionChanged = true;
+          }
+          if (Array.isArray(region.rows) && region.rows.includes(info.rowId) && !region.rows.includes(newRowId)) {
+            region.rows.push(newRowId);
+            priceRegionChanged = true;
+          }
+        });
+      }
+    });
+
+    if (!changed) return false;
 
     if (priceRegionChanged) {
       savePriceRegionsToStorage();
@@ -17715,8 +17706,8 @@ function nudgeSelection(dxScreen, dyScreen) {
         mergeRowsMenuItem.disabled = selectionMode !== "row" || rows.size < 2 || !sameSection;
       }
       if (splitRowMenuItem) {
-        const splitInfo = selectionMode === "seat" ? getSplitRowSelectionInfo(selectedSeats) : null;
-        splitRowMenuItem.disabled = !splitInfo;
+        const splitInfos = selectionMode === "seat" ? getSplitRowSelectionInfos(selectedSeats) : null;
+        splitRowMenuItem.disabled = !splitInfos || !splitInfos.length;
       }
       if (createSectionFromSelectionMenuItem) {
         const canCreateSection = selectedSeats.length > 0 && (selectionMode === "seat" || selectionMode === "row");
@@ -18266,6 +18257,44 @@ function nudgeSelection(dxScreen, dyScreen) {
       lowSeatId,
       highSeatId
     };
+  }
+
+  function getSplitRowSelectionInfos(selectedSeats) {
+    if (!selectedSeats || !selectedSeats.length) return null;
+    const rowSelections = new Map();
+    selectedSeats.forEach((seat) => {
+      const rowId = String(seat?.rowId || "").trim();
+      if (!rowId) return;
+      if (!rowSelections.has(rowId)) rowSelections.set(rowId, []);
+      rowSelections.get(rowId).push(seat);
+    });
+    if (!rowSelections.size) return null;
+
+    const infos = [];
+    for (const rowSeats of rowSelections.values()) {
+      if (!rowSeats || rowSeats.length !== 2) return null;
+      const info = getSplitRowSelectionInfo(rowSeats);
+      if (!info) return null;
+      const rowParts = parseRowIdParts(info.rowId);
+      if (!Number.isFinite(rowParts.row)) return null;
+      infos.push(info);
+    }
+    if (!infos.length) return null;
+
+    infos.sort((first, second) => {
+      const sectionCompare = compareSectionIdsForSort(first.sectionId, second.sectionId);
+      if (sectionCompare !== 0) return sectionCompare;
+      const firstParts = parseRowIdParts(first.rowId);
+      const secondParts = parseRowIdParts(second.rowId);
+      if (Number.isFinite(firstParts.row) && Number.isFinite(secondParts.row) && firstParts.row !== secondParts.row) {
+        return secondParts.row - firstParts.row;
+      }
+      return String(first.rowId || "").localeCompare(String(second.rowId || ""), "sv", {
+        numeric: true,
+        sensitivity: "base"
+      });
+    });
+    return infos;
   }
 
   function rebuildSectionRowsInLines(sectionId) {
