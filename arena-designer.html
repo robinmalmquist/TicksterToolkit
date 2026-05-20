@@ -3749,7 +3749,7 @@
         <div class="help-modal__section help-modal__grid">
           <div class="help-text">
             <div class="help-panel__title">Shortcuts</div>
-            Pan: <strong>CTRL + drag</strong><br/>
+            Pan: <strong>CTRL + drag</strong> (except while resizing)<br/>
             Zoom: <strong>CTRL + scroll</strong><br/>
             Multi-select: <strong>SHIFT + click</strong><br/>
             Box select: <strong>Drag without CTRL</strong><br/>
@@ -3783,7 +3783,7 @@
                 </div>
                 <div class="help-tool">
                   <div class="help-tool__title">Resize (Z)</div>
-                  <div class="help-tool__desc">Scale selected seats using the resize handles.</div>
+                  <div class="help-tool__desc">Scale selected seats using the resize handles. Hold Ctrl while dragging to keep the selection ratio.</div>
                 </div>
                 <div class="help-tool">
                   <div class="help-tool__title">Bend (B)</div>
@@ -17335,7 +17335,7 @@ function nudgeSelection(dxScreen, dyScreen) {
       return;
     }
 
-    const shouldPan = currentTool === "pan" || (e.ctrlKey && currentTool !== "rotate");
+    const shouldPan = currentTool === "pan" || (e.ctrlKey && currentTool !== "rotate" && currentTool !== "resize");
     if (shouldPan) {
       isPanning = true;
       panStartX = e.clientX;
@@ -19581,12 +19581,22 @@ function nudgeSelection(dxScreen, dyScreen) {
       const dy = worldY - resizePivot.y;
       let scaleX = resizeStartVector.x === 0 ? 1 : dx / resizeStartVector.x;
       let scaleY = resizeStartVector.y === 0 ? 1 : dy / resizeStartVector.y;
+      const keepAspectRatio = e.ctrlKey;
 
-      // LÐ¡Ò–s axlar fÐ¡Ð§r kant-handtag
-      if (resizeHandleId === "n" || resizeHandleId === "s") {
-        scaleX = 1;
-      } else if (resizeHandleId === "e" || resizeHandleId === "w") {
-        scaleY = 1;
+      if (keepAspectRatio) {
+        const startLenSq = resizeStartVector.x * resizeStartVector.x + resizeStartVector.y * resizeStartVector.y;
+        if (startLenSq > 0) {
+          const uniformScale = (dx * resizeStartVector.x + dy * resizeStartVector.y) / startLenSq;
+          scaleX = uniformScale;
+          scaleY = uniformScale;
+        }
+      } else {
+        // Lock axes for side handles.
+        if (resizeHandleId === "n" || resizeHandleId === "s") {
+          scaleX = 1;
+        } else if (resizeHandleId === "e" || resizeHandleId === "w") {
+          scaleY = 1;
+        }
       }
 
       // Skydda mot 0/NaN
