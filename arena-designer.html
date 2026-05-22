@@ -572,31 +572,61 @@
     .section-editor--alt {
       overflow: hidden;
       gap: 0.6rem;
+      min-height: 0;
     }
 
     .alt-section-toolbar {
       display: flex;
       flex-direction: row;
-      gap: 0.8rem;
-      flex-wrap: wrap;
+      gap: 0.45rem;
+      flex-wrap: nowrap;
       justify-content: flex-start;
-      align-items: flex-start;
+      align-items: center;
       width: 100%;
+      min-height: 46px;
+      overflow-x: auto;
     }
 
     .alt-section-toolbar__group {
-      display: grid;
-      grid-template-rows: repeat(2, min-content);
-      grid-auto-flow: column;
-      grid-auto-columns: max-content;
-      column-gap: 0.45rem;
-      row-gap: 0.35rem;
-      align-items: start;
-      flex: 1 1 0;
+      display: flex;
+      flex-direction: row;
+      flex-wrap: nowrap;
+      gap: 0.45rem;
+      align-items: center;
+      flex: 0 0 auto;
+      min-width: max-content;
     }
 
     .alt-section-toolbar__group--tools {
       flex: 0 0 auto;
+    }
+
+    .alt-section-workarea {
+      flex: 1 1 auto;
+      min-height: 0;
+      display: flex;
+      gap: 0.6rem;
+      align-items: stretch;
+    }
+
+    .alt-section-sidepanel {
+      flex: 0 0 290px;
+      width: 290px;
+      min-width: 250px;
+      max-width: 320px;
+      display: flex;
+      flex-direction: column;
+      gap: 0.45rem;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding-right: 2px;
+    }
+
+    .alt-section-sidepanel .alt-draw-mode,
+    .alt-section-sidepanel .alt-row-settings {
+      width: 100%;
+      min-width: 0;
+      max-width: 100%;
     }
 
     .alt-seat-numbering {
@@ -605,6 +635,112 @@
       gap: 0.3rem;
       align-items: flex-start;
       grid-row: span 2;
+    }
+
+    .alt-draw-mode {
+      border: 1px solid #d6dee8;
+      border-radius: 8px;
+      padding: 0.35rem 0.5rem 0.45rem;
+      margin: 0;
+      min-width: 0;
+      width: fit-content;
+      max-width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+
+    .alt-draw-mode legend {
+      font-size: 0.7rem;
+      color: #5b6673;
+      padding: 0 0.2rem;
+    }
+
+    .alt-draw-mode__option {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.75rem;
+      color: #2e3c47;
+      white-space: nowrap;
+    }
+
+    .alt-row-settings {
+      display: grid;
+      grid-template-columns: minmax(110px, max-content) max-content;
+      gap: 0.35rem;
+      align-items: end;
+      min-width: 250px;
+      width: fit-content;
+      max-width: 100%;
+    }
+
+    #altRowSettingsPanel[hidden] {
+      display: grid !important;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .alt-row-settings__field {
+      display: flex;
+      flex-direction: column;
+      gap: 0.22rem;
+      font-size: 0.72rem;
+      color: #5b6673;
+    }
+
+    .alt-row-settings__field input {
+      width: 100%;
+      min-width: 0;
+      padding: 0.22rem 0.45rem;
+      border-radius: 6px;
+      border: 1px solid #cdd3e0;
+      font-size: 0.78rem;
+    }
+
+    .alt-row-settings__field--start input {
+      width: 78px;
+      min-width: 78px;
+    }
+
+    .alt-row-settings__direction-btn {
+      width: 42px;
+      min-width: 42px;
+      justify-self: start;
+    }
+
+    .alt-row-settings__broken {
+      grid-column: 1 / -1;
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+      margin-top: 0.15rem;
+    }
+
+    .alt-row-settings__broken-label {
+      font-size: 0.72rem;
+      color: #5b6673;
+    }
+
+    .alt-row-settings__broken-options {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+    }
+
+    .alt-row-settings__broken-option {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.74rem;
+      color: #2e3c47;
+      white-space: nowrap;
+    }
+
+    .alt-row-settings__broken-state {
+      font-size: 0.68rem;
+      color: #6b7280;
+      line-height: 1.3;
     }
 
     .alt-seat-numbering__current {
@@ -633,6 +769,29 @@
       color: #cbd5f5;
     }
 
+    html[data-theme="dark"] .alt-draw-mode {
+      border-color: #2c3a49;
+      background: rgba(15,23,42,0.25);
+    }
+
+    html[data-theme="dark"] .alt-draw-mode legend,
+    html[data-theme="dark"] .alt-draw-mode__option,
+    html[data-theme="dark"] .alt-row-settings__field,
+    html[data-theme="dark"] .alt-row-settings__broken-label,
+    html[data-theme="dark"] .alt-row-settings__broken-option {
+      color: #cbd5f5;
+    }
+
+    html[data-theme="dark"] .alt-row-settings__broken-state {
+      color: #93a4c7;
+    }
+
+    html[data-theme="dark"] .alt-row-settings__field input {
+      background: #0f172a;
+      border-color: #2c3a49;
+      color: #e2e8f0;
+    }
+
     html[data-theme="dark"] .alt-seat-numbering__input {
       background: #0f172a;
       border-color: #2c3a49;
@@ -648,6 +807,7 @@
 
     .alt-section-canvas-wrap {
       flex: 1;
+      min-width: 0;
       min-height: 320px;
       background: #f8fbff;
       border: 1px solid #d0d9e8;
@@ -655,9 +815,31 @@
       padding: 0.65rem;
       display: flex;
       align-items: stretch;
-      overflow-x: scroll;
+      overflow-x: auto;
       overflow-y: auto;
       position: relative;
+    }
+
+    @media (max-width: 1240px) {
+      .alt-section-sidepanel {
+        flex-basis: 260px;
+        width: 260px;
+        min-width: 230px;
+      }
+    }
+
+    @media (max-width: 980px) {
+      .alt-section-workarea {
+        flex-direction: column;
+      }
+
+      .alt-section-sidepanel {
+        width: 100%;
+        max-width: none;
+        min-width: 0;
+        flex-basis: auto;
+        max-height: 38vh;
+      }
     }
 
     .alt-section-canvas {
@@ -3525,42 +3707,112 @@
         <div class="section-editor section-editor--alt">
           <div class="alt-section-toolbar">
             <div class="alt-section-toolbar__group alt-section-toolbar__group--tools">
-              <button id="altToolSelectBtn" class="c-button c-button--ghost c-button--small c-button--active">Select (S)</button>
-              <button id="altToolDrawBtn" class="c-button c-button--ghost c-button--small">Draw (D)</button>
-              <button id="altUndoBtn" class="c-button c-button--ghost c-button--small" title="Undo (Ctrl/Cmd+Z)">Undo</button>
-            </div>
-            <div class="alt-section-toolbar__divider" aria-hidden="true"></div>
-            <div class="alt-section-toolbar__group">
-              <button id="altGapNewBtn" class="c-button c-button--ghost c-button--small">New RowId (N)</button>
-              <button id="altSetStartRowBtn" class="c-button c-button--ghost c-button--small">Set start row</button>
-              <button id="altReverseRowOrderBtn" class="c-button c-button--ghost c-button--small">Reverse row order</button>
-              <button id="altSetRowsManualBtn" class="c-button c-button--ghost c-button--small">Set rows manually</button>
-              <button id="altDuplicateRowBtn" class="c-button c-button--ghost c-button--small">Duplicate row</button>
-              <button id="altAddRowBtn" class="c-button c-button--ghost c-button--small">Add row</button>
-              <button id="altClearRowBtn" class="c-button c-button--ghost c-button--small">Clear current row</button>
-              <button id="altClearAllRowsBtn" class="c-button c-button--ghost c-button--small">Clear all rows</button>
-            </div>
-            <div class="alt-section-toolbar__divider" aria-hidden="true"></div>
-            <div class="alt-section-toolbar__group">
-              <button id="altAddSeatBtn" class="c-button c-button--ghost c-button--small">Add seat</button>
-              <button id="altRemoveSeatBtn" class="c-button c-button--ghost c-button--small">Remove seat</button>
-              <button id="altSetStartSeatBtn" class="c-button c-button--ghost c-button--small">Set start seat</button>
-              <button id="altReverseSeatOrderBtn" class="c-button c-button--ghost c-button--small">Reverse seat order</button>
-              <div class="alt-seat-numbering">
-                <select id="altSeatNumberingMode" class="c-select c-select--small">
-                  <option value="row">Start each row at 1</option>
-                  <option value="continuous">Continous seat numbering</option>
-                </select>
-                <div id="altContinuousControls" class="alt-seat-numbering__current" hidden>
-                  <label for="altContinuousStartSeat" class="alt-seat-numbering__label">Current start</label>
-                  <input id="altContinuousStartSeat" class="alt-seat-numbering__input" type="text" inputmode="numeric" readonly />
-                  <button id="altContinuousSkipBtn" class="c-button c-button--ghost c-button--small" type="button">Skip</button>
-                </div>
-              </div>
+              <button id="altToolSelectBtn" class="c-button c-button--ghost c-button--small c-button--active" title="Select (S)" aria-label="Select (S)">
+                <span class="material-symbols-outlined" aria-hidden="true">gesture_select</span>
+              </button>
+              <button id="altToolDrawBtn" class="c-button c-button--ghost c-button--small" title="Add (A/D)" aria-label="Add (A/D)">
+                <span class="material-symbols-outlined" aria-hidden="true">add_circle</span>
+              </button>
+              <button id="altToolEraseBtn" class="c-button c-button--ghost c-button--small" title="Remove (R)" aria-label="Remove (R)">
+                <span class="material-symbols-outlined" aria-hidden="true">delete</span>
+              </button>
+              <button id="altClearAllRowsBtn" class="c-button c-button--ghost c-button--small" title="Clear (Delete)" aria-label="Clear (Delete)">
+                <span class="material-symbols-outlined" aria-hidden="true">delete_sweep</span>
+              </button>
+              <button id="altReverseRowOrderBtn" class="c-button c-button--ghost c-button--small icon-only-button--rot90" title="Change row direction" aria-label="Change row direction">
+                <span class="material-symbols-outlined" aria-hidden="true">compare_arrows</span>
+              </button>
+              <button id="altSetRowsManualBtn" class="c-button c-button--ghost c-button--small" title="Rename rows" aria-label="Rename rows">
+                <span class="material-symbols-outlined" aria-hidden="true">edit_note</span>
+              </button>
             </div>
           </div>
-          <div class="alt-section-canvas-wrap" id="altSectionCanvasWrap">
-            <canvas id="altSectionCanvas" class="alt-section-canvas"></canvas>
+          <div class="alt-section-workarea">
+            <div class="alt-section-canvas-wrap" id="altSectionCanvasWrap">
+              <canvas id="altSectionCanvas" class="alt-section-canvas"></canvas>
+            </div>
+            <aside class="alt-section-sidepanel">
+              <fieldset class="alt-draw-mode" id="altDrawModeGroup">
+                <legend>Draw mode</legend>
+                <label class="alt-draw-mode__option" for="altDrawConstraintFree">
+                  <input id="altDrawConstraintFree" type="radio" name="altDrawConstraint" value="free" checked />
+                  Draw free
+                </label>
+                <label class="alt-draw-mode__option" for="altDrawConstraintRows">
+                  <input id="altDrawConstraintRows" type="radio" name="altDrawConstraint" value="rows" />
+                  Draw rows
+                </label>
+              </fieldset>
+              <fieldset class="alt-draw-mode" id="altSeatNumberingModeGroup">
+                <legend>Numbering mode</legend>
+                <label class="alt-draw-mode__option" for="altSeatNumberingModeRow">
+                  <input id="altSeatNumberingModeRow" type="radio" name="altSeatNumberingMode" value="row" checked />
+                  Per row (start 1)
+                </label>
+                <label class="alt-draw-mode__option" for="altSeatNumberingModeContinuous">
+                  <input id="altSeatNumberingModeContinuous" type="radio" name="altSeatNumberingMode" value="continuous" />
+                  Continuous
+                </label>
+                <label class="alt-draw-mode__option" for="altSeatNumberingModeZigzag">
+                  <input id="altSeatNumberingModeZigzag" type="radio" name="altSeatNumberingMode" value="continuousZigzag" />
+                  Continuous zigzag
+                </label>
+                <label class="alt-draw-mode__option" for="altSeatNumberingModeCenterOddEven">
+                  <input id="altSeatNumberingModeCenterOddEven" type="radio" name="altSeatNumberingMode" value="centerOddEven" />
+                  Center odd/even
+                </label>
+              </fieldset>
+              <fieldset class="alt-draw-mode" id="altSeatDeleteNumberingModeGroup">
+                <legend>Delete behavior</legend>
+                <label class="alt-draw-mode__option" for="altSeatDeleteNumberingCompact">
+                  <input id="altSeatDeleteNumberingCompact" type="radio" name="altSeatDeleteNumberingMode" value="compact" checked />
+                  Compact after delete
+                </label>
+                <label class="alt-draw-mode__option" for="altSeatDeleteNumberingPreserve">
+                  <input id="altSeatDeleteNumberingPreserve" type="radio" name="altSeatDeleteNumberingMode" value="preserve" />
+                  Keep seat numbers
+                </label>
+              </fieldset>
+              <fieldset class="alt-draw-mode" id="altBrokenRowModeGroup">
+                <legend>Broken rows</legend>
+                <label class="alt-draw-mode__option" for="altBrokenRowNewRowId">
+                  <input id="altBrokenRowNewRowId" type="radio" name="altBrokenRowMode" value="newRowId" checked />
+                  Create new RowId
+                </label>
+                <label class="alt-draw-mode__option" for="altBrokenRowSameRowId">
+                  <input id="altBrokenRowSameRowId" type="radio" name="altBrokenRowMode" value="sameRowId" />
+                  Keep same RowId
+                </label>
+              </fieldset>
+              <fieldset id="altRowSettingsPanel" class="alt-row-settings alt-draw-mode" hidden>
+                <legend>Row settings · <span id="altRowSettingsRowLabel">-</span></legend>
+                <label class="alt-row-settings__field alt-row-settings__field--start" for="altRowStartNumberInput">
+                  Start number
+                  <input id="altRowStartNumberInput" class="c-input c-input--small" type="number" inputmode="numeric" step="1" min="1" />
+                </label>
+                <button id="altRowReverseDirectionBtn" class="c-button c-button--ghost c-button--small alt-row-settings__direction-btn" type="button" title="Byt riktning" aria-label="Byt riktning">
+                  <span class="material-symbols-outlined" aria-hidden="true">compare_arrows</span>
+                </button>
+                <div class="alt-row-settings__broken" id="altRowBrokenOverrideGroup">
+                  <div class="alt-row-settings__broken-label">Broken rows override</div>
+                  <div class="alt-row-settings__broken-options">
+                    <label class="alt-row-settings__broken-option" for="altRowBrokenOverrideNew">
+                      <input id="altRowBrokenOverrideNew" type="radio" name="altRowBrokenOverrideMode" value="newRowId" />
+                      Create new RowId
+                    </label>
+                    <label class="alt-row-settings__broken-option" for="altRowBrokenOverrideGlobal">
+                      <input id="altRowBrokenOverrideGlobal" type="radio" name="altRowBrokenOverrideMode" value="global" />
+                      Use global
+                    </label>
+                    <label class="alt-row-settings__broken-option" for="altRowBrokenOverrideSame">
+                      <input id="altRowBrokenOverrideSame" type="radio" name="altRowBrokenOverrideMode" value="sameRowId" />
+                      Keep same RowId
+                    </label>
+                  </div>
+                  <div id="altRowBrokenOverrideState" class="alt-row-settings__broken-state"></div>
+                </div>
+              </fieldset>
+            </aside>
           </div>
           <div class="section-editor__actions-row">
             <div></div>
@@ -3836,7 +4088,7 @@
         <div class="help-modal__section help-modal__grid">
           <div class="help-text">
           <div class="help-panel__title">Create Sections</div>
-            <div class="help-placeholder">Click "Manage sections" and select "+New section" to start creating a new section. Type a name and then the amount of rows for the section. Select "Draw" and then just click and drag in the canvas to create rows. Use various tools to make adjustments.</div>
+            <div class="help-placeholder">Click "Manage sections" and select "+New section" to start creating a new section. Type the section name and use the grid editor to paint seats. Use "Add" to click-drag and fill cells, "Remove" to erase cells, and "Select" to mark full rows. "Draw Free" lets you draw across rows, while "Draw rows" locks drawing to one row at a time. Numbering modes now support per-row start at 1, continuous, continuous zigzag, and center odd/even numbering. Row numbers start at 1 from the top. You can choose if seat numbering compacts after deletions or keeps existing numbers, and if broken rows stay on the same RowId or split into new RowIds.</div>
           </div>
           <div class="help-text">
             <div class="help-panel__title">Import Sections</div>
@@ -4237,8 +4489,29 @@
   const altSectionCanvasWrap = document.getElementById("altSectionCanvasWrap");
   const altSectionCanvas = document.getElementById("altSectionCanvas");
   const altSeatTooltip = document.getElementById("altSeatTooltip");
+  const altGridStatus = document.getElementById("altGridStatus");
+  const altDrawConstraintFree = document.getElementById("altDrawConstraintFree");
+  const altDrawConstraintRows = document.getElementById("altDrawConstraintRows");
+  const altSeatNumberingModeRow = document.getElementById("altSeatNumberingModeRow");
+  const altSeatNumberingModeContinuous = document.getElementById("altSeatNumberingModeContinuous");
+  const altSeatNumberingModeZigzag = document.getElementById("altSeatNumberingModeZigzag");
+  const altSeatNumberingModeCenterOddEven = document.getElementById("altSeatNumberingModeCenterOddEven");
+  const altSeatDeleteNumberingCompact = document.getElementById("altSeatDeleteNumberingCompact");
+  const altSeatDeleteNumberingPreserve = document.getElementById("altSeatDeleteNumberingPreserve");
+  const altBrokenRowSameRowId = document.getElementById("altBrokenRowSameRowId");
+  const altBrokenRowNewRowId = document.getElementById("altBrokenRowNewRowId");
+  const altRowSettingsPanel = document.getElementById("altRowSettingsPanel");
+  const altRowSettingsRowLabel = document.getElementById("altRowSettingsRowLabel");
+  const altRowStartNumberInput = document.getElementById("altRowStartNumberInput");
+  const altRowReverseDirectionBtn = document.getElementById("altRowReverseDirectionBtn");
+  const altRowBrokenOverrideGroup = document.getElementById("altRowBrokenOverrideGroup");
+  const altRowBrokenOverrideGlobal = document.getElementById("altRowBrokenOverrideGlobal");
+  const altRowBrokenOverrideSame = document.getElementById("altRowBrokenOverrideSame");
+  const altRowBrokenOverrideNew = document.getElementById("altRowBrokenOverrideNew");
+  const altRowBrokenOverrideState = document.getElementById("altRowBrokenOverrideState");
   const altToolSelectBtn = document.getElementById("altToolSelectBtn");
   const altToolDrawBtn = document.getElementById("altToolDrawBtn");
+  const altToolEraseBtn = document.getElementById("altToolEraseBtn");
   const altUndoBtn = document.getElementById("altUndoBtn");
   const altGapNewBtn = document.getElementById("altGapNewBtn");
   const altReverseSeatOrderBtn = document.getElementById("altReverseSeatOrderBtn");
@@ -4252,7 +4525,6 @@
   const altAddRowBtn = document.getElementById("altAddRowBtn");
   const altClearRowBtn = document.getElementById("altClearRowBtn");
   const altClearAllRowsBtn = document.getElementById("altClearAllRowsBtn");
-  const altSeatNumberingModeSelect = document.getElementById("altSeatNumberingMode");
   const altContinuousControls = document.getElementById("altContinuousControls");
   const altContinuousStartSeatInput = document.getElementById("altContinuousStartSeat");
   const altContinuousSkipBtn = document.getElementById("altContinuousSkipBtn");
@@ -4291,14 +4563,35 @@
   let altIsDrawing = false;
   let altDrawStart = null;
   let altDrawEnd = null;
-  let altDrawLineIndex = null;
-  const ALT_SEAT_RADIUS = 8;
-  const ALT_SEAT_SPACING = 18;
-  const ALT_ROW_HEIGHT = 24;
-  const ALT_ROW_GAP = 6;
-  const ALT_MAX_SLOTS = 100;
-  let altSeatNumberingMode = "row";
+  let altDrawMode = "select";
+  let altDrawConstraintMode = "free";
+  let altSelectionRange = null;
+  let altSelectionAdditive = false;
+  let altSelectedSeatKeys = new Set();
+  let altSelectedRowIndexes = new Set();
+  let altHoverCell = null;
+  let altCanvasRenderRaf = null;
+  let altRowSettingsUpdatingUi = false;
+  const ALT_SEAT_RADIUS = 7;
+  const ALT_GRID_CELL_RADIUS = 3;
+  const ALT_SEAT_SPACING = 20;
+  const ALT_ROW_HEIGHT = 20;
+  const ALT_ROW_GAP = 2;
+  const ALT_DEFAULT_GRID_ROWS = 19;
+  const ALT_DEFAULT_GRID_COLS = 28;
+  const ALT_GRID_GROW_ROWS = 6;
+  const ALT_GRID_GROW_COLS = 10;
+  const ALT_GRID_PADDING = 18;
+  const ALT_GRID_LABEL_WIDTH = 48;
+  const ALT_SEAT_NUMBERING_MODE_ROW = "row";
+  const ALT_SEAT_NUMBERING_MODE_CONTINUOUS = "continuous";
+  const ALT_SEAT_NUMBERING_MODE_CONTINUOUS_ZIGZAG = "continuousZigzag";
+  const ALT_SEAT_NUMBERING_MODE_CENTER_ODD_EVEN = "centerOddEven";
+  let altSeatNumberingMode = ALT_SEAT_NUMBERING_MODE_ROW;
+  let altSeatDeleteNumberingMode = "compact";
+  let altBrokenRowMode = "newRowId";
   let altContinuousStartSeat = 1;
+  let altGridCols = ALT_DEFAULT_GRID_COLS;
   let altHistory = [];
   let altHistoryIndex = -1;
   const ALT_HISTORY_LIMIT = 200;
@@ -20716,7 +21009,8 @@ function nudgeSelection(dxScreen, dyScreen) {
         color: "#14a0f4",
         rows: parsed.rows,
         rawRowText: res.text,
-        continuousStartSeat: 1
+        continuousStartSeat: 1,
+        altSeatNumberingMode: ALT_SEAT_NUMBERING_MODE_ROW
       });
     });
 
@@ -20753,6 +21047,12 @@ function nudgeSelection(dxScreen, dyScreen) {
     sectionDirty = false;
     altRowLines = [];
     altActiveLineIndex = null;
+    altSelectionRange = null;
+    altSelectionAdditive = false;
+    altSelectedSeatKeys = new Set();
+    altSelectedRowIndexes = new Set();
+    altHoverCell = null;
+    altGridCols = ALT_DEFAULT_GRID_COLS;
     altContinuousStartSeat = 1;
   }
 
@@ -20762,9 +21062,11 @@ function nudgeSelection(dxScreen, dyScreen) {
       altSectionDirtyFlag.textContent = isDirty ? "Unsaved changes" : "Saved";
       altSectionDirtyFlag.style.color = isDirty ? "#c12e44" : "#5b6673";
     }
-    if (altSeatNumberingModeSelect) {
-      altSeatNumberingModeSelect.disabled = !getActiveDraft();
-    }
+    const hasDraft = !!getActiveDraft();
+    [altSeatNumberingModeRow, altSeatNumberingModeContinuous, altSeatNumberingModeZigzag, altSeatNumberingModeCenterOddEven]
+      .forEach((radio) => {
+        if (radio) radio.disabled = !hasDraft;
+      });
   }
 
   function parseRowsText(text) {
@@ -20900,6 +21202,37 @@ function nudgeSelection(dxScreen, dyScreen) {
     };
   }
 
+  function normalizeAltSeatNumberingMode(value) {
+    const mode = String(value || "").trim();
+    if (mode === ALT_SEAT_NUMBERING_MODE_CONTINUOUS) return ALT_SEAT_NUMBERING_MODE_CONTINUOUS;
+    if (mode === ALT_SEAT_NUMBERING_MODE_CONTINUOUS_ZIGZAG) return ALT_SEAT_NUMBERING_MODE_CONTINUOUS_ZIGZAG;
+    if (mode === ALT_SEAT_NUMBERING_MODE_CENTER_ODD_EVEN) return ALT_SEAT_NUMBERING_MODE_CENTER_ODD_EVEN;
+    return ALT_SEAT_NUMBERING_MODE_ROW;
+  }
+
+  function getAltSeatNumberingModeFromRadios() {
+    if (altSeatNumberingModeCenterOddEven?.checked) return ALT_SEAT_NUMBERING_MODE_CENTER_ODD_EVEN;
+    if (altSeatNumberingModeZigzag?.checked) return ALT_SEAT_NUMBERING_MODE_CONTINUOUS_ZIGZAG;
+    if (altSeatNumberingModeContinuous?.checked) return ALT_SEAT_NUMBERING_MODE_CONTINUOUS;
+    return ALT_SEAT_NUMBERING_MODE_ROW;
+  }
+
+  function syncAltSeatNumberingModeRadios(mode = altSeatNumberingMode) {
+    const normalized = normalizeAltSeatNumberingMode(mode);
+    if (altSeatNumberingModeRow) {
+      altSeatNumberingModeRow.checked = normalized === ALT_SEAT_NUMBERING_MODE_ROW;
+    }
+    if (altSeatNumberingModeContinuous) {
+      altSeatNumberingModeContinuous.checked = normalized === ALT_SEAT_NUMBERING_MODE_CONTINUOUS;
+    }
+    if (altSeatNumberingModeZigzag) {
+      altSeatNumberingModeZigzag.checked = normalized === ALT_SEAT_NUMBERING_MODE_CONTINUOUS_ZIGZAG;
+    }
+    if (altSeatNumberingModeCenterOddEven) {
+      altSeatNumberingModeCenterOddEven.checked = normalized === ALT_SEAT_NUMBERING_MODE_CENTER_ODD_EVEN;
+    }
+  }
+
   function normalizeAltContinuousStartSeat(value) {
     const parsed = parseInt(value, 10);
     return Number.isFinite(parsed) ? parsed : 1;
@@ -20932,17 +21265,14 @@ function nudgeSelection(dxScreen, dyScreen) {
 
   function updateAltContinuousControls() {
     const hasDraft = !!getActiveDraft();
-    const show = hasDraft && altSeatNumberingMode === "continuous";
+    const show = false;
     if (altContinuousControls) {
       altContinuousControls.hidden = !show;
     }
     if (altContinuousStartSeatInput) {
-      altContinuousStartSeatInput.disabled = !show;
-      if (show && !altContinuousStartSeatInput.value) {
-        setAltContinuousStartSeat(altContinuousStartSeat, false);
-      }
+      altContinuousStartSeatInput.disabled = !show || !hasDraft;
     }
-    if (altContinuousSkipBtn) altContinuousSkipBtn.disabled = !show;
+    if (altContinuousSkipBtn) altContinuousSkipBtn.disabled = !show || !hasDraft;
   }
 
   function syncAltContinuousStartSeatFromDraft(draft) {
@@ -20960,13 +21290,11 @@ function nudgeSelection(dxScreen, dyScreen) {
   }
 
   function recalculateAltRowStartSeats() {
-    if (altSeatNumberingMode === "continuous") return;
+    if (altSeatNumberingMode !== ALT_SEAT_NUMBERING_MODE_ROW) return;
     let runningSeat = 1;
     altRowLines.forEach((line) => {
       if (!line.blocks.length) return;
-      if (altSeatNumberingMode === "row") {
-        runningSeat = 1;
-      }
+      runningSeat = 1;
       line.blocks.forEach((block) => {
         if (block.manualStartSeat) {
           runningSeat = block.startSeat;
@@ -20979,6 +21307,91 @@ function nudgeSelection(dxScreen, dyScreen) {
     });
   }
 
+  function getAltSeatEntriesForLine(line, direction = 1) {
+    const seats = [];
+    (line?.slots || []).forEach((slot, idx) => {
+      if (slot && slot.type === "seat") seats.push({ slot, idx });
+    });
+    seats.sort((a, b) => direction === -1 ? b.idx - a.idx : a.idx - b.idx);
+    return seats;
+  }
+
+  function buildAltCenterOutSeatOrder(count, direction = 1) {
+    const size = Math.max(0, Math.floor(Number(count) || 0));
+    if (!size) return [];
+    const order = [Math.floor(size / 2)];
+    for (let distance = 1; order.length < size; distance++) {
+      const left = order[0] - distance;
+      const right = order[0] + distance;
+      if (direction === -1) {
+        if (right >= 0 && right < size) order.push(right);
+        if (left >= 0 && left < size) order.push(left);
+      } else {
+        if (left >= 0 && left < size) order.push(left);
+        if (right >= 0 && right < size) order.push(right);
+      }
+    }
+    return order.slice(0, size);
+  }
+
+  function renumberAltRowsByMode() {
+    const mode = normalizeAltSeatNumberingMode(altSeatNumberingMode);
+    if (mode === ALT_SEAT_NUMBERING_MODE_CONTINUOUS || mode === ALT_SEAT_NUMBERING_MODE_CONTINUOUS_ZIGZAG) {
+      const occupiedLineIndexes = getAltOccupiedLineIndexes();
+      let nextSeat = 1;
+      occupiedLineIndexes.forEach((lineIndex, orderIndex) => {
+        const line = altRowLines[lineIndex];
+        const block = getAltActiveBlock(line) || line?.blocks?.[0] || null;
+        if (!line || !block) return;
+        let direction = block.direction === -1 ? -1 : 1;
+        if (mode === ALT_SEAT_NUMBERING_MODE_CONTINUOUS_ZIGZAG) {
+          direction = orderIndex % 2 === 0 ? 1 : -1;
+          block.direction = direction;
+          block.lastDirection = { x: direction, y: 0 };
+          block.manualStartSeat = false;
+        } else if (block.manualStartSeat && Number.isFinite(Number(block.startSeat))) {
+          nextSeat = Math.max(1, Math.floor(Number(block.startSeat)));
+        }
+        const seats = getAltSeatEntriesForLine(line, direction);
+        block.startSeat = nextSeat;
+        seats.forEach((entry, seatOffset) => {
+          entry.slot.name = String(nextSeat + seatOffset);
+        });
+        nextSeat += seats.length;
+      });
+      setAltContinuousStartSeat(nextSeat, true);
+      return;
+    }
+
+    if (mode === ALT_SEAT_NUMBERING_MODE_CENTER_ODD_EVEN) {
+      const occupiedLineIndexes = getAltOccupiedLineIndexes();
+      occupiedLineIndexes.forEach((lineIndex) => {
+        const line = altRowLines[lineIndex];
+        const block = getAltActiveBlock(line) || line?.blocks?.[0] || null;
+        if (!line || !block) return;
+        const direction = block.direction === -1 ? -1 : 1;
+        const seats = getAltSeatEntriesForLine(line, 1);
+        const order = buildAltCenterOutSeatOrder(seats.length, direction);
+        block.startSeat = 1;
+        block.manualStartSeat = false;
+        order.forEach((seatPosition, seatOffset) => {
+          const entry = seats[seatPosition];
+          if (!entry) return;
+          entry.slot.name = String(seatOffset + 1);
+        });
+      });
+      setAltContinuousStartSeat(1, true);
+      return;
+    }
+
+    recalculateAltRowStartSeats();
+    altRowLines.forEach((line) => {
+      const block = getAltActiveBlock(line) || line.blocks[0] || null;
+      renumberAltBlockSeats(line, block);
+    });
+    setAltContinuousStartSeat(computeAltContinuousStartFromLines(altRowLines), true);
+  }
+
   function buildAltLines(rowCount) {
     const count = Math.max(1, Math.floor(rowCount || 0));
     const lines = [];
@@ -20987,12 +21400,75 @@ function nudgeSelection(dxScreen, dyScreen) {
       lines.push({
         lineIndex: i,
         name: `${i + 1}`,
+        autoRowName: true,
         blocks: [block],
         activeBlockId: block.id,
-        slots: []
+        slots: [],
+        brokenRowModeOverride: null
       });
     }
     return lines;
+  }
+
+  function getAltViewportGridFit() {
+    const wrapEl = altSectionCanvasWrap || altSectionCanvas?.parentElement;
+    const wrapRect = wrapEl?.getBoundingClientRect();
+    const wrapStyle = wrapEl ? getComputedStyle(wrapEl) : null;
+    const padX = wrapStyle ? (parseFloat(wrapStyle.paddingLeft) + parseFloat(wrapStyle.paddingRight)) : 0;
+    const padY = wrapStyle ? (parseFloat(wrapStyle.paddingTop) + parseFloat(wrapStyle.paddingBottom)) : 0;
+    const viewportWidth = Math.max(200, (wrapEl?.clientWidth || wrapRect?.width || 900) - padX);
+    const viewportHeight = Math.max(200, (wrapEl?.clientHeight || wrapRect?.height || 520) - padY);
+    const fitCols = Math.max(1, Math.floor((viewportWidth - ALT_GRID_PADDING * 2 - ALT_GRID_LABEL_WIDTH) / ALT_SEAT_SPACING));
+    const fitRowsRaw = Math.max(1, Math.floor((viewportHeight - ALT_GRID_PADDING * 2) / (ALT_ROW_HEIGHT + ALT_ROW_GAP)));
+    const fitRows = Math.max(1, fitRowsRaw - 1);
+    return { fitRows, fitCols };
+  }
+
+  function ensureAltGridSize(minRows, minCols) {
+    let changed = false;
+    const targetRows = Math.max(1, Math.floor(minRows || 0));
+    const targetCols = Math.max(1, Math.floor(minCols || 0));
+
+    while (altRowLines.length < targetRows) {
+      const lineIndex = altRowLines.length;
+      const block = createAltBlock();
+      altRowLines.push({
+        lineIndex,
+        name: String(lineIndex + 1),
+        autoRowName: true,
+        blocks: [block],
+        activeBlockId: block.id,
+        slots: [],
+        brokenRowModeOverride: null
+      });
+      changed = true;
+    }
+    if (altGridCols < targetCols) {
+      altGridCols = targetCols;
+      changed = true;
+    }
+    if (changed) {
+      altRowLines.forEach((line, idx) => {
+        line.lineIndex = idx;
+        ensureAltRowNameState(line, idx);
+      });
+      const draft = getActiveDraft();
+      if (draft) {
+        draft.altGridRows = altRowLines.length;
+        draft.altGridCols = altGridCols;
+      }
+    }
+    return changed;
+  }
+
+  function getAltMaxUsedSlot(lines) {
+    let maxUsed = -1;
+    (lines || []).forEach((line) => {
+      (line?.slots || []).forEach((slot, idx) => {
+        if (slot && slot.type === "seat" && idx > maxUsed) maxUsed = idx;
+      });
+    });
+    return maxUsed;
   }
 
   function buildAltLinesFromDraft(draft) {
@@ -21008,9 +21484,11 @@ function nudgeSelection(dxScreen, dyScreen) {
       lines.push({
         lineIndex: i,
         name: `${i + 1}`,
+        autoRowName: false,
         blocks: [],
         activeBlockId: null,
-        slots: []
+        slots: [],
+        brokenRowModeOverride: null
       });
     }
     rows.forEach((row) => {
@@ -21049,17 +21527,24 @@ function nudgeSelection(dxScreen, dyScreen) {
   }
 
   function setAltTool(tool) {
-    altSectionTool = tool === "draw" ? "draw" : "select";
+    if (tool === "draw") altSectionTool = "draw";
+    else if (tool === "erase") altSectionTool = "erase";
+    else altSectionTool = "select";
     if (altToolSelectBtn) altToolSelectBtn.classList.toggle("c-button--active", altSectionTool === "select");
     if (altToolDrawBtn) altToolDrawBtn.classList.toggle("c-button--active", altSectionTool === "draw");
-    if (altSectionTool !== "draw") {
-      altIsDrawing = false;
-      altDrawStart = null;
-      altDrawEnd = null;
-      altDrawLineIndex = null;
-      setAltTooltip("", 0, 0, false);
+    if (altToolEraseBtn) altToolEraseBtn.classList.toggle("c-button--active", altSectionTool === "erase");
+    altIsDrawing = false;
+    altDrawStart = null;
+    altDrawEnd = null;
+    altSelectionAdditive = false;
+    altDrawMode = altSectionTool;
+    if (altSectionTool !== "select") {
+      clearAltSelection({ refreshPanel: false });
     }
+    setAltTooltip("", 0, 0, false);
     updateAltControls();
+    refreshAltRowSettingsPanel();
+    renderAltSectionCanvas();
   }
 
   function setAltActiveLine(index) {
@@ -21078,29 +21563,41 @@ function nudgeSelection(dxScreen, dyScreen) {
     if (!altSectionCanvas) return null;
     const wrapEl = altSectionCanvasWrap || altSectionCanvas.parentElement;
     const wrapRect = wrapEl?.getBoundingClientRect();
-    const rect = altSectionCanvas.getBoundingClientRect();
     const wrapStyle = wrapEl ? getComputedStyle(wrapEl) : null;
     const padX = wrapStyle ? (parseFloat(wrapStyle.paddingLeft) + parseFloat(wrapStyle.paddingRight)) : 0;
     const padY = wrapStyle ? (parseFloat(wrapStyle.paddingTop) + parseFloat(wrapStyle.paddingBottom)) : 0;
-    const viewportWidth = Math.max(200, (wrapEl?.clientWidth || wrapRect?.width || rect.width || 900) - padX);
-    const viewportHeight = Math.max(200, (wrapEl?.clientHeight || wrapRect?.height || rect.height || 520) - padY);
+    const viewportWidth = Math.max(200, (wrapEl?.clientWidth || wrapRect?.width || 900) - padX);
+    const viewportHeight = Math.max(200, (wrapEl?.clientHeight || wrapRect?.height || 520) - padY);
     const dpr = window.devicePixelRatio || 1;
-    const rowCount = Math.max(1, altRowLines.length || 1);
-    const padding = 16;
-    const labelWidth = 44;
+
+    const padding = ALT_GRID_PADDING;
+    const labelWidth = ALT_GRID_LABEL_WIDTH;
     const rowHeight = ALT_ROW_HEIGHT;
     const rowGap = ALT_ROW_GAP;
-    const contentHeight = padding * 2 + rowCount * rowHeight + Math.max(0, rowCount - 1) * rowGap;
+    const rowBlock = rowHeight + rowGap;
+    const fitCols = Math.max(1, Math.floor((viewportWidth - padding * 2 - labelWidth) / ALT_SEAT_SPACING));
+    const fitRows = Math.max(1, Math.floor((viewportHeight - padding * 2) / rowBlock));
+    const gridRows = Math.max(1, altRowLines.length, fitRows);
+    const gridCols = Math.max(1, altGridCols, fitCols);
+
+    const contentHeight = padding * 2 + gridRows * rowHeight + Math.max(0, gridRows - 1) * rowGap;
     const height = Math.max(viewportHeight, contentHeight);
-    const contentWidth = padding * 2 + labelWidth + (ALT_MAX_SLOTS - 1) * ALT_SEAT_SPACING + ALT_SEAT_RADIUS * 2;
+    const contentWidth = padding * 2 + labelWidth + gridCols * ALT_SEAT_SPACING;
     const width = Math.max(viewportWidth, contentWidth);
-    altSectionCanvas.width = width * dpr;
-    altSectionCanvas.height = height * dpr;
-    altSectionCanvas.style.width = `${width}px`;
-    altSectionCanvas.style.height = `${height}px`;
+
+    const pixelWidth = Math.max(1, Math.round(width * dpr));
+    const pixelHeight = Math.max(1, Math.round(height * dpr));
+    const cssWidth = `${Math.round(width)}px`;
+    const cssHeight = `${Math.round(height)}px`;
+    if (altSectionCanvas.width !== pixelWidth) altSectionCanvas.width = pixelWidth;
+    if (altSectionCanvas.height !== pixelHeight) altSectionCanvas.height = pixelHeight;
+    if (altSectionCanvas.style.width !== cssWidth) altSectionCanvas.style.width = cssWidth;
+    if (altSectionCanvas.style.height !== cssHeight) altSectionCanvas.style.height = cssHeight;
+
     const ctx = altSectionCanvas.getContext("2d");
     if (!ctx) return null;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
     return {
       ctx,
       width,
@@ -21109,27 +21606,34 @@ function nudgeSelection(dxScreen, dyScreen) {
       labelWidth,
       rowHeight,
       rowGap,
-      seatStartX: padding + labelWidth,
-      seatEndX: padding + labelWidth + (ALT_MAX_SLOTS - 1) * ALT_SEAT_SPACING
+      rowBlock,
+      fitCols,
+      fitRows,
+      gridRows,
+      gridCols,
+      gridStartX: padding + labelWidth,
+      gridEndX: padding + labelWidth + gridCols * ALT_SEAT_SPACING,
+      gridTopY: padding,
+      gridBottomY: padding + gridRows * rowHeight + Math.max(0, gridRows - 1) * rowGap,
+      seatStartX: padding + labelWidth + ALT_SEAT_SPACING / 2,
+      seatEndX: padding + labelWidth + (gridCols - 0.5) * ALT_SEAT_SPACING
     };
   }
 
   function getAltLineIndexFromY(y, metrics) {
     if (!metrics) return null;
-    const rel = y - metrics.padding;
+    const rel = y - metrics.gridTopY;
     if (rel < 0) return null;
-    const rowBlock = metrics.rowHeight + metrics.rowGap;
-    const idx = Math.floor(rel / rowBlock);
-    if (idx < 0 || idx >= altRowLines.length) return null;
-    const offset = rel - idx * rowBlock;
+    const idx = Math.floor(rel / metrics.rowBlock);
+    if (idx < 0 || idx >= metrics.gridRows) return null;
+    const offset = rel - idx * metrics.rowBlock;
     if (offset > metrics.rowHeight) return null;
     return idx;
   }
 
   function clampAltPointToRowBand(point, lineIndex, metrics) {
     if (!metrics) return point;
-    const rowBlock = metrics.rowHeight + metrics.rowGap;
-    const top = metrics.padding + lineIndex * rowBlock;
+    const top = metrics.gridTopY + lineIndex * metrics.rowBlock;
     const bottom = top + metrics.rowHeight;
     const x = Math.min(metrics.seatEndX, Math.max(metrics.seatStartX, point.x));
     const y = Math.min(bottom - ALT_SEAT_RADIUS, Math.max(top + ALT_SEAT_RADIUS, point.y));
@@ -21137,79 +21641,426 @@ function nudgeSelection(dxScreen, dyScreen) {
   }
 
   function getAltSlotPosition(slot, lineIndex, slotIndex, metrics) {
-    const rowBlock = metrics.rowHeight + (metrics.rowGap || 0);
-    const centerY = metrics.padding + lineIndex * rowBlock + metrics.rowHeight / 2;
+    const centerY = metrics.gridTopY + lineIndex * metrics.rowBlock + metrics.rowHeight / 2;
     const x = metrics.seatStartX + slotIndex * ALT_SEAT_SPACING;
     return { x, y: centerY };
   }
 
-  function buildAltSeatPoints(start, end) {
-    const dx = end.x - start.x;
-    const dy = 0;
-    const len = Math.hypot(dx, dy);
-    const count = Math.max(1, Math.floor(len / ALT_SEAT_SPACING) + 1);
-    const points = [];
-    if (count === 1) {
-      points.push({ x: start.x, y: start.y });
-      return points;
-    }
-    for (let i = 0; i < count; i++) {
-      const t = i / (count - 1);
-      points.push({ x: start.x + dx * t, y: start.y + dy * t });
-    }
-    return points;
+  function getAltSeatKey(lineIndex, slotIndex) {
+    return `${lineIndex}:${slotIndex}`;
   }
 
-  function renumberAltBlockSeats(line, block) {
+  function getAltGridCellFromPoint(point, metrics, allowOutside = false) {
+    if (!metrics || !point) return null;
+    if (!allowOutside) {
+      if (point.x < metrics.gridStartX || point.x > metrics.gridEndX) return null;
+      if (point.y < metrics.gridTopY || point.y > metrics.gridBottomY) return null;
+    }
+    const relY = point.y - metrics.gridTopY;
+    let lineIndex = Math.floor(relY / metrics.rowBlock);
+    if (allowOutside) {
+      lineIndex = Math.max(0, lineIndex);
+    } else {
+      lineIndex = getAltLineIndexFromY(point.y, metrics);
+      if (lineIndex == null) return null;
+    }
+    const rawSlot = (point.x - metrics.gridStartX) / ALT_SEAT_SPACING;
+    let slotIndex = Math.floor(rawSlot);
+    if (allowOutside) {
+      slotIndex = Math.max(0, slotIndex);
+    }
+    if (slotIndex < 0 || slotIndex >= metrics.gridCols) {
+      if (!allowOutside) return null;
+    }
+    if (lineIndex < 0 || lineIndex >= metrics.gridRows) {
+      if (!allowOutside) return null;
+    }
+    return { lineIndex, slotIndex };
+  }
+
+  function clampAltPointToGrid(point, metrics) {
+    if (!metrics || !point) return point;
+    return {
+      x: Math.min(metrics.gridEndX - 1, Math.max(metrics.gridStartX + 1, point.x)),
+      y: Math.min(metrics.gridBottomY - 1, Math.max(metrics.gridTopY + 1, point.y))
+    };
+  }
+
+  function normalizeAltCellRange(startCell, endCell) {
+    if (!startCell || !endCell) return null;
+    return {
+      lineStart: Math.min(startCell.lineIndex, endCell.lineIndex),
+      lineEnd: Math.max(startCell.lineIndex, endCell.lineIndex),
+      slotStart: Math.min(startCell.slotIndex, endCell.slotIndex),
+      slotEnd: Math.max(startCell.slotIndex, endCell.slotIndex)
+    };
+  }
+
+  function forEachAltCellInRange(range, callback) {
+    if (!range || !callback) return;
+    for (let lineIndex = range.lineStart; lineIndex <= range.lineEnd; lineIndex++) {
+      for (let slotIndex = range.slotStart; slotIndex <= range.slotEnd; slotIndex++) {
+        callback(lineIndex, slotIndex);
+      }
+    }
+  }
+
+  function clearAltSelection(options = {}) {
+    const { refreshPanel = true } = options;
+    altSelectionRange = null;
+    altSelectedSeatKeys = new Set();
+    altSelectedRowIndexes = new Set();
+    if (refreshPanel) refreshAltRowSettingsPanel();
+  }
+
+  function getAltSortedSelectedRowIndexes() {
+    return Array.from(altSelectedRowIndexes.values())
+      .map((value) => Number(value))
+      .filter((value) => Number.isFinite(value))
+      .sort((a, b) => a - b);
+  }
+
+  function getAltSingleSelectedRowIndex() {
+    const rows = getAltSortedSelectedRowIndexes();
+    return rows.length === 1 ? rows[0] : null;
+  }
+
+  function getAltOccupiedLineIndexes() {
+    const indexes = [];
+    altRowLines.forEach((line, idx) => {
+      const hasSeat = Array.isArray(line?.slots) && line.slots.some((slot) => slot && slot.type === "seat");
+      if (hasSeat) indexes.push(idx);
+    });
+    return indexes;
+  }
+
+  function getAltSelectedOccupiedRowIndexes() {
+    return getAltSortedSelectedRowIndexes().filter((rowIndex) => {
+      const line = altRowLines[rowIndex];
+      return Array.isArray(line?.slots) && line.slots.some((slot) => slot && slot.type === "seat");
+    });
+  }
+
+  function ensureAltRowNameState(line, index) {
+    if (!line) return;
+    const rawName = String(line?.name || "").trim();
+    if (rawName) {
+      const numericName = parseInt(rawName, 10);
+      if (typeof line.autoRowName !== "boolean") {
+        line.autoRowName = Number.isFinite(numericName) && String(numericName) === rawName && numericName === (index + 1);
+      }
+      return;
+    }
+    line.name = String(index + 1);
+    if (typeof line.autoRowName !== "boolean") line.autoRowName = true;
+  }
+
+  function normalizeAltAutoRowNames() {
+    const occupiedLineIndexes = getAltOccupiedLineIndexes();
+    let nextRowName = 1;
+    occupiedLineIndexes.forEach((lineIndex) => {
+      const line = altRowLines[lineIndex];
+      if (!line) return;
+      if (line.autoRowName !== false) {
+        line.autoRowName = true;
+        line.name = String(nextRowName);
+      }
+      nextRowName += 1;
+    });
+  }
+
+  function normalizeAltBrokenRowMode(value) {
+    return value === "sameRowId" ? "sameRowId" : "newRowId";
+  }
+
+  function normalizeAltBrokenRowOverride(value) {
+    if (value === "sameRowId" || value === "newRowId") return value;
+    return null;
+  }
+
+  function getAltLineBrokenRowMode(line) {
+    const override = normalizeAltBrokenRowOverride(line?.brokenRowModeOverride);
+    return override || normalizeAltBrokenRowMode(altBrokenRowMode);
+  }
+
+  function applyAltBrokenRowOverrideToSelectedRows(overrideMode) {
+    const selectedRows = getAltSelectedOccupiedRowIndexes();
+    if (!selectedRows.length) return;
+    const normalizedOverride = normalizeAltBrokenRowOverride(overrideMode);
+    selectedRows.forEach((rowIndex) => {
+      const line = altRowLines[rowIndex];
+      if (!line) return;
+      line.brokenRowModeOverride = normalizedOverride;
+    });
+    commitAltChange();
+  }
+
+  function rebuildAltSelectedSeatKeysFromRows() {
+    const next = new Set();
+    altSelectedRowIndexes.forEach((rowIndex) => {
+      const idx = Number(rowIndex);
+      if (!Number.isFinite(idx)) return;
+      const line = altRowLines[idx];
+      if (!line) return;
+      (line.slots || []).forEach((slot, slotIndex) => {
+        if (slot && slot.type === "seat") {
+          next.add(getAltSeatKey(idx, slotIndex));
+        }
+      });
+    });
+    altSelectedSeatKeys = next;
+  }
+
+  function normalizeAltRangeForDrawConstraint(range, startCell) {
+    if (!range) return null;
+    if (altDrawConstraintMode !== "rows") return range;
+    const row = Number.isFinite(startCell?.lineIndex) ? startCell.lineIndex : range.lineStart;
+    return {
+      lineStart: row,
+      lineEnd: row,
+      slotStart: Math.min(range.slotStart, range.slotEnd),
+      slotEnd: Math.max(range.slotStart, range.slotEnd)
+    };
+  }
+
+  function getAltRowDirectionValue(line) {
+    const block = getAltActiveBlock(line);
+    return block && block.direction === -1 ? "desc" : "asc";
+  }
+
+  function getAltRowStartValue(line) {
+    if (!line) return 1;
+    const direction = getAltRowDirectionValue(line) === "desc" ? -1 : 1;
+    const seats = [];
+    (line.slots || []).forEach((slot, idx) => {
+      if (slot && slot.type === "seat") seats.push({ slot, idx });
+    });
+    if (!seats.length) return 1;
+    seats.sort((a, b) => direction === -1 ? b.idx - a.idx : a.idx - b.idx);
+    const parsed = parseInt(String(seats[0]?.slot?.name || ""), 10);
+    return Number.isFinite(parsed) ? parsed : 1;
+  }
+
+  function applyAltRowSettings(rowIndex, startValue, directionValue, shouldCommit = true) {
+    if (!Number.isFinite(rowIndex)) return false;
+    const line = altRowLines[rowIndex];
+    if (!line) return false;
+    const block = getAltActiveBlock(line) || line.blocks?.[0];
+    if (!block) return false;
+    const start = Number.isFinite(Number(startValue)) ? Math.max(1, Math.floor(Number(startValue))) : 1;
+    block.direction = directionValue === "desc" ? -1 : 1;
+    block.startSeat = start;
+    block.manualStartSeat = true;
+    renumberAltBlockSeats(line, block, {
+      forceStart: start,
+      forceDirection: block.direction
+    });
+    if (shouldCommit) commitAltChange();
+    return true;
+  }
+
+  function refreshAltRowSettingsPanel() {
+    if (!altRowSettingsPanel) return;
+    const selectedRows = getAltSelectedOccupiedRowIndexes();
+    if (!selectedRows.length) {
+      altRowSettingsPanel.hidden = true;
+      return;
+    }
+    const rowIndex = selectedRows[0];
+    const line = altRowLines[rowIndex];
+    const isMultiRowSelection = selectedRows.length > 1;
+    const numberingMode = normalizeAltSeatNumberingMode(altSeatNumberingMode);
+    const canEditStart = numberingMode === ALT_SEAT_NUMBERING_MODE_ROW
+      || (numberingMode === ALT_SEAT_NUMBERING_MODE_CONTINUOUS && !isMultiRowSelection);
+    const canToggleDirection = numberingMode !== ALT_SEAT_NUMBERING_MODE_CONTINUOUS_ZIGZAG;
+    const startSeatDisabledTitle = isMultiRowSelection
+      ? "Start seat for multiple rows is only available in Numbering mode: Per row (start 1)."
+      : (numberingMode === ALT_SEAT_NUMBERING_MODE_CONTINUOUS_ZIGZAG
+          ? "Start seat is not editable in Continuous zigzag mode."
+          : "Start seat is only editable in Per row mode.");
+    altRowSettingsUpdatingUi = true;
+    if (altRowSettingsRowLabel) {
+      altRowSettingsRowLabel.textContent = isMultiRowSelection
+        ? `${selectedRows.length} rows selected`
+        : `Row ${rowIndex + 1}`;
+    }
+    if (altRowStartNumberInput) {
+      const startValues = selectedRows
+        .map((selectedRowIndex) => {
+          const selectedLine = altRowLines[selectedRowIndex];
+          return getAltRowStartValue(selectedLine);
+        })
+        .filter((value) => Number.isFinite(value));
+      const uniqueStarts = Array.from(new Set(startValues));
+      altRowStartNumberInput.value = uniqueStarts.length === 1 ? String(uniqueStarts[0]) : "";
+      altRowStartNumberInput.placeholder = uniqueStarts.length > 1 ? "Mixed" : "";
+      altRowStartNumberInput.disabled = !canEditStart;
+      altRowStartNumberInput.title = canEditStart ? "Set start seat for selected row(s)." : startSeatDisabledTitle;
+      const startField = altRowStartNumberInput.closest(".alt-row-settings__field");
+      if (startField) startField.title = canEditStart ? "" : startSeatDisabledTitle;
+    }
+    if (altRowReverseDirectionBtn) {
+      altRowReverseDirectionBtn.disabled = !canToggleDirection;
+      altRowReverseDirectionBtn.title = canToggleDirection
+        ? (isMultiRowSelection ? "Change row direction for selected rows." : "Change row direction for selected row.")
+        : "Direction is controlled automatically in Continuous zigzag mode.";
+    }
+    const overrideTokens = selectedRows.map((selectedRowIndex) => {
+      const selectedLine = altRowLines[selectedRowIndex];
+      const override = normalizeAltBrokenRowOverride(selectedLine?.brokenRowModeOverride);
+      return override || "global";
+    });
+    const uniqueOverrideTokens = Array.from(new Set(overrideTokens));
+    const overrideState = uniqueOverrideTokens.length === 1 ? uniqueOverrideTokens[0] : "mixed";
+    if (altRowBrokenOverrideGlobal) {
+      altRowBrokenOverrideGlobal.checked = overrideState === "global";
+      altRowBrokenOverrideGlobal.disabled = false;
+    }
+    if (altRowBrokenOverrideSame) {
+      altRowBrokenOverrideSame.checked = overrideState === "sameRowId";
+      altRowBrokenOverrideSame.disabled = false;
+    }
+    if (altRowBrokenOverrideNew) {
+      altRowBrokenOverrideNew.checked = overrideState === "newRowId";
+      altRowBrokenOverrideNew.disabled = false;
+    }
+    if (altRowBrokenOverrideState) {
+      const globalLabel = normalizeAltBrokenRowMode(altBrokenRowMode) === "newRowId" ? "Create new RowId" : "Keep same RowId";
+      let overrideLabel = "Mixed";
+      if (overrideState === "global") overrideLabel = `Global (${globalLabel})`;
+      else if (overrideState === "sameRowId") overrideLabel = "Keep same RowId";
+      else if (overrideState === "newRowId") overrideLabel = "Create new RowId";
+      const selectionLabel = isMultiRowSelection ? `${selectedRows.length} rows` : "1 row";
+      altRowBrokenOverrideState.textContent = `Selected: ${selectionLabel} · Override: ${overrideLabel}`;
+    }
+    if (altRowBrokenOverrideGroup) {
+      altRowBrokenOverrideGroup.hidden = false;
+    }
+    altRowSettingsUpdatingUi = false;
+    altRowSettingsPanel.hidden = false;
+  }
+
+  function renumberAltBlockSeats(line, block, options = {}) {
+    if (!line) return;
     const seats = [];
     line.slots.forEach((slot, idx) => {
-      if (slot && slot.type === "seat" && slot.blockId === block.id) {
+      if (slot && slot.type === "seat") {
         seats.push({ slot, idx });
       }
     });
     if (!seats.length) return;
-    const direction = block.direction === -1 ? -1 : 1;
+    const direction = options.forceDirection === -1
+      ? -1
+      : (options.forceDirection === 1 ? 1 : (block?.direction === -1 ? -1 : 1));
     seats.sort((a, b) => direction === -1 ? b.idx - a.idx : a.idx - b.idx);
-    seats.forEach((entry, idx) => {
-      entry.slot.name = String(block.startSeat + idx);
+    if (Number.isFinite(Number(options.forceStart))) {
+      const start = Math.max(1, Math.floor(Number(options.forceStart)));
+      seats.forEach((entry, idx) => {
+        entry.slot.name = String(start + idx);
+      });
+      return;
+    }
+    if (altSeatDeleteNumberingMode === "compact") {
+      const start = Number.isFinite(Number(block?.startSeat))
+        ? Math.max(1, Math.floor(Number(block.startSeat)))
+        : 1;
+      seats.forEach((entry, idx) => {
+        entry.slot.name = String(start + idx);
+      });
+      return;
+    }
+
+    const used = new Set();
+    let maxNum = 0;
+    seats.forEach(({ slot }) => {
+      const n = parseInt(String(slot.name || "").trim(), 10);
+      if (Number.isFinite(n) && n > 0) {
+        used.add(n);
+        if (n > maxNum) maxNum = n;
+      }
+    });
+    let next = Math.max(1, maxNum + 1);
+    seats.forEach(({ slot }) => {
+      const n = parseInt(String(slot.name || "").trim(), 10);
+      if (Number.isFinite(n) && n > 0) return;
+      while (used.has(next)) next += 1;
+      slot.name = String(next);
+      used.add(next);
+      next += 1;
     });
   }
 
   function syncAltDraftFromLines(draft) {
     if (!draft || !draft.altRowLines) return;
     const rows = [];
-    draft.altRowLines.forEach((line) => {
-      line.blocks.forEach((block) => {
-        const rowId = block.rowId || createAltId();
-        block.rowId = rowId;
-        const row = {
-          id: rowId,
-          name: line.name,
-          rowLine: line.lineIndex,
-          seats: [],
-          items: []
-        };
-        line.slots.forEach((slot, idx) => {
-          if (!slot) return;
-          if (slot.type === "seat" && slot.blockId === block.id) {
+    draft.altRowLines.forEach((line, lineIndex) => {
+      const rowName = String((line?.name || "").trim() || (lineIndex + 1));
+      line.brokenRowModeOverride = normalizeAltBrokenRowOverride(line?.brokenRowModeOverride);
+      const seatIndexes = [];
+      (line.slots || []).forEach((slot, idx) => {
+        if (slot && slot.type === "seat") seatIndexes.push(idx);
+      });
+      if (!seatIndexes.length) return;
+
+      const effectiveBrokenMode = getAltLineBrokenRowMode(line);
+      if (effectiveBrokenMode === "newRowId") {
+        let segment = [];
+        seatIndexes.forEach((idx) => {
+          if (!segment.length || idx === segment[segment.length - 1] + 1) {
+            segment.push(idx);
+            return;
+          }
+          if (segment.length) {
+            const row = { id: createAltId(), name: rowName, rowLine: lineIndex, seats: [], items: [] };
+            segment.forEach((seatIdx) => {
+              const slot = line.slots[seatIdx];
+              if (!slot || slot.type !== "seat") return;
+              const seatObj = newSeat(slot.name || "");
+              row.seats.push(seatObj);
+              row.items.push({ ...seatObj, pos: seatIdx });
+            });
+            if (row.seats.length) rows.push(row);
+          }
+          segment = [idx];
+        });
+        if (segment.length) {
+          const row = { id: createAltId(), name: rowName, rowLine: lineIndex, seats: [], items: [] };
+          segment.forEach((seatIdx) => {
+            const slot = line.slots[seatIdx];
+            if (!slot || slot.type !== "seat") return;
             const seatObj = newSeat(slot.name || "");
             row.seats.push(seatObj);
-            row.items.push({ ...seatObj, pos: idx });
-          }
-          if (slot.type === "gap" && slot.blockId === block.id) {
-            row.items.push({
-              id: createAltId(),
-              name: "",
-              isGap: true,
-              pos: idx
-            });
-          }
-        });
-        rows.push(row);
+            row.items.push({ ...seatObj, pos: seatIdx });
+          });
+          if (row.seats.length) rows.push(row);
+        }
+        return;
+      }
+
+      const row = {
+        id: createAltId(),
+        name: rowName,
+        rowLine: lineIndex,
+        seats: [],
+        items: []
+      };
+      seatIndexes.forEach((idx) => {
+        const slot = line.slots[idx];
+        if (!slot || slot.type !== "seat") return;
+        const seatObj = newSeat(slot.name || "");
+        row.seats.push(seatObj);
+        row.items.push({ ...seatObj, pos: idx });
       });
+      if (row.seats.length) rows.push(row);
     });
     draft.rows = rows;
     draft.rawRowText = "";
+    draft.altGridRows = altRowLines.length;
+    draft.altGridCols = altGridCols;
+    draft.altSeatNumberingMode = normalizeAltSeatNumberingMode(altSeatNumberingMode);
+    draft.altSeatDeleteNumberingMode = altSeatDeleteNumberingMode;
+    draft.altBrokenRowMode = altBrokenRowMode;
+    draft.continuousStartSeat = altContinuousStartSeat;
     if (draft.sectionId) sectionRawText.set(draft.sectionId, "");
   }
 
@@ -21269,86 +22120,146 @@ function nudgeSelection(dxScreen, dyScreen) {
   function clearAltSectionDetail() {
     altRowLines = [];
     altActiveLineIndex = null;
+    altSelectionRange = null;
+    altSelectionAdditive = false;
+    altSelectedSeatKeys = new Set();
+    altSelectedRowIndexes = new Set();
+    altHoverCell = null;
+    altGridCols = ALT_DEFAULT_GRID_COLS;
     if (!altSectionCanvas) return;
     const ctx = altSectionCanvas.getContext("2d");
     if (ctx) ctx.clearRect(0, 0, altSectionCanvas.width, altSectionCanvas.height);
     setAltTooltip("", 0, 0, false);
+    refreshAltRowSettingsPanel();
   }
 
   function renderAltSectionCanvas() {
     if (!altSectionCanvas) return;
     const metrics = getAltCanvasMetrics();
     if (!metrics) return;
-    const { ctx, width, height, padding, rowHeight, labelWidth } = metrics;
+    const { ctx, width, height, rowHeight, rowBlock } = metrics;
     ctx.clearRect(0, 0, width, height);
-    ctx.fillStyle = "#f7faff";
+    ctx.fillStyle = "#f6f9ff";
     ctx.fillRect(0, 0, width, height);
 
-    const lineCount = Math.max(1, altRowLines.length || 1);
-    const rowBlock = rowHeight + metrics.rowGap;
-    const maxSlots = ALT_MAX_SLOTS;
-    for (let i = 0; i < lineCount; i++) {
-      const top = padding + i * rowBlock;
-      const bottom = top + rowHeight;
-      const isActive = altActiveLineIndex === i;
-      drawAltRowBox(ctx, padding, top, width - padding * 2, rowHeight, 8, isActive);
-      ctx.fillStyle = "#2e3c47";
-      ctx.font = "12px 'SUSE', sans-serif";
-      ctx.textAlign = "left";
-      ctx.textBaseline = "middle";
-      const line = altRowLines[i];
-      const rawLabel = line ? (line.name || `${i + 1}`) : `${i + 1}`;
-      const label = rawLabel.replace(/^(Row|Rad)\s*/i, "") || `${i + 1}`;
-      ctx.fillText(label, padding + 4, top + rowHeight / 2);
+    const lineCount = metrics.gridRows;
+    const maxSlots = metrics.gridCols;
+    let totalSeats = 0;
+    let usedRows = 0;
 
-      if (line) {
-        const activeBlock = getAltActiveBlock(line);
-        for (let idx = 0; idx < maxSlots; idx++) {
-          const slot = line.slots[idx] ?? null;
-          const pos = getAltSlotPosition(slot, i, idx, metrics);
-          if (slot) {
-            slot.renderX = pos.x;
-            slot.renderY = pos.y;
-          }
-          if (slot && slot.type === "seat") {
-            const isActiveSeat = activeBlock && slot.blockId === activeBlock.id;
-            ctx.fillStyle = isActiveSeat ? "#14a0f4" : "#ffffff";
-            ctx.strokeStyle = isActiveSeat ? "#0c6ba5" : "#9fb0c4";
-            ctx.lineWidth = 1.5;
-            ctx.beginPath();
-            ctx.arc(pos.x, pos.y, ALT_SEAT_RADIUS, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.stroke();
-            ctx.fillStyle = isActiveSeat ? "#ffffff" : "#2e3c47";
-            ctx.font = "9px 'SUSE', sans-serif";
-            ctx.textAlign = "center";
-            ctx.textBaseline = "middle";
-            ctx.fillText(slot.name || "", pos.x, pos.y + 0.5);
-          } else {
-            ctx.strokeStyle = "#aeb9c8";
-            ctx.beginPath();
-            ctx.arc(pos.x, pos.y, ALT_SEAT_RADIUS - 1, 0, Math.PI * 2);
-            ctx.stroke();
-          }
+    let dragRange = null;
+    if (altIsDrawing && altDrawStart && altDrawEnd) {
+      const dragStartCell = getAltGridCellFromPoint(altDrawStart, metrics, true);
+      const dragEndCell = getAltGridCellFromPoint(altDrawEnd, metrics, true);
+      const rawRange = normalizeAltCellRange(dragStartCell, dragEndCell);
+      if (rawRange) {
+        dragRange = altDrawMode === "select"
+          ? rawRange
+          : normalizeAltRangeForDrawConstraint(rawRange, dragStartCell);
+      }
+    }
+
+    const xRulerY = Math.max(9, metrics.gridTopY - 8);
+    ctx.fillStyle = "#76859a";
+    ctx.font = "9px 'SUSE', sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    for (let idx = 0; idx < maxSlots; idx++) {
+      const cellX = metrics.gridStartX + idx * ALT_SEAT_SPACING;
+      ctx.fillText(String(idx + 1), cellX + ALT_SEAT_SPACING / 2, xRulerY);
+    }
+    ctx.strokeStyle = "#d9e2ee";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(metrics.gridStartX + 0.5, metrics.gridTopY - 0.5);
+    ctx.lineTo(metrics.gridEndX + 0.5, metrics.gridTopY - 0.5);
+    ctx.stroke();
+
+    ctx.strokeStyle = "#d9e2ee";
+    ctx.lineWidth = 1;
+    for (let i = 0; i < lineCount; i++) {
+      const top = metrics.gridTopY + i * rowBlock;
+      const line = altRowLines[i];
+      const lineHasSeat = !!line?.slots?.some((slot) => slot && slot.type === "seat");
+      const isRowSelected = altSelectedRowIndexes.has(i);
+      const isActive = altActiveLineIndex === i || isRowSelected || (dragRange && i >= dragRange.lineStart && i <= dragRange.lineEnd);
+      if (isActive) {
+        ctx.fillStyle = "rgba(20,160,244,0.08)";
+        ctx.fillRect(metrics.gridStartX, top, maxSlots * ALT_SEAT_SPACING, rowHeight);
+      }
+
+      ctx.fillStyle = "#76859a";
+      ctx.font = "10px 'SUSE', sans-serif";
+      ctx.textAlign = "right";
+      ctx.textBaseline = "middle";
+      ctx.fillText(String(i + 1), metrics.gridStartX - 26, top + rowHeight / 2);
+
+      ctx.fillStyle = "#2e3c47";
+      ctx.font = "11px 'SUSE', sans-serif";
+      ctx.textAlign = "right";
+      ctx.textBaseline = "middle";
+      if (lineHasSeat) {
+        const rowLabel = String(line?.name || (i + 1));
+        ctx.fillText(rowLabel, metrics.gridStartX - 8, top + rowHeight / 2);
+      }
+
+      if (lineHasSeat) usedRows += 1;
+
+      for (let idx = 0; idx < maxSlots; idx++) {
+        const cellX = metrics.gridStartX + idx * ALT_SEAT_SPACING;
+        const slot = line?.slots?.[idx] ?? null;
+        const isSeat = !!slot && slot.type === "seat";
+        if (isSeat) totalSeats += 1;
+
+        const inDrag = dragRange &&
+          i >= dragRange.lineStart &&
+          i <= dragRange.lineEnd &&
+          idx >= dragRange.slotStart &&
+          idx <= dragRange.slotEnd;
+
+        const isSelected = altSelectedSeatKeys.has(getAltSeatKey(i, idx));
+        const isHovered = !!altHoverCell && altHoverCell.lineIndex === i && altHoverCell.slotIndex === idx;
+        ctx.fillStyle = isSeat ? "#14a0f4" : "#ffffff";
+        if (inDrag && altDrawMode === "erase") {
+          ctx.fillStyle = isSeat ? "#c12e44" : "#ffe7ec";
+        } else if (inDrag && altDrawMode === "draw") {
+          ctx.fillStyle = isSeat ? "#0d87d1" : "#d7efff";
+        } else if (isSelected && altSectionTool === "select") {
+          ctx.fillStyle = isSeat ? "#0c6ba5" : "#e6f0ff";
+        }
+
+        traceAltRoundedRect(ctx, cellX + 0.5, top + 0.5, ALT_SEAT_SPACING - 1, rowHeight - 1, ALT_GRID_CELL_RADIUS);
+        ctx.fill();
+        ctx.strokeStyle = isSeat ? "#0c6ba5" : "#d7dee9";
+        ctx.stroke();
+        if (isHovered) {
+          ctx.strokeStyle = "#5aa9e6";
+          ctx.lineWidth = 1.25;
+          traceAltRoundedRect(ctx, cellX + 1, top + 1, ALT_SEAT_SPACING - 2, rowHeight - 2, Math.max(1, ALT_GRID_CELL_RADIUS - 1));
+          ctx.stroke();
+          ctx.lineWidth = 1;
+        }
+
+        if (isSelected) {
+          ctx.strokeStyle = "#f59e0b";
+          ctx.lineWidth = 1.5;
+          traceAltRoundedRect(ctx, cellX + 1.5, top + 1.5, ALT_SEAT_SPACING - 3, rowHeight - 3, Math.max(1, ALT_GRID_CELL_RADIUS - 1));
+          ctx.stroke();
+          ctx.lineWidth = 1;
+        }
+
+        if (isSeat && slot.name) {
+          ctx.fillStyle = "#ffffff";
+          ctx.font = "9px 'SUSE', sans-serif";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText(slot.name, cellX + ALT_SEAT_SPACING / 2, top + rowHeight / 2 + 0.5);
         }
       }
     }
 
-    if (altIsDrawing && altDrawStart && altDrawEnd && altDrawLineIndex != null) {
-      const points = buildAltSeatPoints(altDrawStart, altDrawEnd);
-      ctx.strokeStyle = "#14a0f4";
-      ctx.setLineDash([4, 4]);
-      ctx.beginPath();
-      ctx.moveTo(altDrawStart.x, altDrawStart.y);
-      ctx.lineTo(altDrawEnd.x, altDrawStart.y);
-      ctx.stroke();
-      ctx.setLineDash([]);
-      points.forEach((pt) => {
-        ctx.fillStyle = "#14a0f4";
-        ctx.beginPath();
-        ctx.arc(pt.x, pt.y, ALT_SEAT_RADIUS - 1, 0, Math.PI * 2);
-        ctx.fill();
-      });
+    if (altGridStatus) {
+      altGridStatus.textContent = `Rows: ${usedRows}/${lineCount} · Cols: ${maxSlots} · Seats: ${totalSeats} · Selected rows: ${altSelectedRowIndexes.size}`;
     }
 
     updateAltControls();
@@ -21364,49 +22275,110 @@ function nudgeSelection(dxScreen, dyScreen) {
     if (!draft.altRowLines) {
       draft.altRowLines = buildAltLinesFromDraft(draft);
       if (!draft.altRowLines.length) {
-        draft.altRowLines = buildAltLines(1);
+        draft.altRowLines = buildAltLines(ALT_DEFAULT_GRID_ROWS);
       }
     }
     altRowLines = draft.altRowLines;
+    const fit = getAltViewportGridFit();
+    const usedCols = getAltMaxUsedSlot(altRowLines) + 1;
+    const hasAnySeats = altRowLines.some((line) => (line?.slots || []).some((slot) => slot && slot.type === "seat"));
+    if (!hasAnySeats) {
+      altGridCols = Math.max(1, fit.fitCols || ALT_DEFAULT_GRID_COLS);
+    }
+    altGridCols = Math.max(
+      1,
+      Number.isFinite(Number(draft.altGridCols)) ? Math.floor(Number(draft.altGridCols)) : 0,
+      usedCols,
+      fit.fitCols || ALT_DEFAULT_GRID_COLS
+    );
+    if (!hasAnySeats) {
+      altGridCols = Math.max(1, fit.fitCols || ALT_DEFAULT_GRID_COLS);
+    }
+    altSeatNumberingMode = normalizeAltSeatNumberingMode(
+      draft.altSeatNumberingMode != null ? draft.altSeatNumberingMode : ALT_SEAT_NUMBERING_MODE_ROW
+    );
+    syncAltSeatNumberingModeRadios(altSeatNumberingMode);
+    altSeatDeleteNumberingMode = draft.altSeatDeleteNumberingMode === "preserve" ? "preserve" : "compact";
+    altBrokenRowMode = normalizeAltBrokenRowMode(draft.altBrokenRowMode);
+    if (altSeatDeleteNumberingCompact) altSeatDeleteNumberingCompact.checked = altSeatDeleteNumberingMode === "compact";
+    if (altSeatDeleteNumberingPreserve) altSeatDeleteNumberingPreserve.checked = altSeatDeleteNumberingMode === "preserve";
+    if (altBrokenRowSameRowId) altBrokenRowSameRowId.checked = altBrokenRowMode === "sameRowId";
+    if (altBrokenRowNewRowId) altBrokenRowNewRowId.checked = altBrokenRowMode === "newRowId";
+    ensureAltGridSize(
+      Math.max(
+        1,
+        Number.isFinite(Number(draft.altGridRows)) ? Math.floor(Number(draft.altGridRows)) : 0,
+        fit.fitRows || ALT_DEFAULT_GRID_ROWS
+      ),
+      altGridCols
+    );
+    if (!hasAnySeats && altRowLines.length > (fit.fitRows || ALT_DEFAULT_GRID_ROWS)) {
+      altRowLines = altRowLines.slice(0, Math.max(1, fit.fitRows || ALT_DEFAULT_GRID_ROWS));
+      draft.altRowLines = altRowLines;
+    }
+    if (!hasAnySeats) {
+      draft.altGridRows = altRowLines.length;
+      draft.altGridCols = altGridCols;
+    }
+    altRowLines.forEach((line, idx) => {
+      line.lineIndex = idx;
+      ensureAltRowNameState(line, idx);
+      if (!Array.isArray(line.slots)) line.slots = [];
+      line.brokenRowModeOverride = normalizeAltBrokenRowOverride(line?.brokenRowModeOverride);
+      if (!Array.isArray(line.blocks) || !line.blocks.length) {
+        const block = createAltBlock();
+        line.blocks = [block];
+        line.activeBlockId = block.id;
+      }
+      if (!line.activeBlockId) line.activeBlockId = line.blocks[0].id;
+    });
+    const nextSelectedRows = new Set();
+    altSelectedRowIndexes.forEach((value) => {
+      const idx = Number(value);
+      if (Number.isFinite(idx) && idx >= 0 && idx < altRowLines.length) nextSelectedRows.add(idx);
+    });
+    altSelectedRowIndexes = nextSelectedRows;
+    rebuildAltSelectedSeatKeysFromRows();
     if (altActiveLineIndex == null || altActiveLineIndex >= altRowLines.length) {
       altActiveLineIndex = altRowLines.length ? 0 : null;
     }
     syncAltContinuousStartSeatFromDraft(draft);
+    refreshAltRowSettingsPanel();
     renderAltSectionCanvas();
   }
 
   function openAltSectionManager() {
+    if (altSectionManagerOverlay) altSectionManagerOverlay.style.display = "flex";
     resetSectionDrafts();
     altRowLines = [];
     altActiveLineIndex = null;
+    altSelectedSeatKeys = new Set();
+    altSelectedRowIndexes = new Set();
+    altSelectionRange = null;
+    altSelectionAdditive = false;
+    altHoverCell = null;
     altIsDrawing = false;
     altDrawStart = null;
     altDrawEnd = null;
-    altDrawLineIndex = null;
+    altDrawMode = altSectionTool;
+    altDrawConstraintMode = altDrawConstraintRows?.checked ? "rows" : "free";
+    const fit = getAltViewportGridFit();
+    altGridCols = Math.max(1, fit.fitCols || ALT_DEFAULT_GRID_COLS);
+    altSeatDeleteNumberingMode = altSeatDeleteNumberingPreserve?.checked ? "preserve" : "compact";
+    altBrokenRowMode = altBrokenRowNewRowId?.checked ? "newRowId" : "sameRowId";
     setAltTooltip("", 0, 0, false);
     setAltTool("select");
-    altSeatNumberingMode = altSeatNumberingModeSelect?.value === "continuous" ? "continuous" : "row";
+    altSeatNumberingMode = normalizeAltSeatNumberingMode(getAltSeatNumberingModeFromRadios());
+    syncAltSeatNumberingModeRadios(altSeatNumberingMode);
     renderAltSectionCards();
     renderAltSectionDetail();
     setSectionDirty(false);
     resetAltHistory();
-    if (altSectionManagerOverlay) altSectionManagerOverlay.style.display = "flex";
   }
 
   function closeAltSectionManager() {
     if (altSectionManagerOverlay) altSectionManagerOverlay.style.display = "none";
     setAltTooltip("", 0, 0, false);
-  }
-
-  function promptForRowCount(defaultValue = "10") {
-    const raw = prompt("How many rows should the section have?", defaultValue);
-    if (raw == null) return null;
-    const count = parseInt(raw, 10);
-    if (!Number.isFinite(count) || count <= 0) {
-      alert("Row count must be a positive number.");
-      return null;
-    }
-    return count;
   }
 
   function promptForSectionName(defaultValue = "") {
@@ -21432,27 +22404,41 @@ function nudgeSelection(dxScreen, dyScreen) {
     pushAltHistorySnapshot();
   }
 
-  function addNewAltDraft(sectionName, rowCount) {
+  function addNewAltDraft(sectionName) {
     const name = (sectionName || "").trim();
     const nameError = getSectionNameValidationError(name);
     if (nameError) {
       alert(nameError);
       return;
     }
+    const fit = getAltViewportGridFit();
+    const initialRows = Math.max(1, fit.fitRows || ALT_DEFAULT_GRID_ROWS);
+    const initialCols = Math.max(1, fit.fitCols || ALT_DEFAULT_GRID_COLS);
     const newDraft = {
       sectionId: computeNextSectionId(),
       sectionName: name,
       color: "#14a0f4",
       rows: [],
       rawRowText: "",
-      continuousStartSeat: 1
+      continuousStartSeat: 1,
+      altSeatNumberingMode: altSeatNumberingMode,
+      altGridRows: initialRows,
+      altGridCols: initialCols,
+      altSeatDeleteNumberingMode: altSeatDeleteNumberingMode,
+      altBrokenRowMode: altBrokenRowMode
     };
-    newDraft.altRowLines = buildAltLines(rowCount);
+    newDraft.altRowLines = buildAltLines(initialRows);
+    altGridCols = initialCols;
     syncAltDraftFromLines(newDraft);
     sectionDrafts.push(newDraft);
     activeSectionDraftId = newDraft.sectionId;
     altRowLines = newDraft.altRowLines;
     altActiveLineIndex = altRowLines.length ? 0 : null;
+    altSelectedSeatKeys = new Set();
+    altSelectedRowIndexes = new Set();
+    altSelectionRange = null;
+    altSelectionAdditive = false;
+    altHoverCell = null;
     setSectionDirty(true);
     renderAltSectionCards();
     renderAltSectionDetail();
@@ -21461,27 +22447,28 @@ function nudgeSelection(dxScreen, dyScreen) {
 
   function updateAltControls() {
     const hasDraft = !!getActiveDraft();
-    const hasLine = hasDraft && altRowLines.length && altActiveLineIndex != null;
-    const line = hasLine ? altRowLines[altActiveLineIndex] : null;
-    const block = getAltActiveBlock(line);
-    const hasBlock = !!block;
     if (altToolSelectBtn) altToolSelectBtn.disabled = !hasDraft;
     if (altToolDrawBtn) altToolDrawBtn.disabled = !hasDraft;
+    if (altToolEraseBtn) altToolEraseBtn.disabled = !hasDraft;
+    if (altDrawConstraintFree) altDrawConstraintFree.disabled = !hasDraft;
+    if (altDrawConstraintRows) altDrawConstraintRows.disabled = !hasDraft;
     if (altUndoBtn) altUndoBtn.disabled = altHistoryIndex <= 0;
-    if (altGapNewBtn) altGapNewBtn.disabled = !hasBlock;
-    if (altReverseSeatOrderBtn) altReverseSeatOrderBtn.disabled = !hasBlock;
-    if (altSetStartSeatBtn) altSetStartSeatBtn.disabled = !hasBlock;
-    if (altAddSeatBtn) altAddSeatBtn.disabled = !hasBlock;
-    if (altRemoveSeatBtn) altRemoveSeatBtn.disabled = !hasBlock;
-    if (altSetStartRowBtn) altSetStartRowBtn.disabled = !hasDraft;
     if (altReverseRowOrderBtn) altReverseRowOrderBtn.disabled = !hasDraft;
     if (altSetRowsManualBtn) altSetRowsManualBtn.disabled = !hasDraft;
-    if (altDuplicateRowBtn) altDuplicateRowBtn.disabled = !hasLine;
-    if (altAddRowBtn) altAddRowBtn.disabled = !hasDraft;
-    if (altClearRowBtn) altClearRowBtn.disabled = !hasLine;
     if (altClearAllRowsBtn) altClearAllRowsBtn.disabled = !hasDraft;
-    if (altSeatNumberingModeSelect) altSeatNumberingModeSelect.disabled = !hasDraft;
+    if (altSeatDeleteNumberingCompact) altSeatDeleteNumberingCompact.disabled = !hasDraft;
+    if (altSeatDeleteNumberingPreserve) altSeatDeleteNumberingPreserve.disabled = !hasDraft;
+    if (altBrokenRowSameRowId) altBrokenRowSameRowId.disabled = !hasDraft;
+    if (altBrokenRowNewRowId) altBrokenRowNewRowId.disabled = !hasDraft;
+    [altSeatNumberingModeRow, altSeatNumberingModeContinuous, altSeatNumberingModeZigzag, altSeatNumberingModeCenterOddEven]
+      .forEach((radio) => {
+        if (radio) radio.disabled = !hasDraft;
+      });
+    if (altSectionSaveBtn) altSectionSaveBtn.disabled = !hasDraft;
+    if (altSectionSaveCloseBtn) altSectionSaveCloseBtn.disabled = !hasDraft;
+    if (!hasDraft && altGridStatus) altGridStatus.textContent = "Rows: 0/0 · Cols: 0 · Seats: 0 · Selected rows: 0";
     updateAltContinuousControls();
+    refreshAltRowSettingsPanel();
   }
 
   function getAltCanvasPoint(e) {
@@ -21496,14 +22483,15 @@ function nudgeSelection(dxScreen, dyScreen) {
   function getAltRowCenterY(lineIndex, metrics) {
     if (!metrics) return 0;
     const rowBlock = metrics.rowHeight + metrics.rowGap;
-    return metrics.padding + lineIndex * rowBlock + metrics.rowHeight / 2;
+    return metrics.gridTopY + lineIndex * rowBlock + metrics.rowHeight / 2;
   }
 
   function getAltSlotIndexFromX(x, metrics) {
     if (!metrics) return 0;
     const raw = (x - metrics.seatStartX) / ALT_SEAT_SPACING;
     const idx = Math.round(raw);
-    return Math.max(0, Math.min(ALT_MAX_SLOTS - 1, idx));
+    const maxIndex = Math.max(0, (metrics.gridCols || altGridCols || ALT_DEFAULT_GRID_COLS) - 1);
+    return Math.max(0, Math.min(maxIndex, idx));
   }
 
   function getAltLastSlotIndex(line, blockId = null) {
@@ -21538,6 +22526,29 @@ function nudgeSelection(dxScreen, dyScreen) {
     altSeatTooltip.style.left = `${x + 12}px`;
     altSeatTooltip.style.top = `${y + 12}px`;
     altSeatTooltip.style.opacity = "1";
+  }
+
+  function scheduleAltCanvasRender() {
+    if (altCanvasRenderRaf != null) return;
+    altCanvasRenderRaf = window.requestAnimationFrame(() => {
+      altCanvasRenderRaf = null;
+      renderAltSectionCanvas();
+    });
+  }
+
+  function traceAltRoundedRect(ctx, x, y, width, height, radius) {
+    const r = Math.max(0, Math.min(radius, width / 2, height / 2));
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.lineTo(x + width - r, y);
+    ctx.quadraticCurveTo(x + width, y, x + width, y + r);
+    ctx.lineTo(x + width, y + height - r);
+    ctx.quadraticCurveTo(x + width, y + height, x + width - r, y + height);
+    ctx.lineTo(x + r, y + height);
+    ctx.quadraticCurveTo(x, y + height, x, y + height - r);
+    ctx.lineTo(x, y + r);
+    ctx.quadraticCurveTo(x, y, x + r, y);
+    ctx.closePath();
   }
 
   function drawAltRowBox(ctx, x, y, width, height, radius, active) {
@@ -21597,6 +22608,14 @@ function nudgeSelection(dxScreen, dyScreen) {
       activeSectionDraftId,
       altActiveLineIndex,
       altSeatNumberingMode,
+      altSeatDeleteNumberingMode,
+      altBrokenRowMode,
+      altGridCols,
+      altDrawMode,
+      altDrawConstraintMode,
+      altSelectionRange: cloneAltHistoryValue(altSelectionRange),
+      altSelectedSeatKeys: Array.from(altSelectedSeatKeys.values()),
+      altSelectedRowIndexes: Array.from(altSelectedRowIndexes.values()),
       sectionDirty,
       sectionRawTextEntries: Array.from(sectionRawText.entries())
     };
@@ -21607,14 +22626,48 @@ function nudgeSelection(dxScreen, dyScreen) {
     sectionDrafts = cloneAltHistoryValue(snapshot.sectionDrafts || []);
     activeSectionDraftId = snapshot.activeSectionDraftId || null;
     altActiveLineIndex = Number.isFinite(snapshot.altActiveLineIndex) ? snapshot.altActiveLineIndex : null;
-    altSeatNumberingMode = snapshot.altSeatNumberingMode === "continuous" ? "continuous" : "row";
-    if (altSeatNumberingModeSelect) {
-      altSeatNumberingModeSelect.value = altSeatNumberingMode;
+    altSeatNumberingMode = normalizeAltSeatNumberingMode(snapshot.altSeatNumberingMode);
+    altSeatDeleteNumberingMode = snapshot.altSeatDeleteNumberingMode === "preserve" ? "preserve" : "compact";
+    altBrokenRowMode = normalizeAltBrokenRowMode(snapshot.altBrokenRowMode);
+    altGridCols = Number.isFinite(Number(snapshot.altGridCols))
+      ? Math.max(1, Math.floor(Number(snapshot.altGridCols)))
+      : ALT_DEFAULT_GRID_COLS;
+    altDrawMode = snapshot.altDrawMode === "erase" ? "erase" : (snapshot.altDrawMode === "draw" ? "draw" : "select");
+    altDrawConstraintMode = snapshot.altDrawConstraintMode === "rows" ? "rows" : "free";
+    altSelectionRange = snapshot.altSelectionRange ? cloneAltHistoryValue(snapshot.altSelectionRange) : null;
+    const selectedSeatKeys = Array.isArray(snapshot.altSelectedSeatKeys)
+      ? snapshot.altSelectedSeatKeys.map((value) => String(value))
+      : [];
+    altSelectedSeatKeys = new Set(selectedSeatKeys);
+    const nextSelectedRows = new Set();
+    const selectedRows = Array.isArray(snapshot.altSelectedRowIndexes) ? snapshot.altSelectedRowIndexes : [];
+    if (selectedRows.length) {
+      selectedRows.forEach((value) => {
+        const idx = Number(value);
+        if (Number.isFinite(idx)) nextSelectedRows.add(idx);
+      });
+    } else {
+      selectedSeatKeys.forEach((key) => {
+        const [lineToken] = String(key).split(":");
+        const lineIndex = Number(lineToken);
+        if (Number.isFinite(lineIndex)) nextSelectedRows.add(lineIndex);
+      });
+    }
+    altSelectedRowIndexes = nextSelectedRows;
+    syncAltSeatNumberingModeRadios(altSeatNumberingMode);
+    if (altSeatDeleteNumberingCompact) altSeatDeleteNumberingCompact.checked = altSeatDeleteNumberingMode === "compact";
+    if (altSeatDeleteNumberingPreserve) altSeatDeleteNumberingPreserve.checked = altSeatDeleteNumberingMode === "preserve";
+    if (altBrokenRowSameRowId) altBrokenRowSameRowId.checked = altBrokenRowMode === "sameRowId";
+    if (altBrokenRowNewRowId) altBrokenRowNewRowId.checked = altBrokenRowMode === "newRowId";
+    if (altDrawConstraintFree) {
+      altDrawConstraintFree.checked = altDrawConstraintMode === "free";
+    }
+    if (altDrawConstraintRows) {
+      altDrawConstraintRows.checked = altDrawConstraintMode === "rows";
     }
     altIsDrawing = false;
     altDrawStart = null;
     altDrawEnd = null;
-    altDrawLineIndex = null;
     setAltTooltip("", 0, 0, false);
     sectionRawText.clear();
     const entries = Array.isArray(snapshot.sectionRawTextEntries) ? snapshot.sectionRawTextEntries : [];
@@ -21660,24 +22713,40 @@ function nudgeSelection(dxScreen, dyScreen) {
   function commitAltChange() {
     const draft = getActiveDraft();
     if (!draft) return;
+    altSeatNumberingMode = normalizeAltSeatNumberingMode(altSeatNumberingMode);
+    syncAltSeatNumberingModeRadios(altSeatNumberingMode);
+    altGridCols = Math.max(1, altGridCols, getAltMaxUsedSlot(altRowLines) + 1);
+    altRowLines.forEach((line, idx) => {
+      line.lineIndex = idx;
+      ensureAltRowNameState(line, idx);
+      if (!Array.isArray(line.slots)) line.slots = [];
+      line.brokenRowModeOverride = normalizeAltBrokenRowOverride(line?.brokenRowModeOverride);
+      if (!Array.isArray(line.blocks) || !line.blocks.length) {
+        const block = createAltBlock();
+        line.blocks = [block];
+        line.activeBlockId = block.id;
+      }
+      if (!line.activeBlockId) line.activeBlockId = line.blocks[0].id;
+      line.blocks.forEach((block) => {
+        if (!Number.isFinite(Number(block.startSeat))) block.startSeat = 1;
+        if (typeof block.manualStartSeat !== "boolean") block.manualStartSeat = false;
+        block.direction = block.direction === -1 ? -1 : 1;
+      });
+    });
+    normalizeAltAutoRowNames();
     draft.altRowLines = altRowLines;
-    if (altSeatNumberingModeSelect) {
-      altSeatNumberingModeSelect.value = altSeatNumberingMode;
-    }
-    if (altSeatNumberingMode === "continuous") {
-      altRowLines.forEach((line) => {
-        line.blocks.forEach((block) => {
-          if (getAltSeatCount(line, block.id) === 0) {
-            block.autoStartSeatAssigned = false;
-          }
-        });
-      });
-    } else {
-      recalculateAltRowStartSeats();
-      altRowLines.forEach((line) => {
-        line.blocks.forEach((block) => renumberAltBlockSeats(line, block));
-      });
-    }
+    renumberAltRowsByMode();
+
+    const nextSelectedKeys = new Set();
+    altSelectedSeatKeys.forEach((key) => {
+      const [lineToken, slotToken] = String(key).split(":");
+      const lineIndex = Number(lineToken);
+      const slotIndex = Number(slotToken);
+      const slot = altRowLines?.[lineIndex]?.slots?.[slotIndex];
+      if (slot && slot.type === "seat") nextSelectedKeys.add(key);
+    });
+    altSelectedSeatKeys = nextSelectedKeys;
+
     syncAltDraftFromLines(draft);
     setSectionDirty(true);
     renderAltSectionCards();
@@ -21724,25 +22793,15 @@ function nudgeSelection(dxScreen, dyScreen) {
     const line = getAltActiveLine();
     const block = getAltActiveBlock(line);
     if (!line || !block) return;
+    if (altSeatNumberingMode !== ALT_SEAT_NUMBERING_MODE_ROW) {
+      alert("Start seat can only be edited in 'Per row (start 1)' mode.");
+      return;
+    }
     const input = prompt("Start seat number:", String(block.startSeat));
     if (input == null) return;
     const next = parseInt(input, 10);
     if (!Number.isFinite(next)) {
       alert("Start seat must be a valid number.");
-      return;
-    }
-    if (altSeatNumberingMode === "continuous") {
-      const seatCount = getAltSeatCount(line, block.id);
-      block.startSeat = next;
-      block.autoStartSeatAssigned = seatCount > 0;
-      block.manualStartSeat = false;
-      if (seatCount > 0) {
-        renumberAltBlockSeats(line, block);
-        setAltContinuousStartSeat(next + seatCount, true);
-      } else {
-        setAltContinuousStartSeat(next, true);
-      }
-      commitAltChange();
       return;
     }
     block.startSeat = next;
@@ -21763,59 +22822,54 @@ function nudgeSelection(dxScreen, dyScreen) {
     }
     altRowLines.forEach((line, idx) => {
       line.name = String(start + idx);
+      line.autoRowName = false;
     });
     commitAltChange();
   }
 
   function applyAltReverseRowOrder() {
-    if (!altRowLines.length) return;
-    const names = altRowLines.map((line, idx) => line.name || String(idx + 1)).reverse();
-    altRowLines.forEach((line, idx) => {
-      line.name = names[idx] || String(idx + 1);
+    const occupiedLineIndexes = getAltOccupiedLineIndexes();
+    if (!occupiedLineIndexes.length) return;
+    const names = occupiedLineIndexes
+      .map((lineIndex) => String(altRowLines[lineIndex]?.name || (lineIndex + 1)))
+      .reverse();
+    occupiedLineIndexes.forEach((lineIndex, idx) => {
+      altRowLines[lineIndex].name = names[idx] || String(lineIndex + 1);
+      altRowLines[lineIndex].autoRowName = false;
     });
     commitAltChange();
   }
 
   function applyAltSetRowsManually() {
-    if (!altRowLines.length) return;
-    const current = altRowLines.map((line, idx) => line.name || String(idx + 1)).join(", ");
-    const input = prompt("Enter row names separated by comma or new line:", current);
-    if (input == null) return;
-    const names = input.split(/[\n,]+/).map(s => s.trim()).filter(Boolean);
-    if (!names.length) {
-      alert("You must enter at least one row name.");
+    const occupiedLineIndexes = getAltOccupiedLineIndexes();
+    if (!occupiedLineIndexes.length) {
+      alert("Draw seats before renaming rows.");
       return;
     }
-    if (names.length !== altRowLines.length) {
-      const diff = names.length - altRowLines.length;
-      const action = diff > 0 ? `add ${diff} row${diff === 1 ? "" : "s"}` : `remove ${Math.abs(diff)} row${diff === -1 ? "" : "s"}`;
-      if (!confirm(`You entered ${names.length} names but there are ${altRowLines.length} rows. This will ${action}. Continue?`)) {
-        return;
+    const current = occupiedLineIndexes
+      .map((lineIndex) => String(altRowLines[lineIndex]?.name || (lineIndex + 1)))
+      .join(", ");
+    let promptValue = current;
+    while (true) {
+      const input = prompt("Enter row names separated by comma or new line:", promptValue);
+      if (input == null) return;
+      promptValue = input;
+      const names = input.split(/[\n,]+/).map(s => s.trim()).filter(Boolean);
+      if (!names.length) {
+        alert("You must enter at least one row name.");
+        continue;
       }
-      if (diff > 0) {
-        const baseIndex = altRowLines.length;
-        for (let i = 0; i < diff; i++) {
-          const block = createAltBlock();
-          altRowLines.push({
-            lineIndex: baseIndex + i,
-            name: "",
-            blocks: [block],
-            activeBlockId: block.id,
-            slots: []
-          });
-        }
-      } else if (diff < 0) {
-        altRowLines = altRowLines.slice(0, names.length);
-        if (altActiveLineIndex != null && altActiveLineIndex >= altRowLines.length) {
-          altActiveLineIndex = altRowLines.length ? altRowLines.length - 1 : null;
-        }
+      if (names.length !== occupiedLineIndexes.length) {
+        alert(`Please enter exactly ${occupiedLineIndexes.length} row name(s), comma separated.`);
+        continue;
       }
+      occupiedLineIndexes.forEach((lineIndex, idx) => {
+        altRowLines[lineIndex].name = names[idx];
+        altRowLines[lineIndex].autoRowName = false;
+      });
+      commitAltChange();
+      return;
     }
-    altRowLines.forEach((line, idx) => {
-      line.lineIndex = idx;
-      line.name = names[idx] || line.name || String(idx + 1);
-    });
-    commitAltChange();
   }
 
   function applyAltDuplicateRow() {
@@ -21858,6 +22912,11 @@ function nudgeSelection(dxScreen, dyScreen) {
     target.blocks = newBlocks.length ? newBlocks : [createAltBlock()];
     target.activeBlockId = target.blocks[0].id;
     target.slots = newSlots;
+    target.autoRowName = source.autoRowName !== false;
+    if (!target.autoRowName) {
+      target.name = source.name;
+    }
+    target.brokenRowModeOverride = normalizeAltBrokenRowOverride(source.brokenRowModeOverride);
     setAltActiveLine(targetIndex);
     commitAltChange();
   }
@@ -21875,10 +22934,7 @@ function nudgeSelection(dxScreen, dyScreen) {
     const line = altRowLines[altActiveLineIndex];
     if (!line) return;
     resetAltLine(line);
-    if (altSeatNumberingMode === "continuous") {
-      const nextStart = computeAltContinuousStartFromLines(altRowLines);
-      setAltContinuousStartSeat(nextStart, true);
-    }
+    clearAltSelection({ refreshPanel: false });
     commitAltChange();
   }
 
@@ -21886,10 +22942,7 @@ function nudgeSelection(dxScreen, dyScreen) {
     if (!altRowLines.length) return;
     if (!confirm("Clear all rows? This will remove all seats and gaps.")) return;
     altRowLines.forEach((line) => resetAltLine(line));
-    if (altSeatNumberingMode === "continuous") {
-      const nextStart = computeAltContinuousStartFromLines(altRowLines);
-      setAltContinuousStartSeat(nextStart, true);
-    }
+    clearAltSelection({ refreshPanel: false });
     commitAltChange();
   }
 
@@ -21911,9 +22964,11 @@ function nudgeSelection(dxScreen, dyScreen) {
     altRowLines.push({
       lineIndex: nextIndex,
       name: getAltNextRowName(),
+      autoRowName: true,
       blocks: [block],
       activeBlockId: block.id,
-      slots: []
+      slots: [],
+      brokenRowModeOverride: null
     });
     altRowLines.forEach((line, idx) => {
       line.lineIndex = idx;
@@ -21926,40 +22981,26 @@ function nudgeSelection(dxScreen, dyScreen) {
     const line = getAltActiveLine();
     const block = getAltActiveBlock(line);
     if (!line || !block) return;
+    clearAltSelection({ refreshPanel: false });
     const metrics = getAltCanvasMetrics();
     if (!metrics) return;
-    const hadSeats = line.slots.some(slot => slot && slot.type === "seat" && slot.blockId === block.id);
     const lineIndex = line.lineIndex ?? altActiveLineIndex ?? 0;
     const centerY = getAltRowCenterY(lineIndex, metrics);
     let insertIndex = getAltLastSlotIndex(line, block.id);
     insertIndex = insertIndex < 0 ? 0 : insertIndex + 1;
-    while (line.slots[insertIndex] && insertIndex < ALT_MAX_SLOTS) insertIndex += 1;
-    if (insertIndex >= ALT_MAX_SLOTS) {
-      alert(`Row is full (max ${ALT_MAX_SLOTS} seats).`);
-      return;
+    while (line.slots[insertIndex]) insertIndex += 1;
+    if (insertIndex >= altGridCols) {
+      ensureAltGridSize(lineIndex + 1, insertIndex + ALT_GRID_GROW_COLS);
     }
     const slotX = metrics.seatStartX + insertIndex * ALT_SEAT_SPACING;
     const clamped = clampAltPointToRowBand({ x: slotX, y: centerY }, lineIndex, metrics);
-    let seatName = "";
-    if (altSeatNumberingMode === "continuous") {
-      const startValue = altContinuousStartSeat;
-      if (!hadSeats) {
-        block.startSeat = startValue;
-        block.autoStartSeatAssigned = true;
-      }
-      seatName = String(startValue);
-      setAltContinuousStartSeat(startValue + 1, true);
-    }
     line.slots[insertIndex] = {
       type: "seat",
       blockId: block.id,
-      name: seatName,
+      name: "",
       x: clamped.x,
       y: clamped.y
     };
-    if (altSeatNumberingMode !== "continuous") {
-      renumberAltBlockSeats(line, block);
-    }
     commitAltChange();
   }
 
@@ -21967,13 +23008,11 @@ function nudgeSelection(dxScreen, dyScreen) {
     const line = getAltActiveLine();
     const block = getAltActiveBlock(line);
     if (!line || !block) return;
+    clearAltSelection({ refreshPanel: false });
     for (let i = line.slots.length - 1; i >= 0; i--) {
       const slot = line.slots[i];
       if (slot && slot.type === "seat" && slot.blockId === block.id) {
         line.slots[i] = null;
-        if (altSeatNumberingMode !== "continuous") {
-          renumberAltBlockSeats(line, block);
-        }
         commitAltChange();
         return;
       }
@@ -21982,82 +23021,92 @@ function nudgeSelection(dxScreen, dyScreen) {
 
   function finalizeAltDraw() {
     if (!altIsDrawing) return;
-    const lineIndex = altDrawLineIndex;
-    const line = lineIndex != null ? altRowLines[lineIndex] : null;
-    const block = getAltActiveBlock(line);
     const metrics = getAltCanvasMetrics();
-    if (!line || !block || !metrics) {
-      altIsDrawing = false;
-      altDrawStart = null;
-      altDrawEnd = null;
-      altDrawLineIndex = null;
-      setAltTooltip("", 0, 0, false);
-      return;
-    }
-    const start = clampAltPointToRowBand(altDrawStart, lineIndex, metrics);
-    const end = clampAltPointToRowBand(altDrawEnd, lineIndex, metrics);
-    const centerY = getAltRowCenterY(lineIndex, metrics);
-    start.y = centerY;
-    end.y = centerY;
-    const hadSeats = line.slots.some(slot => slot && slot.type === "seat" && slot.blockId === block.id);
-    const points = buildAltSeatPoints(start, end);
-    const leftX = Math.min(start.x, end.x);
-    let startIndex = getAltSlotIndexFromX(leftX, metrics);
-    const createdSlots = [];
-    points.forEach((pt, idx) => {
-      let slotIndex = startIndex + idx;
-      if (slotIndex >= ALT_MAX_SLOTS) return;
-      while (line.slots[slotIndex] && slotIndex < ALT_MAX_SLOTS) slotIndex += 1;
-      if (slotIndex >= ALT_MAX_SLOTS) return;
-      const slotX = metrics.seatStartX + slotIndex * ALT_SEAT_SPACING;
-      const slot = {
-        type: "seat",
-        blockId: block.id,
-        name: "",
-        x: slotX,
-        y: centerY
-      };
-      line.slots[slotIndex] = slot;
-      createdSlots.push({ slotIndex, slot });
-    });
-    const dx = end.x - start.x;
-    const dy = 0;
-    const len = Math.hypot(dx, dy);
-    if (len > 1e-6) {
-      block.direction = dx < 0 ? -1 : 1;
-      block.lastDirection = { x: dx / len, y: dy / len };
-    } else {
-      const hasExistingSeats = line.slots.some(slot => slot && slot.type === "seat" && slot.blockId === block.id);
-      if (!hasExistingSeats && block.lastDirection) {
-        block.direction = block.lastDirection.x < 0 ? -1 : 1;
-      }
-    }
-    if (altSeatNumberingMode === "continuous") {
-      if (createdSlots.length) {
-        const startValue = altContinuousStartSeat;
-        if (!hadSeats) {
-          block.startSeat = startValue;
-          block.autoStartSeatAssigned = true;
-        }
-        const ordered = createdSlots.sort((a, b) => {
-          return block.direction === -1 ? b.slotIndex - a.slotIndex : a.slotIndex - b.slotIndex;
-        });
-        let current = startValue;
-        ordered.forEach(({ slot }) => {
-          slot.name = String(current);
-          current += 1;
-        });
-        setAltContinuousStartSeat(current, true);
-      }
-    } else {
-      renumberAltBlockSeats(line, block);
-    }
+    if (!metrics) return;
+    const startPoint = clampAltPointToGrid(altDrawStart, metrics);
+    const endPoint = clampAltPointToGrid(altDrawEnd, metrics);
+    const startCell = getAltGridCellFromPoint(startPoint, metrics, true);
+    const endCell = getAltGridCellFromPoint(endPoint, metrics, true);
+    const rawRange = normalizeAltCellRange(startCell, endCell);
+
     altIsDrawing = false;
     altDrawStart = null;
     altDrawEnd = null;
-    altDrawLineIndex = null;
     setAltTooltip("", 0, 0, false);
-    commitAltChange();
+    const additiveSelection = altSelectionAdditive;
+    altSelectionAdditive = false;
+    if (!rawRange) {
+      renderAltSectionCanvas();
+      return;
+    }
+    let range = rawRange;
+    if (altDrawMode !== "select") {
+      range = normalizeAltRangeForDrawConstraint(rawRange, startCell);
+    }
+    ensureAltGridSize(range.lineEnd + 1, range.slotEnd + 1);
+
+    if (altDrawMode === "select") {
+      altSelectionRange = range;
+      const nextSelectedRows = additiveSelection ? new Set(altSelectedRowIndexes) : new Set();
+      for (let lineIndex = range.lineStart; lineIndex <= range.lineEnd; lineIndex++) {
+        if (lineIndex >= 0 && lineIndex < altRowLines.length) {
+          nextSelectedRows.add(lineIndex);
+        }
+      }
+      altSelectedRowIndexes = nextSelectedRows;
+      rebuildAltSelectedSeatKeysFromRows();
+      setAltActiveLine(range.lineStart);
+      refreshAltRowSettingsPanel();
+      renderAltSectionCanvas();
+      return;
+    }
+
+    clearAltSelection({ refreshPanel: false });
+    const touchedLines = new Set();
+    const horizontalDirection = endCell.slotIndex < startCell.slotIndex ? -1 : 1;
+    forEachAltCellInRange(range, (lineIndex, slotIndex) => {
+      const line = altRowLines[lineIndex];
+      if (!line) return;
+      const block = getAltActiveBlock(line);
+      if (!block) return;
+      if (!line.slots) line.slots = [];
+      if (altDrawMode === "erase") {
+        const slot = line.slots[slotIndex];
+        if (slot && slot.type === "seat") {
+          line.slots[slotIndex] = null;
+          altSelectedSeatKeys.delete(getAltSeatKey(lineIndex, slotIndex));
+          touchedLines.add(lineIndex);
+        }
+        return;
+      }
+      const center = getAltSlotPosition(null, lineIndex, slotIndex, metrics);
+      line.slots[slotIndex] = {
+        type: "seat",
+        blockId: block.id,
+        name: "",
+        x: center.x,
+        y: center.y
+      };
+      touchedLines.add(lineIndex);
+    });
+
+    rebuildAltSelectedSeatKeysFromRows();
+
+    touchedLines.forEach((lineIndex) => {
+      const line = altRowLines[lineIndex];
+      const block = getAltActiveBlock(line);
+      if (!line || !block) return;
+      block.direction = horizontalDirection;
+      block.lastDirection = { x: horizontalDirection, y: 0 };
+    });
+
+    setAltActiveLine(range.lineStart);
+    if (touchedLines.size) {
+      commitAltChange();
+    } else {
+      refreshAltRowSettingsPanel();
+      renderAltSectionCanvas();
+    }
   }
 
   function materializeNewSection(draft) {
@@ -22479,9 +23528,7 @@ function nudgeSelection(dxScreen, dyScreen) {
   altSectionCreateBtn?.addEventListener("click", () => {
     const name = promptForSectionName("");
     if (!name) return;
-    const rowCount = promptForRowCount("10");
-    if (!rowCount) return;
-    addNewAltDraft(name, rowCount);
+    addNewAltDraft(name);
   });
   altSectionCardsEl?.addEventListener("click", (e) => {
     const card = e.target.closest(".section-card");
@@ -22489,7 +23536,15 @@ function nudgeSelection(dxScreen, dyScreen) {
     const draft = sectionDrafts.find((d) => d.sectionId === card.dataset.sectionId);
     if (!draft) return;
     const renameRequested = !!e.target.closest(".section-card__rename");
+    const changedSection = activeSectionDraftId !== draft.sectionId;
     activeSectionDraftId = draft.sectionId;
+    if (changedSection) {
+      altSelectedSeatKeys = new Set();
+      altSelectedRowIndexes = new Set();
+      altSelectionRange = null;
+      altSelectionAdditive = false;
+      altHoverCell = null;
+    }
     if (renameRequested) {
       renameDraftSection(draft);
     }
@@ -22510,6 +23565,7 @@ function nudgeSelection(dxScreen, dyScreen) {
 
   altToolSelectBtn?.addEventListener("click", () => setAltTool("select"));
   altToolDrawBtn?.addEventListener("click", () => setAltTool("draw"));
+  altToolEraseBtn?.addEventListener("click", () => setAltTool("erase"));
   altUndoBtn?.addEventListener("click", () => {
     undoAltChange();
   });
@@ -22525,17 +23581,162 @@ function nudgeSelection(dxScreen, dyScreen) {
   altAddRowBtn?.addEventListener("click", applyAltAddRow);
   altClearRowBtn?.addEventListener("click", applyAltClearCurrentRow);
   altClearAllRowsBtn?.addEventListener("click", applyAltClearAllRows);
-  altSeatNumberingModeSelect?.addEventListener("change", (e) => {
-    altSeatNumberingMode = e.target.value === "continuous" ? "continuous" : "row";
-    if (altSeatNumberingMode === "continuous") {
-      syncAltContinuousStartSeatFromDraft(getActiveDraft());
+  altDrawConstraintFree?.addEventListener("change", () => {
+    if (!altDrawConstraintFree.checked) return;
+    altDrawConstraintMode = "free";
+    renderAltSectionCanvas();
+  });
+  altDrawConstraintRows?.addEventListener("change", () => {
+    if (!altDrawConstraintRows.checked) return;
+    altDrawConstraintMode = "rows";
+    renderAltSectionCanvas();
+  });
+  const applySelectedAltRowSettingsFromInputs = () => {
+    if (altRowSettingsUpdatingUi) return;
+    const selectedRows = getAltSelectedOccupiedRowIndexes();
+    if (!selectedRows.length) return;
+    const rowIndex = selectedRows[0];
+    const line = altRowLines[rowIndex];
+    if (!line) return;
+    const mode = normalizeAltSeatNumberingMode(altSeatNumberingMode);
+    const isMultiRowSelection = selectedRows.length > 1;
+    const canEditStart = mode === ALT_SEAT_NUMBERING_MODE_ROW
+      || (mode === ALT_SEAT_NUMBERING_MODE_CONTINUOUS && !isMultiRowSelection);
+    if (!canEditStart) {
+      refreshAltRowSettingsPanel();
+      return;
     }
-    updateAltContinuousControls();
+    const currentStart = getAltRowStartValue(line);
+    const parsedStart = parseInt(String(altRowStartNumberInput?.value || currentStart), 10);
+    const startValue = Number.isFinite(parsedStart) ? Math.max(1, parsedStart) : currentStart;
+    if (altRowStartNumberInput) altRowStartNumberInput.value = String(startValue);
+    if (mode === ALT_SEAT_NUMBERING_MODE_ROW) {
+      selectedRows.forEach((selectedRowIndex) => {
+        const selectedLine = altRowLines[selectedRowIndex];
+        const selectedBlock = getAltActiveBlock(selectedLine) || selectedLine?.blocks?.[0] || null;
+        if (!selectedLine || !selectedBlock) return;
+        selectedBlock.startSeat = startValue;
+        selectedBlock.manualStartSeat = true;
+      });
+      commitAltChange();
+      return;
+    }
+    const block = getAltActiveBlock(line) || line.blocks?.[0] || null;
+    if (!block) return;
+    block.startSeat = startValue;
+    block.manualStartSeat = true;
+    commitAltChange();
+  };
+  altRowStartNumberInput?.addEventListener("input", () => {
+    const parsed = parseInt(String(altRowStartNumberInput?.value || ""), 10);
+    if (Number.isFinite(parsed) && parsed < 1 && altRowStartNumberInput) {
+      altRowStartNumberInput.value = "1";
+    }
+  });
+  altRowStartNumberInput?.addEventListener("wheel", (e) => {
+    const parsed = parseInt(String(altRowStartNumberInput?.value || "1"), 10);
+    const current = Number.isFinite(parsed) ? parsed : 1;
+    if (e.deltaY > 0 && current <= 1) {
+      e.preventDefault();
+      if (altRowStartNumberInput) altRowStartNumberInput.value = "1";
+    }
+  }, { passive: false });
+  altRowStartNumberInput?.addEventListener("change", applySelectedAltRowSettingsFromInputs);
+  altRowReverseDirectionBtn?.addEventListener("click", () => {
+    if (altRowSettingsUpdatingUi) return;
+    const selectedRows = getAltSelectedOccupiedRowIndexes();
+    if (!selectedRows.length) return;
+    const mode = normalizeAltSeatNumberingMode(altSeatNumberingMode);
+    if (mode === ALT_SEAT_NUMBERING_MODE_CONTINUOUS_ZIGZAG) return;
+    selectedRows.forEach((rowIndex) => {
+      const line = altRowLines[rowIndex];
+      const block = getAltActiveBlock(line) || line?.blocks?.[0] || null;
+      if (!line || !block) return;
+      const currentDirection = getAltRowDirectionValue(line);
+      block.direction = currentDirection === "desc" ? 1 : -1;
+      block.lastDirection = { x: block.direction, y: 0 };
+      if (mode === ALT_SEAT_NUMBERING_MODE_ROW) {
+        const rowStart = getAltRowStartValue(line);
+        block.startSeat = Number.isFinite(rowStart) ? Math.max(1, rowStart) : 1;
+        block.manualStartSeat = true;
+      }
+    });
     commitAltChange();
   });
-  altContinuousSkipBtn?.addEventListener("click", () => {
-    setAltContinuousStartSeat(altContinuousStartSeat + 1, true);
-    updateAltContinuousControls();
+  altRowBrokenOverrideGlobal?.addEventListener("change", () => {
+    if (altRowSettingsUpdatingUi || !altRowBrokenOverrideGlobal.checked) return;
+    applyAltBrokenRowOverrideToSelectedRows(null);
+  });
+  altRowBrokenOverrideSame?.addEventListener("change", () => {
+    if (altRowSettingsUpdatingUi || !altRowBrokenOverrideSame.checked) return;
+    applyAltBrokenRowOverrideToSelectedRows("sameRowId");
+  });
+  altRowBrokenOverrideNew?.addEventListener("change", () => {
+    if (altRowSettingsUpdatingUi || !altRowBrokenOverrideNew.checked) return;
+    applyAltBrokenRowOverrideToSelectedRows("newRowId");
+  });
+  const applyAltSeatNumberingModeFromRadios = () => {
+    const nextMode = normalizeAltSeatNumberingMode(getAltSeatNumberingModeFromRadios());
+    altSeatNumberingMode = nextMode;
+    syncAltSeatNumberingModeRadios(nextMode);
+    const draft = getActiveDraft();
+    if (!draft) {
+      updateAltContinuousControls();
+      refreshAltRowSettingsPanel();
+      renderAltSectionCanvas();
+      return;
+    }
+    commitAltChange();
+  };
+  altSeatNumberingModeRow?.addEventListener("change", () => {
+    if (!altSeatNumberingModeRow.checked) return;
+    applyAltSeatNumberingModeFromRadios();
+  });
+  altSeatNumberingModeContinuous?.addEventListener("change", () => {
+    if (!altSeatNumberingModeContinuous.checked) return;
+    applyAltSeatNumberingModeFromRadios();
+  });
+  altSeatNumberingModeZigzag?.addEventListener("change", () => {
+    if (!altSeatNumberingModeZigzag.checked) return;
+    applyAltSeatNumberingModeFromRadios();
+  });
+  altSeatNumberingModeCenterOddEven?.addEventListener("change", () => {
+    if (!altSeatNumberingModeCenterOddEven.checked) return;
+    applyAltSeatNumberingModeFromRadios();
+  });
+  const applyAltSeatDeleteNumberingModeFromRadios = () => {
+    altSeatDeleteNumberingMode = altSeatDeleteNumberingPreserve?.checked ? "preserve" : "compact";
+    const draft = getActiveDraft();
+    if (!draft) {
+      renderAltSectionCanvas();
+      return;
+    }
+    commitAltChange();
+  };
+  const applyAltBrokenRowModeFromRadios = () => {
+    altBrokenRowMode = altBrokenRowNewRowId?.checked ? "newRowId" : "sameRowId";
+    const draft = getActiveDraft();
+    if (!draft) {
+      renderAltSectionCanvas();
+      return;
+    }
+    commitAltChange();
+  };
+  altSeatDeleteNumberingCompact?.addEventListener("change", () => {
+    if (!altSeatDeleteNumberingCompact.checked) return;
+    applyAltSeatDeleteNumberingModeFromRadios();
+  });
+  altSeatDeleteNumberingPreserve?.addEventListener("change", () => {
+    if (!altSeatDeleteNumberingPreserve.checked) return;
+    applyAltSeatDeleteNumberingModeFromRadios();
+  });
+  altBrokenRowSameRowId?.addEventListener("change", () => {
+    if (!altBrokenRowSameRowId.checked) return;
+    applyAltBrokenRowModeFromRadios();
+  });
+  altBrokenRowNewRowId?.addEventListener("change", () => {
+    if (!altBrokenRowNewRowId.checked) return;
+    applyAltBrokenRowModeFromRadios();
   });
 
   altSectionCanvas?.addEventListener("mousedown", (e) => {
@@ -22543,60 +23744,84 @@ function nudgeSelection(dxScreen, dyScreen) {
     if (!draft) return;
     const metrics = getAltCanvasMetrics();
     if (!metrics) return;
+    altSelectionAdditive = altSectionTool === "select" && !!e.shiftKey;
     const point = getAltCanvasPoint(e);
-    if (altSectionTool === "draw") {
-      const lineIndex = getAltLineIndexFromY(point.y, metrics);
-      if (lineIndex == null) {
-        renderAltSectionCanvas();
-        return;
+    const startCell = getAltGridCellFromPoint(point, metrics);
+    if (!startCell) {
+      if (altSectionTool === "select") {
+        clearAltSelection();
       }
-      setAltActiveLine(lineIndex);
-      const clamped = clampAltPointToRowBand(point, lineIndex, metrics);
-      clamped.y = getAltRowCenterY(lineIndex, metrics);
-      altIsDrawing = true;
-      altDrawStart = clamped;
-      altDrawEnd = clamped;
-      altDrawLineIndex = lineIndex;
       renderAltSectionCanvas();
       return;
     }
-    if (altSectionTool === "select") {
-      const hit = findAltSeatHit(point.x, point.y, metrics);
-      if (hit) {
-        setAltActiveLine(hit.lineIndex);
-        const line = altRowLines[hit.lineIndex];
-        if (line) line.activeBlockId = hit.blockId;
-      } else {
-        const lineIndex = getAltLineIndexFromY(point.y, metrics);
-        if (lineIndex != null) setAltActiveLine(lineIndex);
-      }
-      renderAltSectionCanvas();
+    if (altSectionTool !== "select") {
+      clearAltSelection({ refreshPanel: false });
+      ensureAltGridSize(startCell.lineIndex + 1, startCell.slotIndex + 1);
     }
+    setAltActiveLine(startCell.lineIndex);
+    altIsDrawing = true;
+    altDrawMode = altSectionTool;
+    const clampedStart = clampAltPointToGrid(point, metrics);
+    altDrawStart = clampedStart;
+    altDrawEnd = clampedStart;
+    renderAltSectionCanvas();
   });
   altSectionCanvas?.addEventListener("mousemove", (e) => {
-    if (!altIsDrawing) return;
-    const metrics = getAltCanvasMetrics();
+    let metrics = getAltCanvasMetrics();
     if (!metrics) return;
     const point = getAltCanvasPoint(e);
-    if (altDrawLineIndex == null) return;
-    const clamped = clampAltPointToRowBand(point, altDrawLineIndex, metrics);
-    clamped.y = getAltRowCenterY(altDrawLineIndex, metrics);
-    altDrawEnd = clamped;
-    const line = altRowLines[altDrawLineIndex];
-    const block = getAltActiveBlock(line);
-    if (line && block) {
-      const existingSeats = line.slots.filter(slot => slot && slot.type === "seat" && slot.blockId === block.id).length;
-      const previewPoints = buildAltSeatPoints(altDrawStart, altDrawEnd);
-      const newCount = previewPoints.length;
-      const total = existingSeats + newCount;
-      const startSeat = altSeatNumberingMode === "continuous" ? altContinuousStartSeat : block.startSeat;
-      const lastSeat = normalizeAltContinuousStartSeat(startSeat) + Math.max(0, (altSeatNumberingMode === "continuous" ? newCount : total) - 1);
-      setAltTooltip(`No. of seats: ${newCount} · Last seat name: ${lastSeat}`, e.clientX, e.clientY, true);
+    const nextHoverCell = getAltGridCellFromPoint(point, metrics);
+    const hoverChanged = (altHoverCell?.lineIndex ?? null) !== (nextHoverCell?.lineIndex ?? null)
+      || (altHoverCell?.slotIndex ?? null) !== (nextHoverCell?.slotIndex ?? null);
+    altHoverCell = nextHoverCell;
+    if (!altIsDrawing) {
+      if (hoverChanged) scheduleAltCanvasRender();
+      return;
+    }
+    if (altDrawMode !== "select") {
+      const outsideCell = getAltGridCellFromPoint(point, metrics, true);
+      if (outsideCell) {
+        const needMoreRows = outsideCell.lineIndex >= metrics.gridRows;
+        const needMoreCols = outsideCell.slotIndex >= metrics.gridCols;
+        if (needMoreRows || needMoreCols) {
+          const changed = ensureAltGridSize(
+            outsideCell.lineIndex + 1 + (needMoreRows ? ALT_GRID_GROW_ROWS : 0),
+            outsideCell.slotIndex + 1 + (needMoreCols ? ALT_GRID_GROW_COLS : 0)
+          );
+          if (changed) {
+            metrics = getAltCanvasMetrics() || metrics;
+            const wrapEl = altSectionCanvasWrap || altSectionCanvas?.parentElement;
+            if (wrapEl && needMoreCols) wrapEl.scrollLeft = wrapEl.scrollWidth;
+            if (wrapEl && needMoreRows) wrapEl.scrollTop = wrapEl.scrollHeight;
+          }
+        }
+      }
+    }
+    altDrawEnd = clampAltPointToGrid(point, metrics);
+    const startCell = getAltGridCellFromPoint(altDrawStart, metrics, true);
+    const endCell = getAltGridCellFromPoint(altDrawEnd, metrics, true);
+    const rawRange = normalizeAltCellRange(startCell, endCell);
+    const range = rawRange
+      ? (altDrawMode === "select" ? rawRange : normalizeAltRangeForDrawConstraint(rawRange, startCell))
+      : null;
+    if (range) {
+      if (altDrawMode === "select") {
+        const rowCount = range.lineEnd - range.lineStart + 1;
+        setAltTooltip(`Select: ${rowCount} row(s)`, e.clientX, e.clientY, true);
+      } else {
+        const cellCount = (range.lineEnd - range.lineStart + 1) * (range.slotEnd - range.slotStart + 1);
+        const modeLabel = altDrawMode === "erase" ? "Remove" : "Add";
+        setAltTooltip(`${modeLabel}: ${cellCount} cell(s)`, e.clientX, e.clientY, true);
+      }
+    } else {
+      setAltTooltip("", 0, 0, false);
     }
     renderAltSectionCanvas();
   });
   altSectionCanvas?.addEventListener("mouseleave", () => {
-    if (altIsDrawing) renderAltSectionCanvas();
+    const hadHoverCell = !!altHoverCell;
+    altHoverCell = null;
+    if (altIsDrawing || hadHoverCell) scheduleAltCanvasRender();
     setAltTooltip("", 0, 0, false);
   });
   window.addEventListener("mouseup", () => {
@@ -22605,7 +23830,12 @@ function nudgeSelection(dxScreen, dyScreen) {
   window.addEventListener("keydown", (e) => {
     if (!altSectionManagerOverlay || altSectionManagerOverlay.style.display !== "flex") return;
     const tag = (e.target && e.target.tagName) ? e.target.tagName.toLowerCase() : "";
-    if (tag === "input" || tag === "textarea" || tag === "select" || e.isComposing) return;
+    if (e.isComposing) return;
+    if (tag === "textarea" || tag === "select") return;
+    if (tag === "input") {
+      const inputType = String(e.target?.type || "").toLowerCase();
+      if (inputType !== "radio" && inputType !== "checkbox") return;
+    }
     if (e.key === "s" || e.key === "S") {
       e.preventDefault();
       setAltTool("select");
@@ -22614,9 +23844,17 @@ function nudgeSelection(dxScreen, dyScreen) {
       e.preventDefault();
       setAltTool("draw");
     }
-    if (e.key === "n" || e.key === "N") {
+    if (e.key === "a" || e.key === "A") {
       e.preventDefault();
-      applyAltGap(false);
+      setAltTool("draw");
+    }
+    if (e.key === "r" || e.key === "R") {
+      e.preventDefault();
+      setAltTool("erase");
+    }
+    if (e.key === "Delete") {
+      e.preventDefault();
+      applyAltClearAllRows();
     }
   });
 
