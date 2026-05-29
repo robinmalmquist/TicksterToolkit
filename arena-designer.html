@@ -3747,7 +3747,7 @@
                 <legend>Numbering mode</legend>
                 <label class="alt-draw-mode__option" for="altSeatNumberingModeRow">
                   <input id="altSeatNumberingModeRow" type="radio" name="altSeatNumberingMode" value="row" checked />
-                  Per row (start 1)
+                  Per row
                 </label>
                 <label class="alt-draw-mode__option" for="altSeatNumberingModeContinuous">
                   <input id="altSeatNumberingModeContinuous" type="radio" name="altSeatNumberingMode" value="continuous" />
@@ -3760,6 +3760,13 @@
                 <label class="alt-draw-mode__option" for="altSeatNumberingModeCenterOddEven">
                   <input id="altSeatNumberingModeCenterOddEven" type="radio" name="altSeatNumberingMode" value="centerOddEven" />
                   Center odd/even
+                </label>
+              </fieldset>
+              <fieldset class="alt-draw-mode" id="altContinuousControls">
+                <legend>Start number</legend>
+                <label class="alt-row-settings__field alt-row-settings__field--start" for="altContinuousStartSeat">
+                  Apply to all rows
+                  <input id="altContinuousStartSeat" class="c-input c-input--small" type="number" inputmode="numeric" step="1" min="1" value="1" />
                 </label>
               </fieldset>
               <fieldset class="alt-draw-mode" id="altSeatDeleteNumberingModeGroup">
@@ -15134,22 +15141,25 @@ function selectSeatsWithoutEntryPoints() {
   }
 
   function sortSeatsInRow(rowSeats) {
-    // Försök numerisk sort på name, annars seatId-suffix, annars vx/vy
+    // Försök numerisk sort på seatId-suffix först, därefter name, annars vx/vy.
     const parseKey = (seat) => {
-      const num = parseFloat(seat.name);
-      if (!Number.isNaN(num)) return { kind: "num", value: num };
       const parts = seat.seatId ? seat.seatId.split(".") : [];
       const last = parts[parts.length - 1];
       const lastNum = parseFloat(last);
-      if (!Number.isNaN(lastNum)) return { kind: "num", value: lastNum };
+      if (!Number.isNaN(lastNum)) return { kind: "seatIdNum", value: lastNum };
+      const nameNum = parseFloat(seat.name);
+      if (!Number.isNaN(nameNum)) return { kind: "nameNum", value: nameNum };
       return { kind: "pos", value: seat.vx + seat.vy * 1e-3 };
     };
     return [...rowSeats].sort((a, b) => {
       const ka = parseKey(a);
       const kb = parseKey(b);
-      if (ka.kind === "num" && kb.kind === "num") return ka.value - kb.value;
-      if (ka.kind === "num") return -1;
-      if (kb.kind === "num") return 1;
+      if (ka.kind === "seatIdNum" && kb.kind === "seatIdNum") return ka.value - kb.value;
+      if (ka.kind === "seatIdNum") return -1;
+      if (kb.kind === "seatIdNum") return 1;
+      if (ka.kind === "nameNum" && kb.kind === "nameNum") return ka.value - kb.value;
+      if (ka.kind === "nameNum") return -1;
+      if (kb.kind === "nameNum") return 1;
       return ka.value - kb.value;
     });
   }
@@ -21235,7 +21245,7 @@ function nudgeSelection(dxScreen, dyScreen) {
 
   function normalizeAltContinuousStartSeat(value) {
     const parsed = parseInt(value, 10);
-    return Number.isFinite(parsed) ? parsed : 1;
+    return Number.isFinite(parsed) ? Math.max(1, parsed) : 1;
   }
 
   function computeAltContinuousStartFromLines(lines) {
@@ -21265,7 +21275,7 @@ function nudgeSelection(dxScreen, dyScreen) {
 
   function updateAltContinuousControls() {
     const hasDraft = !!getActiveDraft();
-    const show = false;
+    const show = true;
     if (altContinuousControls) {
       altContinuousControls.hidden = !show;
     }
@@ -21285,16 +21295,15 @@ function nudgeSelection(dxScreen, dyScreen) {
       setAltContinuousStartSeat(stored, false);
       return;
     }
-    const computed = computeAltContinuousStartFromLines(draft.altRowLines || altRowLines);
-    setAltContinuousStartSeat(computed, true);
+    setAltContinuousStartSeat(1, true);
   }
 
   function recalculateAltRowStartSeats() {
     if (altSeatNumberingMode !== ALT_SEAT_NUMBERING_MODE_ROW) return;
-    let runningSeat = 1;
+    const globalStart = normalizeAltContinuousStartSeat(altContinuousStartSeat);
     altRowLines.forEach((line) => {
       if (!line.blocks.length) return;
-      runningSeat = 1;
+      let runningSeat = globalStart;
       line.blocks.forEach((block) => {
         if (block.manualStartSeat) {
           runningSeat = block.startSeat;
@@ -21336,9 +21345,10 @@ function nudgeSelection(dxScreen, dyScreen) {
 
   function renumberAltRowsByMode() {
     const mode = normalizeAltSeatNumberingMode(altSeatNumberingMode);
+    const globalStart = normalizeAltContinuousStartSeat(altContinuousStartSeat);
     if (mode === ALT_SEAT_NUMBERING_MODE_CONTINUOUS || mode === ALT_SEAT_NUMBERING_MODE_CONTINUOUS_ZIGZAG) {
       const occupiedLineIndexes = getAltOccupiedLineIndexes();
-      let nextSeat = 1;
+      let nextSeat = globalStart;
       occupiedLineIndexes.forEach((lineIndex, orderIndex) => {
         const line = altRowLines[lineIndex];
         const block = getAltActiveBlock(line) || line?.blocks?.[0] || null;
@@ -21359,7 +21369,6 @@ function nudgeSelection(dxScreen, dyScreen) {
         });
         nextSeat += seats.length;
       });
-      setAltContinuousStartSeat(nextSeat, true);
       return;
     }
 
@@ -21377,10 +21386,9 @@ function nudgeSelection(dxScreen, dyScreen) {
         order.forEach((seatPosition, seatOffset) => {
           const entry = seats[seatPosition];
           if (!entry) return;
-          entry.slot.name = String(seatOffset + 1);
+          entry.slot.name = String(globalStart + seatOffset);
         });
       });
-      setAltContinuousStartSeat(1, true);
       return;
     }
 
@@ -21389,7 +21397,6 @@ function nudgeSelection(dxScreen, dyScreen) {
       const block = getAltActiveBlock(line) || line.blocks[0] || null;
       renumberAltBlockSeats(line, block);
     });
-    setAltContinuousStartSeat(computeAltContinuousStartFromLines(altRowLines), true);
   }
 
   function buildAltLines(rowCount) {
@@ -21874,7 +21881,7 @@ function nudgeSelection(dxScreen, dyScreen) {
       || (numberingMode === ALT_SEAT_NUMBERING_MODE_CONTINUOUS && !isMultiRowSelection);
     const canToggleDirection = numberingMode !== ALT_SEAT_NUMBERING_MODE_CONTINUOUS_ZIGZAG;
     const startSeatDisabledTitle = isMultiRowSelection
-      ? "Start seat for multiple rows is only available in Numbering mode: Per row (start 1)."
+      ? "Start seat for multiple rows is only available in Numbering mode: Per row."
       : (numberingMode === ALT_SEAT_NUMBERING_MODE_CONTINUOUS_ZIGZAG
           ? "Start seat is not editable in Continuous zigzag mode."
           : "Start seat is only editable in Per row mode.");
@@ -22420,7 +22427,7 @@ function nudgeSelection(dxScreen, dyScreen) {
       color: "#14a0f4",
       rows: [],
       rawRowText: "",
-      continuousStartSeat: 1,
+      continuousStartSeat: normalizeAltContinuousStartSeat(altContinuousStartSeat),
       altSeatNumberingMode: altSeatNumberingMode,
       altGridRows: initialRows,
       altGridCols: initialCols,
@@ -22443,6 +22450,13 @@ function nudgeSelection(dxScreen, dyScreen) {
     renderAltSectionCards();
     renderAltSectionDetail();
     pushAltHistorySnapshot();
+  }
+
+  function promptAndCreateAltDraft(defaultValue = "") {
+    const name = promptForSectionName(defaultValue);
+    if (!name) return false;
+    addNewAltDraft(name);
+    return true;
   }
 
   function updateAltControls() {
@@ -22794,7 +22808,7 @@ function nudgeSelection(dxScreen, dyScreen) {
     const block = getAltActiveBlock(line);
     if (!line || !block) return;
     if (altSeatNumberingMode !== ALT_SEAT_NUMBERING_MODE_ROW) {
-      alert("Start seat can only be edited in 'Per row (start 1)' mode.");
+      alert("Start seat can only be edited in 'Per row' mode.");
       return;
     }
     const input = prompt("Start seat number:", String(block.startSeat));
@@ -23526,9 +23540,7 @@ function nudgeSelection(dxScreen, dyScreen) {
     renderAltSectionDetail();
   });
   altSectionCreateBtn?.addEventListener("click", () => {
-    const name = promptForSectionName("");
-    if (!name) return;
-    addNewAltDraft(name);
+    promptAndCreateAltDraft("");
   });
   altSectionCardsEl?.addEventListener("click", (e) => {
     const card = e.target.closest(".section-card");
@@ -23591,6 +23603,54 @@ function nudgeSelection(dxScreen, dyScreen) {
     altDrawConstraintMode = "rows";
     renderAltSectionCanvas();
   });
+  const applyAltGlobalStartNumberFromInput = () => {
+    const parsed = parseInt(String(altContinuousStartSeatInput?.value || altContinuousStartSeat), 10);
+    const startValue = Number.isFinite(parsed) ? Math.max(1, parsed) : 1;
+    if (altContinuousStartSeatInput) altContinuousStartSeatInput.value = String(startValue);
+    setAltContinuousStartSeat(startValue, true);
+    const draft = getActiveDraft();
+    if (!draft) {
+      refreshAltRowSettingsPanel();
+      renderAltSectionCanvas();
+      return;
+    }
+    const mode = normalizeAltSeatNumberingMode(altSeatNumberingMode);
+    altRowLines.forEach((line) => {
+      if (!line || !Array.isArray(line.blocks) || !line.blocks.length) return;
+      if (mode === ALT_SEAT_NUMBERING_MODE_ROW) {
+        line.blocks.forEach((block, blockIndex) => {
+          if (!block) return;
+          if (blockIndex === 0) {
+            block.startSeat = startValue;
+            block.manualStartSeat = true;
+          } else {
+            block.manualStartSeat = false;
+          }
+        });
+      } else {
+        line.blocks.forEach((block) => {
+          if (!block) return;
+          block.manualStartSeat = false;
+        });
+      }
+    });
+    commitAltChange();
+  };
+  altContinuousStartSeatInput?.addEventListener("input", () => {
+    const parsed = parseInt(String(altContinuousStartSeatInput?.value || ""), 10);
+    if (Number.isFinite(parsed) && parsed < 1 && altContinuousStartSeatInput) {
+      altContinuousStartSeatInput.value = "1";
+    }
+  });
+  altContinuousStartSeatInput?.addEventListener("wheel", (e) => {
+    const parsed = parseInt(String(altContinuousStartSeatInput?.value || "1"), 10);
+    const current = Number.isFinite(parsed) ? parsed : 1;
+    if (e.deltaY > 0 && current <= 1) {
+      e.preventDefault();
+      if (altContinuousStartSeatInput) altContinuousStartSeatInput.value = "1";
+    }
+  }, { passive: false });
+  altContinuousStartSeatInput?.addEventListener("change", applyAltGlobalStartNumberFromInput);
   const applySelectedAltRowSettingsFromInputs = () => {
     if (altRowSettingsUpdatingUi) return;
     const selectedRows = getAltSelectedOccupiedRowIndexes();
@@ -23652,12 +23712,16 @@ function nudgeSelection(dxScreen, dyScreen) {
       const line = altRowLines[rowIndex];
       const block = getAltActiveBlock(line) || line?.blocks?.[0] || null;
       if (!line || !block) return;
+      const preservedStart = mode === ALT_SEAT_NUMBERING_MODE_ROW
+        ? (Number.isFinite(Number(block.startSeat))
+            ? Math.max(1, Math.floor(Number(block.startSeat)))
+            : getAltRowStartValue(line))
+        : null;
       const currentDirection = getAltRowDirectionValue(line);
       block.direction = currentDirection === "desc" ? 1 : -1;
       block.lastDirection = { x: block.direction, y: 0 };
       if (mode === ALT_SEAT_NUMBERING_MODE_ROW) {
-        const rowStart = getAltRowStartValue(line);
-        block.startSeat = Number.isFinite(rowStart) ? Math.max(1, rowStart) : 1;
+        block.startSeat = Number.isFinite(preservedStart) ? preservedStart : 1;
         block.manualStartSeat = true;
       }
     });
@@ -23740,10 +23804,17 @@ function nudgeSelection(dxScreen, dyScreen) {
   });
 
   altSectionCanvas?.addEventListener("mousedown", (e) => {
-    const draft = getActiveDraft();
-    if (!draft) return;
     const metrics = getAltCanvasMetrics();
     if (!metrics) return;
+    const draft = getActiveDraft();
+    if (!draft) {
+      const point = getAltCanvasPoint(e);
+      const startCell = getAltGridCellFromPoint(point, metrics);
+      if (startCell) {
+        promptAndCreateAltDraft("");
+      }
+      return;
+    }
     altSelectionAdditive = altSectionTool === "select" && !!e.shiftKey;
     const point = getAltCanvasPoint(e);
     const startCell = getAltGridCellFromPoint(point, metrics);
