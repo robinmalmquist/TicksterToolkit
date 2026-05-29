@@ -23106,13 +23106,15 @@ function nudgeSelection(dxScreen, dyScreen) {
 
     rebuildAltSelectedSeatKeysFromRows();
 
-    touchedLines.forEach((lineIndex) => {
-      const line = altRowLines[lineIndex];
-      const block = getAltActiveBlock(line);
-      if (!line || !block) return;
-      block.direction = horizontalDirection;
-      block.lastDirection = { x: horizontalDirection, y: 0 };
-    });
+    if (altDrawMode === "draw") {
+      touchedLines.forEach((lineIndex) => {
+        const line = altRowLines[lineIndex];
+        const block = getAltActiveBlock(line);
+        if (!line || !block) return;
+        block.direction = horizontalDirection;
+        block.lastDirection = { x: horizontalDirection, y: 0 };
+      });
+    }
 
     setAltActiveLine(range.lineStart);
     if (touchedLines.size) {
