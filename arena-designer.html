@@ -4579,6 +4579,8 @@
   let altHoverCell = null;
   let altCanvasRenderRaf = null;
   let altRowSettingsUpdatingUi = false;
+  let altPendingContinuousStartCommit = false;
+  let altPendingRowStartCommit = false;
   const ALT_SEAT_RADIUS = 7;
   const ALT_GRID_CELL_RADIUS = 3;
   const ALT_SEAT_SPACING = 20;
@@ -21267,6 +21269,7 @@ function nudgeSelection(dxScreen, dyScreen) {
     if (altContinuousStartSeatInput) {
       altContinuousStartSeatInput.value = String(altContinuousStartSeat);
     }
+    altPendingContinuousStartCommit = false;
     if (persist) {
       const draft = getActiveDraft();
       if (draft) draft.continuousStartSeat = altContinuousStartSeat;
@@ -21302,9 +21305,10 @@ function nudgeSelection(dxScreen, dyScreen) {
     if (altSeatNumberingMode !== ALT_SEAT_NUMBERING_MODE_ROW) return;
     const globalStart = normalizeAltContinuousStartSeat(altContinuousStartSeat);
     altRowLines.forEach((line) => {
-      if (!line.blocks.length) return;
+      const orderedBlocks = getAltLineBlocksInNumberingOrder(line);
+      if (!orderedBlocks.length) return;
       let runningSeat = globalStart;
-      line.blocks.forEach((block) => {
+      orderedBlocks.forEach((block) => {
         if (block.manualStartSeat) {
           runningSeat = block.startSeat;
         } else {
@@ -21351,19 +21355,25 @@ function nudgeSelection(dxScreen, dyScreen) {
       let nextSeat = globalStart;
       occupiedLineIndexes.forEach((lineIndex, orderIndex) => {
         const line = altRowLines[lineIndex];
-        const block = getAltActiveBlock(line) || line?.blocks?.[0] || null;
-        if (!line || !block) return;
-        let direction = block.direction === -1 ? -1 : 1;
+        if (!line || !Array.isArray(line.blocks) || !line.blocks.length) return;
+        let direction = getAltRowDirectionSign(line);
         if (mode === ALT_SEAT_NUMBERING_MODE_CONTINUOUS_ZIGZAG) {
           direction = orderIndex % 2 === 0 ? 1 : -1;
-          block.direction = direction;
-          block.lastDirection = { x: direction, y: 0 };
-          block.manualStartSeat = false;
-        } else if (block.manualStartSeat && Number.isFinite(Number(block.startSeat))) {
-          nextSeat = Math.max(1, Math.floor(Number(block.startSeat)));
+          setAltLineDirection(line, direction);
+          line.blocks.forEach((candidate) => {
+            if (!candidate) return;
+            candidate.manualStartSeat = false;
+          });
+        } else {
+          const manualStartBlock = getAltLineBlocksInNumberingOrder(line, direction)
+            .find((candidate) => candidate && candidate.manualStartSeat && Number.isFinite(Number(candidate.startSeat)));
+          if (manualStartBlock) {
+            nextSeat = Math.max(1, Math.floor(Number(manualStartBlock.startSeat)));
+          }
         }
         const seats = getAltSeatEntriesForLine(line, direction);
-        block.startSeat = nextSeat;
+        const startBlock = getAltRowStartBlock(line);
+        if (startBlock) startBlock.startSeat = nextSeat;
         seats.forEach((entry, seatOffset) => {
           entry.slot.name = String(nextSeat + seatOffset);
         });
@@ -21376,13 +21386,16 @@ function nudgeSelection(dxScreen, dyScreen) {
       const occupiedLineIndexes = getAltOccupiedLineIndexes();
       occupiedLineIndexes.forEach((lineIndex) => {
         const line = altRowLines[lineIndex];
-        const block = getAltActiveBlock(line) || line?.blocks?.[0] || null;
-        if (!line || !block) return;
-        const direction = block.direction === -1 ? -1 : 1;
+        if (!line || !Array.isArray(line.blocks) || !line.blocks.length) return;
+        const direction = getAltRowDirectionSign(line);
         const seats = getAltSeatEntriesForLine(line, 1);
         const order = buildAltCenterOutSeatOrder(seats.length, direction);
-        block.startSeat = 1;
-        block.manualStartSeat = false;
+        line.blocks.forEach((candidate) => {
+          if (!candidate) return;
+          candidate.manualStartSeat = false;
+        });
+        const startBlock = getAltRowStartBlock(line);
+        if (startBlock) startBlock.startSeat = 1;
         order.forEach((seatPosition, seatOffset) => {
           const entry = seats[seatPosition];
           if (!entry) return;
@@ -21394,7 +21407,7 @@ function nudgeSelection(dxScreen, dyScreen) {
 
     recalculateAltRowStartSeats();
     altRowLines.forEach((line) => {
-      const block = getAltActiveBlock(line) || line.blocks[0] || null;
+      const block = getAltRowStartBlock(line) || line.blocks[0] || null;
       renumberAltBlockSeats(line, block);
     });
   }
@@ -21830,9 +21843,87 @@ function nudgeSelection(dxScreen, dyScreen) {
     };
   }
 
+  function getAltLineBlockEntries(line) {
+    if (!line || !Array.isArray(line.blocks) || !line.blocks.length) return [];
+    const slotRanges = new Map();
+    (line.slots || []).forEach((slot, idx) => {
+      const blockId = slot?.blockId;
+      if (!blockId) return;
+      const existing = slotRanges.get(blockId);
+      if (existing) {
+        if (idx < existing.min) existing.min = idx;
+        if (idx > existing.max) existing.max = idx;
+        return;
+      }
+      slotRanges.set(blockId, { min: idx, max: idx });
+    });
+    return line.blocks
+      .map((block, originalIndex) => {
+        const range = slotRanges.get(block.id) || null;
+        return {
+          block,
+          originalIndex,
+          min: range ? range.min : Number.MAX_SAFE_INTEGER,
+          max: range ? range.max : Number.MAX_SAFE_INTEGER,
+          hasSlots: !!range
+        };
+      })
+      .sort((a, b) => a.min - b.min || a.max - b.max || a.originalIndex - b.originalIndex);
+  }
+
+  function getAltRowReferenceBlock(line) {
+    const entries = getAltLineBlockEntries(line);
+    return entries.find((entry) => entry.hasSlots)?.block
+      || getAltActiveBlock(line)
+      || line?.blocks?.[0]
+      || null;
+  }
+
+  function getAltRowDirectionSign(line) {
+    const block = getAltRowReferenceBlock(line);
+    return block && block.direction === -1 ? -1 : 1;
+  }
+
+  function getAltLineBlocksInNumberingOrder(line, direction = null) {
+    const ordered = getAltLineBlockEntries(line).map((entry) => entry.block);
+    if (!ordered.length) return [];
+    const sign = direction === -1 || direction === "desc"
+      ? -1
+      : (direction === 1 || direction === "asc" ? 1 : getAltRowDirectionSign(line));
+    return sign === -1 ? ordered.reverse() : ordered;
+  }
+
+  function getAltRowStartBlock(line) {
+    const orderedBlocks = getAltLineBlocksInNumberingOrder(line);
+    return orderedBlocks[0] || getAltActiveBlock(line) || line?.blocks?.[0] || null;
+  }
+
+  function setAltLineDirection(line, directionSign) {
+    if (!line || !Array.isArray(line.blocks)) return;
+    const normalizedDirection = directionSign === -1 ? -1 : 1;
+    line.blocks.forEach((block) => {
+      if (!block) return;
+      block.direction = normalizedDirection;
+      block.lastDirection = { x: normalizedDirection, y: 0 };
+    });
+  }
+
+  function setAltLineStartSeat(line, startValue) {
+    if (!line || !Array.isArray(line.blocks) || !line.blocks.length) return null;
+    const normalizedStart = Number.isFinite(Number(startValue)) ? Math.max(1, Math.floor(Number(startValue))) : 1;
+    line.blocks.forEach((block) => {
+      if (!block) return;
+      block.manualStartSeat = false;
+    });
+    const startBlock = getAltRowStartBlock(line);
+    if (!startBlock) return null;
+    startBlock.startSeat = normalizedStart;
+    startBlock.manualStartSeat = true;
+    return startBlock;
+  }
+
   function getAltRowDirectionValue(line) {
-    const block = getAltActiveBlock(line);
-    return block && block.direction === -1 ? "desc" : "asc";
+    return getAltRowDirectionSign(line) === -1 ? "desc" : "asc";
   }
 
   function getAltRowStartValue(line) {
@@ -21870,6 +21961,7 @@ function nudgeSelection(dxScreen, dyScreen) {
     if (!altRowSettingsPanel) return;
     const selectedRows = getAltSelectedOccupiedRowIndexes();
     if (!selectedRows.length) {
+      altPendingRowStartCommit = false;
       altRowSettingsPanel.hidden = true;
       return;
     }
@@ -21905,6 +21997,7 @@ function nudgeSelection(dxScreen, dyScreen) {
       altRowStartNumberInput.title = canEditStart ? "Set start seat for selected row(s)." : startSeatDisabledTitle;
       const startField = altRowStartNumberInput.closest(".alt-row-settings__field");
       if (startField) startField.title = canEditStart ? "" : startSeatDisabledTitle;
+      altPendingRowStartCommit = false;
     }
     if (altRowReverseDirectionBtn) {
       altRowReverseDirectionBtn.disabled = !canToggleDirection;
@@ -21986,7 +22079,10 @@ function nudgeSelection(dxScreen, dyScreen) {
         if (n > maxNum) maxNum = n;
       }
     });
-    let next = Math.max(1, maxNum + 1);
+    const fallbackStart = Number.isFinite(Number(block?.startSeat))
+      ? Math.max(1, Math.floor(Number(block.startSeat)))
+      : 1;
+    let next = used.size ? Math.max(1, maxNum + 1) : fallbackStart;
     seats.forEach(({ slot }) => {
       const n = parseInt(String(slot.name || "").trim(), 10);
       if (Number.isFinite(n) && n > 0) return;
@@ -23608,6 +23704,7 @@ function nudgeSelection(dxScreen, dyScreen) {
   const applyAltGlobalStartNumberFromInput = () => {
     const parsed = parseInt(String(altContinuousStartSeatInput?.value || altContinuousStartSeat), 10);
     const startValue = Number.isFinite(parsed) ? Math.max(1, parsed) : 1;
+    altPendingContinuousStartCommit = false;
     if (altContinuousStartSeatInput) altContinuousStartSeatInput.value = String(startValue);
     setAltContinuousStartSeat(startValue, true);
     const draft = getActiveDraft();
@@ -23620,15 +23717,7 @@ function nudgeSelection(dxScreen, dyScreen) {
     altRowLines.forEach((line) => {
       if (!line || !Array.isArray(line.blocks) || !line.blocks.length) return;
       if (mode === ALT_SEAT_NUMBERING_MODE_ROW) {
-        line.blocks.forEach((block, blockIndex) => {
-          if (!block) return;
-          if (blockIndex === 0) {
-            block.startSeat = startValue;
-            block.manualStartSeat = true;
-          } else {
-            block.manualStartSeat = false;
-          }
-        });
+        setAltLineStartSeat(line, startValue);
       } else {
         line.blocks.forEach((block) => {
           if (!block) return;
@@ -23639,6 +23728,7 @@ function nudgeSelection(dxScreen, dyScreen) {
     commitAltChange();
   };
   altContinuousStartSeatInput?.addEventListener("input", () => {
+    altPendingContinuousStartCommit = true;
     const parsed = parseInt(String(altContinuousStartSeatInput?.value || ""), 10);
     if (Number.isFinite(parsed) && parsed < 1 && altContinuousStartSeatInput) {
       altContinuousStartSeatInput.value = "1";
@@ -23671,25 +23761,32 @@ function nudgeSelection(dxScreen, dyScreen) {
     const currentStart = getAltRowStartValue(line);
     const parsedStart = parseInt(String(altRowStartNumberInput?.value || currentStart), 10);
     const startValue = Number.isFinite(parsedStart) ? Math.max(1, parsedStart) : currentStart;
+    altPendingRowStartCommit = false;
     if (altRowStartNumberInput) altRowStartNumberInput.value = String(startValue);
     if (mode === ALT_SEAT_NUMBERING_MODE_ROW) {
       selectedRows.forEach((selectedRowIndex) => {
         const selectedLine = altRowLines[selectedRowIndex];
-        const selectedBlock = getAltActiveBlock(selectedLine) || selectedLine?.blocks?.[0] || null;
-        if (!selectedLine || !selectedBlock) return;
-        selectedBlock.startSeat = startValue;
-        selectedBlock.manualStartSeat = true;
+        if (!selectedLine) return;
+        setAltLineStartSeat(selectedLine, startValue);
       });
       commitAltChange();
       return;
     }
-    const block = getAltActiveBlock(line) || line.blocks?.[0] || null;
-    if (!block) return;
-    block.startSeat = startValue;
-    block.manualStartSeat = true;
+    setAltLineStartSeat(line, startValue);
     commitAltChange();
   };
+  const flushPendingAltStartNumberInputs = () => {
+    const activeElement = document.activeElement;
+    if (activeElement === altContinuousStartSeatInput && altPendingContinuousStartCommit) {
+      applyAltGlobalStartNumberFromInput();
+      return;
+    }
+    if (activeElement === altRowStartNumberInput && altPendingRowStartCommit) {
+      applySelectedAltRowSettingsFromInputs();
+    }
+  };
   altRowStartNumberInput?.addEventListener("input", () => {
+    altPendingRowStartCommit = true;
     const parsed = parseInt(String(altRowStartNumberInput?.value || ""), 10);
     if (Number.isFinite(parsed) && parsed < 1 && altRowStartNumberInput) {
       altRowStartNumberInput.value = "1";
@@ -23712,19 +23809,14 @@ function nudgeSelection(dxScreen, dyScreen) {
     if (mode === ALT_SEAT_NUMBERING_MODE_CONTINUOUS_ZIGZAG) return;
     selectedRows.forEach((rowIndex) => {
       const line = altRowLines[rowIndex];
-      const block = getAltActiveBlock(line) || line?.blocks?.[0] || null;
-      if (!line || !block) return;
+      if (!line || !Array.isArray(line.blocks) || !line.blocks.length) return;
       const preservedStart = mode === ALT_SEAT_NUMBERING_MODE_ROW
-        ? (Number.isFinite(Number(block.startSeat))
-            ? Math.max(1, Math.floor(Number(block.startSeat)))
-            : getAltRowStartValue(line))
+        ? getAltRowStartValue(line)
         : null;
       const currentDirection = getAltRowDirectionValue(line);
-      block.direction = currentDirection === "desc" ? 1 : -1;
-      block.lastDirection = { x: block.direction, y: 0 };
+      setAltLineDirection(line, currentDirection === "desc" ? 1 : -1);
       if (mode === ALT_SEAT_NUMBERING_MODE_ROW) {
-        block.startSeat = Number.isFinite(preservedStart) ? preservedStart : 1;
-        block.manualStartSeat = true;
+        setAltLineStartSeat(line, Number.isFinite(preservedStart) ? preservedStart : 1);
       }
     });
     commitAltChange();
@@ -23806,6 +23898,7 @@ function nudgeSelection(dxScreen, dyScreen) {
   });
 
   altSectionCanvas?.addEventListener("mousedown", (e) => {
+    flushPendingAltStartNumberInputs();
     const metrics = getAltCanvasMetrics();
     if (!metrics) return;
     const draft = getActiveDraft();
