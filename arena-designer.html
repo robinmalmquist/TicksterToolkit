@@ -2369,6 +2369,10 @@
       min-width: 124px;
     }
 
+    .edit-field--section-editor {
+      grid-column: 1 / -1;
+    }
+
     .edit-field__inline-controls {
       display: flex;
       align-items: center;
@@ -3652,7 +3656,7 @@
       <div class="context-menu__list">
         <button id="editSeatsMenuItem" class="context-menu__item" type="button">Edit seat(s)</button>
         <button id="editRowsMenuItem" class="context-menu__item" type="button">Edit row(s)</button>
-        <button id="editSectionsMenuItem" class="context-menu__item" type="button">Edit section</button>
+        <button id="editSectionsMenuItem" class="context-menu__item" type="button">Edit sections</button>
         <button id="duplicateSectionsMenuItem" class="context-menu__item" type="button">Duplicate section(s)</button>
         <button id="mergeSectionsMenuItem" class="context-menu__item" type="button">Merge sections</button>
         <button id="mergeRowsMenuItem" class="context-menu__item" type="button">Merge rows</button>
@@ -4161,19 +4165,14 @@
   <div id="sectionEditOverlay">
     <div id="sectionEditModal">
       <header>
-        <h3>Edit section</h3>
+        <h3 id="sectionEditTitle">Edit section</h3>
         <button id="sectionEditClose" class="c-button c-button--ghost c-button--small">Close</button>
       </header>
       <main>
-        <div class="u-font--small" style="margin-bottom:0.5rem;">
+        <div id="sectionEditDescription" class="u-font--small" style="margin-bottom:0.5rem;">
           Update section name and add rows.
         </div>
         <div id="sectionEditList" class="edit-list"></div>
-        <div class="u-font--small" style="margin:0.75rem 0 0.35rem;">
-          Add rows (appends after the last RowId in the section).
-        </div>
-        <button id="sectionAddRowBtn" class="c-button c-button--ghost c-button--small">Add row</button>
-        <div id="sectionNewRowsList" class="edit-list" style="margin-top:0.5rem;"></div>
       </main>
       <footer>
         <button id="sectionEditCancel" class="c-button c-button--ghost c-button--small">Cancel</button>
@@ -4348,12 +4347,12 @@
   const rowEditCancel = document.getElementById("rowEditCancel");
   const rowEditSave = document.getElementById("rowEditSave");
   const sectionEditOverlay = document.getElementById("sectionEditOverlay");
+  const sectionEditTitle = document.getElementById("sectionEditTitle");
+  const sectionEditDescription = document.getElementById("sectionEditDescription");
   const sectionEditList = document.getElementById("sectionEditList");
   const sectionEditClose = document.getElementById("sectionEditClose");
   const sectionEditCancel = document.getElementById("sectionEditCancel");
   const sectionEditSave = document.getElementById("sectionEditSave");
-  const sectionAddRowBtn = document.getElementById("sectionAddRowBtn");
-  const sectionNewRowsList = document.getElementById("sectionNewRowsList");
 
   const bgFileInput = document.getElementById("bgFileInput");
   const bgLoadBtn = document.getElementById("bgLoadBtn");
@@ -18049,7 +18048,8 @@ function nudgeSelection(dxScreen, dyScreen) {
       }
       const sections = new Set(selectedSeats.map(s => s.sectionId).filter(Boolean));
       if (editSectionsMenuItem) {
-        editSectionsMenuItem.disabled = selectionMode !== "section" || sections.size !== 1;
+        editSectionsMenuItem.textContent = sections.size === 1 ? "Edit section" : "Edit sections";
+        editSectionsMenuItem.disabled = selectionMode !== "section" || sections.size < 1;
       }
       if (duplicateSectionsMenuItem) {
         duplicateSectionsMenuItem.disabled = selectionMode !== "section" || sections.size < 1;
@@ -18498,7 +18498,32 @@ function nudgeSelection(dxScreen, dyScreen) {
 
   function resetSectionEditDrafts() {
     sectionEditRowCounter = 0;
-    if (sectionNewRowsList) sectionNewRowsList.innerHTML = "";
+  }
+
+  function getSelectedSectionsForEdit() {
+    const sections = new Map();
+    getSelectedSeats().forEach((seat) => {
+      const sectionId = String(seat?.sectionId || "").trim();
+      if (!sectionId) return;
+      if (!sections.has(sectionId)) {
+        sections.set(sectionId, {
+          sectionId,
+          name: sectionNames.get(sectionId) || seat.sectionName || sectionId,
+          seatCount: 0,
+          selectionOrder: Infinity
+        });
+      }
+      const entry = sections.get(sectionId);
+      entry.seatCount += 1;
+      const order = typeof seat.selectedAt === "number" ? seat.selectedAt : Infinity;
+      if (order < entry.selectionOrder) entry.selectionOrder = order;
+    });
+    return Array.from(sections.values()).sort((first, second) => {
+      const firstOrder = Number.isFinite(first.selectionOrder) ? first.selectionOrder : Infinity;
+      const secondOrder = Number.isFinite(second.selectionOrder) ? second.selectionOrder : Infinity;
+      if (firstOrder !== secondOrder) return firstOrder - secondOrder;
+      return compareSectionIdsForSort(first.sectionId, second.sectionId);
+    });
   }
 
   function computeRowCenter(rowSeats) {
@@ -18743,18 +18768,20 @@ function nudgeSelection(dxScreen, dyScreen) {
     };
   }
 
-  function addSectionRowDraft() {
-    if (!sectionNewRowsList) return;
-    const defaults = getSectionRowDefaults(sectionEditTargetId);
+  function addSectionRowDraft(sectionId, targetList) {
+    if (!sectionId || !targetList) return;
+    const defaults = getSectionRowDefaults(sectionId);
     sectionEditRowCounter += 1;
+    const nextRowIndex = targetList.querySelectorAll("[data-role='section-row-draft']").length + 1;
 
     const item = document.createElement("div");
     item.className = "edit-item";
+    item.dataset.role = "section-row-draft";
     item.dataset.draftId = `row-${sectionEditRowCounter}`;
 
     const title = document.createElement("div");
     title.className = "edit-item__title";
-    title.textContent = `New row ${sectionEditRowCounter}`;
+    title.textContent = `New row ${nextRowIndex}`;
 
     const grid = document.createElement("div");
     grid.className = "edit-item__grid";
@@ -18820,14 +18847,14 @@ function nudgeSelection(dxScreen, dyScreen) {
 
     item.appendChild(title);
     item.appendChild(grid);
-    sectionNewRowsList.appendChild(item);
+    targetList.appendChild(item);
   }
 
-  function collectSectionRowDrafts() {
-    if (!sectionNewRowsList) return { drafts: [], errors: [] };
+  function collectSectionRowDrafts(targetList) {
+    if (!targetList) return { drafts: [], errors: [] };
     const drafts = [];
     const errors = [];
-    const items = sectionNewRowsList.querySelectorAll(".edit-item");
+    const items = targetList.querySelectorAll("[data-role='section-row-draft']");
     items.forEach((item, idx) => {
       const nameInput = item.querySelector("input[data-role='section-row-name']");
       const countInput = item.querySelector("input[data-role='section-row-count']");
@@ -18854,70 +18881,85 @@ function nudgeSelection(dxScreen, dyScreen) {
 
   function buildSectionEditList() {
     if (!sectionEditList) return;
-    const selected = getSelectedSeats();
+    const selectedSections = getSelectedSectionsForEdit();
     sectionEditList.innerHTML = "";
-    sectionEditTargetId = null;
     resetSectionEditDrafts();
-    if (sectionAddRowBtn) sectionAddRowBtn.disabled = true;
-    if (!selected.length) return;
-    const sections = new Map();
-    selected.forEach((seat) => {
-      if (!seat.sectionId) return;
-      if (!sections.has(seat.sectionId)) {
-        sections.set(seat.sectionId, {
-          sectionId: seat.sectionId,
-          name: sectionNames.get(seat.sectionId) || seat.sectionName || seat.sectionId,
-          seatCount: 0
-        });
-      }
-      sections.get(seat.sectionId).seatCount += 1;
+    sectionEditTargetId = selectedSections.length === 1 ? selectedSections[0].sectionId : null;
+    if (sectionEditTitle) {
+      sectionEditTitle.textContent = selectedSections.length > 1 ? `Edit sections (${selectedSections.length})` : "Edit section";
+    }
+    if (sectionEditDescription) {
+      sectionEditDescription.textContent = selectedSections.length > 1
+        ? "Update section names and add rows for the selected sections."
+        : "Update section name and add rows.";
+    }
+    if (!selectedSections.length) return;
+    selectedSections.forEach((section) => {
+      const item = document.createElement("div");
+      item.className = "edit-item";
+      item.dataset.role = "section-edit-item";
+      item.dataset.sectionId = section.sectionId;
+      item.dataset.nameOriginal = section.name || "";
+
+      const title = document.createElement("div");
+      title.className = "edit-item__title";
+      title.textContent = `${section.name || section.sectionId} - ${section.sectionId} - ${section.seatCount} seats`;
+
+      const grid = document.createElement("div");
+      grid.className = "edit-item__grid";
+
+      const sectionField = document.createElement("div");
+      sectionField.className = "edit-field edit-field--section-editor";
+      const nameLabel = document.createElement("span");
+      nameLabel.textContent = "Section name";
+      const nameInput = document.createElement("input");
+      nameInput.type = "text";
+      nameInput.maxLength = SECTION_NAME_MAX;
+      nameInput.value = section.name || "";
+      nameInput.dataset.role = "section-name";
+
+      const addRowsMeta = document.createElement("div");
+      addRowsMeta.className = "edit-item__meta";
+      addRowsMeta.textContent = "Add rows (appends after the last RowId in the section).";
+
+      const actions = document.createElement("div");
+      actions.className = "edit-item__actions";
+      const addRowBtn = document.createElement("button");
+      addRowBtn.type = "button";
+      addRowBtn.className = "c-button c-button--ghost c-button--small";
+      addRowBtn.dataset.role = "section-add-row";
+      addRowBtn.dataset.sectionId = section.sectionId;
+      addRowBtn.textContent = "Add row";
+      actions.appendChild(addRowBtn);
+
+      const newRowsList = document.createElement("div");
+      newRowsList.className = "edit-list";
+      newRowsList.dataset.role = "section-new-rows";
+      newRowsList.dataset.sectionId = section.sectionId;
+
+      sectionField.appendChild(nameLabel);
+      sectionField.appendChild(nameInput);
+      sectionField.appendChild(addRowsMeta);
+      sectionField.appendChild(actions);
+      sectionField.appendChild(newRowsList);
+
+      grid.appendChild(sectionField);
+
+      item.appendChild(title);
+      item.appendChild(grid);
+      sectionEditList.appendChild(item);
     });
-    if (sections.size !== 1) return;
-    const section = Array.from(sections.values())[0];
-    sectionEditTargetId = section.sectionId;
-    if (sectionAddRowBtn) sectionAddRowBtn.disabled = false;
-
-    const item = document.createElement("div");
-    item.className = "edit-item";
-    item.dataset.sectionId = section.sectionId;
-    item.dataset.nameOriginal = section.name || "";
-
-    const title = document.createElement("div");
-    title.className = "edit-item__title";
-    title.textContent = `${section.name || section.sectionId} - ${section.sectionId} - ${section.seatCount} seats`;
-
-    const grid = document.createElement("div");
-    grid.className = "edit-item__grid";
-
-    const nameField = document.createElement("label");
-    nameField.className = "edit-field";
-    const nameLabel = document.createElement("span");
-    nameLabel.textContent = "Section name";
-    const nameInput = document.createElement("input");
-    nameInput.type = "text";
-    nameInput.maxLength = SECTION_NAME_MAX;
-    nameInput.value = section.name || "";
-    nameInput.dataset.role = "section-name";
-    nameField.appendChild(nameLabel);
-    nameField.appendChild(nameInput);
-
-    grid.appendChild(nameField);
-
-    item.appendChild(title);
-    item.appendChild(grid);
-    sectionEditList.appendChild(item);
   }
 
   function openSectionEditModal() {
     buildSectionEditList();
-    if (!sectionEditTargetId) return;
+    if (!sectionEditList || !sectionEditList.querySelector("[data-role='section-edit-item']")) return;
     if (sectionEditOverlay) sectionEditOverlay.style.display = "flex";
   }
 
   function closeSectionEditModal() {
     if (sectionEditOverlay) sectionEditOverlay.style.display = "none";
     sectionEditTargetId = null;
-    if (sectionAddRowBtn) sectionAddRowBtn.disabled = true;
     resetSectionEditDrafts();
   }
 
@@ -19546,41 +19588,72 @@ function nudgeSelection(dxScreen, dyScreen) {
   });
   sectionEditClose?.addEventListener("click", closeSectionEditModal);
   sectionEditCancel?.addEventListener("click", closeSectionEditModal);
-  sectionAddRowBtn?.addEventListener("click", () => {
-    if (!sectionEditTargetId) return;
-    addSectionRowDraft();
+  sectionEditList?.addEventListener("click", (e) => {
+    const addRowBtn = e.target.closest("[data-role='section-add-row']");
+    if (!addRowBtn) return;
+    const sectionItem = addRowBtn.closest("[data-role='section-edit-item']");
+    const sectionId = addRowBtn.dataset.sectionId || sectionItem?.dataset.sectionId || "";
+    const targetList = sectionItem?.querySelector("[data-role='section-new-rows']");
+    if (!sectionId || !targetList) return;
+    addSectionRowDraft(sectionId, targetList);
   });
   sectionEditSave?.addEventListener("click", () => {
     if (!sectionEditList) return;
+    const sectionItems = Array.from(sectionEditList.querySelectorAll("[data-role='section-edit-item']"));
+    if (!sectionItems.length) return;
+    const sectionIds = new Set(sectionItems.map((item) => String(item.dataset.sectionId || "").trim()).filter(Boolean));
+    const finalNamesByKey = new Map();
+    sectionNames.forEach((name, id) => {
+      if (!id || sectionIds.has(id)) return;
+      const key = normalizeSectionName(name || id);
+      if (!key) return;
+      finalNamesByKey.set(key, id);
+    });
+    const pendingEdits = [];
+    sectionItems.forEach((item) => {
+      const sectionId = String(item.dataset.sectionId || "").trim();
+      if (!sectionId) return;
+      const originalName = String(item.dataset.nameOriginal || "").trim();
+      const nameInput = item.querySelector("input[data-role='section-name']");
+      const nextName = (nameInput?.value || "").trim();
+      pendingEdits.push({ item, sectionId, originalName, nextName });
+    });
+    for (const edit of pendingEdits) {
+      const nameError = getSectionNameValidationError(edit.nextName);
+      if (nameError) {
+        alert(`${edit.sectionId}: ${nameError}`);
+        return;
+      }
+      const nextKey = normalizeSectionName(edit.nextName || edit.sectionId);
+      const duplicateId = finalNamesByKey.get(nextKey);
+      if (duplicateId && duplicateId !== edit.sectionId) {
+        alert(`Section name "${edit.nextName}" is already in use.`);
+        return;
+      }
+      finalNamesByKey.set(nextKey, edit.sectionId);
+    }
     let changed = false;
     let seatsChanged = false;
-    const sectionItem = sectionEditList.querySelector(".edit-item");
-    const sectionId = sectionItem?.dataset.sectionId || sectionEditTargetId;
-    if (sectionId) {
-      const nameInput = sectionItem?.querySelector("input[data-role='section-name']");
-      const nextName = (nameInput?.value || "").trim();
-      const nameError = getSectionNameValidationError(nextName);
-      if (nameError) {
-        alert(nameError);
+    for (const edit of pendingEdits) {
+      const newRowsList = edit.item.querySelector("[data-role='section-new-rows']");
+      const { drafts, errors } = collectSectionRowDrafts(newRowsList);
+      if (errors.length) {
+        const label = edit.nextName || edit.sectionId;
+        alert(`${label}\n${errors.join("\n")}`);
         return;
       }
-      if (isDuplicateSectionName(sectionId, nextName)) {
-        alert(`Section name "${nextName}" is already in use.`);
-        return;
+      edit.rowDrafts = drafts;
+    }
+    pendingEdits.forEach((edit) => {
+      if (edit.nextName !== edit.originalName) {
+        changed = updateSectionName(edit.sectionId, edit.nextName) || changed;
       }
-      if (nextName !== (sectionItem?.dataset?.nameOriginal || "")) {
-        changed = updateSectionName(sectionId, nextName) || changed;
+      if (edit.rowDrafts?.length) {
+        const rowsAdded = addRowsToSection(edit.sectionId, edit.rowDrafts);
+        seatsChanged = rowsAdded || seatsChanged;
+        changed = rowsAdded || changed;
       }
-    }
-    const { drafts, errors } = collectSectionRowDrafts();
-    if (errors.length) {
-      alert(errors.join("\n"));
-      return;
-    }
-    if (sectionId && drafts.length) {
-      seatsChanged = addRowsToSection(sectionId, drafts);
-      changed = seatsChanged || changed;
-    }
+    });
     if (changed) {
       if (seatsChanged) {
         updateCountsAfterSeatChange();
