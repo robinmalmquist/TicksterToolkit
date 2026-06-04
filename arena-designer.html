@@ -11285,10 +11285,11 @@ codePane.addEventListener("input", () => {
       ".open .always-visible-section-outline { fill: rgba(243, 243, 243, 0.8); stroke: #a3aaaf; stroke-dasharray: 30px 20px; stroke-width: 10px; }",
       ".unavailable .always-visible-section-outline { fill: #ececec; stroke: #485c6a; stroke-width: 10px; }",
       ".unavailable.open .always-visible-section-outline { fill: #ececec; stroke: #a3aaaf; stroke-width: 10px; }",
-      ".section-text { fill: white; font-family: Roboto; font-size: 250px; font-weight: 400; }",
+      ".section-text { fill: white; font-family: Roboto; font-size: 250px; font-weight: 400; /* pointer-events: none; */ }",
       ".section-text.large { font-size: 500px; }",
       ".row-number-text { fill: #202020; font-family: Roboto; font-size: 75px; }",
       ".section-text-box { fill: #09517c; }",
+      ".section-text-box:hover { fill: #09517c; }",
       ".unavailable .section-text-box { fill: #a3aaaf; }"
     ];
     const priceCss = buildSvgPriceRegionCss();
@@ -11749,7 +11750,7 @@ codePane.addEventListener("input", () => {
       }
 
       lines.push("          <g>");
-      lines.push(`            <rect class="section-text-box" x="${formatSvgNumber(rectX)}" y="${formatSvgNumber(rectY)}" width="${formatSvgNumber(width)}" height="${formatSvgNumber(height)}" rx="${formatSvgNumber(radius)}" ry="${formatSvgNumber(radius)}"/>`);
+      lines.push(`            <rect class="section-text-box" x="${formatSvgNumber(rectX)}" y="${formatSvgNumber(rectY)}" width="${formatSvgNumber(width)}" height="${formatSvgNumber(height)}" rx="75" ry="75"/>`);
       lines.push(`            <text class="section-text" x="${formatSvgNumber(centerX)}" y="${formatSvgNumber(centerY)}" text-anchor="middle" dominant-baseline="middle" style="white-space: pre;">${escapeXml(text)}</text>`);
       lines.push("          </g>");
       lines.push("        </g>");
