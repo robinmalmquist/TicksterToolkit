@@ -3709,6 +3709,10 @@
             <button id="numberedImportLoadXlsxBtn" class="c-button c-button--ghost c-button--small">Load XLSX</button>
             <input type="file" id="numberedImportXlsxInput" accept=".xlsx,.xls" style="display:none" />
           </div>
+          <label class="bg-control u-font--small" title="Ignore seats that exist in TLT but not in Excel, and keep them available for placement.">
+            <input type="checkbox" id="numberedImportAllowAllTltSeats" data-numbered-import-control="true" />
+            Allow all TLT seats
+          </label>
           <details class="numbered-import-options">
             <summary class="numbered-import-options__summary">
               <span class="numbered-import-options__title u-font--small">Placement settings</span>
@@ -4701,6 +4705,7 @@
   const numberedImportTltInput = document.getElementById("numberedImportTltInput");
   const numberedImportLoadXlsxBtn = document.getElementById("numberedImportLoadXlsxBtn");
   const numberedImportXlsxInput = document.getElementById("numberedImportXlsxInput");
+  const numberedImportAllowAllTltSeats = document.getElementById("numberedImportAllowAllTltSeats");
   const numberedImportModePurchase = document.getElementById("numberedImportModePurchase");
   const numberedImportModeSeat = document.getElementById("numberedImportModeSeat");
   const numberedImportSectionsAll = document.getElementById("numberedImportSectionsAll");
@@ -5040,6 +5045,7 @@
   let numberedImportValidationWarnings = [];
   let numberedImportReady = false;
   let numberedImportBlockedSeatIds = new Set();
+  let numberedImportAllowAllLayoutSeatsOverride = false;
   let numberedImportPlacementMode = "all";
   let numberedImportUseAllSections = true;
   let numberedImportSelectedSectionKeys = new Set();
@@ -5750,6 +5756,7 @@
       numberedImportAssignmentsBySeatId: Array.from(numberedImportAssignmentsBySeatId.entries()),
       numberedImportPurchases: cloneJsonData(numberedImportPurchases, []),
       numberedImportBlockedSeatIds: Array.from(numberedImportBlockedSeatIds),
+      numberedImportAllowAllLayoutSeatsOverride: !!numberedImportAllowAllLayoutSeatsOverride,
       numberedImportSelectedSectionKeys: Array.from(numberedImportSelectedSectionKeys),
       numberedImportUseAllSections: !!numberedImportUseAllSections,
       numberedImportPlacementMode: numberedImportPlacementMode || "all",
@@ -5836,6 +5843,7 @@
     numberedImportBlockedSeatIds = new Set(
       Array.isArray(state.numberedImportBlockedSeatIds) ? state.numberedImportBlockedSeatIds : []
     );
+    numberedImportAllowAllLayoutSeatsOverride = !!state.numberedImportAllowAllLayoutSeatsOverride;
     numberedImportSelectedSectionKeys = new Set(
       Array.isArray(state.numberedImportSelectedSectionKeys) ? state.numberedImportSelectedSectionKeys : []
     );
@@ -6163,6 +6171,7 @@
       !snapshotEntriesEqual(previousSnapshot.numberedImportAssignmentsBySeatId, snapshot.numberedImportAssignmentsBySeatId) ||
       !snapshotJsonEqual(previousSnapshot.numberedImportPurchases, snapshot.numberedImportPurchases) ||
       !snapshotJsonEqual(previousSnapshot.numberedImportBlockedSeatIds, snapshot.numberedImportBlockedSeatIds) ||
+      previousSnapshot.numberedImportAllowAllLayoutSeatsOverride !== snapshot.numberedImportAllowAllLayoutSeatsOverride ||
       previousSnapshot.numberedImportPlacementMode !== snapshot.numberedImportPlacementMode ||
       previousSnapshot.numberedImportAutoOrderMode !== snapshot.numberedImportAutoOrderMode
     ) {
@@ -7543,6 +7552,7 @@ codePane.addEventListener("input", () => {
       "numberedImportTltInput",
       "numberedImportLoadXlsxBtn",
       "numberedImportXlsxInput",
+      "numberedImportAllowAllTltSeats",
       "numberedImportModePurchase",
       "numberedImportModeSeat",
       "numberedImportSectionsAll",
@@ -9591,10 +9601,9 @@ codePane.addEventListener("input", () => {
     priceRegions.forEach((region, idx) => {
       const color = normalizeColorToHex(region.color, "#c9cbcd");
       const rangeId = buildRangeId(region, idx);
-      const aliasClass = buildSvgPriceRegionAlias(idx);
       lines.push(`/* Colors for price region ${region.name} */`);
-      lines.push(`.pr-${rangeId}.available, .${aliasClass}.available { stroke: ${color}; fill: ${color}; }`);
-      lines.push(`div.pr-${rangeId}, div.${aliasClass}, .c-pill.pr-${rangeId}, .c-pill.${aliasClass} { background-color: ${color}; }`);
+      lines.push(`.pr-${rangeId}.available { stroke: ${color}; fill: ${color}; }`);
+      lines.push(`div.pr-${rangeId}, .c-pill.pr-${rangeId} { background-color: ${color}; }`);
     });
     lines.push("</style>");
     return lines.join("\n");
@@ -10506,6 +10515,21 @@ codePane.addEventListener("input", () => {
     return seats.length ? "Loaded layout" : "Not loaded";
   }
 
+  function numberedImportAllowsAllLayoutSeats(parsed = numberedImportParsed) {
+    return !!(parsed?.allowsAllLayoutSeats === true || numberedImportAllowAllLayoutSeatsOverride);
+  }
+
+  function setNumberedImportAllowAllLayoutSeatsOverride(enabled, options = {}) {
+    const nextValue = !!enabled;
+    const preserveAssignments = options.preserveAssignments !== false;
+    if (numberedImportAllowAllLayoutSeatsOverride === nextValue) {
+      updateNumberedImportStateUi();
+      return;
+    }
+    numberedImportAllowAllLayoutSeatsOverride = nextValue;
+    handleNumberedImportLayoutChanged({ preserveAssignments });
+  }
+
   function setNumberedImportIssues(errors = [], warnings = []) {
     if (!numberedImportErrors || !numberedImportIssues || !numberedImportIssuesSummary) return;
     const lines = [];
@@ -10578,8 +10602,8 @@ codePane.addEventListener("input", () => {
 
   function isNumberedImportSeatAssignableByWorkbook(seat) {
     if (!seat || !seat.seatId || !numberedImportParsed) return false;
+    if (numberedImportAllowsAllLayoutSeats()) return true;
     if (numberedImportBlockedSeatIds.has(seat.seatId)) return false;
-    if (numberedImportParsed.allowsAllLayoutSeats) return true;
     const numericId = normalizeNumericId(seatIdToSvgCode(seat.seatId));
     return !!(numericId && numberedImportParsed.seatsByNumeric.has(numericId));
   }
@@ -10864,10 +10888,10 @@ codePane.addEventListener("input", () => {
 
   function canAssignNumberedImportSeat(seat, refNo = "") {
     if (!seat || !seat.seatId || !numberedImportParsed) return false;
-    if (numberedImportBlockedSeatIds.has(seat.seatId)) return false;
     const assignedRefNo = numberedImportAssignmentsBySeatId.get(seat.seatId);
     if (assignedRefNo && assignedRefNo !== refNo) return false;
-    if (numberedImportParsed.allowsAllLayoutSeats) return true;
+    if (numberedImportAllowsAllLayoutSeats()) return true;
+    if (numberedImportBlockedSeatIds.has(seat.seatId)) return false;
     const numericId = normalizeNumericId(seatIdToSvgCode(seat.seatId));
     if (!numericId || !numberedImportParsed.seatsByNumeric.has(numericId)) return false;
     return true;
@@ -11468,6 +11492,14 @@ codePane.addEventListener("input", () => {
         ? `Excel: ${numberedImportWorkbookName}`
         : "Excel: not loaded";
     }
+    if (numberedImportAllowAllTltSeats) {
+      const workbookAlreadyAllowsAll = numberedImportParsed?.allowsAllLayoutSeats === true;
+      numberedImportAllowAllTltSeats.checked = numberedImportAllowsAllLayoutSeats();
+      numberedImportAllowAllTltSeats.disabled = !numberedImportMode || !seats.length || !numberedImportWorkbookName || workbookAlreadyAllowsAll;
+      numberedImportAllowAllTltSeats.title = workbookAlreadyAllowsAll
+        ? "This workbook already allows all layout seats."
+        : "Ignore seats that exist in TLT but not in Excel, and keep them available for placement.";
+    }
     if (numberedImportValidationState) {
       if (!numberedImportWorkbookName) {
         numberedImportValidationState.textContent = "Validation: waiting for files";
@@ -11478,10 +11510,13 @@ codePane.addEventListener("input", () => {
       } else {
         const totalSeats = numberedImportPurchases.reduce((sum, purchase) => sum + purchase.ticketCount, 0);
         const placedSeats = numberedImportPurchases.reduce((sum, purchase) => sum + (purchase.assignedSeatIds?.length || 0), 0);
+        const allTltSeatsSuffix = numberedImportAllowsAllLayoutSeats()
+          ? " • All TLT seats enabled"
+          : "";
         const blockedSuffix = numberedImportBlockedSeatIds.size
           ? ` • Blocked ${numberedImportBlockedSeatIds.size}`
           : "";
-        numberedImportValidationState.textContent = `Validation: OK • Purchases ${numberedImportPurchases.length} • Placed ${placedSeats}/${totalSeats}${blockedSuffix}`;
+        numberedImportValidationState.textContent = `Validation: OK • Purchases ${numberedImportPurchases.length} • Placed ${placedSeats}/${totalSeats}${allTltSeatsSuffix}${blockedSuffix}`;
       }
     }
     const allPlaced = numberedImportReady && numberedImportPurchases.every((purchase) => {
@@ -11527,7 +11562,8 @@ codePane.addEventListener("input", () => {
     }
 
     const layoutIds = new Set(numericToSeat.keys());
-    const allowsAllLayoutSeats = parsed.allowsAllLayoutSeats === true;
+    const workbookAllowsAllLayoutSeats = parsed.allowsAllLayoutSeats === true;
+    const allowsAllLayoutSeats = numberedImportAllowsAllLayoutSeats(parsed);
     const excelIds = allowsAllLayoutSeats
       ? new Set(layoutIds)
       : new Set(parsed.seatsByNumeric.keys());
@@ -11544,11 +11580,19 @@ codePane.addEventListener("input", () => {
     }
     const blockedSeatIds = [];
     if (missingInExcel.length) {
-      warnings.push(`Seats mismatch: ${missingInExcel.length} seat(s) exist in TLT but not in Excel. These seats are blocked in canvas (e.g. ${missingInExcel.slice(0, 6).join(", ")}${missingInExcel.length > 6 ? ", ..." : ""}).`);
-      missingInExcel.forEach((numericId) => {
-        const seat = numericToSeat.get(numericId);
-        if (seat?.seatId) blockedSeatIds.push(seat.seatId);
-      });
+      if (allowsAllLayoutSeats) {
+        warnings.push(
+          workbookAllowsAllLayoutSeats
+            ? `Seats mismatch: ${missingInExcel.length} seat(s) exist in TLT but not in Excel. They remain available because this workbook allows all layout seats (e.g. ${missingInExcel.slice(0, 6).join(", ")}${missingInExcel.length > 6 ? ", ..." : ""}).`
+            : `Seats mismatch: ${missingInExcel.length} seat(s) exist in TLT but not in Excel. Override is enabled, so these seats remain available in canvas and export will use the current TLT seat list (e.g. ${missingInExcel.slice(0, 6).join(", ")}${missingInExcel.length > 6 ? ", ..." : ""}).`
+        );
+      } else {
+        warnings.push(`Seats mismatch: ${missingInExcel.length} seat(s) exist in TLT but not in Excel. These seats are blocked in canvas (e.g. ${missingInExcel.slice(0, 6).join(", ")}${missingInExcel.length > 6 ? ", ..." : ""}).`);
+        missingInExcel.forEach((numericId) => {
+          const seat = numericToSeat.get(numericId);
+          if (seat?.seatId) blockedSeatIds.push(seat.seatId);
+        });
+      }
     }
 
     const grouped = new Map();
@@ -11628,7 +11672,11 @@ codePane.addEventListener("input", () => {
     return { errors, warnings, purchases, blockedSeatIds };
   }
 
-  function handleNumberedImportLayoutChanged() {
+  function handleNumberedImportLayoutChanged(options = {}) {
+    const preserveAssignments = !!options.preserveAssignments;
+    const previousAssignmentsBySeatId = preserveAssignments
+      ? new Map(numberedImportAssignmentsBySeatId)
+      : new Map();
     numberedImportValidationErrors = [];
     numberedImportValidationWarnings = [];
     numberedImportPurchases = [];
@@ -11645,6 +11693,26 @@ codePane.addEventListener("input", () => {
       numberedImportBlockedSeatIds = new Set(validation.blockedSeatIds || []);
       numberedImportPurchaseByRefNo = new Map(numberedImportPurchases.map((purchase) => [purchase.refNo, purchase]));
       numberedImportReady = numberedImportValidationErrors.length === 0 && numberedImportPurchases.length > 0;
+      if (preserveAssignments && previousAssignmentsBySeatId.size && numberedImportReady) {
+        previousAssignmentsBySeatId.forEach((refNo, seatId) => {
+          const purchase = numberedImportPurchaseByRefNo.get(refNo);
+          const seat = seats.find((entry) => entry.seatId === seatId);
+          if (!purchase || !seat || !canAssignNumberedImportSeat(seat, refNo)) return;
+          numberedImportAssignmentsBySeatId.set(seatId, refNo);
+          if (!Array.isArray(purchase.assignedSeatIds)) purchase.assignedSeatIds = [];
+          if (!purchase.assignedSeatIds.includes(seatId)) purchase.assignedSeatIds.push(seatId);
+        });
+        numberedImportPurchases.forEach((purchase) => {
+          const assignedSeatIds = Array.isArray(purchase.assignedSeatIds) ? purchase.assignedSeatIds : [];
+          if (assignedSeatIds.length <= purchase.ticketCount) return;
+          const trimmedSeatIds = assignedSeatIds.slice(0, purchase.ticketCount);
+          const trimmedSeatSet = new Set(trimmedSeatIds);
+          assignedSeatIds.forEach((seatId) => {
+            if (!trimmedSeatSet.has(seatId)) numberedImportAssignmentsBySeatId.delete(seatId);
+          });
+          purchase.assignedSeatIds = trimmedSeatIds;
+        });
+      }
     }
     if (numberedImportSelectedRefNo && !numberedImportPurchaseByRefNo.has(numberedImportSelectedRefNo)) {
       numberedImportSelectedRefNo = "";
@@ -11785,10 +11853,11 @@ codePane.addEventListener("input", () => {
       return;
     }
 
+    const allowsAllLayoutSeats = numberedImportAllowsAllLayoutSeats(numberedImportParsed);
     let templateRows = Array.isArray(numberedImportParsed.template?.rows)
       ? numberedImportParsed.template.rows
       : [];
-    if (!templateRows.length && numberedImportParsed.allowsAllLayoutSeats) {
+    if (allowsAllLayoutSeats) {
       templateRows = buildNumberedImportTemplateRowsFromLayout();
     }
     if (!templateRows.length) {
@@ -11804,7 +11873,7 @@ codePane.addEventListener("input", () => {
         if (!numericId) return;
         const seatRecord = numberedImportParsed.seatsByNumeric.get(numericId);
         let identifier = String(seatRecord?.identifier || "").trim().toLowerCase();
-        if (!identifier && numberedImportParsed.allowsAllLayoutSeats) {
+        if (!identifier && allowsAllLayoutSeats) {
           identifier = numericId.toLowerCase();
         }
         if (!identifier) return;
@@ -12138,12 +12207,455 @@ codePane.addEventListener("input", () => {
     };
   }
 
-  function buildSvgSectionContourFromRows(rows) {
-    if (!Array.isArray(rows) || !rows.length) return [];
+  function computeSvgPolygonArea(points) {
+    if (!Array.isArray(points) || points.length < 3) return 0;
+    let area = 0;
+    for (let i = 0; i < points.length; i++) {
+      const current = points[i];
+      const next = points[(i + 1) % points.length];
+      area += current.x * next.y - next.x * current.y;
+    }
+    return area / 2;
+  }
+
+  function clusterSvgValues(values, tolerance = 1) {
+    if (!Array.isArray(values) || !values.length) return [];
+    const sorted = values
+      .map((value) => Number(value))
+      .filter((value) => Number.isFinite(value))
+      .sort((a, b) => a - b);
+    if (!sorted.length) return [];
+    const clusters = [];
+    let cluster = [sorted[0]];
+    for (let i = 1; i < sorted.length; i++) {
+      const value = sorted[i];
+      const previous = cluster[cluster.length - 1];
+      if (Math.abs(value - previous) <= tolerance) {
+        cluster.push(value);
+      } else {
+        clusters.push(cluster.reduce((sum, current) => sum + current, 0) / cluster.length);
+        cluster = [value];
+      }
+    }
+    clusters.push(cluster.reduce((sum, current) => sum + current, 0) / cluster.length);
+    return clusters;
+  }
+
+  function buildSvgWrappedPointRange(points, startIndex, endIndex) {
+    if (!Array.isArray(points) || !points.length) return [];
+    if (startIndex <= endIndex) return points.slice(startIndex, endIndex + 1);
+    return points.slice(startIndex).concat(points.slice(0, endIndex + 1));
+  }
+
+  function computeSvgPointToSegmentDistance(point, start, end) {
+    const dx = end.x - start.x;
+    const dy = end.y - start.y;
+    const lengthSquared = dx * dx + dy * dy;
+    if (lengthSquared <= 1e-6) return Math.hypot(point.x - start.x, point.y - start.y);
+    let t = ((point.x - start.x) * dx + (point.y - start.y) * dy) / lengthSquared;
+    t = Math.max(0, Math.min(1, t));
+    const projectionX = start.x + dx * t;
+    const projectionY = start.y + dy * t;
+    return Math.hypot(point.x - projectionX, point.y - projectionY);
+  }
+
+  function simplifySvgOpenPolyline(points, tolerance = 1) {
+    if (!Array.isArray(points) || points.length < 3) return Array.isArray(points) ? [...points] : [];
+    const keep = new Uint8Array(points.length);
+    keep[0] = 1;
+    keep[points.length - 1] = 1;
+    function simplifySegment(startIndex, endIndex) {
+      if (endIndex - startIndex < 2) return;
+      let bestIndex = -1;
+      let bestDistance = tolerance;
+      for (let i = startIndex + 1; i < endIndex; i++) {
+        const distance = computeSvgPointToSegmentDistance(points[i], points[startIndex], points[endIndex]);
+        if (distance > bestDistance) {
+          bestDistance = distance;
+          bestIndex = i;
+        }
+      }
+      if (bestIndex === -1) return;
+      keep[bestIndex] = 1;
+      simplifySegment(startIndex, bestIndex);
+      simplifySegment(bestIndex, endIndex);
+    }
+    simplifySegment(0, points.length - 1);
+    return points.filter((point, index) => keep[index]);
+  }
+
+  function simplifySvgClosedPolygon(points, tolerance = 1) {
+    if (!Array.isArray(points) || points.length < 4) return Array.isArray(points) ? [...points] : [];
+    let polygon = removeSequentialDuplicateSvgPoints(points, 1e-6);
+    if (polygon.length > 1) {
+      const first = polygon[0];
+      const last = polygon[polygon.length - 1];
+      if (Math.hypot(first.x - last.x, first.y - last.y) <= 1e-6) polygon.pop();
+    }
+    if (polygon.length < 4) return polygon;
+    let minXIndex = 0;
+    let maxXIndex = 0;
+    let minYIndex = 0;
+    let maxYIndex = 0;
+    polygon.forEach((point, index) => {
+      if (point.x < polygon[minXIndex].x) minXIndex = index;
+      if (point.x > polygon[maxXIndex].x) maxXIndex = index;
+      if (point.y < polygon[minYIndex].y) minYIndex = index;
+      if (point.y > polygon[maxYIndex].y) maxYIndex = index;
+    });
+    let splitA = minXIndex;
+    let splitB = maxXIndex;
+    const splitDistance = Math.abs(splitA - splitB);
+    if (splitA === splitB || splitDistance === 1 || splitDistance === polygon.length - 1) {
+      splitA = minYIndex;
+      splitB = maxYIndex;
+    }
+    if (splitA === splitB) return removeSvgCollinearPoints(polygon, Math.max(1e-3, tolerance * 0.25));
+    const firstChain = buildSvgWrappedPointRange(polygon, splitA, splitB);
+    const secondChain = buildSvgWrappedPointRange(polygon, splitB, splitA);
+    const simplifiedFirst = simplifySvgOpenPolyline(firstChain, tolerance);
+    const simplifiedSecond = simplifySvgOpenPolyline(secondChain, tolerance);
+    let merged = simplifiedFirst.concat(simplifiedSecond.slice(1, -1));
+    merged = removeSequentialDuplicateSvgPoints(merged, Math.max(1e-3, tolerance * 0.05));
+    merged = removeSvgCollinearPoints(merged, Math.max(1e-3, tolerance * 0.25));
+    return merged.length >= 3 ? merged : polygon;
+  }
+
+  function scoreSvgBoundaryTurn(previousDirection, nextDirection) {
+    const turn = (nextDirection - previousDirection + 4) % 4;
+    switch (turn) {
+      case 1:
+        return 0;
+      case 0:
+        return 1;
+      case 3:
+        return 2;
+      case 2:
+        return 3;
+      default:
+        return 4;
+    }
+  }
+
+  function traceSvgGridBoundaryLoops(occupiedCells, gridWidth, gridHeight) {
+    if (!(occupiedCells instanceof Set) || !occupiedCells.size || gridWidth < 1 || gridHeight < 1) return [];
+    const edges = [];
+    const edgesByStart = new Map();
+    const hasCell = (col, row) => {
+      if (col < 0 || row < 0 || col >= gridWidth || row >= gridHeight) return false;
+      return occupiedCells.has(row * gridWidth + col);
+    };
+    const addEdge = (startX, startY, endX, endY, direction) => {
+      const edge = { startX, startY, endX, endY, direction, used: false };
+      const index = edges.push(edge) - 1;
+      const key = `${startX},${startY}`;
+      if (!edgesByStart.has(key)) edgesByStart.set(key, []);
+      edgesByStart.get(key).push(index);
+    };
+    occupiedCells.forEach((cellIndex) => {
+      const col = cellIndex % gridWidth;
+      const row = Math.floor(cellIndex / gridWidth);
+      const x0 = col;
+      const y0 = row;
+      const x1 = col + 1;
+      const y1 = row + 1;
+      if (!hasCell(col, row - 1)) addEdge(x0, y0, x1, y0, 0);
+      if (!hasCell(col + 1, row)) addEdge(x1, y0, x1, y1, 1);
+      if (!hasCell(col, row + 1)) addEdge(x1, y1, x0, y1, 2);
+      if (!hasCell(col - 1, row)) addEdge(x0, y1, x0, y0, 3);
+    });
+    const loops = [];
+    edges.forEach((edge) => {
+      if (edge.used) return;
+      const loop = [{ x: edge.startX, y: edge.startY }];
+      edge.used = true;
+      let currentEdge = edge;
+      let closed = false;
+      for (let guard = 0; guard <= edges.length; guard++) {
+        const endPoint = { x: currentEdge.endX, y: currentEdge.endY };
+        if (endPoint.x === loop[0].x && endPoint.y === loop[0].y) {
+          closed = true;
+          break;
+        }
+        loop.push(endPoint);
+        const nextKey = `${endPoint.x},${endPoint.y}`;
+        const candidates = (edgesByStart.get(nextKey) || [])
+          .map((index) => edges[index])
+          .filter((candidate) => !candidate.used);
+        if (!candidates.length) break;
+        candidates.sort((a, b) => scoreSvgBoundaryTurn(currentEdge.direction, a.direction) - scoreSvgBoundaryTurn(currentEdge.direction, b.direction));
+        currentEdge = candidates[0];
+        currentEdge.used = true;
+      }
+      if (closed && loop.length >= 3) loops.push(loop);
+    });
+    return loops;
+  }
+
+  function fillSvgGridRowGaps(grid, width, height, maxGapCells) {
+    if (!(grid instanceof Uint8Array) || width < 1 || height < 1 || maxGapCells < 1) return false;
+    let changed = false;
+    for (let row = 0; row < height; row++) {
+      const runs = [];
+      let start = -1;
+      for (let col = 0; col < width; col++) {
+        const index = row * width + col;
+        if (grid[index]) {
+          if (start === -1) start = col;
+        } else if (start !== -1) {
+          runs.push({ start, end: col - 1 });
+          start = -1;
+        }
+      }
+      if (start !== -1) runs.push({ start, end: width - 1 });
+      for (let i = 1; i < runs.length; i++) {
+        const previous = runs[i - 1];
+        const current = runs[i];
+        const gap = current.start - previous.end - 1;
+        if (gap < 1 || gap > maxGapCells) continue;
+        for (let col = previous.end + 1; col < current.start; col++) {
+          grid[row * width + col] = 1;
+        }
+        changed = true;
+      }
+    }
+    return changed;
+  }
+
+  function fillSvgGridColumnGaps(grid, width, height, maxGapCells) {
+    if (!(grid instanceof Uint8Array) || width < 1 || height < 1 || maxGapCells < 1) return false;
+    let changed = false;
+    for (let col = 0; col < width; col++) {
+      const runs = [];
+      let start = -1;
+      for (let row = 0; row < height; row++) {
+        const index = row * width + col;
+        if (grid[index]) {
+          if (start === -1) start = row;
+        } else if (start !== -1) {
+          runs.push({ start, end: row - 1 });
+          start = -1;
+        }
+      }
+      if (start !== -1) runs.push({ start, end: height - 1 });
+      for (let i = 1; i < runs.length; i++) {
+        const previous = runs[i - 1];
+        const current = runs[i];
+        const gap = current.start - previous.end - 1;
+        if (gap < 1 || gap > maxGapCells) continue;
+        for (let row = previous.end + 1; row < current.start; row++) {
+          grid[row * width + col] = 1;
+        }
+        changed = true;
+      }
+    }
+    return changed;
+  }
+
+  function closeSvgOccupiedGridGaps(occupiedCells, gridWidth, gridHeight, options = {}) {
+    if (!(occupiedCells instanceof Set) || !occupiedCells.size || gridWidth < 1 || gridHeight < 1) return occupiedCells;
+    const maxHorizontalGapCells = Math.max(0, Math.floor(Number(options.maxHorizontalGapCells) || 0));
+    const maxVerticalGapCells = Math.max(0, Math.floor(Number(options.maxVerticalGapCells) || 0));
+    const passCount = Math.max(1, Math.min(4, Math.floor(Number(options.passCount) || 2)));
+    if (maxHorizontalGapCells < 1 && maxVerticalGapCells < 1) return occupiedCells;
+    const grid = new Uint8Array(gridWidth * gridHeight);
+    occupiedCells.forEach((cellIndex) => {
+      if (cellIndex >= 0 && cellIndex < grid.length) grid[cellIndex] = 1;
+    });
+    let changed = false;
+    for (let pass = 0; pass < passCount; pass++) {
+      let passChanged = false;
+      if (maxHorizontalGapCells > 0) {
+        passChanged = fillSvgGridRowGaps(grid, gridWidth, gridHeight, maxHorizontalGapCells) || passChanged;
+      }
+      if (maxVerticalGapCells > 0) {
+        passChanged = fillSvgGridColumnGaps(grid, gridWidth, gridHeight, maxVerticalGapCells) || passChanged;
+      }
+      if (!passChanged) break;
+      changed = true;
+    }
+    if (!changed) return occupiedCells;
+    const closedCells = new Set();
+    grid.forEach((value, index) => {
+      if (value) closedCells.add(index);
+    });
+    return closedCells;
+  }
+
+  function collectSvgGridComponents(grid, width, height) {
+    if (!(grid instanceof Uint8Array) || width < 1 || height < 1) return [];
+    const visited = new Uint8Array(grid.length);
+    const components = [];
+    const neighborOffsets = [
+      [-1, -1], [0, -1], [1, -1],
+      [-1, 0],            [1, 0],
+      [-1, 1],  [0, 1],  [1, 1]
+    ];
+    const orthogonalOffsets = [
+      [0, -1], [1, 0], [0, 1], [-1, 0]
+    ];
+    for (let index = 0; index < grid.length; index++) {
+      if (!grid[index] || visited[index]) continue;
+      const queue = [index];
+      visited[index] = 1;
+      const cells = [];
+      const boundary = [];
+      let minCol = width;
+      let maxCol = -1;
+      let minRow = height;
+      let maxRow = -1;
+      while (queue.length) {
+        const current = queue.pop();
+        const col = current % width;
+        const row = Math.floor(current / width);
+        const point = { col, row };
+        cells.push(point);
+        minCol = Math.min(minCol, col);
+        maxCol = Math.max(maxCol, col);
+        minRow = Math.min(minRow, row);
+        maxRow = Math.max(maxRow, row);
+        let isBoundary = false;
+        orthogonalOffsets.forEach(([dx, dy]) => {
+          const nextCol = col + dx;
+          const nextRow = row + dy;
+          if (nextCol < 0 || nextRow < 0 || nextCol >= width || nextRow >= height) {
+            isBoundary = true;
+            return;
+          }
+          if (!grid[nextRow * width + nextCol]) isBoundary = true;
+        });
+        if (isBoundary) boundary.push(point);
+        neighborOffsets.forEach(([dx, dy]) => {
+          const nextCol = col + dx;
+          const nextRow = row + dy;
+          if (nextCol < 0 || nextRow < 0 || nextCol >= width || nextRow >= height) return;
+          const nextIndex = nextRow * width + nextCol;
+          if (!grid[nextIndex] || visited[nextIndex]) return;
+          visited[nextIndex] = 1;
+          queue.push(nextIndex);
+        });
+      }
+      components.push({
+        cells,
+        boundary,
+        minCol,
+        maxCol,
+        minRow,
+        maxRow
+      });
+    }
+    return components;
+  }
+
+  function sampleSvgGridPoints(points, maxSamples = 250) {
+    if (!Array.isArray(points) || points.length <= maxSamples) return Array.isArray(points) ? points : [];
+    const step = Math.max(1, Math.ceil(points.length / maxSamples));
+    return points.filter((_, index) => index % step === 0);
+  }
+
+  function computeSvgGridComponentGap(componentA, componentB) {
+    const dx = Math.max(0, componentA.minCol - componentB.maxCol - 1, componentB.minCol - componentA.maxCol - 1);
+    const dy = Math.max(0, componentA.minRow - componentB.maxRow - 1, componentB.minRow - componentA.maxRow - 1);
+    return Math.hypot(dx, dy);
+  }
+
+  function drawSvgGridBridge(grid, width, height, startCol, startRow, endCol, endRow, thickness = 1) {
+    if (!(grid instanceof Uint8Array) || width < 1 || height < 1) return false;
+    const radius = Math.max(0, Math.floor(thickness));
+    let changed = false;
+    let x0 = startCol;
+    let y0 = startRow;
+    const x1 = endCol;
+    const y1 = endRow;
+    const dx = Math.abs(x1 - x0);
+    const dy = Math.abs(y1 - y0);
+    const sx = x0 < x1 ? 1 : -1;
+    const sy = y0 < y1 ? 1 : -1;
+    let err = dx - dy;
+    while (true) {
+      for (let offsetY = -radius; offsetY <= radius; offsetY++) {
+        for (let offsetX = -radius; offsetX <= radius; offsetX++) {
+          const col = x0 + offsetX;
+          const row = y0 + offsetY;
+          if (col < 0 || row < 0 || col >= width || row >= height) continue;
+          const index = row * width + col;
+          if (!grid[index]) {
+            grid[index] = 1;
+            changed = true;
+          }
+        }
+      }
+      if (x0 === x1 && y0 === y1) break;
+      const doubledErr = err * 2;
+      if (doubledErr > -dy) {
+        err -= dy;
+        x0 += sx;
+      }
+      if (doubledErr < dx) {
+        err += dx;
+        y0 += sy;
+      }
+    }
+    return changed;
+  }
+
+  function mergeSvgGridComponents(grid, width, height, maxBridgeCells, options = {}) {
+    if (!(grid instanceof Uint8Array) || width < 1 || height < 1 || maxBridgeCells < 1) return false;
+    const bridgeThickness = Math.max(0, Math.floor(Number(options.bridgeThickness) || 1));
+    const maxIterations = Math.max(1, Math.min(12, Math.floor(Number(options.maxIterations) || 6)));
+    let changed = false;
+    for (let iteration = 0; iteration < maxIterations; iteration++) {
+      const components = collectSvgGridComponents(grid, width, height);
+      if (components.length <= 1) break;
+      let bestPair = null;
+      let bestDistance = Infinity;
+      for (let i = 0; i < components.length; i++) {
+        for (let j = i + 1; j < components.length; j++) {
+          const componentA = components[i];
+          const componentB = components[j];
+          const boundingGap = computeSvgGridComponentGap(componentA, componentB);
+          if (boundingGap > maxBridgeCells + 1 || boundingGap > bestDistance) continue;
+          const sampleA = sampleSvgGridPoints(componentA.boundary.length ? componentA.boundary : componentA.cells);
+          const sampleB = sampleSvgGridPoints(componentB.boundary.length ? componentB.boundary : componentB.cells);
+          for (let pointAIndex = 0; pointAIndex < sampleA.length; pointAIndex++) {
+            const pointA = sampleA[pointAIndex];
+            for (let pointBIndex = 0; pointBIndex < sampleB.length; pointBIndex++) {
+              const pointB = sampleB[pointBIndex];
+              const distance = Math.hypot(pointA.col - pointB.col, pointA.row - pointB.row);
+              if (distance > maxBridgeCells || distance >= bestDistance) continue;
+              bestDistance = distance;
+              bestPair = { pointA, pointB };
+            }
+          }
+        }
+      }
+      if (!bestPair || !Number.isFinite(bestDistance) || bestDistance > maxBridgeCells) break;
+      const bridgeChanged = drawSvgGridBridge(
+        grid,
+        width,
+        height,
+        bestPair.pointA.col,
+        bestPair.pointA.row,
+        bestPair.pointB.col,
+        bestPair.pointB.row,
+        bridgeThickness
+      );
+      if (!bridgeChanged) break;
+      changed = true;
+    }
+    return changed;
+  }
+
+  function buildSvgContourRowEntries(rows) {
     const rowEntries = [];
     const allWidths = [];
+    if (!Array.isArray(rows) || !rows.length) {
+      return { rowEntries, allWidths };
+    }
     rows.forEach((row) => {
-      const rowSeats = Array.isArray(row?.seats) ? row.seats.filter(Boolean) : [];
+      const rowSeats = Array.isArray(row?.seats)
+        ? row.seats.filter((seat) => Number.isFinite(seat?.centerX) && Number.isFinite(seat?.centerY))
+        : [];
       if (!rowSeats.length) return;
       rowSeats.forEach((seat) => {
         const width = Number(seat?.width);
@@ -12159,6 +12671,328 @@ codePane.addEventListener("input", () => {
         tangent: computeSvgSeatClusterTangent(rowSeats)
       });
     });
+    return { rowEntries, allWidths };
+  }
+
+  function clusterSvgRowEntriesByVisualBand(rowEntries, axis, tolerance) {
+    if (!Array.isArray(rowEntries) || !rowEntries.length) return [];
+    const sortedEntries = rowEntries
+      .map((entry) => ({
+        ...entry,
+        centerV: projectSvgPointToAxis(entry.centerX, entry.centerY, axis)
+      }))
+      .sort((a, b) => a.centerV - b.centerV);
+    const clusters = [];
+    sortedEntries.forEach((entry) => {
+      const weight = Math.max(1, entry.seats.length);
+      const lastCluster = clusters[clusters.length - 1];
+      if (!lastCluster || Math.abs(entry.centerV - lastCluster.meanV) > tolerance) {
+        clusters.push({
+          entries: [entry],
+          sumV: entry.centerV * weight,
+          totalWeight: weight,
+          meanV: entry.centerV
+        });
+        return;
+      }
+      lastCluster.entries.push(entry);
+      lastCluster.sumV += entry.centerV * weight;
+      lastCluster.totalWeight += weight;
+      lastCluster.meanV = lastCluster.sumV / lastCluster.totalWeight;
+    });
+    return clusters.map((cluster) => {
+      const seats = [];
+      let sumX = 0;
+      let sumY = 0;
+      let totalWeight = 0;
+      cluster.entries.forEach((entry) => {
+        const weight = Math.max(1, entry.seats.length);
+        seats.push(...entry.seats);
+        sumX += entry.centerX * weight;
+        sumY += entry.centerY * weight;
+        totalWeight += weight;
+      });
+      return {
+        seats,
+        centerX: totalWeight ? sumX / totalWeight : cluster.entries[0].centerX,
+        centerY: totalWeight ? sumY / totalWeight : cluster.entries[0].centerY,
+        centerV: cluster.meanV
+      };
+    });
+  }
+
+  function buildSvgSectionContourFromVisualBandEntries(bandEntries, sectionTangent, medianWidth) {
+    if (!Array.isArray(bandEntries) || !bandEntries.length) return [];
+    const sectionNormal = { x: -sectionTangent.y, y: sectionTangent.x };
+    const tangentialPadding = Math.max(10, medianWidth * 0.18);
+    const halfMedianWidth = medianWidth / 2;
+    const metrics = [];
+    let seatMinU = Infinity;
+    let seatMaxU = -Infinity;
+    let seatMinV = Infinity;
+    let seatMaxV = -Infinity;
+    bandEntries.forEach((entry) => {
+      const projectedSeats = (Array.isArray(entry?.seats) ? entry.seats : [])
+        .map((seat) => {
+          const width = Number(seat?.width);
+          const halfWidth = Number.isFinite(width) && width > 0 ? width / 2 : halfMedianWidth;
+          const u = projectSvgPointToAxis(seat.centerX, seat.centerY, sectionTangent);
+          const v = projectSvgPointToAxis(seat.centerX, seat.centerY, sectionNormal);
+          if (!Number.isFinite(u) || !Number.isFinite(v)) return null;
+          return { u, v, halfWidth };
+        })
+        .filter(Boolean)
+        .sort((a, b) => a.u - b.u);
+      if (!projectedSeats.length) return;
+      const seatVs = projectedSeats.map((seat) => seat.v);
+      const centerV = Number.isFinite(entry?.centerV) ? entry.centerV : (medianValue(seatVs) || seatVs[0]);
+      let uLeft = Infinity;
+      let uRight = -Infinity;
+      projectedSeats.forEach((seat) => {
+        uLeft = Math.min(uLeft, seat.u - seat.halfWidth - tangentialPadding);
+        uRight = Math.max(uRight, seat.u + seat.halfWidth + tangentialPadding);
+        seatMinU = Math.min(seatMinU, seat.u - seat.halfWidth);
+        seatMaxU = Math.max(seatMaxU, seat.u + seat.halfWidth);
+        seatMinV = Math.min(seatMinV, seat.v - seat.halfWidth);
+        seatMaxV = Math.max(seatMaxV, seat.v + seat.halfWidth);
+      });
+      metrics.push({
+        v: centerV,
+        uLeft,
+        uRight
+      });
+    });
+    if (!metrics.length || !Number.isFinite(seatMinU) || !Number.isFinite(seatMinV)) return [];
+    metrics.sort((a, b) => a.v - b.v);
+    const bandSpacings = [];
+    for (let i = 1; i < metrics.length; i++) {
+      const spacing = metrics[i].v - metrics[i - 1].v;
+      if (spacing > 1e-3) bandSpacings.push(spacing);
+    }
+    const estimatedRowPitch = medianValue(bandSpacings);
+    const outerNormalCap = Math.max(
+      halfMedianWidth + Math.max(10, medianWidth * 0.15),
+      Number.isFinite(estimatedRowPitch) && estimatedRowPitch > 0 ? estimatedRowPitch * 0.35 : 0
+    );
+    const points = [];
+    const firstBand = metrics[0];
+    const lastBand = metrics[metrics.length - 1];
+    points.push(
+      unprojectSvgPointFromAxes(firstBand.uLeft, firstBand.v - outerNormalCap, sectionTangent, sectionNormal),
+      unprojectSvgPointFromAxes(firstBand.uRight, firstBand.v - outerNormalCap, sectionTangent, sectionNormal)
+    );
+    for (let i = 0; i < metrics.length - 1; i++) {
+      const current = metrics[i];
+      const next = metrics[i + 1];
+      const midV = (current.v + next.v) / 2;
+      points.push(
+        unprojectSvgPointFromAxes(current.uRight, midV, sectionTangent, sectionNormal),
+        unprojectSvgPointFromAxes(next.uRight, midV, sectionTangent, sectionNormal)
+      );
+    }
+    points.push(
+      unprojectSvgPointFromAxes(lastBand.uRight, lastBand.v + outerNormalCap, sectionTangent, sectionNormal),
+      unprojectSvgPointFromAxes(lastBand.uLeft, lastBand.v + outerNormalCap, sectionTangent, sectionNormal)
+    );
+    for (let i = metrics.length - 1; i > 0; i--) {
+      const current = metrics[i];
+      const previous = metrics[i - 1];
+      const midV = (current.v + previous.v) / 2;
+      points.push(
+        unprojectSvgPointFromAxes(current.uLeft, midV, sectionTangent, sectionNormal),
+        unprojectSvgPointFromAxes(previous.uLeft, midV, sectionTangent, sectionNormal)
+      );
+    }
+    const contourSpanU = Math.max(...metrics.map((metric) => metric.uRight)) - Math.min(...metrics.map((metric) => metric.uLeft));
+    const contourSpanV = (lastBand.v + outerNormalCap) - (firstBand.v - outerNormalCap);
+    const seatSpanU = seatMaxU - seatMinU;
+    const seatSpanV = seatMaxV - seatMinV;
+    if ((seatSpanU > 1 && contourSpanU < seatSpanU * 0.75) || (seatSpanV > 1 && contourSpanV < seatSpanV * 0.75)) {
+      return [];
+    }
+    let contour = removeSequentialDuplicateSvgPoints(points, 1e-3);
+    contour = contour.map((point) => roundSvgPoint(point, 0.1));
+    contour = removeSequentialDuplicateSvgPoints(contour, 0.1);
+    contour = removeSvgCollinearPoints(contour, Math.max(1, medianWidth * 0.03));
+    contour = removeSequentialDuplicateSvgPoints(contour, 0.1);
+    contour = simplifySvgClosedPolygon(contour, Math.max(8, medianWidth * 0.12));
+    contour = removeSequentialDuplicateSvgPoints(contour, 0.1);
+    contour = removeSvgCollinearPoints(contour, Math.max(1, medianWidth * 0.03));
+    return contour.length >= 3 ? contour : [];
+  }
+
+  function buildSvgSectionContourFromVisualRows(rows) {
+    const { rowEntries, allWidths } = buildSvgContourRowEntries(rows);
+    if (!rowEntries.length) return [];
+    const medianWidth = Math.max(1, medianValue(allWidths) || 100);
+    const sectionTangent = computeSvgSectionTangentFromRows(rowEntries);
+    const sectionNormal = { x: -sectionTangent.y, y: sectionTangent.x };
+    const bandTolerance = Math.max(10, medianWidth * 0.45);
+    const visualBands = clusterSvgRowEntriesByVisualBand(rowEntries, sectionNormal, bandTolerance);
+    if (!visualBands.length) return [];
+    return buildSvgSectionContourFromVisualBandEntries(visualBands, sectionTangent, medianWidth);
+  }
+
+  function buildSvgSectionContourFromSeatGeometry(rows) {
+    const { rowEntries, allWidths } = buildSvgContourRowEntries(rows);
+    const allSeats = rowEntries.flatMap((entry) => entry.seats);
+    if (allSeats.length < 3) return [];
+    const medianWidth = Math.max(1, medianValue(allWidths) || 100);
+    const sectionTangent = rowEntries.length ? computeSvgSectionTangentFromRows(rowEntries) : computeSvgSeatClusterTangent(allSeats);
+    const sectionNormal = { x: -sectionTangent.y, y: sectionTangent.x };
+    let cellSize = Math.max(14, Math.min(30, medianWidth * 0.32));
+    const rowClusterTolerance = Math.max(10, medianWidth * 0.45);
+    const projectedRowCenters = rowEntries
+      .map((entry) => projectSvgPointToAxis(entry.centerX, entry.centerY, sectionNormal))
+      .filter((value) => Number.isFinite(value));
+    const clusteredRowCenters = clusterSvgValues(projectedRowCenters, rowClusterTolerance);
+    const rowSpacings = [];
+    for (let i = 1; i < clusteredRowCenters.length; i++) {
+      const spacing = clusteredRowCenters[i] - clusteredRowCenters[i - 1];
+      if (spacing > rowClusterTolerance * 0.5) rowSpacings.push(spacing);
+    }
+    const estimatedRowPitch = medianValue(rowSpacings);
+    const seatSpacings = [];
+    rowEntries.forEach((entry) => {
+      const projected = entry.seats
+        .map((seat) => projectSvgPointToAxis(seat.centerX, seat.centerY, sectionTangent))
+        .filter((value) => Number.isFinite(value))
+        .sort((a, b) => a - b);
+      for (let i = 1; i < projected.length; i++) {
+        const spacing = projected[i] - projected[i - 1];
+        if (spacing > medianWidth * 0.25) seatSpacings.push(spacing);
+      }
+    });
+    const estimatedSeatPitch = medianValue(seatSpacings);
+    const baseSeatPadding = Math.max(12, medianWidth * 0.12);
+    const bridgingSeatPadding = Number.isFinite(estimatedRowPitch) && estimatedRowPitch > 0
+      ? Math.max(0, estimatedRowPitch / 2 - medianWidth / 2 + cellSize * 0.35)
+      : 0;
+    const seatPadding = Math.max(baseSeatPadding, bridgingSeatPadding);
+    const projectedSeats = allSeats.map((seat) => {
+      const width = Number(seat?.width);
+      const seatRadius = (Number.isFinite(width) && width > 0 ? width : medianWidth) / 2;
+      return {
+        u: projectSvgPointToAxis(seat.centerX, seat.centerY, sectionTangent),
+        v: projectSvgPointToAxis(seat.centerX, seat.centerY, sectionNormal),
+        radius: seatRadius + seatPadding
+      };
+    });
+    let minU = Infinity;
+    let maxU = -Infinity;
+    let minV = Infinity;
+    let maxV = -Infinity;
+    projectedSeats.forEach(({ u, v, radius }) => {
+      minU = Math.min(minU, u - radius);
+      maxU = Math.max(maxU, u + radius);
+      minV = Math.min(minV, v - radius);
+      maxV = Math.max(maxV, v + radius);
+    });
+    if (!Number.isFinite(minU) || !Number.isFinite(minV) || !Number.isFinite(maxU) || !Number.isFinite(maxV)) return [];
+    const seatSpanU = maxU - minU;
+    const seatSpanV = maxV - minV;
+    const maxGridCells = 160000;
+    let gridMinU;
+    let gridMinV;
+    let gridWidth;
+    let gridHeight;
+    do {
+      gridMinU = minU - cellSize;
+      gridMinV = minV - cellSize;
+      gridWidth = Math.max(1, Math.ceil((maxU - minU + cellSize * 2) / cellSize));
+      gridHeight = Math.max(1, Math.ceil((maxV - minV + cellSize * 2) / cellSize));
+      if (gridWidth * gridHeight <= maxGridCells) break;
+      cellSize *= 1.2;
+    } while (gridWidth * gridHeight > maxGridCells && cellSize < medianWidth * 2);
+    const occupiedCells = new Set();
+    // Rasterize expanded seat circles into a local grid, then trace the outer boundary from the filled cells.
+    projectedSeats.forEach(({ u, v, radius }) => {
+      const radiusSquared = radius * radius;
+      const startCol = Math.max(0, Math.floor((u - radius - gridMinU) / cellSize));
+      const endCol = Math.min(gridWidth - 1, Math.ceil((u + radius - gridMinU) / cellSize));
+      const startRow = Math.max(0, Math.floor((v - radius - gridMinV) / cellSize));
+      const endRow = Math.min(gridHeight - 1, Math.ceil((v + radius - gridMinV) / cellSize));
+      for (let rowIndex = startRow; rowIndex <= endRow; rowIndex++) {
+        const cellMinV = gridMinV + rowIndex * cellSize;
+        const cellMaxV = cellMinV + cellSize;
+        const closestV = Math.max(cellMinV, Math.min(v, cellMaxV));
+        for (let colIndex = startCol; colIndex <= endCol; colIndex++) {
+          const cellMinU = gridMinU + colIndex * cellSize;
+          const cellMaxU = cellMinU + cellSize;
+          const closestU = Math.max(cellMinU, Math.min(u, cellMaxU));
+          const distanceSquared = (closestU - u) * (closestU - u) + (closestV - v) * (closestV - v);
+          if (distanceSquared <= radiusSquared) {
+            occupiedCells.add(rowIndex * gridWidth + colIndex);
+          }
+        }
+      }
+    });
+    if (!occupiedCells.size) return [];
+    const effectiveSeatDiameter = medianWidth + seatPadding * 2;
+    const horizontalGapWorld = Number.isFinite(estimatedSeatPitch) && estimatedSeatPitch > 0
+      ? Math.max(0, estimatedSeatPitch - effectiveSeatDiameter)
+      : 0;
+    const verticalGapWorld = Number.isFinite(estimatedRowPitch) && estimatedRowPitch > 0
+      ? Math.max(0, estimatedRowPitch - effectiveSeatDiameter)
+      : 0;
+    const closedOccupiedCells = closeSvgOccupiedGridGaps(occupiedCells, gridWidth, gridHeight, {
+      maxHorizontalGapCells: Math.ceil(horizontalGapWorld / cellSize) + 1,
+      maxVerticalGapCells: Math.ceil(verticalGapWorld / cellSize) + 2,
+      passCount: 3
+    });
+    const workingGrid = new Uint8Array(gridWidth * gridHeight);
+    closedOccupiedCells.forEach((cellIndex) => {
+      if (cellIndex >= 0 && cellIndex < workingGrid.length) workingGrid[cellIndex] = 1;
+    });
+    mergeSvgGridComponents(workingGrid, gridWidth, gridHeight, Math.max(
+      Math.ceil(horizontalGapWorld / cellSize) + 2,
+      Math.ceil(verticalGapWorld / cellSize) + 3,
+      3
+    ), {
+      bridgeThickness: 1,
+      maxIterations: 8
+    });
+    const mergedOccupiedCells = new Set();
+    workingGrid.forEach((value, index) => {
+      if (value) mergedOccupiedCells.add(index);
+    });
+    const loops = traceSvgGridBoundaryLoops(mergedOccupiedCells, gridWidth, gridHeight);
+    if (!loops.length) return [];
+    let bestLoop = null;
+    let bestArea = 0;
+    loops.forEach((loop) => {
+      const area = Math.abs(computeSvgPolygonArea(loop));
+      if (!bestLoop || area > bestArea) {
+        bestLoop = loop;
+        bestArea = area;
+      }
+    });
+    if (!bestLoop || bestLoop.length < 3) return [];
+    let contour = bestLoop.map((point) => ({
+      x: gridMinU + point.x * cellSize,
+      y: gridMinV + point.y * cellSize
+    }));
+    const contourSpanU = Math.max(...contour.map((point) => point.x)) - Math.min(...contour.map((point) => point.x));
+    const contourSpanV = Math.max(...contour.map((point) => point.y)) - Math.min(...contour.map((point) => point.y));
+    const minimumExpectedSpanU = seatSpanU > medianWidth ? seatSpanU * 0.72 : seatSpanU;
+    const minimumExpectedSpanV = seatSpanV > medianWidth ? seatSpanV * 0.72 : seatSpanV;
+    if (contourSpanU < minimumExpectedSpanU || contourSpanV < minimumExpectedSpanV) {
+      return [];
+    }
+    contour = removeSequentialDuplicateSvgPoints(contour, 1e-3);
+    contour = removeSvgCollinearPoints(contour, Math.max(1e-3, cellSize * 0.05));
+    contour = simplifySvgClosedPolygon(contour, Math.max(cellSize * 1.1, medianWidth * 0.22));
+    contour = removeSequentialDuplicateSvgPoints(contour, Math.max(1e-3, cellSize * 0.05));
+    contour = removeSvgCollinearPoints(contour, Math.max(1e-3, cellSize * 0.15));
+    contour = contour.map((point) => unprojectSvgPointFromAxes(point.x, point.y, sectionTangent, sectionNormal));
+    contour = contour.map((point) => roundSvgPoint(point, 0.1));
+    contour = removeSequentialDuplicateSvgPoints(contour, 0.1);
+    contour = removeSvgCollinearPoints(contour, Math.max(1, medianWidth * 0.03));
+    return contour.length >= 3 ? contour : [];
+  }
+
+  function buildSvgSectionContourFromRowBands(rows) {
+    const { rowEntries, allWidths } = buildSvgContourRowEntries(rows);
     if (!rowEntries.length) return [];
     const sectionTangent = computeSvgSectionTangentFromRows(rowEntries);
     let sectionNormal = { x: -sectionTangent.y, y: sectionTangent.x };
@@ -12234,6 +13068,13 @@ codePane.addEventListener("input", () => {
     contour = removeSvgCollinearPoints(contour, Math.max(1, medianWidth * 0.03));
     contour = removeSequentialDuplicateSvgPoints(contour, 0.1);
     return contour.length >= 3 ? contour : [];
+  }
+
+  function buildSvgSectionContourFromRows(rows) {
+    let contour = buildSvgSectionContourFromVisualRows(rows);
+    if (contour && contour.length >= 3) return contour;
+    contour = buildSvgSectionContourFromRowBands(rows);
+    return contour && contour.length >= 3 ? contour : [];
   }
 
   function buildSvgSectionContourBySection(sectionOrder, outlineBySection, rowsBySection) {
@@ -12754,7 +13595,6 @@ codePane.addEventListener("input", () => {
           const regionLookup = getSeatPriceRegionLookup(seat, priceRegionLookups);
           const classParts = ["seat"];
           if (regionLookup?.rangeId) classParts.push(`pr-${regionLookup.rangeId}`);
-          if (regionLookup?.aliasClass) classParts.push(regionLookup.aliasClass);
           const className = classParts.join(" ");
 
           let dataAttributes = "";
@@ -12887,7 +13727,6 @@ codePane.addEventListener("input", () => {
   function buildPriceRegionLookupsForSvg() {
     return priceRegions.map((region, idx) => ({
       rangeId: buildRangeId(region, idx),
-      aliasClass: buildSvgPriceRegionAlias(idx),
       sections: new Set(region.sections),
       rows: new Set(region.rows),
       seats: new Set(region.seats)
@@ -14274,6 +15113,15 @@ codePane.addEventListener("input", () => {
     } finally {
       numberedImportXlsxInput.value = "";
     }
+  });
+  numberedImportAllowAllTltSeats?.addEventListener("change", () => {
+    if (numberedImportParsed?.allowsAllLayoutSeats) {
+      updateNumberedImportStateUi();
+      return;
+    }
+    setNumberedImportAllowAllLayoutSeatsOverride(!!numberedImportAllowAllTltSeats.checked, {
+      preserveAssignments: true
+    });
   });
   numberedImportModePurchase?.addEventListener("change", () => {
     if (numberedImportModePurchase.checked) setNumberedImportPlacementMode("all");
