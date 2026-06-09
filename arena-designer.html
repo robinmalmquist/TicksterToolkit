@@ -918,9 +918,19 @@
     }
 
     #newLayoutModal,
-    #duplicateSectionModal,
-    #exportModal {
+    #duplicateSectionModal {
+      width: min(560px, 92vw);
+    }
+
+    #newLayoutModal,
+    #duplicateSectionModal {
       width: min(520px, 92vw);
+    }
+
+    #exportModal {
+      width: min(1120px, 96vw);
+      max-height: min(86vh, 860px);
+      overflow: hidden;
     }
 
     #priceRegionModal,
@@ -994,6 +1004,35 @@
       gap: 0.5rem;
       padding: 0.4rem 0;
     }
+    .export-modal__body {
+      display: grid;
+      grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
+      gap: 0.9rem;
+      min-height: 0;
+      overflow: hidden;
+      flex: 1 1 auto;
+    }
+    .export-modal__header-fields {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.75rem;
+    }
+    .export-modal__main,
+    .export-svg-settings-panel {
+      min-height: 0;
+      overflow-y: auto;
+      padding-right: 0.2rem;
+    }
+    .export-modal__main {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    .export-modal__actions {
+      margin-top: 0;
+      padding-top: 0.15rem;
+      flex: 0 0 auto;
+    }
     .export-quick-actions {
       display: flex;
       flex-wrap: wrap;
@@ -1006,13 +1045,92 @@
       gap: 0.35rem;
       font-size: 0.9rem;
     }
+    .export-svg-settings-panel {
+      border: 1px solid #d7dde8;
+      border-radius: 10px;
+      background: #f7f9fc;
+      padding: 0.8rem;
+      min-width: 0;
+    }
+    .export-svg-settings__panel-title {
+      font-size: 0.92rem;
+      font-weight: 700;
+      color: #243446;
+      margin-bottom: 0.75rem;
+    }
+    .export-svg-settings__content {
+      display: grid;
+      gap: 0.65rem;
+    }
+    .export-svg-settings__group {
+      display: grid;
+      gap: 0.55rem;
+      padding-top: 0.15rem;
+    }
+    .export-svg-settings__group + .export-svg-settings__group {
+      border-top: 1px solid #d7dde8;
+      padding-top: 0.75rem;
+    }
+    .export-svg-settings__group-title {
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: #556372;
+    }
+    .export-svg-settings__grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 0.65rem;
+    }
+    .export-svg-settings__options {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 0.5rem 0.75rem;
+    }
+    .export-svg-settings__grid--compact {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+    .export-svg-setting-field {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+      font-size: 0.9rem;
+    }
+    .export-svg-setting-field label {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: #3b4a58;
+    }
+    .export-svg-setting-field select,
+    .export-svg-setting-field input {
+      padding: 0.55rem 0.65rem;
+      border-radius: 8px;
+      border: 1px solid #cdd3e0;
+      font-size: 0.95rem;
+    }
+    .export-svg-setting-field input[type="color"] {
+      padding: 0.2rem;
+      min-height: 2.5rem;
+      width: 100%;
+      background: transparent;
+      cursor: pointer;
+    }
+    .export-svg-settings__hint {
+      font-size: 0.78rem;
+      color: #5b6673;
+    }
+    .export-svg-settings-panel.export-svg-settings--disabled {
+      opacity: 0.55;
+    }
 
     .export-option--disabled {
       opacity: 0.55;
       cursor: help;
     }
 
-    .export-option--disabled input {
+    .export-option--disabled input,
+    .export-option--disabled select {
       cursor: not-allowed;
     }
     #newLayoutModal h3,
@@ -2627,6 +2745,39 @@
       color: var(--dark-text);
     }
 
+    html[data-theme="dark"] .export-svg-settings-panel {
+      background: rgba(31,41,55,0.6);
+      border-color: var(--dark-border);
+    }
+
+    html[data-theme="dark"] .export-svg-settings__group-title,
+    html[data-theme="dark"] .export-svg-setting-field label,
+    html[data-theme="dark"] .export-svg-settings__hint {
+      color: var(--dark-muted);
+    }
+
+    html[data-theme="dark"] .export-svg-settings__panel-title {
+      color: var(--dark-text);
+    }
+
+    @media (max-width: 940px) {
+      #exportModal {
+        width: min(720px, 96vw);
+      }
+
+      .export-modal__body {
+        grid-template-columns: minmax(0, 1fr);
+      }
+
+      .export-modal__header-fields {
+        grid-template-columns: minmax(0, 1fr);
+      }
+
+      .export-svg-settings__grid--compact {
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      }
+    }
+
     html[data-theme="dark"] .help-text {
       background: rgba(31,41,55,0.65);
       color: #cbd5f5;
@@ -3943,63 +4094,149 @@
   <div id="exportOverlay">
     <div id="exportModal">
       <h3>Export files</h3>
-      <div class="new-layout-field">
-        <label for="exportName">Export name</label>
-        <input id="exportName" type="text" placeholder="Enter name(s), comma-separated" />
+      <div class="export-modal__header-fields">
+        <div class="new-layout-field">
+          <label for="exportName">Export name</label>
+          <input id="exportName" type="text" placeholder="Enter name(s), comma-separated" />
+        </div>
+        <div class="new-layout-field">
+          <label for="exportVenueId">VenueId</label>
+          <input id="exportVenueId" type="text" placeholder="Enter VenueId" />
+        </div>
       </div>
-      <div class="new-layout-field">
-        <label for="exportVenueId">VenueId</label>
-        <input id="exportVenueId" type="text" placeholder="Enter VenueId" />
+      <div class="export-modal__body">
+        <div class="export-modal__main">
+          <div class="export-quick-actions">
+            <button id="exportSelectAllTypesBtn" type="button" class="c-button c-button--ghost c-button--small">Select All</button>
+            <button id="exportSelectLayoutTypesBtn" type="button" class="c-button c-button--ghost c-button--small">Only Layout</button>
+            <button id="exportSelectDesignTypesBtn" type="button" class="c-button c-button--ghost c-button--small">Only Design</button>
+            <button id="exportClearAllTypesBtn" type="button" class="c-button c-button--ghost c-button--small">Deselect All</button>
+          </div>
+          <div class="export-options">
+            <label class="export-option">
+              <input type="checkbox" id="exportTlc" checked />
+              TLC
+            </label>
+            <label class="export-option">
+              <input type="checkbox" id="exportTlt" checked />
+              TLT
+            </label>
+            <label class="export-option">
+              <input type="checkbox" id="exportTpr" checked />
+              TPR
+            </label>
+            <label class="export-option">
+              <input type="checkbox" id="exportTlm" />
+              TLM
+            </label>
+            <label class="export-option">
+              <input type="checkbox" id="exportCss" checked />
+              CSS
+            </label>
+            <label class="export-option">
+              <input type="checkbox" id="exportSvg" />
+              SVG
+            </label>
+            <label class="export-option">
+              <input type="checkbox" id="exportLayoutSummaryXlsx" />
+              Excel Summary
+            </label>
+          </div>
+        </div>
+        <div id="exportSvgSettings" class="export-svg-settings-panel">
+          <div class="export-svg-settings__panel-title">SVG settings</div>
+          <div class="export-svg-settings__content">
+          <div class="export-svg-settings__group">
+            <div class="export-svg-settings__group-title">Layout</div>
+            <div id="exportSvgSupportParts" class="export-svg-settings__options"></div>
+            <div class="export-svg-settings__grid">
+              <div class="export-svg-setting-field">
+                <label for="exportSvgSectionTextBoxMode">Section label shape</label>
+                <select id="exportSvgSectionTextBoxMode">
+                  <option value="rect">Rounded rectangle</option>
+                  <option value="outline">Section outline path</option>
+                </select>
+              </div>
+              <div class="export-svg-setting-field">
+                <label for="exportSvgSectionTextBoxCornerRadius">Corner radius</label>
+                <input id="exportSvgSectionTextBoxCornerRadius" type="number" min="0" step="5" value="75" />
+              </div>
+            </div>
+            <div class="export-svg-settings__hint">0 gives sharp corners. Outline mode uses the section outline when available.</div>
+          </div>
+
+          <div class="export-svg-settings__group">
+            <div class="export-svg-settings__group-title">Section Text Box</div>
+            <div class="export-svg-settings__grid export-svg-settings__grid--compact">
+              <div class="export-svg-setting-field">
+                <label for="exportSvgSectionTextBoxFill">Fill</label>
+                <input id="exportSvgSectionTextBoxFill" type="color" value="#09517c" />
+              </div>
+              <div class="export-svg-setting-field">
+                <label for="exportSvgSectionTextBoxStroke">Stroke</label>
+                <input id="exportSvgSectionTextBoxStroke" type="color" value="#09517c" />
+              </div>
+              <div class="export-svg-setting-field">
+                <label for="exportSvgSectionTextBoxStrokeWidth">Stroke width</label>
+                <input id="exportSvgSectionTextBoxStrokeWidth" type="number" min="0" step="0.5" value="0" />
+              </div>
+            </div>
+            <label class="export-option">
+              <input type="checkbox" id="exportSvgSectionTextBoxHoverEnabled" checked />
+              Enable hover effect
+            </label>
+            <div class="export-svg-settings__grid export-svg-settings__grid--compact">
+              <div class="export-svg-setting-field">
+                <label for="exportSvgSectionTextBoxInactiveOpacity">Inactive opacity</label>
+                <input id="exportSvgSectionTextBoxInactiveOpacity" type="number" min="0" max="1" step="0.05" value="0.3" />
+              </div>
+              <div class="export-svg-setting-field">
+                <label for="exportSvgSectionTextBoxHoverOpacity">Hover opacity</label>
+                <input id="exportSvgSectionTextBoxHoverOpacity" type="number" min="0" max="1" step="0.05" value="1" />
+              </div>
+            </div>
+            <div class="export-svg-settings__hint">Hover keeps the current fill and stroke colors and only animates opacity.</div>
+          </div>
+
+          <div class="export-svg-settings__group">
+            <div class="export-svg-settings__group-title">Section Text</div>
+            <div class="export-svg-settings__grid">
+              <div class="export-svg-setting-field">
+                <label for="exportSvgSectionTextFill">Color</label>
+                <input id="exportSvgSectionTextFill" type="color" value="#ffffff" />
+              </div>
+              <div class="export-svg-setting-field">
+                <label for="exportSvgSectionTextSize">Size</label>
+                <input id="exportSvgSectionTextSize" type="number" min="0" step="5" value="250" />
+              </div>
+            </div>
+            <label class="export-option">
+              <input type="checkbox" id="exportSvgSectionTextDisablePointerEvents" />
+              Disable pointer events
+            </label>
+          </div>
+
+          <div class="export-svg-settings__group">
+            <div class="export-svg-settings__group-title">Row Number Text</div>
+            <div class="export-svg-settings__grid">
+              <div class="export-svg-setting-field">
+                <label for="exportSvgRowNumberTextFill">Color</label>
+                <input id="exportSvgRowNumberTextFill" type="color" value="#202020" />
+              </div>
+              <div class="export-svg-setting-field">
+                <label for="exportSvgRowNumberTextSize">Size</label>
+                <input id="exportSvgRowNumberTextSize" type="number" min="0" step="5" value="75" />
+              </div>
+            </div>
+            <label class="export-option">
+              <input type="checkbox" id="exportSvgRowNumberTextHide" />
+              Hide row number text in layout
+            </label>
+          </div>
+        </div>
+        </div>
       </div>
-      <div class="export-quick-actions">
-        <button id="exportSelectAllTypesBtn" type="button" class="c-button c-button--ghost c-button--small">Select All</button>
-        <button id="exportSelectLayoutTypesBtn" type="button" class="c-button c-button--ghost c-button--small">Only Layout</button>
-        <button id="exportSelectDesignTypesBtn" type="button" class="c-button c-button--ghost c-button--small">Only Design</button>
-        <button id="exportClearAllTypesBtn" type="button" class="c-button c-button--ghost c-button--small">Deselect All</button>
-      </div>
-      <div class="export-options">
-        <label class="export-option">
-          <input type="checkbox" id="exportTlc" checked />
-          TLC
-        </label>
-        <label class="export-option">
-          <input type="checkbox" id="exportTlt" checked />
-          TLT
-        </label>
-        <label class="export-option">
-          <input type="checkbox" id="exportTpr" checked />
-          TPR
-        </label>
-        <label class="export-option">
-          <input type="checkbox" id="exportTlm" />
-          TLM
-        </label>
-        <label class="export-option">
-          <input type="checkbox" id="exportCss" checked />
-          CSS
-        </label>
-        <label class="export-option">
-          <input type="checkbox" id="exportSvg" />
-          SVG
-        </label>
-        <label class="export-option">
-          <input type="checkbox" id="exportSvgSupport" />
-          Include stage etc
-        </label>
-        <label class="export-option">
-          <input type="checkbox" id="exportFgSeats" />
-          Include FG seats
-        </label>
-        <label class="export-option">
-          <input type="checkbox" id="exportFgRows" />
-          Include FG rows
-        </label>
-        <label class="export-option">
-          <input type="checkbox" id="exportLayoutSummaryXlsx" />
-          Excel Summary
-        </label>
-      </div>
-      <div class="new-layout-actions">
+      <div class="new-layout-actions export-modal__actions">
         <button id="exportCancel" class="c-button c-button--ghost c-button--small">Cancel</button>
         <button id="exportConfirm" class="c-button c-button--primary c-button--small">Export</button>
       </div>
@@ -4391,6 +4628,7 @@
   const duplicateSectionCreate = document.getElementById("duplicateSectionCreate");
   const exportBtn = document.getElementById("exportBtn");
   const exportOverlay = document.getElementById("exportOverlay");
+  const exportModal = document.getElementById("exportModal");
   const exportName = document.getElementById("exportName");
   const exportVenueId = document.getElementById("exportVenueId");
   const exportTlc = document.getElementById("exportTlc");
@@ -4399,9 +4637,22 @@
   const exportTlm = document.getElementById("exportTlm");
   const exportCss = document.getElementById("exportCss");
   const exportSvg = document.getElementById("exportSvg");
-  const exportSvgSupport = document.getElementById("exportSvgSupport");
-  const exportFgSeats = document.getElementById("exportFgSeats");
-  const exportFgRows = document.getElementById("exportFgRows");
+  const exportSvgSettings = document.getElementById("exportSvgSettings");
+  const exportSvgSupportParts = document.getElementById("exportSvgSupportParts");
+  const exportSvgSectionTextBoxMode = document.getElementById("exportSvgSectionTextBoxMode");
+  const exportSvgSectionTextBoxCornerRadius = document.getElementById("exportSvgSectionTextBoxCornerRadius");
+  const exportSvgSectionTextBoxFill = document.getElementById("exportSvgSectionTextBoxFill");
+  const exportSvgSectionTextBoxStroke = document.getElementById("exportSvgSectionTextBoxStroke");
+  const exportSvgSectionTextBoxStrokeWidth = document.getElementById("exportSvgSectionTextBoxStrokeWidth");
+  const exportSvgSectionTextBoxHoverEnabled = document.getElementById("exportSvgSectionTextBoxHoverEnabled");
+  const exportSvgSectionTextBoxInactiveOpacity = document.getElementById("exportSvgSectionTextBoxInactiveOpacity");
+  const exportSvgSectionTextBoxHoverOpacity = document.getElementById("exportSvgSectionTextBoxHoverOpacity");
+  const exportSvgSectionTextFill = document.getElementById("exportSvgSectionTextFill");
+  const exportSvgSectionTextSize = document.getElementById("exportSvgSectionTextSize");
+  const exportSvgSectionTextDisablePointerEvents = document.getElementById("exportSvgSectionTextDisablePointerEvents");
+  const exportSvgRowNumberTextFill = document.getElementById("exportSvgRowNumberTextFill");
+  const exportSvgRowNumberTextSize = document.getElementById("exportSvgRowNumberTextSize");
+  const exportSvgRowNumberTextHide = document.getElementById("exportSvgRowNumberTextHide");
   const exportLayoutSummaryXlsx = document.getElementById("exportLayoutSummaryXlsx");
   const exportSelectAllTypesBtn = document.getElementById("exportSelectAllTypesBtn");
   const exportSelectLayoutTypesBtn = document.getElementById("exportSelectLayoutTypesBtn");
@@ -4409,6 +4660,31 @@
   const exportClearAllTypesBtn = document.getElementById("exportClearAllTypesBtn");
   const exportCancel = document.getElementById("exportCancel");
   const exportConfirm = document.getElementById("exportConfirm");
+  const SVG_EXPORT_STYLE_DEFAULTS = Object.freeze({
+    sectionTextBoxMode: "rect",
+    sectionTextBoxCornerRadius: 75,
+    sectionTextBoxFill: "#09517c",
+    sectionTextBoxStroke: "#09517c",
+    sectionTextBoxStrokeWidth: 0,
+    sectionTextBoxHoverEnabled: true,
+    sectionTextBoxInactiveOpacity: 0.3,
+    sectionTextBoxHoverOpacity: 1,
+    sectionTextFill: "#ffffff",
+    sectionTextSize: 250,
+    sectionTextDisablePointerEvents: false,
+    rowNumberTextFill: "#202020",
+    rowNumberTextSize: 75,
+    rowNumberTextHide: false
+  });
+  const SVG_EXPORT_SUPPORT_PARTS = Object.freeze([
+    { key: "background", label: "Background", defaultChecked: true },
+    { key: "stage", label: "Stage", defaultChecked: false },
+    { key: "wheelchair", label: "Wheelchair", defaultChecked: false },
+    { key: "accompanyPerson", label: "Accompany person", defaultChecked: false },
+    { key: "wc", label: "WC", defaultChecked: false },
+    { key: "entrance", label: "Entrance", defaultChecked: false },
+    { key: "stairs", label: "Stairs", defaultChecked: false }
+  ]);
   const numberedImportModeBtn = document.getElementById("numberedImportModeBtn");
   const historyCard = document.getElementById("historyCard");
   const historyBackBtn = document.getElementById("historyBackBtn");
@@ -4627,6 +4903,7 @@
   let seatLabelMode = "none";
   let activeSeatBlockId = "";
   let lastDirectoryHandle = null;
+  let lastExportDirectoryHandle = null;
 
   function setSeatLabelMode(mode, syncUI = true) {
     seatLabelMode = mode || "none";
@@ -4877,8 +5154,11 @@
   const SESSION_STORAGE_KEY = "arenaEditorSessionV1";
 
   const DB_NAME = "arenaEditorFileHandles";
-  const DB_VERSION = 1;
+  const DB_VERSION = 2;
   const DB_STORE = "handles";
+  const DB_EXPORT_PREFS_STORE = "layoutExportPrefs";
+  const DB_HANDLE_KEY_CURRENT = "current";
+  const DB_HANDLE_KEY_LAST_EXPORT_DIRECTORY = "lastExportDirectory";
 
   const supportsOpenPicker = typeof window.showOpenFilePicker === "function";
   const supportsSavePicker = typeof window.showSaveFilePicker === "function";
@@ -6583,6 +6863,17 @@ function saveSessionToLocalStorage() {
   }
 }
 
+function buildExportPrefsRecordId() {
+  return `export-prefs-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+}
+
+function getCurrentLayoutExportPrefsFallbackKey() {
+  const fileName = String(currentFileName || "").trim().toLowerCase();
+  if (!fileName) return "";
+  const venueId = String(getLayoutMeta().venueId || "").trim().toLowerCase();
+  return `${fileName}::${venueId}`;
+}
+
 function openHandleDB() {
   return new Promise((resolve, reject) => {
     if (!("indexedDB" in window)) {
@@ -6596,6 +6887,9 @@ function openHandleDB() {
       if (!db.objectStoreNames.contains(DB_STORE)) {
         db.createObjectStore(DB_STORE);
       }
+      if (!db.objectStoreNames.contains(DB_EXPORT_PREFS_STORE)) {
+        db.createObjectStore(DB_EXPORT_PREFS_STORE, { keyPath: "id" });
+      }
     };
     req.onsuccess = (e) => {
       resolve(e.target.result);
@@ -6606,25 +6900,30 @@ function openHandleDB() {
   });
 }
 
-async function saveCurrentFileHandleToDB(handle) {
+async function saveHandleValueToDB(key, handle) {
   if (!handle || !("indexedDB" in window)) return;
   try {
     const db = await openHandleDB();
-    const tx = db.transaction(DB_STORE, "readwrite");
-    tx.objectStore(DB_STORE).put(handle, "current");
-    tx.oncomplete = () => db.close();
+    await new Promise((resolve, reject) => {
+      const tx = db.transaction(DB_STORE, "readwrite");
+      tx.objectStore(DB_STORE).put(handle, key);
+      tx.oncomplete = resolve;
+      tx.onerror = (e) => reject(e.target.error || new Error("save handle failed"));
+      tx.onabort = () => reject(tx.error || new Error("save handle aborted"));
+    });
+    db.close();
   } catch (err) {
-    console.warn("Kunde inte spara fileHandle i IndexedDB:", err);
+    console.warn("Kunde inte spara handle i IndexedDB:", err);
   }
 }
 
-async function loadCurrentFileHandleFromDB() {
+async function loadHandleValueFromDB(key) {
   if (!("indexedDB" in window)) return null;
   try {
     const db = await openHandleDB();
     return await new Promise((resolve, reject) => {
       const tx = db.transaction(DB_STORE, "readonly");
-      const req = tx.objectStore(DB_STORE).get("current");
+      const req = tx.objectStore(DB_STORE).get(key);
       req.onsuccess = () => {
         const handle = req.result || null;
         db.close();
@@ -6641,16 +6940,127 @@ async function loadCurrentFileHandleFromDB() {
   }
 }
 
+async function saveCurrentFileHandleToDB(handle) {
+  await saveHandleValueToDB(DB_HANDLE_KEY_CURRENT, handle);
+}
+
+async function loadCurrentFileHandleFromDB() {
+  return loadHandleValueFromDB(DB_HANDLE_KEY_CURRENT);
+}
+
+async function saveLastExportDirectoryHandleToDB(handle) {
+  await saveHandleValueToDB(DB_HANDLE_KEY_LAST_EXPORT_DIRECTORY, handle);
+}
+
+async function loadLastExportDirectoryHandleFromDB() {
+  return loadHandleValueFromDB(DB_HANDLE_KEY_LAST_EXPORT_DIRECTORY);
+}
+
 async function clearCurrentFileHandleInDB() {
   if (!("indexedDB" in window)) return;
   try {
     const db = await openHandleDB();
     const tx = db.transaction(DB_STORE, "readwrite");
-    tx.objectStore(DB_STORE).delete("current");
+    tx.objectStore(DB_STORE).delete(DB_HANDLE_KEY_CURRENT);
     tx.oncomplete = () => db.close();
   } catch (err) {
     console.warn("Kunde inte rensa fileHandle i IndexedDB:", err);
   }
+}
+
+async function loadAllExportPrefsRecordsFromDB() {
+  if (!("indexedDB" in window)) return [];
+  try {
+    const db = await openHandleDB();
+    return await new Promise((resolve, reject) => {
+      const tx = db.transaction(DB_EXPORT_PREFS_STORE, "readonly");
+      const req = tx.objectStore(DB_EXPORT_PREFS_STORE).getAll();
+      req.onsuccess = () => {
+        const records = Array.isArray(req.result) ? req.result : [];
+        db.close();
+        resolve(records);
+      };
+      req.onerror = (e) => {
+        db.close();
+        reject(e.target.error || new Error("getAll export prefs failed"));
+      };
+    });
+  } catch (err) {
+    console.warn("Kunde inte läsa exportinställningar från IndexedDB:", err);
+    return [];
+  }
+}
+
+async function saveExportPrefsRecordToDB(record) {
+  if (!record || !("indexedDB" in window)) return;
+  try {
+    const db = await openHandleDB();
+    await new Promise((resolve, reject) => {
+      const tx = db.transaction(DB_EXPORT_PREFS_STORE, "readwrite");
+      tx.objectStore(DB_EXPORT_PREFS_STORE).put(record);
+      tx.oncomplete = resolve;
+      tx.onerror = (e) => reject(e.target.error || new Error("save export prefs failed"));
+      tx.onabort = () => reject(tx.error || new Error("save export prefs aborted"));
+    });
+    db.close();
+  } catch (err) {
+    console.warn("Kunde inte spara exportinställningar i IndexedDB:", err);
+  }
+}
+
+async function findCurrentLayoutExportPrefsRecord() {
+  const records = await loadAllExportPrefsRecordsFromDB();
+  if (!records.length) return null;
+  const fallbackKey = getCurrentLayoutExportPrefsFallbackKey();
+  let fallbackMatch = null;
+  if (currentFileHandle && typeof currentFileHandle.isSameEntry === "function") {
+    for (const record of records) {
+      if (!fallbackMatch && fallbackKey && record?.fallbackKey === fallbackKey) fallbackMatch = record;
+      const storedHandle = record?.fileHandle;
+      if (!storedHandle) continue;
+      try {
+        if (await currentFileHandle.isSameEntry(storedHandle)) return record;
+      } catch (_) {}
+    }
+  }
+  if (fallbackMatch) return fallbackMatch;
+  if (fallbackKey) {
+    return records.find((record) => record?.fallbackKey === fallbackKey) || null;
+  }
+  return null;
+}
+
+async function loadCurrentLayoutExportPrefs() {
+  const record = await findCurrentLayoutExportPrefsRecord();
+  if (!record) return null;
+  const exportDirectoryHandle = await tryGetDirectoryHandle(record.exportDirectoryHandle) || record.exportDirectoryHandle || null;
+  return {
+    ...record,
+    exportDirectoryHandle
+  };
+}
+
+async function persistCurrentLayoutExportPrefs(overrides = {}) {
+  if (!("indexedDB" in window)) return null;
+  const fallbackKey = getCurrentLayoutExportPrefsFallbackKey();
+  if (!currentFileHandle && !fallbackKey) return null;
+  const existing = await findCurrentLayoutExportPrefsRecord();
+  const record = {
+    id: existing?.id || buildExportPrefsRecordId(),
+    fallbackKey: fallbackKey || existing?.fallbackKey || "",
+    fileName: currentFileName || existing?.fileName || "",
+    venueId: getLayoutMeta().venueId || existing?.venueId || "",
+    fileHandle: currentFileHandle || existing?.fileHandle || null,
+    exportDirectoryHandle: Object.prototype.hasOwnProperty.call(overrides, "exportDirectoryHandle")
+      ? (overrides.exportDirectoryHandle || null)
+      : (existing?.exportDirectoryHandle || null),
+    settings: Object.prototype.hasOwnProperty.call(overrides, "settings")
+      ? (overrides.settings || null)
+      : (existing?.settings || null),
+    updatedAt: Date.now()
+  };
+  await saveExportPrefsRecordToDB(record);
+  return record;
 }
 
 
@@ -8075,10 +8485,7 @@ codePane.addEventListener("input", () => {
       exportLayoutSummaryXlsx,
       exportTlm,
       exportCss,
-      exportSvg,
-      exportSvgSupport,
-      exportFgSeats,
-      exportFgRows
+      exportSvg
     ].filter(Boolean);
   }
 
@@ -8114,9 +8521,6 @@ codePane.addEventListener("input", () => {
     setExportCheckboxState(exportTlm, false);
     setExportCheckboxState(exportCss, mode === "design");
     setExportCheckboxState(exportSvg, mode === "design");
-    setExportCheckboxState(exportSvgSupport, false);
-    setExportCheckboxState(exportFgSeats, false);
-    setExportCheckboxState(exportFgRows, false);
     updateExportOptionsAvailability();
   }
 
@@ -8154,7 +8558,7 @@ codePane.addEventListener("input", () => {
       : regionDependentTooltip;
     applyState(exportLayoutSummaryXlsx, layoutSummaryEnabled, layoutSummaryTooltip);
 
-    updateSvgSupportOptionAvailability();
+    updateSvgExportSettingsAvailability();
   }
 
   function countSeatsWithoutPriceRegionsForValidation() {
@@ -8373,34 +8777,229 @@ codePane.addEventListener("input", () => {
     }
   }
 
-  function setSvgDependentExportOptionState(input, enabled, tooltip) {
-    if (!input) return;
-    const label = input.closest(".export-option");
-    input.disabled = !enabled;
+  function setSvgDependentExportControlState(control, enabled, tooltip) {
+    if (!control) return;
+    const container = control.closest(".export-option, .export-svg-setting-field");
+    control.disabled = !enabled;
     if (!enabled) {
-      input.checked = false;
-      input.title = tooltip;
+      control.title = tooltip;
     } else {
-      input.removeAttribute("title");
+      control.removeAttribute("title");
     }
-    if (label) {
-      label.classList.toggle("export-option--disabled", !enabled);
-      if (!enabled) label.title = tooltip;
-      else label.removeAttribute("title");
+    if (container) {
+      container.classList.toggle("export-option--disabled", !enabled);
+      if (!enabled) container.title = tooltip;
+      else container.removeAttribute("title");
     }
   }
 
-  function updateSvgSupportOptionAvailability() {
+  function renderSvgSupportPartControls() {
+    if (!exportSvgSupportParts) return;
+    exportSvgSupportParts.innerHTML = SVG_EXPORT_SUPPORT_PARTS.map((part) => {
+      const checkedAttr = part.defaultChecked ? " checked" : "";
+      return `<label class="export-option"><input type="checkbox" data-svg-support-part="${part.key}"${checkedAttr} /> ${part.label}</label>`;
+    }).join("");
+  }
+
+  function getSvgSupportPartCheckboxes() {
+    if (!exportSvgSupportParts) return [];
+    return Array.from(exportSvgSupportParts.querySelectorAll("input[data-svg-support-part]"));
+  }
+
+  function getSvgSupportPartSelectionsFromInputs() {
+    const selection = {};
+    getSvgSupportPartCheckboxes().forEach((input) => {
+      const key = String(input.dataset.svgSupportPart || "").trim();
+      if (!key) return;
+      selection[key] = !!input.checked;
+    });
+    return selection;
+  }
+
+  function normalizeSvgSupportPartSelection(selection, legacyIncludeAll = null) {
+    const normalized = {};
+    const source = selection && typeof selection === "object" ? selection : null;
+    const hasLegacyFlag = typeof legacyIncludeAll === "boolean";
+    SVG_EXPORT_SUPPORT_PARTS.forEach((part) => {
+      if (source && Object.prototype.hasOwnProperty.call(source, part.key)) {
+        normalized[part.key] = !!source[part.key];
+      } else if (hasLegacyFlag) {
+        normalized[part.key] = !!legacyIncludeAll;
+      } else {
+        normalized[part.key] = !!part.defaultChecked;
+      }
+    });
+    return normalized;
+  }
+
+  function applySvgSupportPartSelectionsToInputs(selection, legacyIncludeAll = null) {
+    const normalized = normalizeSvgSupportPartSelection(selection, legacyIncludeAll);
+    getSvgSupportPartCheckboxes().forEach((input) => {
+      const key = String(input.dataset.svgSupportPart || "").trim();
+      if (!key) return;
+      input.checked = !!normalized[key];
+    });
+  }
+
+  renderSvgSupportPartControls();
+
+  function getSvgExportSettingsControls() {
+    return [
+      ...getSvgSupportPartCheckboxes(),
+      exportSvgSectionTextBoxMode,
+      exportSvgSectionTextBoxCornerRadius,
+      exportSvgSectionTextBoxFill,
+      exportSvgSectionTextBoxStroke,
+      exportSvgSectionTextBoxStrokeWidth,
+      exportSvgSectionTextBoxHoverEnabled,
+      exportSvgSectionTextBoxInactiveOpacity,
+      exportSvgSectionTextBoxHoverOpacity,
+      exportSvgSectionTextFill,
+      exportSvgSectionTextSize,
+      exportSvgSectionTextDisablePointerEvents,
+      exportSvgRowNumberTextFill,
+      exportSvgRowNumberTextSize,
+      exportSvgRowNumberTextHide
+    ].filter(Boolean);
+  }
+
+  function applySvgExportStyleDefaultsToInputs() {
+    if (exportSvgSectionTextBoxMode) exportSvgSectionTextBoxMode.value = SVG_EXPORT_STYLE_DEFAULTS.sectionTextBoxMode;
+    if (exportSvgSectionTextBoxCornerRadius) exportSvgSectionTextBoxCornerRadius.value = String(SVG_EXPORT_STYLE_DEFAULTS.sectionTextBoxCornerRadius);
+    if (exportSvgSectionTextBoxFill) exportSvgSectionTextBoxFill.value = SVG_EXPORT_STYLE_DEFAULTS.sectionTextBoxFill;
+    if (exportSvgSectionTextBoxStroke) exportSvgSectionTextBoxStroke.value = SVG_EXPORT_STYLE_DEFAULTS.sectionTextBoxStroke;
+    if (exportSvgSectionTextBoxStrokeWidth) exportSvgSectionTextBoxStrokeWidth.value = String(SVG_EXPORT_STYLE_DEFAULTS.sectionTextBoxStrokeWidth);
+    if (exportSvgSectionTextBoxHoverEnabled) exportSvgSectionTextBoxHoverEnabled.checked = SVG_EXPORT_STYLE_DEFAULTS.sectionTextBoxHoverEnabled;
+    if (exportSvgSectionTextBoxInactiveOpacity) exportSvgSectionTextBoxInactiveOpacity.value = String(SVG_EXPORT_STYLE_DEFAULTS.sectionTextBoxInactiveOpacity);
+    if (exportSvgSectionTextBoxHoverOpacity) exportSvgSectionTextBoxHoverOpacity.value = String(SVG_EXPORT_STYLE_DEFAULTS.sectionTextBoxHoverOpacity);
+    if (exportSvgSectionTextFill) exportSvgSectionTextFill.value = SVG_EXPORT_STYLE_DEFAULTS.sectionTextFill;
+    if (exportSvgSectionTextSize) exportSvgSectionTextSize.value = String(SVG_EXPORT_STYLE_DEFAULTS.sectionTextSize);
+    if (exportSvgSectionTextDisablePointerEvents) exportSvgSectionTextDisablePointerEvents.checked = SVG_EXPORT_STYLE_DEFAULTS.sectionTextDisablePointerEvents;
+    if (exportSvgRowNumberTextFill) exportSvgRowNumberTextFill.value = SVG_EXPORT_STYLE_DEFAULTS.rowNumberTextFill;
+    if (exportSvgRowNumberTextSize) exportSvgRowNumberTextSize.value = String(SVG_EXPORT_STYLE_DEFAULTS.rowNumberTextSize);
+    if (exportSvgRowNumberTextHide) exportSvgRowNumberTextHide.checked = SVG_EXPORT_STYLE_DEFAULTS.rowNumberTextHide;
+    updateSvgHoverEffectAvailability();
+  }
+
+  function getSvgExportStyleOptionsFromInputs() {
+    return {
+      sectionTextBoxFill: exportSvgSectionTextBoxFill?.value,
+      sectionTextBoxStroke: exportSvgSectionTextBoxStroke?.value,
+      sectionTextBoxStrokeWidth: exportSvgSectionTextBoxStrokeWidth?.value,
+      sectionTextBoxHoverEnabled: !!exportSvgSectionTextBoxHoverEnabled?.checked,
+      sectionTextBoxInactiveOpacity: exportSvgSectionTextBoxInactiveOpacity?.value,
+      sectionTextBoxHoverOpacity: exportSvgSectionTextBoxHoverOpacity?.value,
+      sectionTextFill: exportSvgSectionTextFill?.value,
+      sectionTextSize: exportSvgSectionTextSize?.value,
+      sectionTextDisablePointerEvents: !!exportSvgSectionTextDisablePointerEvents?.checked,
+      rowNumberTextFill: exportSvgRowNumberTextFill?.value,
+      rowNumberTextSize: exportSvgRowNumberTextSize?.value,
+      rowNumberTextHide: !!exportSvgRowNumberTextHide?.checked
+    };
+  }
+
+  function collectExportModalPreferencesFromInputs() {
+    return {
+      exportTlc: !!exportTlc?.checked,
+      exportTlt: !!exportTlt?.checked,
+      exportTpr: !!exportTpr?.checked,
+      exportTlm: !!exportTlm?.checked,
+      exportCss: !!exportCss?.checked,
+      exportSvg: !!exportSvg?.checked,
+      exportLayoutSummaryXlsx: !!exportLayoutSummaryXlsx?.checked,
+      svgSupportParts: getSvgSupportPartSelectionsFromInputs(),
+      sectionTextBoxMode: exportSvgSectionTextBoxMode?.value || SVG_EXPORT_STYLE_DEFAULTS.sectionTextBoxMode,
+      sectionTextBoxCornerRadius: parseSvgCornerRadiusValue(exportSvgSectionTextBoxCornerRadius?.value, SVG_EXPORT_STYLE_DEFAULTS.sectionTextBoxCornerRadius),
+      ...getSvgExportStyleOptionsFromInputs()
+    };
+  }
+
+  function applyExportModalPreferencesToInputs(preferences) {
+    if (!preferences || typeof preferences !== "object") return;
+    const applyChecked = (input, value) => {
+      if (input && typeof value === "boolean") input.checked = value;
+    };
+    const applyValue = (input, value) => {
+      if (!input || value == null) return;
+      input.value = String(value);
+    };
+    const applyColor = (input, value, fallback) => {
+      if (!input || value == null) return;
+      input.value = normalizeColorToHex(value, fallback);
+    };
+
+    applyChecked(exportTlc, preferences.exportTlc);
+    applyChecked(exportTlt, preferences.exportTlt);
+    applyChecked(exportTpr, preferences.exportTpr);
+    applyChecked(exportTlm, preferences.exportTlm);
+    applyChecked(exportCss, preferences.exportCss);
+    applyChecked(exportSvg, preferences.exportSvg);
+    applyChecked(exportLayoutSummaryXlsx, preferences.exportLayoutSummaryXlsx);
+    applySvgSupportPartSelectionsToInputs(
+      preferences.svgSupportParts,
+      typeof preferences.exportSvgSupport === "boolean" ? preferences.exportSvgSupport : null
+    );
+
+    applyValue(exportSvgSectionTextBoxMode, preferences.sectionTextBoxMode);
+    applyValue(exportSvgSectionTextBoxCornerRadius, parseSvgCornerRadiusValue(preferences.sectionTextBoxCornerRadius, SVG_EXPORT_STYLE_DEFAULTS.sectionTextBoxCornerRadius));
+    applyColor(exportSvgSectionTextBoxFill, preferences.sectionTextBoxFill, SVG_EXPORT_STYLE_DEFAULTS.sectionTextBoxFill);
+    applyColor(exportSvgSectionTextBoxStroke, preferences.sectionTextBoxStroke, SVG_EXPORT_STYLE_DEFAULTS.sectionTextBoxStroke);
+    applyValue(exportSvgSectionTextBoxStrokeWidth, parseSvgNonNegativeNumber(preferences.sectionTextBoxStrokeWidth, SVG_EXPORT_STYLE_DEFAULTS.sectionTextBoxStrokeWidth));
+    applyChecked(exportSvgSectionTextBoxHoverEnabled, typeof preferences.sectionTextBoxHoverEnabled === "boolean"
+      ? preferences.sectionTextBoxHoverEnabled
+      : SVG_EXPORT_STYLE_DEFAULTS.sectionTextBoxHoverEnabled);
+    applyValue(exportSvgSectionTextBoxInactiveOpacity, parseSvgOpacityValue(preferences.sectionTextBoxInactiveOpacity, SVG_EXPORT_STYLE_DEFAULTS.sectionTextBoxInactiveOpacity));
+    applyValue(exportSvgSectionTextBoxHoverOpacity, parseSvgOpacityValue(preferences.sectionTextBoxHoverOpacity, SVG_EXPORT_STYLE_DEFAULTS.sectionTextBoxHoverOpacity));
+    applyColor(exportSvgSectionTextFill, preferences.sectionTextFill, SVG_EXPORT_STYLE_DEFAULTS.sectionTextFill);
+    applyValue(exportSvgSectionTextSize, parseSvgNonNegativeNumber(preferences.sectionTextSize, SVG_EXPORT_STYLE_DEFAULTS.sectionTextSize));
+    applyChecked(exportSvgSectionTextDisablePointerEvents, preferences.sectionTextDisablePointerEvents);
+    applyColor(exportSvgRowNumberTextFill, preferences.rowNumberTextFill, SVG_EXPORT_STYLE_DEFAULTS.rowNumberTextFill);
+    applyValue(exportSvgRowNumberTextSize, parseSvgNonNegativeNumber(preferences.rowNumberTextSize, SVG_EXPORT_STYLE_DEFAULTS.rowNumberTextSize));
+    applyChecked(exportSvgRowNumberTextHide, preferences.rowNumberTextHide);
+    updateSvgHoverEffectAvailability();
+  }
+
+  async function getPreferredExportDirectoryHandleForCurrentLayout() {
+    const prefs = await loadCurrentLayoutExportPrefs();
+    const layoutDir = await tryGetDirectoryHandle(prefs?.exportDirectoryHandle) || prefs?.exportDirectoryHandle || null;
+    if (layoutDir) return layoutDir;
+    if (!lastExportDirectoryHandle) {
+      lastExportDirectoryHandle = await loadLastExportDirectoryHandleFromDB();
+    }
+    return lastExportDirectoryHandle || lastDirectoryHandle || await tryGetDirectoryHandle(currentFileHandle);
+  }
+
+  function updateSvgExportSettingsAvailability() {
     const enabled = !!(exportSvg && !exportSvg.disabled && exportSvg.checked);
-    const supportTooltip = exportSvg?.disabled
-      ? (exportSvg.title || "Enable SVG export to include support graphics.")
-      : "Enable SVG export to include support graphics.";
-    const fgTooltip = exportSvg?.disabled
-      ? (exportSvg.title || "Enable SVG export to include FG seats and rows.")
-      : "Enable SVG export to include FG seats and rows.";
-    setSvgDependentExportOptionState(exportSvgSupport, enabled, supportTooltip);
-    setSvgDependentExportOptionState(exportFgSeats, enabled, fgTooltip);
-    setSvgDependentExportOptionState(exportFgRows, enabled, fgTooltip);
+    const tooltip = exportSvg?.disabled
+      ? (exportSvg.title || "Enable SVG export to change SVG export settings.")
+      : "Enable SVG export to change SVG export settings.";
+    getSvgExportSettingsControls().forEach((control) => {
+      setSvgDependentExportControlState(control, enabled, tooltip);
+    });
+    if (exportSvgSettings) {
+      exportSvgSettings.classList.toggle("export-svg-settings--disabled", !enabled);
+      exportSvgSettings.setAttribute("aria-disabled", enabled ? "false" : "true");
+      if (!enabled) exportSvgSettings.title = tooltip;
+      else exportSvgSettings.removeAttribute("title");
+    }
+    updateSvgHoverEffectAvailability();
+  }
+
+  function updateSvgHoverEffectAvailability() {
+    const svgEnabled = !!(exportSvg && !exportSvg.disabled && exportSvg.checked);
+    const hoverEnabled = svgEnabled && !!exportSvgSectionTextBoxHoverEnabled?.checked;
+    const tooltip = svgEnabled
+      ? "Enable hover effect to change hover opacity."
+      : (exportSvg?.disabled
+          ? (exportSvg.title || "Enable SVG export to change SVG export settings.")
+          : "Enable SVG export to change SVG export settings.");
+    [
+      exportSvgSectionTextBoxInactiveOpacity,
+      exportSvgSectionTextBoxHoverOpacity
+    ].forEach((control) => {
+      setSvgDependentExportControlState(control, hoverEnabled, tooltip);
+    });
   }
 
   function getSelectedSectionEntries() {
@@ -8526,7 +9125,7 @@ codePane.addEventListener("input", () => {
     activePriceRegionStaleRegionId = "";
   }
 
-  function openExportModal() {
+  async function openExportModal() {
     if (exportOverlay) exportOverlay.style.display = "flex";
     if (exportName) {
       const base = currentFileName ? currentFileName.replace(/\.[^/.]+$/, "") : "";
@@ -8544,13 +9143,24 @@ codePane.addEventListener("input", () => {
     if (exportCss) exportCss.checked = true;
     if (exportSvg) exportSvg.checked = true;
     if (exportLayoutSummaryXlsx) exportLayoutSummaryXlsx.checked = false;
-    if (exportSvgSupport) exportSvgSupport.checked = false;
-    if (exportFgSeats) exportFgSeats.checked = false;
-    if (exportFgRows) exportFgRows.checked = false;
+    applySvgSupportPartSelectionsToInputs();
+    applySvgExportStyleDefaultsToInputs();
+    const storedPrefs = await loadCurrentLayoutExportPrefs();
+    if (storedPrefs?.settings) {
+      applyExportModalPreferencesToInputs(storedPrefs.settings);
+    }
+    if (storedPrefs?.exportDirectoryHandle) {
+      lastExportDirectoryHandle = storedPrefs.exportDirectoryHandle;
+    }
     updateExportOptionsAvailability();
   }
 
   function closeExportModal() {
+    persistCurrentLayoutExportPrefs({
+      settings: collectExportModalPreferencesFromInputs()
+    }).catch((err) => {
+      console.warn("Kunde inte spara exportinställningar:", err);
+    });
     if (exportOverlay) exportOverlay.style.display = "none";
   }
 
@@ -8981,9 +9591,10 @@ codePane.addEventListener("input", () => {
     priceRegions.forEach((region, idx) => {
       const color = normalizeColorToHex(region.color, "#c9cbcd");
       const rangeId = buildRangeId(region, idx);
+      const aliasClass = buildSvgPriceRegionAlias(idx);
       lines.push(`/* Colors for price region ${region.name} */`);
-      lines.push(`.pr-${rangeId}.available { stroke: ${color}; fill: ${color}; }`);
-      lines.push(`div.pr-${rangeId}, .c-pill.pr-${rangeId} { background-color: ${color}; }`);
+      lines.push(`.pr-${rangeId}.available, .${aliasClass}.available { stroke: ${color}; fill: ${color}; }`);
+      lines.push(`div.pr-${rangeId}, div.${aliasClass}, .c-pill.pr-${rangeId}, .c-pill.${aliasClass} { background-color: ${color}; }`);
     });
     lines.push("</style>");
     return lines.join("\n");
@@ -11267,39 +11878,90 @@ codePane.addEventListener("input", () => {
     refreshNumberedImportUi();
   }
 
+  function sanitizeSvgCssValue(value, fallback) {
+    const normalized = String(value ?? "")
+      .replace(/[\r\n]+/g, " ")
+      .replace(/;/g, "")
+      .trim();
+    return normalized || fallback;
+  }
+
+  function parseSvgNonNegativeNumber(value, fallback = 0) {
+    const numeric = Number(value);
+    if (!Number.isFinite(numeric)) return Math.max(0, fallback);
+    return Math.max(0, numeric);
+  }
+
+  function parseSvgOpacityValue(value, fallback = 1) {
+    const numeric = Number(value);
+    if (!Number.isFinite(numeric)) return Math.min(1, Math.max(0, fallback));
+    return Math.min(1, Math.max(0, numeric));
+  }
+
+  function buildSvgPriceRegionAlias(index) {
+    return `pr${Number(index) + 1}`;
+  }
+
+  function getSvgExportStyleOptions(options = {}) {
+    return {
+      sectionTextBoxFill: sanitizeSvgCssValue(options.sectionTextBoxFill, SVG_EXPORT_STYLE_DEFAULTS.sectionTextBoxFill),
+      sectionTextBoxStroke: sanitizeSvgCssValue(options.sectionTextBoxStroke, SVG_EXPORT_STYLE_DEFAULTS.sectionTextBoxStroke),
+      sectionTextBoxStrokeWidth: parseSvgNonNegativeNumber(options.sectionTextBoxStrokeWidth, SVG_EXPORT_STYLE_DEFAULTS.sectionTextBoxStrokeWidth),
+      sectionTextBoxHoverEnabled: typeof options.sectionTextBoxHoverEnabled === "boolean"
+        ? options.sectionTextBoxHoverEnabled
+        : SVG_EXPORT_STYLE_DEFAULTS.sectionTextBoxHoverEnabled,
+      sectionTextBoxInactiveOpacity: parseSvgOpacityValue(options.sectionTextBoxInactiveOpacity, SVG_EXPORT_STYLE_DEFAULTS.sectionTextBoxInactiveOpacity),
+      sectionTextBoxHoverOpacity: parseSvgOpacityValue(options.sectionTextBoxHoverOpacity, SVG_EXPORT_STYLE_DEFAULTS.sectionTextBoxHoverOpacity),
+      sectionTextFill: sanitizeSvgCssValue(options.sectionTextFill, SVG_EXPORT_STYLE_DEFAULTS.sectionTextFill),
+      sectionTextSize: parseSvgNonNegativeNumber(options.sectionTextSize, SVG_EXPORT_STYLE_DEFAULTS.sectionTextSize),
+      sectionTextDisablePointerEvents: !!options.sectionTextDisablePointerEvents,
+      rowNumberTextFill: sanitizeSvgCssValue(options.rowNumberTextFill, SVG_EXPORT_STYLE_DEFAULTS.rowNumberTextFill),
+      rowNumberTextSize: parseSvgNonNegativeNumber(options.rowNumberTextSize, SVG_EXPORT_STYLE_DEFAULTS.rowNumberTextSize),
+      rowNumberTextHide: !!options.rowNumberTextHide
+    };
+  }
+
   function buildSvgPriceRegionCss() {
     const lines = [];
     priceRegions.forEach((region, idx) => {
       const color = normalizeColorToHex(region.color, "#c9cbcd");
       const rangeId = buildRangeId(region, idx);
+      const aliasClass = buildSvgPriceRegionAlias(idx);
       lines.push("");
       lines.push(`/* Colors for price region ${region.name} */`);
-      lines.push(`.pr-${rangeId} { stroke: ${color}; fill: ${color}; background-color: ${color}; }`);
+      lines.push(`.pr-${rangeId}, .${aliasClass} { stroke: ${color}; fill: ${color}; background-color: ${color}; }`);
     });
     return lines.join("\n").trim();
   }
 
-  function buildSvgCssText() {
+  function buildSvgCssText(options = {}) {
+    const styles = getSvgExportStyleOptions(options);
+    const sectionTextSize = styles.sectionTextSize;
+    const sectionTextLargeSize = Math.max(sectionTextSize, sectionTextSize * 2);
+    const pointerEventsLine = styles.sectionTextDisablePointerEvents
+      ? "pointer-events: none;"
+      : "/* pointer-events: none; */";
+    const rowNumberDisplay = styles.rowNumberTextHide ? " display: none;" : "";
+    const sectionTextBoxOpacity = styles.sectionTextBoxHoverEnabled ? styles.sectionTextBoxInactiveOpacity : 1;
     const lines = [
       ".always-visible-section-outline { fill: #d6f0ff; stroke: #0069a6; stroke-width: 10px; }",
       ".open .always-visible-section-outline { fill: rgba(243, 243, 243, 0.8); stroke: #a3aaaf; stroke-dasharray: 30px 20px; stroke-width: 10px; }",
       ".unavailable .always-visible-section-outline { fill: #ececec; stroke: #485c6a; stroke-width: 10px; }",
       ".unavailable.open .always-visible-section-outline { fill: #ececec; stroke: #a3aaaf; stroke-width: 10px; }",
-      ".section-text { fill: white; font-family: Roboto; font-size: 250px; font-weight: 400; /* pointer-events: none; */ }",
-      ".section-text.large { font-size: 500px; }",
-      ".row-number-text { fill: #202020; font-family: Roboto; font-size: 75px; }",
-      ".section-text-box { fill: #09517c; }",
-      ".section-text-box:hover { fill: #09517c; }",
+      `.section-text { fill: ${styles.sectionTextFill}; font-family: Roboto; font-size: ${formatSvgNumber(sectionTextSize)}px; font-weight: 400; ${pointerEventsLine} }`,
+      `.section-text.large { font-size: ${formatSvgNumber(sectionTextLargeSize)}px; }`,
+      `.row-number-text { fill: ${styles.rowNumberTextFill}; font-family: Roboto; font-size: ${formatSvgNumber(styles.rowNumberTextSize)}px;${rowNumberDisplay} }`,
+      `.section-text-box { fill: ${styles.sectionTextBoxFill}; stroke: ${styles.sectionTextBoxStroke}; stroke-width: ${formatSvgNumber(styles.sectionTextBoxStrokeWidth)}px; opacity: ${formatSvgNumber(sectionTextBoxOpacity)}; transition: fill 500ms ease, stroke 500ms ease, stroke-width 500ms ease, opacity 500ms ease; }`,
       ".unavailable .section-text-box { fill: #a3aaaf; }"
     ];
+    if (styles.sectionTextBoxHoverEnabled) {
+      lines.splice(8, 0, `.section-text-box:hover { opacity: ${formatSvgNumber(styles.sectionTextBoxHoverOpacity)}; }`);
+    }
     const priceCss = buildSvgPriceRegionCss();
     if (priceCss) {
       lines.push("");
       lines.push(priceCss);
     }
-    lines.push("");
-    lines.push(".fg-seat-marker { fill-opacity: 0.25; stroke: none; }");
-    lines.push(".fg-row-marker { fill: url(#fg-row-gradient); stroke: none; opacity: 0.45; }");
     return lines.join("\n");
   }
 
@@ -11317,104 +11979,361 @@ codePane.addEventListener("input", () => {
     return (sorted[mid - 1] + sorted[mid]) / 2;
   }
 
-  function normalizeSvgVector(dx, dy) {
-    const len = Math.hypot(dx, dy);
-    if (len < 1e-6) return null;
-    return { x: dx / len, y: dy / len };
+  function parseSvgCornerRadiusValue(value, fallback = 75) {
+    const numeric = Number(value);
+    if (!Number.isFinite(numeric)) return Math.max(0, fallback);
+    return Math.max(0, numeric);
   }
 
-  function computeSvgSemicircleSweep(startPoint, centerPoint, bulgePoint) {
-    const sv = {
-      x: startPoint.x - centerPoint.x,
-      y: startPoint.y - centerPoint.y
+  function removeSvgCollinearPoints(points, tolerance = 1e-3) {
+    if (!Array.isArray(points) || points.length < 3) return Array.isArray(points) ? [...points] : [];
+    const cleaned = [];
+    for (let i = 0; i < points.length; i++) {
+      const prev = points[(i - 1 + points.length) % points.length];
+      const current = points[i];
+      const next = points[(i + 1) % points.length];
+      const dx1 = current.x - prev.x;
+      const dy1 = current.y - prev.y;
+      const dx2 = next.x - current.x;
+      const dy2 = next.y - current.y;
+      const cross = dx1 * dy2 - dy1 * dx2;
+      const len1 = Math.hypot(dx1, dy1);
+      const len2 = Math.hypot(dx2, dy2);
+      if (len1 < tolerance || len2 < tolerance) continue;
+      if (Math.abs(cross) <= tolerance * Math.max(len1, len2)) continue;
+      cleaned.push(current);
+    }
+    return cleaned.length >= 3 ? cleaned : points;
+  }
+
+  function normalizeSvgVector(dx, dy, fallbackX = 1, fallbackY = 0) {
+    const length = Math.hypot(dx, dy);
+    if (Number.isFinite(length) && length > 1e-6) {
+      return { x: dx / length, y: dy / length };
+    }
+    const fallbackLength = Math.hypot(fallbackX, fallbackY) || 1;
+    return { x: fallbackX / fallbackLength, y: fallbackY / fallbackLength };
+  }
+
+  function removeSequentialDuplicateSvgPoints(points, tolerance = 1e-3) {
+    if (!Array.isArray(points) || !points.length) return [];
+    const unique = [];
+    points.forEach((point) => {
+      const x = Number(point?.x);
+      const y = Number(point?.y);
+      if (!Number.isFinite(x) || !Number.isFinite(y)) return;
+      const previous = unique[unique.length - 1];
+      if (previous && Math.hypot(previous.x - x, previous.y - y) <= tolerance) return;
+      unique.push({ x, y });
+    });
+    if (unique.length > 1) {
+      const first = unique[0];
+      const last = unique[unique.length - 1];
+      if (Math.hypot(first.x - last.x, first.y - last.y) <= tolerance) {
+        unique.pop();
+      }
+    }
+    return unique;
+  }
+
+  function roundSvgPoint(point, precision = 0.1) {
+    const scale = precision > 0 ? 1 / precision : 1;
+    return {
+      x: Math.round(point.x * scale) / scale,
+      y: Math.round(point.y * scale) / scale
     };
-    const perp = { x: -sv.y, y: sv.x };
-    const midSweep1 = { x: centerPoint.x + perp.x, y: centerPoint.y + perp.y };
-    const midSweep0 = { x: centerPoint.x - perp.x, y: centerPoint.y - perp.y };
-    const d1 = Math.hypot(midSweep1.x - bulgePoint.x, midSweep1.y - bulgePoint.y);
-    const d0 = Math.hypot(midSweep0.x - bulgePoint.x, midSweep0.y - bulgePoint.y);
-    return d1 <= d0 ? 1 : 0;
   }
 
-  function buildSvgRowMarkerPath(rowSeats, markerRadius) {
-    if (!Array.isArray(rowSeats) || !rowSeats.length) return "";
-    const points = rowSeats.map((seat) => ({
-      x: Number.isFinite(seat?.centerX) ? seat.centerX : 0,
-      y: Number.isFinite(seat?.centerY) ? seat.centerY : 0
-    }));
-    const radius = Math.max(1, Number(markerRadius) || 1);
+  function computeSvgSeatClusterTangent(seats) {
+    const validSeats = Array.isArray(seats)
+      ? seats.filter((seat) => Number.isFinite(seat?.centerX) && Number.isFinite(seat?.centerY))
+      : [];
+    if (validSeats.length < 2) return { x: 1, y: 0 };
+    const meanX = validSeats.reduce((sum, seat) => sum + seat.centerX, 0) / validSeats.length;
+    const meanY = validSeats.reduce((sum, seat) => sum + seat.centerY, 0) / validSeats.length;
+    let covXX = 0;
+    let covXY = 0;
+    let covYY = 0;
+    validSeats.forEach((seat) => {
+      const dx = seat.centerX - meanX;
+      const dy = seat.centerY - meanY;
+      covXX += dx * dx;
+      covXY += dx * dy;
+      covYY += dy * dy;
+    });
+    if (covXX < 1e-6 && covYY < 1e-6) return { x: 1, y: 0 };
+    const angle = 0.5 * Math.atan2(2 * covXY, covXX - covYY);
+    return normalizeSvgVector(Math.cos(angle), Math.sin(angle), 1, 0);
+  }
 
-    if (points.length === 1) {
-      const p = points[0];
-      const rr = formatSvgNumber(radius);
-      const rightX = formatSvgNumber(p.x + radius);
-      const leftX = formatSvgNumber(p.x - radius);
-      const cy = formatSvgNumber(p.y);
-      return `M ${rightX} ${cy} A ${rr} ${rr} 0 1 0 ${leftX} ${cy} A ${rr} ${rr} 0 1 0 ${rightX} ${cy} Z`;
+  function computeSvgAxisFromSeatRotations(rowEntries) {
+    let sumX = 0;
+    let sumY = 0;
+    rowEntries.forEach((entry) => {
+      const seats = Array.isArray(entry?.seats) ? entry.seats : [];
+      seats.forEach((seat) => {
+        const rotation = Number(seat?.rotation);
+        if (!Number.isFinite(rotation)) return;
+        const angle = (((rotation % 180) + 180) % 180) * (Math.PI / 180);
+        sumX += Math.cos(angle * 2);
+        sumY += Math.sin(angle * 2);
+      });
+    });
+    if (Math.hypot(sumX, sumY) < 1e-3) return null;
+    const angle = 0.5 * Math.atan2(sumY, sumX);
+    return normalizeSvgVector(Math.cos(angle), Math.sin(angle), 1, 0);
+  }
+
+  function computeSvgSectionTangentFromRows(rowEntries) {
+    if (!Array.isArray(rowEntries) || !rowEntries.length) return { x: 1, y: 0 };
+    const weightedTangents = [];
+    rowEntries.forEach((entry) => {
+      const seats = Array.isArray(entry?.seats) ? entry.seats.filter(Boolean) : [];
+      if (seats.length < 2) return;
+      const tangent = computeSvgSeatClusterTangent(seats);
+      const projections = seats
+        .map((seat) => projectSvgPointToAxis(seat.centerX, seat.centerY, tangent))
+        .filter((value) => Number.isFinite(value));
+      if (projections.length < 2) return;
+      const span = Math.max(...projections) - Math.min(...projections);
+      if (!Number.isFinite(span) || span < 1e-3) return;
+      weightedTangents.push({
+        tangent,
+        weight: Math.max(span, seats.length)
+      });
+    });
+    if (weightedTangents.length) {
+      const referenceTangent = weightedTangents[0].tangent;
+      let sumX = 0;
+      let sumY = 0;
+      let totalWeight = 0;
+      weightedTangents.forEach(({ tangent, weight }) => {
+        let current = tangent;
+        if ((current.x * referenceTangent.x + current.y * referenceTangent.y) < 0) {
+          current = { x: -current.x, y: -current.y };
+        }
+        sumX += current.x * weight;
+        sumY += current.y * weight;
+        totalWeight += weight;
+      });
+      if (totalWeight > 1e-3) {
+        return normalizeSvgVector(sumX, sumY, referenceTangent.x, referenceTangent.y);
+      }
+    }
+    const rotationAxis = computeSvgAxisFromSeatRotations(rowEntries);
+    if (rotationAxis) return rotationAxis;
+    const firstRowWithSeats = rowEntries.find((entry) => Array.isArray(entry?.seats) && entry.seats.length);
+    if (firstRowWithSeats) return computeSvgSeatClusterTangent(firstRowWithSeats.seats);
+    return { x: 1, y: 0 };
+  }
+
+  function projectSvgPointToAxis(x, y, axis) {
+    return x * axis.x + y * axis.y;
+  }
+
+  function unprojectSvgPointFromAxes(u, v, tangent, normal) {
+    return {
+      x: tangent.x * u + normal.x * v,
+      y: tangent.y * u + normal.y * v
+    };
+  }
+
+  function buildSvgSectionContourFromRows(rows) {
+    if (!Array.isArray(rows) || !rows.length) return [];
+    const rowEntries = [];
+    const allWidths = [];
+    rows.forEach((row) => {
+      const rowSeats = Array.isArray(row?.seats) ? row.seats.filter(Boolean) : [];
+      if (!rowSeats.length) return;
+      rowSeats.forEach((seat) => {
+        const width = Number(seat?.width);
+        if (Number.isFinite(width) && width > 0) allWidths.push(width);
+      });
+      const centerX = rowSeats.reduce((sum, seat) => sum + seat.centerX, 0) / rowSeats.length;
+      const centerY = rowSeats.reduce((sum, seat) => sum + seat.centerY, 0) / rowSeats.length;
+      rowEntries.push({
+        rowId: row?.rowId || "",
+        seats: rowSeats,
+        centerX,
+        centerY,
+        tangent: computeSvgSeatClusterTangent(rowSeats)
+      });
+    });
+    if (!rowEntries.length) return [];
+    const sectionTangent = computeSvgSectionTangentFromRows(rowEntries);
+    let sectionNormal = { x: -sectionTangent.y, y: sectionTangent.x };
+    let rowFlowX = 0;
+    let rowFlowY = 0;
+    for (let i = 1; i < rowEntries.length; i++) {
+      rowFlowX += rowEntries[i].centerX - rowEntries[i - 1].centerX;
+      rowFlowY += rowEntries[i].centerY - rowEntries[i - 1].centerY;
+    }
+    if (!rowFlowX && !rowFlowY && rowEntries.length > 1) {
+      rowFlowX = rowEntries[rowEntries.length - 1].centerX - rowEntries[0].centerX;
+      rowFlowY = rowEntries[rowEntries.length - 1].centerY - rowEntries[0].centerY;
+    }
+    if ((sectionNormal.x * rowFlowX + sectionNormal.y * rowFlowY) < 0) {
+      sectionNormal = { x: -sectionNormal.x, y: -sectionNormal.y };
+    }
+    const medianWidth = Math.max(1, medianValue(allWidths) || 100);
+    const outlinePadding = Math.max(20, medianWidth * 0.2);
+    const endCap = medianWidth / 2 + Math.max(8, outlinePadding * 0.6);
+    const normalCap = medianWidth / 2 + outlinePadding;
+    rowEntries.forEach((entry) => {
+      const projectedSeats = entry.seats
+        .map((seat) => ({
+          seat,
+          u: projectSvgPointToAxis(seat.centerX, seat.centerY, sectionTangent),
+          v: projectSvgPointToAxis(seat.centerX, seat.centerY, sectionNormal)
+        }))
+        .sort((a, b) => {
+          if (Math.abs(a.u - b.u) > 1e-6) return a.u - b.u;
+          return a.v - b.v;
+        });
+      if (!projectedSeats.length) return;
+      entry.v = projectedSeats.reduce((sum, projected) => sum + projected.v, 0) / projectedSeats.length;
+      entry.uLeft = projectedSeats[0].u - endCap;
+      entry.uRight = projectedSeats[projectedSeats.length - 1].u + endCap;
+    });
+    const validRows = rowEntries
+      .filter((entry) => Number.isFinite(entry.v) && Number.isFinite(entry.uLeft) && Number.isFinite(entry.uRight))
+      .sort((a, b) => a.v - b.v);
+    if (!validRows.length) return [];
+    const points = [];
+    const firstEntry = validRows[0];
+    const lastEntry = validRows[validRows.length - 1];
+    points.push(
+      unprojectSvgPointFromAxes(firstEntry.uLeft, firstEntry.v - normalCap, sectionTangent, sectionNormal),
+      unprojectSvgPointFromAxes(firstEntry.uRight, firstEntry.v - normalCap, sectionTangent, sectionNormal)
+    );
+    for (let i = 0; i < validRows.length - 1; i++) {
+      const current = validRows[i];
+      const next = validRows[i + 1];
+      const midV = (current.v + next.v) / 2;
+      points.push(
+        unprojectSvgPointFromAxes(current.uRight, midV, sectionTangent, sectionNormal),
+        unprojectSvgPointFromAxes(next.uRight, midV, sectionTangent, sectionNormal)
+      );
+    }
+    points.push(
+      unprojectSvgPointFromAxes(lastEntry.uRight, lastEntry.v + normalCap, sectionTangent, sectionNormal),
+      unprojectSvgPointFromAxes(lastEntry.uLeft, lastEntry.v + normalCap, sectionTangent, sectionNormal)
+    );
+    for (let i = validRows.length - 1; i > 0; i--) {
+      const current = validRows[i];
+      const previous = validRows[i - 1];
+      const midV = (current.v + previous.v) / 2;
+      points.push(
+        unprojectSvgPointFromAxes(current.uLeft, midV, sectionTangent, sectionNormal),
+        unprojectSvgPointFromAxes(previous.uLeft, midV, sectionTangent, sectionNormal)
+      );
+    }
+    let contour = removeSequentialDuplicateSvgPoints(points, 1e-3);
+    contour = contour.map((point) => roundSvgPoint(point, 0.1));
+    contour = removeSequentialDuplicateSvgPoints(contour, 0.1);
+    contour = removeSvgCollinearPoints(contour, Math.max(1, medianWidth * 0.03));
+    contour = removeSequentialDuplicateSvgPoints(contour, 0.1);
+    return contour.length >= 3 ? contour : [];
+  }
+
+  function buildSvgSectionContourBySection(sectionOrder, outlineBySection, rowsBySection) {
+    const contourBySection = new Map();
+    sectionOrder.forEach((sectionId) => {
+      const rows = rowsBySection.get(sectionId) || [];
+      let contour = buildSvgSectionContourFromRows(rows);
+      if ((!contour || contour.length < 3) && outlineBySection.get(sectionId)?.coords?.length) {
+        contour = expandOutline(outlineBySection.get(sectionId).coords, 18);
+      }
+      if (contour && contour.length >= 3) {
+        contourBySection.set(sectionId, contour);
+      }
+    });
+    return contourBySection;
+  }
+
+  function buildSvgOutlinePathData(coords, options = {}) {
+    if (!Array.isArray(coords) || !coords.length) return "";
+    const radius = Math.max(0, Number(options.cornerRadius) || 0);
+    const points = coords
+      .map((coord) => ({
+        x: Number(coord?.x),
+        y: Number(coord?.y)
+      }))
+      .filter((point) => Number.isFinite(point.x) && Number.isFinite(point.y));
+    if (!points.length) return "";
+    if (points.length > 1) {
+      const first = points[0];
+      const last = points[points.length - 1];
+      if (Math.hypot(last.x - first.x, last.y - first.y) < 1e-6) points.pop();
+    }
+    if (!points.length) return "";
+    if (points.length < 3 || radius <= 0) {
+      const parts = points.map((point, idx) => `${idx === 0 ? "M" : "L"} ${formatSvgNumber(point.x)} ${formatSvgNumber(point.y)}`);
+      if (points.length > 1) parts.push("Z");
+      return parts.join(" ");
     }
 
-    const tangents = points.map((point, idx) => {
-      let tangent = null;
-      if (idx === 0) {
-        tangent = normalizeSvgVector(points[1].x - point.x, points[1].y - point.y);
-      } else if (idx === points.length - 1) {
-        tangent = normalizeSvgVector(point.x - points[idx - 1].x, point.y - points[idx - 1].y);
-      } else {
-        tangent = normalizeSvgVector(
-          points[idx + 1].x - points[idx - 1].x,
-          points[idx + 1].y - points[idx - 1].y
-        );
+    const corners = points.map((point, idx) => {
+      const prev = points[(idx - 1 + points.length) % points.length];
+      const next = points[(idx + 1) % points.length];
+      const prevDx = prev.x - point.x;
+      const prevDy = prev.y - point.y;
+      const nextDx = next.x - point.x;
+      const nextDy = next.y - point.y;
+      const prevLen = Math.hypot(prevDx, prevDy);
+      const nextLen = Math.hypot(nextDx, nextDy);
+      const cornerRadius = Math.min(radius, prevLen / 2, nextLen / 2);
+      if (prevLen < 1e-6 || nextLen < 1e-6 || cornerRadius < 1e-6) {
+        return {
+          corner: point,
+          enter: point,
+          exit: point,
+          rounded: false
+        };
       }
-      if (!tangent) {
-        tangent = idx > 0
-          ? normalizeSvgVector(point.x - points[idx - 1].x, point.y - points[idx - 1].y)
-          : normalizeSvgVector(points[idx + 1].x - point.x, points[idx + 1].y - point.y);
-      }
-      if (!tangent) tangent = { x: 1, y: 0 };
-      return tangent;
+      return {
+        corner: point,
+        enter: {
+          x: point.x + (prevDx / prevLen) * cornerRadius,
+          y: point.y + (prevDy / prevLen) * cornerRadius
+        },
+        exit: {
+          x: point.x + (nextDx / nextLen) * cornerRadius,
+          y: point.y + (nextDy / nextLen) * cornerRadius
+        },
+        rounded: true
+      };
     });
 
-    const normals = tangents.map((tangent) => ({
-      x: -tangent.y,
-      y: tangent.x
-    }));
-
-    const left = points.map((point, idx) => ({
-      x: point.x + normals[idx].x * radius,
-      y: point.y + normals[idx].y * radius
-    }));
-    const right = points.map((point, idx) => ({
-      x: point.x - normals[idx].x * radius,
-      y: point.y - normals[idx].y * radius
-    }));
-
-    const parts = [];
-    parts.push(`M ${formatSvgNumber(left[0].x)} ${formatSvgNumber(left[0].y)}`);
-    for (let i = 1; i < left.length; i++) {
-      parts.push(`L ${formatSvgNumber(left[i].x)} ${formatSvgNumber(left[i].y)}`);
+    const parts = [
+      `M ${formatSvgNumber(corners[0].exit.x)} ${formatSvgNumber(corners[0].exit.y)}`
+    ];
+    for (let i = 1; i < corners.length; i++) {
+      const corner = corners[i];
+      parts.push(`L ${formatSvgNumber(corner.enter.x)} ${formatSvgNumber(corner.enter.y)}`);
+      if (corner.rounded) {
+        parts.push(`Q ${formatSvgNumber(corner.corner.x)} ${formatSvgNumber(corner.corner.y)} ${formatSvgNumber(corner.exit.x)} ${formatSvgNumber(corner.exit.y)}`);
+      }
     }
-
-    const lastIdx = points.length - 1;
-    const endCapBulge = {
-      x: points[lastIdx].x + tangents[lastIdx].x * radius,
-      y: points[lastIdx].y + tangents[lastIdx].y * radius
-    };
-    const endSweep = computeSvgSemicircleSweep(left[lastIdx], points[lastIdx], endCapBulge);
-    parts.push(`A ${formatSvgNumber(radius)} ${formatSvgNumber(radius)} 0 0 ${endSweep} ${formatSvgNumber(right[lastIdx].x)} ${formatSvgNumber(right[lastIdx].y)}`);
-
-    for (let i = right.length - 2; i >= 0; i--) {
-      parts.push(`L ${formatSvgNumber(right[i].x)} ${formatSvgNumber(right[i].y)}`);
+    parts.push(`L ${formatSvgNumber(corners[0].enter.x)} ${formatSvgNumber(corners[0].enter.y)}`);
+    if (corners[0].rounded) {
+      parts.push(`Q ${formatSvgNumber(corners[0].corner.x)} ${formatSvgNumber(corners[0].corner.y)} ${formatSvgNumber(corners[0].exit.x)} ${formatSvgNumber(corners[0].exit.y)}`);
     }
-
-    const startCapBulge = {
-      x: points[0].x - tangents[0].x * radius,
-      y: points[0].y - tangents[0].y * radius
-    };
-    const startSweep = computeSvgSemicircleSweep(right[0], points[0], startCapBulge);
-    parts.push(`A ${formatSvgNumber(radius)} ${formatSvgNumber(radius)} 0 0 ${startSweep} ${formatSvgNumber(left[0].x)} ${formatSvgNumber(left[0].y)}`);
-
     parts.push("Z");
     return parts.join(" ");
+  }
+
+  function buildSvgSectionTextBoxMarkup(sectionId, contourBySection, box, mode, cornerRadius) {
+    const safeCornerRadius = parseSvgCornerRadiusValue(cornerRadius, 75);
+    if (mode === "outline") {
+      const outlinePath = buildSvgOutlinePathData(contourBySection.get(sectionId), {
+        cornerRadius: safeCornerRadius
+      });
+      if (outlinePath) {
+        return `<path class="section-text-box" d="${outlinePath}"/>`;
+      }
+    }
+    return `<rect class="section-text-box" x="${formatSvgNumber(box.x)}" y="${formatSvgNumber(box.y)}" width="${formatSvgNumber(box.width)}" height="${formatSvgNumber(box.height)}" rx="${formatSvgNumber(safeCornerRadius)}" ry="${formatSvgNumber(safeCornerRadius)}"/>`;
   }
 
   function computeRowStep(seats) {
@@ -11438,14 +12357,14 @@ codePane.addEventListener("input", () => {
     return { dx, dy };
   }
 
-  function computeSectionBounds(sectionId, outlineBySection, rowsBySection) {
+  function computeSectionBounds(sectionId, contourBySection, outlineBySection, rowsBySection) {
     let minX = Infinity;
     let minY = Infinity;
     let maxX = -Infinity;
     let maxY = -Infinity;
-    const outline = outlineBySection.get(sectionId);
-    if (outline && outline.coords && outline.coords.length) {
-      outline.coords.forEach((c) => {
+    const contour = contourBySection.get(sectionId);
+    if (contour && contour.length) {
+      contour.forEach((c) => {
         const rx = Math.round(c.x);
         const ry = Math.round(c.y);
         minX = Math.min(minX, rx);
@@ -11454,18 +12373,30 @@ codePane.addEventListener("input", () => {
         maxY = Math.max(maxY, ry);
       });
     } else {
-      const rows = rowsBySection.get(sectionId);
-      if (rows) {
-        rows.forEach((row) => {
-          row.seats.forEach((seat) => {
-            const rx = Math.round(seat.centerX);
-            const ry = Math.round(seat.centerY);
-            minX = Math.min(minX, rx);
-            maxX = Math.max(maxX, rx);
-            minY = Math.min(minY, ry);
-            maxY = Math.max(maxY, ry);
-          });
+      const outline = outlineBySection.get(sectionId);
+      if (outline && outline.coords && outline.coords.length) {
+        outline.coords.forEach((c) => {
+          const rx = Math.round(c.x);
+          const ry = Math.round(c.y);
+          minX = Math.min(minX, rx);
+          maxX = Math.max(maxX, rx);
+          minY = Math.min(minY, ry);
+          maxY = Math.max(maxY, ry);
         });
+      } else {
+        const rows = rowsBySection.get(sectionId);
+        if (rows) {
+          rows.forEach((row) => {
+            row.seats.forEach((seat) => {
+              const rx = Math.round(seat.centerX);
+              const ry = Math.round(seat.centerY);
+              minX = Math.min(minX, rx);
+              maxX = Math.max(maxX, rx);
+              minY = Math.min(minY, ry);
+              maxY = Math.max(maxY, ry);
+            });
+          });
+        }
       }
     }
     if (!Number.isFinite(minX) || !Number.isFinite(minY)) return null;
@@ -11496,18 +12427,21 @@ codePane.addEventListener("input", () => {
       .join("\n");
   }
 
-  const SVG_SUPPORT_BACKGROUND_MARKUP = `
-<rect style="fill: rgb(36, 55, 67); filter: url(&quot;#gaussian-blur-filter-0&quot;); opacity: 0.35;" x="-3616.8" y="-3338.7" width="2027.18" height="2027.18"/>
-<rect style="fill: rgb(255, 255, 255); stroke: rgb(137, 137, 137);" x="-3616.8" y="-3338.7" width="2027.18" height="2027.18"/>
-`;
+  const SVG_SUPPORT_BACKGROUND_LAYERS = Object.freeze([
+    "fill: rgb(36, 55, 67); filter: url(#gaussian-blur-filter-0); opacity: 0.35;",
+    "fill: rgb(255, 255, 255); stroke: rgb(137, 137, 137);"
+  ]);
 
-  const SVG_SUPPORT_ALWAYS_VISIBLE_MARKUP = `
+  const SVG_SUPPORT_STAGE_MARKUP = `
 <g transform="matrix(1, 0, 0, 1, -545.751709, -914)">
   <title>Stage</title>
   <rect style="fill: rgb(36, 56, 70);" x="-566.87" y="-2424.7" width="1797.63" height="944.515" rx="16.619" ry="16.619"/>
   <text style="fill: rgb(255, 255, 255); font-family: Arial, sans-serif; font-size: 458.2px; white-space: pre;" x="-190.21" y="-1792.4">Scen</text>
 </g>
-<g transform="matrix(2.080746, 0, 0, 2.080746, -1405.798828, -2575.989258)">
+`;
+
+  const SVG_SUPPORT_WHEELCHAIR_MARKUP = `
+<g>
   <title>Rullstolsplats</title>
   <g>
     <circle class="st1" cx="305.3" cy="555.2" r="50.4" style="fill: rgb(255, 255, 255);"/>
@@ -11534,7 +12468,10 @@ codePane.addEventListener("input", () => {
     </g>
   </g>
 </g>
-<g transform="matrix(2.080746, 0, 0, 2.080746, -1405.798828, -2575.989258)">
+`;
+
+  const SVG_SUPPORT_ACCOMPANY_PERSON_MARKUP = `
+<g>
   <title>Ledsagare</title>
   <g>
     <g>
@@ -11557,7 +12494,10 @@ codePane.addEventListener("input", () => {
     </g>
   </g>
 </g>
-<g transform="matrix(2.080746, 0, 0, 2.080746, -1405.798828, -2575.989258)">
+`;
+
+  const SVG_SUPPORT_WC_MARKUP = `
+<g>
   <title>Toalett</title>
   <g>
     <g>
@@ -11583,7 +12523,10 @@ codePane.addEventListener("input", () => {
     </g>
   </g>
 </g>
-<g transform="matrix(1.360732, 0, 0, 1.360732, 68.891167, -1910.654541)" style="">
+`;
+
+  const SVG_SUPPORT_ENTRANCE_MARKUP = `
+<g>
   <title>Entrance</title>
   <g transform="translate(0 -552.36)">
     <g transform="matrix(1.1974 0 0 1.1974 -95.185 -154.13)">
@@ -11596,31 +12539,77 @@ codePane.addEventListener("input", () => {
     </g>
   </g>
 </g>
+`;
+
+  const SVG_SUPPORT_STAIRS_MARKUP = `
 <g>
   <title>Stairs</title>
   <path style="fill: rgb(216, 216, 216); stroke-width: 250px; stroke-dasharray: 60; stroke: rgb(198, 198, 198);" d="M 1205.65 -3338.7 L 1205.65 -1311.5"/>
 </g>
 `;
 
-  function buildSvgSectionOutlines(sectionOrder, outlineBySection, supportMarkup = "") {
+  const SVG_SUPPORT_HELPER_MARKUP_BY_KEY = Object.freeze({
+    stage: SVG_SUPPORT_STAGE_MARKUP,
+    wheelchair: SVG_SUPPORT_WHEELCHAIR_MARKUP,
+    accompanyPerson: SVG_SUPPORT_ACCOMPANY_PERSON_MARKUP,
+    wc: SVG_SUPPORT_WC_MARKUP,
+    entrance: SVG_SUPPORT_ENTRANCE_MARKUP,
+    stairs: SVG_SUPPORT_STAIRS_MARKUP
+  });
+
+  function parseSvgViewBoxMetrics(viewBox) {
+    const parts = String(viewBox || "")
+      .trim()
+      .split(/\s+/)
+      .map((value) => Number(value));
+    if (parts.length !== 4 || parts.some((value) => !Number.isFinite(value))) {
+      return { x: 0, y: 0, width: 1200, height: 800 };
+    }
+    return {
+      x: parts[0],
+      y: parts[1],
+      width: parts[2],
+      height: parts[3]
+    };
+  }
+
+  function buildSvgSupportBackgroundMarkup(viewBox, supportSelection = {}) {
+    if (!supportSelection.background) return "";
+    const { x, y, width, height } = parseSvgViewBoxMetrics(viewBox);
+    return SVG_SUPPORT_BACKGROUND_LAYERS.map((style) => {
+      return `<rect style="${style}" x="${x}" y="${y}" width="${width}" height="${height}"/>`;
+    }).join("\n");
+  }
+
+  function buildSvgSupportHelperMarkup(supportSelection = {}) {
+    const lines = [];
+    SVG_EXPORT_SUPPORT_PARTS.forEach((part) => {
+      if (part.key === "background" || !supportSelection[part.key]) return;
+      const markup = SVG_SUPPORT_HELPER_MARKUP_BY_KEY[part.key];
+      if (!markup) return;
+      lines.push(normalizeSvgMarkup(markup));
+    });
+    return lines.filter(Boolean).join("\n");
+  }
+
+  function buildSvgSectionOutlines(sectionOrder, contourBySection, backgroundMarkup = "") {
     const lines = [
       "      <g id=\"background-graphics-section-graphics-always-visible\" class=\"section-graphics-always-visible\">",
       "        <title>background-graphics-section-graphics-always-visible</title>"
     ];
+    if (backgroundMarkup) {
+      lines.push(indentSvgMarkup(backgroundMarkup, 8));
+    }
     sectionOrder.forEach((sectionId) => {
       const sectionCode = sectionIdToOutlineCode(sectionId);
-      const outline = outlineBySection.get(sectionId);
-      if (!outline || !outline.coords || !outline.coords.length) return;
-      const coords = outline.coords.map(c => ({ x: Math.round(c.x), y: Math.round(c.y) }));
-      const path = coords.map((c, idx) => `${idx === 0 ? "M" : "L"}${c.x},${c.y}`).join("");
+      const contour = contourBySection.get(sectionId);
+      if (!contour || !contour.length) return;
+      const path = buildSvgOutlinePathData(contour);
       lines.push(`        <g class="section-always-visible section-${sectionCode}" style="visibility: hidden;">`);
       lines.push(`          <title>section-always-visible section-${sectionCode}</title>`);
       lines.push(`          <path d="${path}" class="always-visible-section-outline"/>`);
       lines.push("        </g>");
     });
-    if (supportMarkup) {
-      lines.push(indentSvgMarkup(supportMarkup, 8));
-    }
     lines.push("      </g>");
     return lines.join("\n");
   }
@@ -11670,11 +12659,9 @@ codePane.addEventListener("input", () => {
     return lines.join("\n");
   }
 
-  function buildSvgFrontgroundMarkup(sectionOrder, outlineBySection, rowsBySection, options = {}) {
-    const includeFgSeats = !!options.includeFgSeats;
-    const includeFgRows = !!options.includeFgRows;
-    const includeFgSeatMap = includeFgSeats || includeFgRows;
-    const priceRegionLookups = Array.isArray(options.priceRegionLookups) ? options.priceRegionLookups : [];
+  function buildSvgFrontgroundMarkup(sectionOrder, contourBySection, outlineBySection, rowsBySection, options = {}) {
+    const sectionTextBoxMode = options.sectionTextBoxMode === "outline" ? "outline" : "rect";
+    const sectionTextBoxCornerRadius = parseSvgCornerRadiusValue(options.sectionTextBoxCornerRadius, 75);
     const lines = [
       "    <g id=\"frontground-graphics\" class=\"graphics\">",
       "      <title>frontground-graphics</title>",
@@ -11686,14 +12673,13 @@ codePane.addEventListener("input", () => {
       const sectionCode = sectionIdToOutlineCode(sectionId);
       const sectionName = sectionNames.get(sectionId) || "";
       if (!sectionName) return;
-      const bounds = computeSectionBounds(sectionId, outlineBySection, rowsBySection);
+      const bounds = computeSectionBounds(sectionId, contourBySection, outlineBySection, rowsBySection);
       if (!bounds) return;
       const centerX = (bounds.minX + bounds.maxX) / 2;
       const centerY = (bounds.minY + bounds.maxY) / 2;
       const text = sectionName;
       const width = Math.max(1000, text.length * 200);
       const height = 500;
-      const radius = height / 2;
       const yOffset = height / 38;
       const rectX = centerX - width / 2;
       const rectY = centerY - height / 2 - yOffset;
@@ -11701,56 +12687,8 @@ codePane.addEventListener("input", () => {
       lines.push(`        <g class="section-visible-when-not-open section-${sectionCode}">`);
       lines.push(`          <title>section-visible-when-not-open section-${sectionCode}</title>`);
 
-      if (includeFgSeatMap) {
-        const parts = parseSectionIdParts(sectionId);
-        const dataId = parts.major != null ? String(parts.major) : String(sectionId || "");
-        const bboxWidth = Math.round(bounds.maxX - bounds.minX);
-        const bboxHeight = Math.round(bounds.maxY - bounds.minY);
-        const bboxAttr = ` data-bounding-box="${bounds.minX} ${bounds.minY} ${bboxWidth} ${bboxHeight};"`;
-
-        lines.push(`          <g id="fg-section-${sectionCode}" data-name="${escapeXml(sectionName)}" data-id="${escapeXml("fg-" + String(dataId))}"${bboxAttr}>`);
-        lines.push(`            <title>section-${sectionCode}</title>`);
-        lines.push(`            <g id="fg-rows-${sectionCode}">`);
-        lines.push(`              <title>rows-${sectionCode}</title>`);
-
-        const rows = rowsBySection.get(sectionId) || [];
-        rows.forEach((row) => {
-          const rowCode = rowIdToSvgCode(row.rowId);
-          const rowName = row.name || (row.rowId ? String(row.rowId).split(".")[2] : "");
-          lines.push(`              <g id="fg-row-${rowCode}" data-name="${escapeXml(rowName)}">`);
-          lines.push(`                <title>row-${rowCode}</title>`);
-
-          if (includeFgRows && row.seats && row.seats.length) {
-            const seatRadii = row.seats.map((seat) => Math.max(1, Math.round((Number.isFinite(seat.width) ? seat.width : 100) / 2)));
-            const markerRadius = Math.max(1, Math.round(medianValue(seatRadii) || seatRadii[0] || 50));
-            const markerPath = buildSvgRowMarkerPath(row.seats, markerRadius);
-            if (markerPath) {
-              lines.push(`                <path id="fg-row-marker-${rowCode}" class="fg-row-marker" d="${markerPath}"/>`);
-            }
-          }
-
-          if (includeFgSeats && row.seats && row.seats.length) {
-            row.seats.forEach((seat) => {
-              const seatCode = seatIdToSvgCode(seat.seatId);
-              const cx = Math.round(Number.isFinite(seat.centerX) ? seat.centerX : 0);
-              const cy = Math.round(Number.isFinite(seat.centerY) ? seat.centerY : 0);
-              const r = Math.max(1, Math.round((Number.isFinite(seat.width) ? seat.width : 100) / 2));
-              const regionId = getSeatPriceRegionRangeId(seat, priceRegionLookups);
-              const classParts = ["fg-seat-marker"];
-              if (regionId) classParts.push(`pr-${regionId}`);
-              lines.push(`                <circle id="fg-${seatCode}" cx="${cx}" cy="${cy}" r="${r}" class="${classParts.join(" ")}" data-name="${escapeXml(seat.name)}"/>`);
-            });
-          }
-
-          lines.push("              </g>");
-        });
-
-        lines.push("            </g>");
-        lines.push("          </g>");
-      }
-
       lines.push("          <g>");
-      lines.push(`            <rect class="section-text-box" x="${formatSvgNumber(rectX)}" y="${formatSvgNumber(rectY)}" width="${formatSvgNumber(width)}" height="${formatSvgNumber(height)}" rx="75" ry="75"/>`);
+      lines.push(`            ${buildSvgSectionTextBoxMarkup(sectionId, contourBySection, { x: rectX, y: rectY, width, height }, sectionTextBoxMode, sectionTextBoxCornerRadius)}`);
       lines.push(`            <text class="section-text" x="${formatSvgNumber(centerX)}" y="${formatSvgNumber(centerY)}" text-anchor="middle" dominant-baseline="middle" style="white-space: pre;">${escapeXml(text)}</text>`);
       lines.push("          </g>");
       lines.push("        </g>");
@@ -11775,7 +12713,7 @@ codePane.addEventListener("input", () => {
     return points.join(" ");
   }
 
-  function buildSvgSectionsMarkup(sectionOrder, rowsBySection, outlineBySection, priceRegionLookups) {
+  function buildSvgSectionsMarkup(sectionOrder, rowsBySection, contourBySection, outlineBySection, priceRegionLookups) {
     const lines = [
       "    <g id=\"sections\">",
       "      <title>sections</title>"
@@ -11787,7 +12725,7 @@ codePane.addEventListener("input", () => {
       const parts = parseSectionIdParts(sectionId);
       const dataId = parts.major != null ? String(parts.major) : String(sectionId || "");
 
-      const bounds = computeSectionBounds(sectionId, outlineBySection, rowsBySection);
+      const bounds = computeSectionBounds(sectionId, contourBySection, outlineBySection, rowsBySection);
       const hasBounds = !!bounds;
       const minXr = hasBounds ? bounds.minX : 0;
       const minYr = hasBounds ? bounds.minY : 0;
@@ -11813,9 +12751,10 @@ codePane.addEventListener("input", () => {
           const cx = Math.round(seat.centerX);
           const cy = Math.round(seat.centerY);
           const r = Math.round((Number.isFinite(seat.width) ? seat.width : 100) / 2);
-          const regionId = getSeatPriceRegionRangeId(seat, priceRegionLookups);
+          const regionLookup = getSeatPriceRegionLookup(seat, priceRegionLookups);
           const classParts = ["seat"];
-          if (regionId) classParts.push(`pr-${regionId}`);
+          if (regionLookup?.rangeId) classParts.push(`pr-${regionLookup.rangeId}`);
+          if (regionLookup?.aliasClass) classParts.push(regionLookup.aliasClass);
           const className = classParts.join(" ");
 
           let dataAttributes = "";
@@ -11869,16 +12808,11 @@ codePane.addEventListener("input", () => {
     return lines.join("\n");
   }
 
-  function buildSvgSkeleton(viewBox, cssText, supportBackgroundMarkup, outlineMarkup, rowNumberMarkup, sectionsMarkup, frontgroundMarkup) {
+  function buildSvgSkeleton(viewBox, cssText, outlineMarkup, helperMarkup, rowNumberMarkup, sectionsMarkup, frontgroundMarkup) {
     const lines = [
       "<?xml version=\"1.0\" encoding=\"utf-8\"?>",
       `<svg id="venue" version="1.1" baseProfile="full" preserveAspectRatio="xMidYMid meet" viewBox="${viewBox}" xmlns="http://www.w3.org/2000/svg">`,
       "  <defs>",
-      "    <linearGradient id=\"fg-row-gradient\" x1=\"0%\" y1=\"0%\" x2=\"100%\" y2=\"100%\">",
-      "      <stop offset=\"0%\" stop-color=\"#c9cfd3\"/>",
-      "      <stop offset=\"55%\" stop-color=\"#b7bec3\"/>",
-      "      <stop offset=\"100%\" stop-color=\"#a5adb3\"/>",
-      "    </linearGradient>",
       "    <filter id=\"gaussian-blur-filter-0\" color-interpolation-filters=\"sRGB\" x=\"-50%\" y=\"-50%\" width=\"200%\" height=\"200%\">",
       "      <feGaussianBlur stdDeviation=\"50 50\" edgeMode=\"none\"/>",
       "    </filter>",
@@ -11890,10 +12824,10 @@ codePane.addEventListener("input", () => {
       "    <title>viewport</title>",
       "    <g id=\"background-graphics\" class=\"graphics\">",
       "      <title>background-graphics</title>",
-      supportBackgroundMarkup ? indentSvgMarkup(supportBackgroundMarkup, 6) : "",
       outlineMarkup || "",
       "      <g id=\"helper-graphics\">",
       "        <title>helper-graphics</title>",
+      helperMarkup ? indentSvgMarkup(helperMarkup, 8) : "",
       "      </g>",
       rowNumberMarkup || "",
       "    </g>",
@@ -11905,15 +12839,15 @@ codePane.addEventListener("input", () => {
     return lines.filter(Boolean).join("\n");
   }
 
-  function computeSvgViewBox(outlineBySection, rowsBySection) {
+  function computeSvgViewBox(contourBySection, rowsBySection) {
     let minX = Infinity;
     let minY = Infinity;
     let maxX = -Infinity;
     let maxY = -Infinity;
 
-    outlineBySection.forEach((outline) => {
-      if (!outline || !outline.coords) return;
-      outline.coords.forEach((c) => {
+    contourBySection.forEach((contour) => {
+      if (!contour || !contour.length) return;
+      contour.forEach((c) => {
         minX = Math.min(minX, c.x);
         maxX = Math.max(maxX, c.x);
         minY = Math.min(minY, c.y);
@@ -11953,25 +12887,30 @@ codePane.addEventListener("input", () => {
   function buildPriceRegionLookupsForSvg() {
     return priceRegions.map((region, idx) => ({
       rangeId: buildRangeId(region, idx),
+      aliasClass: buildSvgPriceRegionAlias(idx),
       sections: new Set(region.sections),
       rows: new Set(region.rows),
       seats: new Set(region.seats)
     }));
   }
 
-  function getSeatPriceRegionRangeId(seat, lookups) {
+  function getSeatPriceRegionLookup(seat, lookups) {
     for (const region of lookups) {
-      if (region.sections.has(seat.sectionId)) return region.rangeId;
-      if (region.rows.has(seat.rowId)) return region.rangeId;
-      if (region.seats.has(seat.seatId)) return region.rangeId;
+      if (region.sections.has(seat.sectionId)) return region;
+      if (region.rows.has(seat.rowId)) return region;
+      if (region.seats.has(seat.seatId)) return region;
     }
     return null;
   }
 
   async function buildSvgText(baseName, options = {}) {
-    const includeSupportGraphics = !!options.includeSupportGraphics;
-    const includeFgSeats = !!options.includeFgSeats;
-    const includeFgRows = !!options.includeFgRows;
+    const supportSelection = normalizeSvgSupportPartSelection(
+      options.svgSupportParts,
+      typeof options.includeSupportGraphics === "boolean" ? options.includeSupportGraphics : null
+    );
+    const sectionTextBoxMode = options.sectionTextBoxMode === "outline" ? "outline" : "rect";
+    const sectionTextBoxCornerRadius = parseSvgCornerRadiusValue(options.sectionTextBoxCornerRadius, 75);
+    const svgStyleOptions = getSvgExportStyleOptions(options);
     if (!seats.length) {
       return [
         "<?xml version=\"1.0\" encoding=\"utf-8\"?>",
@@ -12034,21 +12973,20 @@ codePane.addEventListener("input", () => {
       normalizedRowsBySection.set(sectionId, rows);
     });
 
-    const supportBackgroundMarkup = includeSupportGraphics ? SVG_SUPPORT_BACKGROUND_MARKUP : "";
-    const supportAlwaysVisibleMarkup = includeSupportGraphics ? SVG_SUPPORT_ALWAYS_VISIBLE_MARKUP : "";
+    const contourBySection = buildSvgSectionContourBySection(sectionOrder, outlineBySection, normalizedRowsBySection);
     const priceRegionLookups = buildPriceRegionLookupsForSvg();
-    const outlineMarkup = buildSvgSectionOutlines(sectionOrder, outlineBySection, supportAlwaysVisibleMarkup);
+    const viewBox = computeSvgViewBox(contourBySection, normalizedRowsBySection);
+    const supportBackgroundMarkup = buildSvgSupportBackgroundMarkup(viewBox, supportSelection);
+    const supportHelperMarkup = buildSvgSupportHelperMarkup(supportSelection);
+    const outlineMarkup = buildSvgSectionOutlines(sectionOrder, contourBySection, supportBackgroundMarkup);
     const rowNumberMarkup = buildSvgRowNumberMarkup(sectionOrder, normalizedRowsBySection);
-    const sectionsMarkup = buildSvgSectionsMarkup(sectionOrder, normalizedRowsBySection, outlineBySection, priceRegionLookups);
-    const frontgroundMarkup = buildSvgFrontgroundMarkup(sectionOrder, outlineBySection, normalizedRowsBySection, {
-      includeFgSeats,
-      includeFgRows,
-      priceRegionLookups
+    const sectionsMarkup = buildSvgSectionsMarkup(sectionOrder, normalizedRowsBySection, contourBySection, outlineBySection, priceRegionLookups);
+    const frontgroundMarkup = buildSvgFrontgroundMarkup(sectionOrder, contourBySection, outlineBySection, normalizedRowsBySection, {
+      sectionTextBoxMode,
+      sectionTextBoxCornerRadius
     });
-    const cssText = buildSvgCssText();
-
-    const viewBox = computeSvgViewBox(outlineBySection, normalizedRowsBySection);
-    return buildSvgSkeleton(viewBox, cssText, supportBackgroundMarkup, outlineMarkup, rowNumberMarkup, sectionsMarkup, frontgroundMarkup);
+    const cssText = buildSvgCssText(svgStyleOptions);
+    return buildSvgSkeleton(viewBox, cssText, outlineMarkup, supportHelperMarkup, rowNumberMarkup, sectionsMarkup, frontgroundMarkup);
   }
 
   function downloadTextFile(filename, text) {
@@ -12192,6 +13130,7 @@ codePane.addEventListener("input", () => {
     const baseName = getExportBaseName();
     const metaVenueId = getLayoutMeta().venueId || "";
     const venueId = (exportVenueId?.value || "").trim() || metaVenueId;
+    const exportPreferences = collectExportModalPreferencesFromInputs();
     const files = [];
     const hasSeatBlockAssignments = hasAnySeatBlockAssignments();
     const exportTlmChecked = !!exportTlm?.checked;
@@ -12211,7 +13150,7 @@ codePane.addEventListener("input", () => {
         updateSaveButton();
       }
       const tltText = stripEmptyLines(updateTltVenueId(codePane.value || "", venueId));
-      if (!validateTltTextBeforePersist(tltText, "export")) return;
+      if (!validateTltTextBeforePersist(tltText, "export")) return false;
       files.push({ name: `${baseName}.tlt`, text: tltText });
     }
     if (exportTpr?.checked) files.push({ name: `${baseName}.tpr`, text: stripEmptyLines(buildTprText(baseName, venueId)) });
@@ -12221,9 +13160,10 @@ codePane.addEventListener("input", () => {
       files.push({
         name: `${baseName}.svg`,
         text: await buildSvgText(baseName, {
-          includeSupportGraphics: !!exportSvgSupport?.checked,
-          includeFgSeats: !!exportFgSeats?.checked,
-          includeFgRows: !!exportFgRows?.checked
+          svgSupportParts: getSvgSupportPartSelectionsFromInputs(),
+          sectionTextBoxMode: exportSvgSectionTextBoxMode?.value || "rect",
+          sectionTextBoxCornerRadius: parseSvgCornerRadiusValue(exportSvgSectionTextBoxCornerRadius?.value, 75),
+          ...getSvgExportStyleOptionsFromInputs()
         })
       });
     }
@@ -12233,15 +13173,15 @@ codePane.addEventListener("input", () => {
       const hasLoadedFiles = hasLoadedTltFileForExport && hasLoadedTprFileForExport;
       if (!hasLoadedFiles) {
         alert("Load both TLT and TPR files before exporting Layout Summary XLSX.");
-        return;
+        return false;
       }
       if (!hasRegions || !allCovered || hasStaleMappings) {
         alert("All seats must belong to valid price regions before exporting Layout Summary XLSX.");
-        return;
+        return false;
       }
       if (typeof XLSX === "undefined") {
         alert("Excel export requires XLSX library.");
-        return;
+        return false;
       }
       const workbook = buildLayoutSummaryWorkbook();
       const workbookData = XLSX.write(workbook, { bookType: "xlsx", type: "array", compression: true });
@@ -12254,22 +13194,31 @@ codePane.addEventListener("input", () => {
 
     if (!files.length) {
       alert("Select at least one file to export.");
-      return;
+      return false;
     }
 
     if (typeof window.showDirectoryPicker === "function") {
       try {
-        const dir = await window.showDirectoryPicker();
+        const startDir = await getPreferredExportDirectoryHandleForCurrentLayout();
+        const pickerOpts = startDir ? { startIn: startDir } : {};
+        const dir = await window.showDirectoryPicker(pickerOpts);
+        const resolvedDir = await tryGetDirectoryHandle(dir) || dir;
+        lastExportDirectoryHandle = resolvedDir;
         for (const file of files) {
-          const handle = await dir.getFileHandle(file.name, { create: true });
+          const handle = await resolvedDir.getFileHandle(file.name, { create: true });
           const writable = await handle.createWritable();
           const payload = Object.prototype.hasOwnProperty.call(file, "binary") ? file.binary : file.text;
           await writable.write(payload);
           await writable.close();
         }
-        return;
+        await saveLastExportDirectoryHandleToDB(resolvedDir);
+        await persistCurrentLayoutExportPrefs({
+          settings: exportPreferences,
+          exportDirectoryHandle: resolvedDir
+        });
+        return true;
       } catch (err) {
-        if (err?.name === "AbortError") return;
+        if (err?.name === "AbortError") return false;
         console.warn("Export via mappval misslyckades, fallback till nedladdning:", err);
       }
     }
@@ -12281,6 +13230,10 @@ codePane.addEventListener("input", () => {
         downloadTextFile(file.name, file.text);
       }
     });
+    await persistCurrentLayoutExportPrefs({
+      settings: exportPreferences
+    });
+    return true;
   }
 
   function buildPriceRegionTargetsFromSelection() {
@@ -13271,8 +14224,8 @@ codePane.addEventListener("input", () => {
   exportBtn?.addEventListener("click", openExportModal);
   exportCancel?.addEventListener("click", closeExportModal);
   exportConfirm?.addEventListener("click", async () => {
-    await exportFiles();
-    closeExportModal();
+    const exported = await exportFiles();
+    if (exported) closeExportModal();
   });
   exportSelectAllTypesBtn?.addEventListener("click", () => {
     applyExportSelectionPreset("all");
@@ -13286,7 +14239,8 @@ codePane.addEventListener("input", () => {
   exportClearAllTypesBtn?.addEventListener("click", () => {
     applyExportSelectionPreset("none");
   });
-  exportSvg?.addEventListener("change", updateSvgSupportOptionAvailability);
+  exportSvg?.addEventListener("change", updateSvgExportSettingsAvailability);
+  exportSvgSectionTextBoxHoverEnabled?.addEventListener("change", updateSvgHoverEffectAvailability);
   exportName?.addEventListener("keydown", (e) => {
     if (e.key === "Enter") {
       e.preventDefault();
