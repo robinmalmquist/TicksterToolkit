@@ -1920,10 +1920,11 @@
     }
 
     .price-region-item__header-left {
-      display: inline-flex;
+      display: flex;
       align-items: center;
       gap: 0.45rem;
       min-width: 0;
+      flex: 1;
     }
 
     .price-region-item__name {
@@ -1997,18 +1998,24 @@
     }
 
     .price-region-item__color {
-      width: 34px;
-      height: 20px;
+      width: 36px;
+      height: 22px;
       padding: 0;
       border: none;
       background: transparent;
       cursor: pointer;
+      flex: 0 0 auto;
+    }
+
+    .price-region-item__color--disabled {
+      cursor: default;
+      opacity: 0.45;
     }
 
     .price-region-item__actions {
       display: flex;
       gap: 0.4rem;
-      justify-content: flex-end;
+      justify-content: flex-start;
       flex-wrap: wrap;
       min-width: 0;
     }
@@ -2123,6 +2130,48 @@
     .price-region-item__warning--error:disabled {
       opacity: 1;
       cursor: default;
+    }
+
+    .price-region-item__color-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      min-width: 0;
+    }
+
+    .price-region-item__color-controls {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem 0.75rem;
+      flex-wrap: wrap;
+      min-width: 0;
+      font-size: 0.78rem;
+      color: #4f5d6b;
+    }
+
+    .price-region-item__color-group {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      white-space: nowrap;
+    }
+
+    .price-region-item__inherit {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      white-space: nowrap;
+      color: #4f5d6b;
+    }
+
+    .price-region-item__inherit input {
+      margin: 0;
+    }
+
+    .price-region-item__color-row .price-region-item__warning {
+      margin-left: auto;
     }
 
     .seat-block-item--active {
@@ -3014,6 +3063,11 @@
 
     html[data-theme="dark"] .price-region-item__color {
       background: transparent;
+    }
+
+    html[data-theme="dark"] .price-region-item__color-controls,
+    html[data-theme="dark"] .price-region-item__inherit {
+      color: #cbd5e1;
     }
 
     html[data-theme="dark"] .price-region-item:hover .price-region-item__drag-edge {
@@ -5419,6 +5473,55 @@
     return hslToHex(hue, 50, 62);
   }
 
+  function setPriceRegionVisualColors(region, fillColor, strokeColor, inheritStrokeFromFill, fallbackColor) {
+    if (!region || typeof region !== "object") return region;
+    const fallback = normalizeColorToHex(fallbackColor, DEFAULT_PRICE_REGION_BASE_COLOR);
+    const normalizedFill = normalizeColorToHex(fillColor, fallback);
+    const shouldInheritStroke = inheritStrokeFromFill !== false;
+    const normalizedStroke = shouldInheritStroke
+      ? normalizedFill
+      : normalizeColorToHex(strokeColor, normalizedFill);
+    region.color = normalizedFill;
+    region.fillColor = normalizedFill;
+    region.strokeColor = normalizedStroke;
+    region.inheritStrokeFromFill = shouldInheritStroke;
+    return region;
+  }
+
+  function normalizePriceRegionRecord(region, index = 0) {
+    if (!region || typeof region !== "object") return null;
+    const fallbackColor = generatePriceRegionColor(index);
+    const normalized = {
+      ...region,
+      sections: Array.isArray(region.sections) ? region.sections : [],
+      rows: Array.isArray(region.rows) ? region.rows : [],
+      seats: Array.isArray(region.seats) ? region.seats : []
+    };
+    const fillCandidate = region.fillColor || region.color || region.strokeColor || fallbackColor;
+    const explicitStroke = normalizeColorToHex(region.strokeColor, "");
+    const hasStoredInheritFlag = typeof region.inheritStrokeFromFill === "boolean";
+    const inheritStrokeFromFill = hasStoredInheritFlag
+      ? !!region.inheritStrokeFromFill
+      : (!explicitStroke || explicitStroke === normalizeColorToHex(fillCandidate, fallbackColor));
+    return setPriceRegionVisualColors(
+      normalized,
+      fillCandidate,
+      explicitStroke || fillCandidate,
+      inheritStrokeFromFill,
+      fallbackColor
+    );
+  }
+
+  function getPriceRegionFillColor(region, fallbackColor = "#c9cbcd") {
+    return normalizeColorToHex(region?.fillColor || region?.color, fallbackColor);
+  }
+
+  function getPriceRegionStrokeColor(region, fallbackColor = "#c9cbcd") {
+    const fillColor = getPriceRegionFillColor(region, fallbackColor);
+    if (!region || region.inheritStrokeFromFill !== false) return fillColor;
+    return normalizeColorToHex(region.strokeColor, fillColor);
+  }
+
   function applyPriceRegionColorHarmonyToAllRegions() {
     if (!priceRegions.length) {
       alert("No price regions available.");
@@ -5427,7 +5530,14 @@
     const confirmText = "Replace current colors for all price regions with the selected harmony?";
     if (!confirm(confirmText)) return;
     priceRegions.forEach((region, idx) => {
-      region.color = generatePriceRegionColor(idx);
+      const nextFillColor = generatePriceRegionColor(idx);
+      setPriceRegionVisualColors(
+        region,
+        nextFillColor,
+        region.inheritStrokeFromFill === false ? region.strokeColor : nextFillColor,
+        region.inheritStrokeFromFill !== false,
+        nextFillColor
+      );
     });
     savePriceRegionsToStorage();
     renderPriceRegionList();
@@ -5825,8 +5935,9 @@
     const restoredPriceRegions = Array.isArray(state.priceRegions)
       ? cloneJsonData(state.priceRegions, [])
       : [];
-    restoredPriceRegions.forEach((region) => {
-      if (region && typeof region === "object") priceRegions.push(region);
+    restoredPriceRegions.forEach((region, idx) => {
+      const normalizedRegion = normalizePriceRegionRecord(region, idx);
+      if (normalizedRegion) priceRegions.push(normalizedRegion);
     });
 
     entryPoints.length = 0;
@@ -7642,16 +7753,8 @@ codePane.addEventListener("input", () => {
         if (data && Array.isArray(data.regions)) {
           data.regions.forEach((region, idx) => {
             if (region && region.id && region.name) {
-              const fallbackColor = generatePriceRegionColor(idx);
-              const normalizedColor = normalizeColorToHex(region.color, fallbackColor);
-              priceRegions.push({
-                id: region.id,
-                name: region.name,
-                color: normalizedColor,
-                sections: Array.isArray(region.sections) ? region.sections : [],
-                rows: Array.isArray(region.rows) ? region.rows : [],
-                seats: Array.isArray(region.seats) ? region.seats : []
-              });
+              const normalizedRegion = normalizePriceRegionRecord(region, idx);
+              if (normalizedRegion) priceRegions.push(normalizedRegion);
             }
           });
         }
@@ -7831,6 +7934,8 @@ codePane.addEventListener("input", () => {
     const existingSeatIds = new Set(seats.map((s) => s.seatId));
     priceRegions.forEach((region) => {
       const staleSeatIds = getStaleSeatIdsForPriceRegion(region, existingSeatIds);
+      const fillColor = getPriceRegionFillColor(region, "#888888");
+      const strokeColor = getPriceRegionStrokeColor(region, fillColor);
       const item = document.createElement("div");
       item.className = "price-region-item";
       item.dataset.regionId = region.id;
@@ -7857,12 +7962,6 @@ codePane.addEventListener("input", () => {
         : (numberedImportMode ? "Reordering is disabled in import mode" : "Need at least two price regions to reorder");
       dragEdge.title = dragTitle;
       dragEdge.setAttribute("aria-label", dragTitle);
-      const colorInput = document.createElement("input");
-      colorInput.type = "color";
-      colorInput.className = "price-region-item__color";
-      colorInput.value = normalizeColorToHex(region.color, "#888888");
-      colorInput.dataset.role = "price-region-color";
-      colorInput.dataset.regionId = region.id;
       const seatCount = getPriceRegionSeatCount(region);
       const nameInput = document.createElement("input");
       nameInput.type = "text";
@@ -7873,7 +7972,6 @@ codePane.addEventListener("input", () => {
       const countBadge = document.createElement("span");
       countBadge.className = "price-region-item__count";
       countBadge.textContent = String(seatCount);
-      headerLeft.appendChild(colorInput);
       headerLeft.appendChild(nameInput);
       headerLeft.appendChild(countBadge);
       header.appendChild(headerLeft);
@@ -7907,6 +8005,55 @@ codePane.addEventListener("input", () => {
       clearBtn.textContent = "Clear";
       clearBtn.dataset.role = "price-region-clear";
       clearBtn.dataset.regionId = region.id;
+      actions.appendChild(addBtn);
+      actions.appendChild(markBtn);
+      actions.appendChild(clearBtn);
+
+      const colorRow = document.createElement("div");
+      colorRow.className = "price-region-item__color-row";
+      const colorControls = document.createElement("div");
+      colorControls.className = "price-region-item__color-controls";
+
+      const fillGroup = document.createElement("label");
+      fillGroup.className = "price-region-item__color-group";
+      const fillLabel = document.createElement("span");
+      fillLabel.textContent = "Fill:";
+      const fillInput = document.createElement("input");
+      fillInput.type = "color";
+      fillInput.className = "price-region-item__color";
+      fillInput.value = fillColor;
+      fillInput.dataset.role = "price-region-fill-color";
+      fillInput.dataset.regionId = region.id;
+      fillGroup.appendChild(fillLabel);
+      fillGroup.appendChild(fillInput);
+
+      const strokeGroup = document.createElement("label");
+      strokeGroup.className = "price-region-item__color-group";
+      const strokeLabel = document.createElement("span");
+      strokeLabel.textContent = "Stroke:";
+      const strokeInput = document.createElement("input");
+      strokeInput.type = "color";
+      strokeInput.className = "price-region-item__color";
+      strokeInput.value = strokeColor;
+      strokeInput.dataset.role = "price-region-stroke-color";
+      strokeInput.dataset.regionId = region.id;
+      strokeInput.disabled = region.inheritStrokeFromFill !== false;
+      strokeInput.classList.toggle("price-region-item__color--disabled", strokeInput.disabled);
+      strokeGroup.appendChild(strokeLabel);
+      strokeGroup.appendChild(strokeInput);
+
+      const inheritLabel = document.createElement("label");
+      inheritLabel.className = "price-region-item__inherit";
+      const inheritCheckbox = document.createElement("input");
+      inheritCheckbox.type = "checkbox";
+      inheritCheckbox.checked = region.inheritStrokeFromFill !== false;
+      inheritCheckbox.dataset.role = "price-region-stroke-inherit";
+      inheritCheckbox.dataset.regionId = region.id;
+      const inheritText = document.createElement("span");
+      inheritText.textContent = "Inherit from Fill";
+      inheritLabel.appendChild(inheritCheckbox);
+      inheritLabel.appendChild(inheritText);
+
       const staleBtn = document.createElement("button");
       staleBtn.type = "button";
       staleBtn.className = "c-button c-button--ghost c-button--small price-region-item__warning";
@@ -7918,16 +8065,18 @@ codePane.addEventListener("input", () => {
       staleBtn.disabled = numberedImportMode || warningState.disabled;
       staleBtn.title = warningState.title;
       staleBtn.setAttribute("aria-label", warningState.title);
-      actions.appendChild(addBtn);
-      actions.appendChild(markBtn);
-      actions.appendChild(clearBtn);
-      actions.appendChild(staleBtn);
+      colorControls.appendChild(fillGroup);
+      colorControls.appendChild(strokeGroup);
+      colorControls.appendChild(inheritLabel);
+      colorRow.appendChild(colorControls);
+      colorRow.appendChild(staleBtn);
 
       item.appendChild(dragEdge);
       item.appendChild(deleteBtn);
       item.appendChild(header);
       item.appendChild(meta);
       item.appendChild(actions);
+      item.appendChild(colorRow);
       priceRegionList.appendChild(item);
     });
     updatePriceRegionStatus();
@@ -9338,7 +9487,7 @@ codePane.addEventListener("input", () => {
     });
     priceRegions.forEach((region, idx) => {
       const rangeId = buildRangeId(region, idx);
-      const color = normalizeColorToHex(region.color, "#c9cbcd").toUpperCase();
+      const color = getPriceRegionFillColor(region, "#c9cbcd").toUpperCase();
       lines.push(`${ts}<Outline|${rangeId}|${region.name}|2|[Poly|1|5|${color}|123,321|${color}|123,321|${color}|123,321]>`);
     });
     return lines.join("\n");
@@ -9431,8 +9580,7 @@ codePane.addEventListener("input", () => {
     }
     const regions = Array.from(regionsById.values());
     regions.forEach((region, idx) => {
-      const fallbackColor = generatePriceRegionColor(idx);
-      region.color = normalizeColorToHex(region.color, fallbackColor);
+      setPriceRegionVisualColors(region, region.color, region.color, true, generatePriceRegionColor(idx));
       region.sections = Array.from(new Set(region.sections));
       region.rows = Array.from(new Set(region.rows));
       region.seats = Array.from(new Set(region.seats));
@@ -9534,19 +9682,32 @@ codePane.addEventListener("input", () => {
     return blocks;
   }
 
-  function extractPriceRegionColorFromCssDeclarations(declarations) {
+  function extractPriceRegionCssColorValue(declarations, prop) {
     if (!declarations) return "";
-    const props = ["stroke", "fill", "background-color", "color"];
-    for (const prop of props) {
-      const propRegex = new RegExp(`${prop}\\s*:\\s*([^;}{]+)`, "i");
-      const match = declarations.match(propRegex);
-      if (!match) continue;
-      const value = String(match[1] || "").trim();
-      if (!value || /^none$/i.test(value)) continue;
-      const normalized = normalizeColorToHex(value, "");
-      if (normalized) return normalized;
-    }
-    return "";
+    const propRegex = new RegExp(`${prop}\\s*:\\s*([^;}{]+)`, "i");
+    const match = declarations.match(propRegex);
+    if (!match) return "";
+    const value = String(match[1] || "").trim();
+    if (!value || /^none$/i.test(value)) return "";
+    return normalizeColorToHex(value, "");
+  }
+
+  function extractPriceRegionColorFromCssDeclarations(declarations) {
+    if (!declarations) return null;
+    const fillColor =
+      extractPriceRegionCssColorValue(declarations, "fill")
+      || extractPriceRegionCssColorValue(declarations, "background-color")
+      || extractPriceRegionCssColorValue(declarations, "color")
+      || extractPriceRegionCssColorValue(declarations, "stroke");
+    const strokeColor = extractPriceRegionCssColorValue(declarations, "stroke");
+    if (!fillColor && !strokeColor) return null;
+    const resolvedFill = fillColor || strokeColor;
+    const inheritStrokeFromFill = !strokeColor || strokeColor === resolvedFill;
+    return {
+      fillColor: resolvedFill,
+      strokeColor: inheritStrokeFromFill ? resolvedFill : strokeColor,
+      inheritStrokeFromFill
+    };
   }
 
   function parsePriceRegionColorsFromCssText(cssText) {
@@ -9555,15 +9716,15 @@ codePane.addEventListener("input", () => {
     const text = String(cssText || "");
     if (!text.trim()) return { byRangeId, byName };
 
-    const addRangeIdsFromSelectors = (selectors, color, overwrite = false) => {
-      if (!selectors || !color) return;
+    const addRangeIdsFromSelectors = (selectors, style, overwrite = false) => {
+      if (!selectors || !style) return;
       const idRegex = /\.pr-([A-Za-z0-9_-]+)/g;
       let idMatch;
       while ((idMatch = idRegex.exec(selectors)) !== null) {
         const key = String(idMatch[1]);
         if (!key) continue;
         if (!overwrite && byRangeId.has(key)) continue;
-        byRangeId.set(key, color);
+        byRangeId.set(key, { ...style });
       }
     };
 
@@ -9573,12 +9734,12 @@ codePane.addEventListener("input", () => {
       const rawName = normalizePriceRegionName(commentMatch[1] || "");
       const selectors = commentMatch[2] || "";
       const declarations = commentMatch[3] || "";
-      const color = extractPriceRegionColorFromCssDeclarations(declarations);
-      if (!color) continue;
+      const style = extractPriceRegionColorFromCssDeclarations(declarations);
+      if (!style) continue;
       if (rawName) {
-        byName.set(normalizePriceRegionKey(rawName), color);
+        byName.set(normalizePriceRegionKey(rawName), { ...style });
       }
-      addRangeIdsFromSelectors(selectors, color, true);
+      addRangeIdsFromSelectors(selectors, style, true);
     }
 
     const ruleRegex = /([^{}]+)\{([^{}]+)\}/g;
@@ -9587,9 +9748,9 @@ codePane.addEventListener("input", () => {
       const selectors = ruleMatch[1] || "";
       if (!/\.pr-/i.test(selectors)) continue;
       const declarations = ruleMatch[2] || "";
-      const color = extractPriceRegionColorFromCssDeclarations(declarations);
-      if (!color) continue;
-      addRangeIdsFromSelectors(selectors, color, false);
+      const style = extractPriceRegionColorFromCssDeclarations(declarations);
+      if (!style) continue;
+      addRangeIdsFromSelectors(selectors, style, false);
     }
 
     return { byRangeId, byName };
@@ -9604,31 +9765,50 @@ codePane.addEventListener("input", () => {
     let matchedCount = 0;
     let updatedCount = 0;
     priceRegions.forEach((region, idx) => {
-      const rangeId = buildRangeId(region, idx);
+      const normalizedRegion = normalizePriceRegionRecord(region, idx);
+      const currentRegion = normalizedRegion || region;
+      if (normalizedRegion) priceRegions[idx] = normalizedRegion;
+      const rangeId = buildRangeId(currentRegion, idx);
       const candidateIds = [
         rangeId,
-        region.rangeId,
-        region.id
+        currentRegion.rangeId,
+        currentRegion.id
       ]
         .map((v) => String(v || "").trim())
         .filter(Boolean);
-      let importedColor = "";
+      let importedStyle = null;
       for (const key of candidateIds) {
         if (byRangeId.has(key)) {
-          importedColor = byRangeId.get(key);
+          importedStyle = byRangeId.get(key);
           break;
         }
       }
-      if (!importedColor && region.name) {
-        const nameKey = normalizePriceRegionKey(region.name);
-        importedColor = byName.get(nameKey) || "";
+      if (!importedStyle && currentRegion.name) {
+        const nameKey = normalizePriceRegionKey(currentRegion.name);
+        importedStyle = byName.get(nameKey) || null;
       }
-      if (!importedColor) return;
+      if (!importedStyle) return;
       matchedCount += 1;
       const fallbackColor = generatePriceRegionColor(idx);
-      const normalized = normalizeColorToHex(importedColor, fallbackColor);
-      if (normalized && normalized !== region.color) {
-        region.color = normalized;
+      const nextFillColor = normalizeColorToHex(importedStyle.fillColor, fallbackColor);
+      const nextStrokeColor = importedStyle.inheritStrokeFromFill
+        ? nextFillColor
+        : normalizeColorToHex(importedStyle.strokeColor, nextFillColor);
+      const prevFillColor = getPriceRegionFillColor(currentRegion, fallbackColor);
+      const prevStrokeColor = getPriceRegionStrokeColor(currentRegion, fallbackColor);
+      const prevInheritStroke = currentRegion.inheritStrokeFromFill !== false;
+      if (
+        nextFillColor !== prevFillColor
+        || nextStrokeColor !== prevStrokeColor
+        || !!importedStyle.inheritStrokeFromFill !== prevInheritStroke
+      ) {
+        setPriceRegionVisualColors(
+          currentRegion,
+          nextFillColor,
+          nextStrokeColor,
+          !!importedStyle.inheritStrokeFromFill,
+          fallbackColor
+        );
         updatedCount += 1;
       }
     });
@@ -9649,11 +9829,12 @@ codePane.addEventListener("input", () => {
       ".unavailable circle.seat { fill: #c9cbcd; stroke: none; fill-opacity: 0.25; }"
     ];
     priceRegions.forEach((region, idx) => {
-      const color = normalizeColorToHex(region.color, "#c9cbcd");
+      const fillColor = getPriceRegionFillColor(region, "#c9cbcd");
+      const strokeColor = getPriceRegionStrokeColor(region, fillColor);
       const rangeId = buildRangeId(region, idx);
       lines.push(`/* Colors for price region ${region.name} */`);
-      lines.push(`.pr-${rangeId}.available { stroke: ${color}; fill: ${color}; }`);
-      lines.push(`div.pr-${rangeId}, .c-pill.pr-${rangeId} { background-color: ${color}; }`);
+      lines.push(`.pr-${rangeId}.available { stroke: ${strokeColor}; fill: ${fillColor}; }`);
+      lines.push(`div.pr-${rangeId}, .c-pill.pr-${rangeId} { background-color: ${fillColor}; }`);
     });
     lines.push("</style>");
     return lines.join("\n");
@@ -12077,11 +12258,12 @@ codePane.addEventListener("input", () => {
   function buildSvgPriceRegionCss() {
     const lines = [];
     priceRegions.forEach((region, idx) => {
-      const color = normalizeColorToHex(region.color, "#c9cbcd");
+      const fillColor = getPriceRegionFillColor(region, "#c9cbcd");
+      const strokeColor = getPriceRegionStrokeColor(region, fillColor);
       const rangeId = buildRangeId(region, idx);
       lines.push("");
       lines.push(`/* Colors for price region ${region.name} */`);
-      lines.push(`.pr-${rangeId} { stroke: ${color}; fill: ${color}; background-color: ${color}; }`);
+      lines.push(`.pr-${rangeId} { stroke: ${strokeColor}; fill: ${fillColor}; background-color: ${fillColor}; }`);
     });
     return lines.join("\n").trim();
   }
@@ -14447,10 +14629,10 @@ codePane.addEventListener("input", () => {
   }
 
   function buildPriceRegionLookups() {
-    return priceRegions.map(region => ({
+    return priceRegions.map((region, idx) => ({
       id: region.id,
       name: region.name,
-      color: region.color,
+      color: getPriceRegionFillColor(region, generatePriceRegionColor(idx)),
       sections: new Set(region.sections),
       rows: new Set(region.rows),
       seats: new Set(region.seats)
@@ -15412,7 +15594,10 @@ codePane.addEventListener("input", () => {
         return;
       }
       priceRegions.length = 0;
-      regions.forEach(r => priceRegions.push(r));
+      regions.forEach((region, idx) => {
+        const normalizedRegion = normalizePriceRegionRecord(region, idx);
+        if (normalizedRegion) priceRegions.push(normalizedRegion);
+      });
       setExportLoadedSourcesState({ tpr: true });
       savePriceRegionsToStorage();
       renderPriceRegionList();
@@ -15440,11 +15625,11 @@ codePane.addEventListener("input", () => {
       const text = await file.text();
       const { parsedCount, matchedCount, updatedCount } = importPriceRegionColorsFromCssText(text);
       if (!parsedCount) {
-        alert("No price region colors found in CSS file.");
+        alert("No price region styles found in CSS file.");
         return;
       }
       if (!matchedCount) {
-        alert("No CSS colors matched current price regions.");
+        alert("No CSS price region styles matched current price regions.");
         return;
       }
       savePriceRegionsToStorage();
@@ -15452,7 +15637,7 @@ codePane.addEventListener("input", () => {
       updatePriceRegionUi();
       if (showPriceRegions) renderCanvas();
       const unchangedCount = matchedCount - updatedCount;
-      alert(`Updated ${updatedCount} price region color(s). ${unchangedCount} already had that color.`);
+      alert(`Updated ${updatedCount} price region style(s). ${unchangedCount} already matched the CSS.`);
     } finally {
       priceRegionCssFileInput.value = "";
     }
@@ -15483,8 +15668,18 @@ codePane.addEventListener("input", () => {
     }
     names.forEach((name) => {
       const id = `${Date.now()}${Math.floor(Math.random() * 1000)}`;
-      const color = generatePriceRegionColor(priceRegions.length);
-      priceRegions.push({ id, name, color, sections: [], rows: [], seats: [] });
+      const fillColor = generatePriceRegionColor(priceRegions.length);
+      priceRegions.push({
+        id,
+        name,
+        color: fillColor,
+        fillColor,
+        strokeColor: fillColor,
+        inheritStrokeFromFill: true,
+        sections: [],
+        rows: [],
+        seats: []
+      });
     });
     savePriceRegionsToStorage();
     renderPriceRegionList();
@@ -15890,13 +16085,54 @@ codePane.addEventListener("input", () => {
       if (showPriceRegions) renderCanvas();
       return;
     }
-    const input = e.target.closest("[data-role='price-region-color']");
-    if (!input) return;
-    const regionId = input.dataset.regionId;
+    const fillInput = e.target.closest("[data-role='price-region-fill-color']");
+    if (fillInput) {
+      const regionId = fillInput.dataset.regionId;
+      const region = priceRegions.find(r => r.id === regionId);
+      if (!region) return;
+      setPriceRegionVisualColors(
+        region,
+        fillInput.value,
+        region.inheritStrokeFromFill === false ? region.strokeColor : fillInput.value,
+        region.inheritStrokeFromFill !== false,
+        fillInput.value
+      );
+      if (region.inheritStrokeFromFill !== false) {
+        const item = fillInput.closest(".price-region-item");
+        const strokeInput = item?.querySelector("[data-role='price-region-stroke-color']");
+        if (strokeInput) strokeInput.value = region.strokeColor;
+      }
+      savePriceRegionsToStorage();
+      if (showPriceRegions) renderCanvas();
+      return;
+    }
+    const strokeInput = e.target.closest("[data-role='price-region-stroke-color']");
+    if (!strokeInput) return;
+    const regionId = strokeInput.dataset.regionId;
     const region = priceRegions.find(r => r.id === regionId);
     if (!region) return;
-    region.color = input.value;
+    setPriceRegionVisualColors(region, region.fillColor || region.color, strokeInput.value, false, strokeInput.value);
     savePriceRegionsToStorage();
+    if (showPriceRegions) renderCanvas();
+  });
+
+  priceRegionList?.addEventListener("change", (e) => {
+    const inheritCheckbox = e.target.closest("[data-role='price-region-stroke-inherit']");
+    if (!inheritCheckbox) return;
+    const regionId = inheritCheckbox.dataset.regionId;
+    const region = priceRegions.find(r => r.id === regionId);
+    if (!region) return;
+    const inheritStrokeFromFill = !!inheritCheckbox.checked;
+    setPriceRegionVisualColors(
+      region,
+      region.fillColor || region.color,
+      inheritStrokeFromFill ? region.fillColor || region.color : region.strokeColor,
+      inheritStrokeFromFill,
+      region.fillColor || region.color
+    );
+    savePriceRegionsToStorage();
+    renderPriceRegionList();
+    updatePriceRegionUi();
     if (showPriceRegions) renderCanvas();
   });
 
@@ -22979,8 +23215,18 @@ function nudgeSelection(dxScreen, dyScreen) {
       const key = normalizePriceRegionKey(name);
       if (addedNames.has(key)) return;
       const id = `${Date.now()}${Math.floor(Math.random() * 1000)}`;
-      const color = generatePriceRegionColor(priceRegions.length);
-      priceRegions.push({ id, name, color, sections: [], rows: [], seats: [] });
+      const fillColor = generatePriceRegionColor(priceRegions.length);
+      priceRegions.push({
+        id,
+        name,
+        color: fillColor,
+        fillColor,
+        strokeColor: fillColor,
+        inheritStrokeFromFill: true,
+        sections: [],
+        rows: [],
+        seats: []
+      });
       addedNames.add(key);
       added += 1;
     });
