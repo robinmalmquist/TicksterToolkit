@@ -3711,7 +3711,7 @@
           </div>
           <label class="bg-control u-font--small" title="Ignore seats that exist in TLT but not in Excel, and keep them available for placement.">
             <input type="checkbox" id="numberedImportAllowAllTltSeats" data-numbered-import-control="true" />
-            Allow all TLT seats
+            Allow all TLT seats when placing
           </label>
           <details class="numbered-import-options">
             <summary class="numbered-import-options__summary">
@@ -4159,6 +4159,7 @@
                 <select id="exportSvgSectionTextBoxMode">
                   <option value="rect">Rounded rectangle</option>
                   <option value="outline">Section outline path</option>
+                  <option value="price-region-outline">Priceregion outline path</option>
                 </select>
               </div>
               <div class="export-svg-setting-field">
@@ -4204,10 +4205,18 @@
 
           <div class="export-svg-settings__group">
             <div class="export-svg-settings__group-title">Section Text</div>
-            <div class="export-svg-settings__grid">
+            <div class="export-svg-settings__grid export-svg-settings__grid--compact">
               <div class="export-svg-setting-field">
                 <label for="exportSvgSectionTextFill">Color</label>
                 <input id="exportSvgSectionTextFill" type="color" value="#ffffff" />
+              </div>
+              <div class="export-svg-setting-field">
+                <label for="exportSvgSectionTextStroke">Stroke</label>
+                <input id="exportSvgSectionTextStroke" type="color" value="#ffffff" />
+              </div>
+              <div class="export-svg-setting-field">
+                <label for="exportSvgSectionTextStrokeWidth">Stroke width</label>
+                <input id="exportSvgSectionTextStrokeWidth" type="number" min="0" step="0.5" value="0" />
               </div>
               <div class="export-svg-setting-field">
                 <label for="exportSvgSectionTextSize">Size</label>
@@ -4652,6 +4661,8 @@
   const exportSvgSectionTextBoxInactiveOpacity = document.getElementById("exportSvgSectionTextBoxInactiveOpacity");
   const exportSvgSectionTextBoxHoverOpacity = document.getElementById("exportSvgSectionTextBoxHoverOpacity");
   const exportSvgSectionTextFill = document.getElementById("exportSvgSectionTextFill");
+  const exportSvgSectionTextStroke = document.getElementById("exportSvgSectionTextStroke");
+  const exportSvgSectionTextStrokeWidth = document.getElementById("exportSvgSectionTextStrokeWidth");
   const exportSvgSectionTextSize = document.getElementById("exportSvgSectionTextSize");
   const exportSvgSectionTextDisablePointerEvents = document.getElementById("exportSvgSectionTextDisablePointerEvents");
   const exportSvgRowNumberTextFill = document.getElementById("exportSvgRowNumberTextFill");
@@ -4674,6 +4685,8 @@
     sectionTextBoxInactiveOpacity: 0.3,
     sectionTextBoxHoverOpacity: 1,
     sectionTextFill: "#ffffff",
+    sectionTextStroke: "#ffffff",
+    sectionTextStrokeWidth: 0,
     sectionTextSize: 250,
     sectionTextDisablePointerEvents: false,
     rowNumberTextFill: "#202020",
@@ -4689,6 +4702,14 @@
     { key: "entrance", label: "Entrance", defaultChecked: false },
     { key: "stairs", label: "Stairs", defaultChecked: false }
   ]);
+
+  function normalizeSvgSectionTextBoxMode(value) {
+    const normalized = String(value || "").trim().toLowerCase();
+    if (normalized === "outline") return "outline";
+    if (normalized === "price-region-outline") return "price-region-outline";
+    return "rect";
+  }
+
   const numberedImportModeBtn = document.getElementById("numberedImportModeBtn");
   const historyCard = document.getElementById("historyCard");
   const historyBackBtn = document.getElementById("historyBackBtn");
@@ -8865,6 +8886,8 @@ codePane.addEventListener("input", () => {
       exportSvgSectionTextBoxInactiveOpacity,
       exportSvgSectionTextBoxHoverOpacity,
       exportSvgSectionTextFill,
+      exportSvgSectionTextStroke,
+      exportSvgSectionTextStrokeWidth,
       exportSvgSectionTextSize,
       exportSvgSectionTextDisablePointerEvents,
       exportSvgRowNumberTextFill,
@@ -8874,7 +8897,7 @@ codePane.addEventListener("input", () => {
   }
 
   function applySvgExportStyleDefaultsToInputs() {
-    if (exportSvgSectionTextBoxMode) exportSvgSectionTextBoxMode.value = SVG_EXPORT_STYLE_DEFAULTS.sectionTextBoxMode;
+    if (exportSvgSectionTextBoxMode) exportSvgSectionTextBoxMode.value = normalizeSvgSectionTextBoxMode(SVG_EXPORT_STYLE_DEFAULTS.sectionTextBoxMode);
     if (exportSvgSectionTextBoxCornerRadius) exportSvgSectionTextBoxCornerRadius.value = String(SVG_EXPORT_STYLE_DEFAULTS.sectionTextBoxCornerRadius);
     if (exportSvgSectionTextBoxFill) exportSvgSectionTextBoxFill.value = SVG_EXPORT_STYLE_DEFAULTS.sectionTextBoxFill;
     if (exportSvgSectionTextBoxStroke) exportSvgSectionTextBoxStroke.value = SVG_EXPORT_STYLE_DEFAULTS.sectionTextBoxStroke;
@@ -8883,11 +8906,14 @@ codePane.addEventListener("input", () => {
     if (exportSvgSectionTextBoxInactiveOpacity) exportSvgSectionTextBoxInactiveOpacity.value = String(SVG_EXPORT_STYLE_DEFAULTS.sectionTextBoxInactiveOpacity);
     if (exportSvgSectionTextBoxHoverOpacity) exportSvgSectionTextBoxHoverOpacity.value = String(SVG_EXPORT_STYLE_DEFAULTS.sectionTextBoxHoverOpacity);
     if (exportSvgSectionTextFill) exportSvgSectionTextFill.value = SVG_EXPORT_STYLE_DEFAULTS.sectionTextFill;
+    if (exportSvgSectionTextStroke) exportSvgSectionTextStroke.value = SVG_EXPORT_STYLE_DEFAULTS.sectionTextStroke;
+    if (exportSvgSectionTextStrokeWidth) exportSvgSectionTextStrokeWidth.value = String(SVG_EXPORT_STYLE_DEFAULTS.sectionTextStrokeWidth);
     if (exportSvgSectionTextSize) exportSvgSectionTextSize.value = String(SVG_EXPORT_STYLE_DEFAULTS.sectionTextSize);
     if (exportSvgSectionTextDisablePointerEvents) exportSvgSectionTextDisablePointerEvents.checked = SVG_EXPORT_STYLE_DEFAULTS.sectionTextDisablePointerEvents;
     if (exportSvgRowNumberTextFill) exportSvgRowNumberTextFill.value = SVG_EXPORT_STYLE_DEFAULTS.rowNumberTextFill;
     if (exportSvgRowNumberTextSize) exportSvgRowNumberTextSize.value = String(SVG_EXPORT_STYLE_DEFAULTS.rowNumberTextSize);
     if (exportSvgRowNumberTextHide) exportSvgRowNumberTextHide.checked = SVG_EXPORT_STYLE_DEFAULTS.rowNumberTextHide;
+    updateSvgSectionTextBoxModeAvailability();
     updateSvgHoverEffectAvailability();
   }
 
@@ -8900,6 +8926,8 @@ codePane.addEventListener("input", () => {
       sectionTextBoxInactiveOpacity: exportSvgSectionTextBoxInactiveOpacity?.value,
       sectionTextBoxHoverOpacity: exportSvgSectionTextBoxHoverOpacity?.value,
       sectionTextFill: exportSvgSectionTextFill?.value,
+      sectionTextStroke: exportSvgSectionTextStroke?.value,
+      sectionTextStrokeWidth: exportSvgSectionTextStrokeWidth?.value,
       sectionTextSize: exportSvgSectionTextSize?.value,
       sectionTextDisablePointerEvents: !!exportSvgSectionTextDisablePointerEvents?.checked,
       rowNumberTextFill: exportSvgRowNumberTextFill?.value,
@@ -8918,7 +8946,7 @@ codePane.addEventListener("input", () => {
       exportSvg: !!exportSvg?.checked,
       exportLayoutSummaryXlsx: !!exportLayoutSummaryXlsx?.checked,
       svgSupportParts: getSvgSupportPartSelectionsFromInputs(),
-      sectionTextBoxMode: exportSvgSectionTextBoxMode?.value || SVG_EXPORT_STYLE_DEFAULTS.sectionTextBoxMode,
+      sectionTextBoxMode: normalizeSvgSectionTextBoxMode(exportSvgSectionTextBoxMode?.value || SVG_EXPORT_STYLE_DEFAULTS.sectionTextBoxMode),
       sectionTextBoxCornerRadius: parseSvgCornerRadiusValue(exportSvgSectionTextBoxCornerRadius?.value, SVG_EXPORT_STYLE_DEFAULTS.sectionTextBoxCornerRadius),
       ...getSvgExportStyleOptionsFromInputs()
     };
@@ -8950,7 +8978,7 @@ codePane.addEventListener("input", () => {
       typeof preferences.exportSvgSupport === "boolean" ? preferences.exportSvgSupport : null
     );
 
-    applyValue(exportSvgSectionTextBoxMode, preferences.sectionTextBoxMode);
+    applyValue(exportSvgSectionTextBoxMode, normalizeSvgSectionTextBoxMode(preferences.sectionTextBoxMode));
     applyValue(exportSvgSectionTextBoxCornerRadius, parseSvgCornerRadiusValue(preferences.sectionTextBoxCornerRadius, SVG_EXPORT_STYLE_DEFAULTS.sectionTextBoxCornerRadius));
     applyColor(exportSvgSectionTextBoxFill, preferences.sectionTextBoxFill, SVG_EXPORT_STYLE_DEFAULTS.sectionTextBoxFill);
     applyColor(exportSvgSectionTextBoxStroke, preferences.sectionTextBoxStroke, SVG_EXPORT_STYLE_DEFAULTS.sectionTextBoxStroke);
@@ -8961,11 +8989,14 @@ codePane.addEventListener("input", () => {
     applyValue(exportSvgSectionTextBoxInactiveOpacity, parseSvgOpacityValue(preferences.sectionTextBoxInactiveOpacity, SVG_EXPORT_STYLE_DEFAULTS.sectionTextBoxInactiveOpacity));
     applyValue(exportSvgSectionTextBoxHoverOpacity, parseSvgOpacityValue(preferences.sectionTextBoxHoverOpacity, SVG_EXPORT_STYLE_DEFAULTS.sectionTextBoxHoverOpacity));
     applyColor(exportSvgSectionTextFill, preferences.sectionTextFill, SVG_EXPORT_STYLE_DEFAULTS.sectionTextFill);
+    applyColor(exportSvgSectionTextStroke, preferences.sectionTextStroke, SVG_EXPORT_STYLE_DEFAULTS.sectionTextStroke);
+    applyValue(exportSvgSectionTextStrokeWidth, parseSvgNonNegativeNumber(preferences.sectionTextStrokeWidth, SVG_EXPORT_STYLE_DEFAULTS.sectionTextStrokeWidth));
     applyValue(exportSvgSectionTextSize, parseSvgNonNegativeNumber(preferences.sectionTextSize, SVG_EXPORT_STYLE_DEFAULTS.sectionTextSize));
     applyChecked(exportSvgSectionTextDisablePointerEvents, preferences.sectionTextDisablePointerEvents);
     applyColor(exportSvgRowNumberTextFill, preferences.rowNumberTextFill, SVG_EXPORT_STYLE_DEFAULTS.rowNumberTextFill);
     applyValue(exportSvgRowNumberTextSize, parseSvgNonNegativeNumber(preferences.rowNumberTextSize, SVG_EXPORT_STYLE_DEFAULTS.rowNumberTextSize));
     applyChecked(exportSvgRowNumberTextHide, preferences.rowNumberTextHide);
+    updateSvgSectionTextBoxModeAvailability();
     updateSvgHoverEffectAvailability();
   }
 
@@ -8993,7 +9024,26 @@ codePane.addEventListener("input", () => {
       if (!enabled) exportSvgSettings.title = tooltip;
       else exportSvgSettings.removeAttribute("title");
     }
+    updateSvgSectionTextBoxModeAvailability();
     updateSvgHoverEffectAvailability();
+  }
+
+  function updateSvgSectionTextBoxModeAvailability() {
+    const svgEnabled = !!(exportSvg && !exportSvg.disabled && exportSvg.checked);
+    const sectionTextBoxMode = normalizeSvgSectionTextBoxMode(exportSvgSectionTextBoxMode?.value);
+    const usesInheritedPriceRegionStroke = sectionTextBoxMode === "price-region-outline";
+    const fillTooltip = svgEnabled
+      ? "Priceregion outline path uses no fill."
+      : (exportSvg?.disabled
+          ? (exportSvg.title || "Enable SVG export to change SVG export settings.")
+          : "Enable SVG export to change SVG export settings.");
+    const strokeTooltip = svgEnabled
+      ? "Priceregion outline path inherits stroke color from the price region settings."
+      : (exportSvg?.disabled
+          ? (exportSvg.title || "Enable SVG export to change SVG export settings.")
+          : "Enable SVG export to change SVG export settings.");
+    setSvgDependentExportControlState(exportSvgSectionTextBoxFill, svgEnabled && !usesInheritedPriceRegionStroke, fillTooltip);
+    setSvgDependentExportControlState(exportSvgSectionTextBoxStroke, svgEnabled && !usesInheritedPriceRegionStroke, strokeTooltip);
   }
 
   function updateSvgHoverEffectAvailability() {
@@ -10131,6 +10181,14 @@ codePane.addEventListener("input", () => {
     return columns;
   }
 
+  function pickLastNumberedImportHeaderColumn(columnsByName, ...names) {
+    for (const name of names) {
+      const candidates = Array.isArray(columnsByName?.[name]) ? columnsByName[name] : [];
+      if (candidates.length) return candidates[candidates.length - 1];
+    }
+    return null;
+  }
+
   function parsePositiveInteger(value) {
     if (value == null) return null;
     const parsed = parseInt(String(value).trim(), 10);
@@ -10217,17 +10275,16 @@ codePane.addEventListener("input", () => {
       const headerRow = Array.isArray(rows[header.rowIndex]) ? rows[header.rowIndex] : [];
       const columnsByName = getNumberedImportHeaderColumns(headerRow);
       const pickLastColumn = (...names) => {
-        for (const name of names) {
-          const candidates = Array.isArray(columnsByName[name]) ? columnsByName[name] : [];
-          if (candidates.length) return candidates[candidates.length - 1];
-        }
-        return null;
+        return pickLastNumberedImportHeaderColumn(columnsByName, ...names);
       };
       const statusCol = pickLastColumn("status");
       const refNoCol = pickLastColumn("refno");
       const ticketTypeCol = pickLastColumn("biljettyp");
       const ticketCodeCol = pickLastColumn("biljettkod", "ticket code", "ticketcode");
       const purchasedCol = pickLastColumn("kopt", "purchased", "purchase date");
+      const firstNameCol = pickLastColumn("firstname", "first name", "fornamn");
+      const lastNameCol = pickLastColumn("lastname", "last name", "surname", "efternamn");
+      const emailCol = pickLastColumn("email", "e-mail", "mail", "e-post", "epost");
       if (statusCol == null || refNoCol == null || ticketTypeCol == null || purchasedCol == null) continue;
 
       const existingRows = [];
@@ -10250,6 +10307,9 @@ codePane.addEventListener("input", () => {
         const ticketCode = ticketCodeCol != null ? String(row[ticketCodeCol] || "").trim() : "";
         const purchasedAtRaw = purchasedCol != null ? row[purchasedCol] : "";
         const purchasedAtMs = parseNumberedImportDateValue(purchasedAtRaw);
+        const firstName = firstNameCol != null ? String(row[firstNameCol] || "").trim() : "";
+        const lastName = lastNameCol != null ? String(row[lastNameCol] || "").trim() : "";
+        const email = emailCol != null ? String(row[emailCol] || "").trim() : "";
         existingRows.push({
           rowIndex,
           refNo,
@@ -10261,6 +10321,9 @@ codePane.addEventListener("input", () => {
           noOfTickets: null,
           ticketType,
           ticketCode,
+          firstName,
+          lastName,
+          email,
           purchasedAt: purchasedAtRaw,
           purchasedAtMs
         });
@@ -10391,6 +10454,9 @@ codePane.addEventListener("input", () => {
     const rowNameCandidates = Array.isArray(purchasesHeaderColumns["rowname"]) ? purchasesHeaderColumns["rowname"] : [];
     const seatNameCandidates = Array.isArray(purchasesHeaderColumns["seatname"]) ? purchasesHeaderColumns["seatname"] : [];
     const noOfTicketsCandidates = Array.isArray(purchasesHeaderColumns["nooftickets"]) ? purchasesHeaderColumns["nooftickets"] : [];
+    const firstNameCol = pickLastNumberedImportHeaderColumn(purchasesHeaderColumns, "firstname", "first name", "fornamn");
+    const lastNameCol = pickLastNumberedImportHeaderColumn(purchasesHeaderColumns, "lastname", "last name", "surname", "efternamn");
+    const emailCol = pickLastNumberedImportHeaderColumn(purchasesHeaderColumns, "email", "e-mail", "mail", "e-post", "epost");
 
     const numericCol = numericCandidates.length
       ? numericCandidates[numericCandidates.length - 1]
@@ -10458,6 +10524,9 @@ codePane.addEventListener("input", () => {
       const rowName = rowNameCol != null ? String(row[rowNameCol] || "").trim() : "";
       const seatName = seatNameCol != null ? String(row[seatNameCol] || "").trim() : "";
       const noOfTickets = noOfTicketsCol != null ? parsePositiveInteger(row[noOfTicketsCol]) : null;
+      const firstName = firstNameCol != null ? String(row[firstNameCol] || "").trim() : "";
+      const lastName = lastNameCol != null ? String(row[lastNameCol] || "").trim() : "";
+      const email = emailCol != null ? String(row[emailCol] || "").trim() : "";
       existingRows.push({
         rowIndex,
         refNo,
@@ -10466,7 +10535,10 @@ codePane.addEventListener("input", () => {
         sectionName,
         rowName,
         seatName,
-        noOfTickets
+        noOfTickets,
+        firstName,
+        lastName,
+        email
       });
     }
     if (!existingRows.length) {
@@ -11609,12 +11681,18 @@ codePane.addEventListener("input", () => {
           reportedNoOfTickets: null,
           oldestPurchaseAtMs: Number.POSITIVE_INFINITY,
           purchaseListMode: parsed.purchaseListMode || "rows",
+          firstName: "",
+          lastName: "",
+          email: "",
           assignedSeatIds: []
         };
         grouped.set(row.refNo, purchase);
       }
       const seatId = seat?.seatId || "";
       purchase.rows.push({ ...row, seatId });
+      if (!purchase.firstName && row.firstName) purchase.firstName = String(row.firstName || "").trim();
+      if (!purchase.lastName && row.lastName) purchase.lastName = String(row.lastName || "").trim();
+      if (!purchase.email && row.email) purchase.email = String(row.email || "").trim();
       const ticketType = String(row.ticketType || "").trim();
       if (ticketType) {
         purchase.ticketTypeCounts.set(ticketType, (purchase.ticketTypeCounts.get(ticketType) || 0) + 1);
@@ -11881,13 +11959,21 @@ codePane.addEventListener("input", () => {
       });
     });
 
-    const rows = [["Seat", "Purchase Group", "RefNo"]];
+    const rows = [["Seat", "Purchase Group", "RefNo", "FirstName", "LastName", "Email"]];
     templateRows.forEach((templateRow) => {
       const identifier = String(templateRow?.identifier || "").trim();
       if (!identifier) return;
       const key = String(templateRow?.key || "").trim().toLowerCase() || identifier.toLowerCase();
       const refNo = refNoByIdentifier.get(key) || "";
-      rows.push([identifier, refNo, refNo]);
+      const purchase = refNo ? numberedImportPurchaseByRefNo.get(refNo) : null;
+      rows.push([
+        identifier,
+        refNo,
+        refNo,
+        String(purchase?.firstName || "").trim(),
+        String(purchase?.lastName || "").trim(),
+        String(purchase?.email || "").trim()
+      ]);
     });
     if (rows.length <= 1) {
       alert('No seat rows were found in "Import Template".');
@@ -11896,7 +11982,7 @@ codePane.addEventListener("input", () => {
 
     const workbook = XLSX.utils.book_new();
     const sheet = XLSX.utils.aoa_to_sheet(rows);
-    sheet["!cols"] = [{ wch: 42 }, { wch: 20 }, { wch: 20 }];
+    sheet["!cols"] = [{ wch: 42 }, { wch: 20 }, { wch: 20 }, { wch: 22 }, { wch: 22 }, { wch: 32 }];
     XLSX.utils.book_append_sheet(workbook, sheet, "Import Template");
 
     const exportBase = numberedImportWorkbookName
@@ -11967,10 +12053,6 @@ codePane.addEventListener("input", () => {
     return Math.min(1, Math.max(0, numeric));
   }
 
-  function buildSvgPriceRegionAlias(index) {
-    return `pr${Number(index) + 1}`;
-  }
-
   function getSvgExportStyleOptions(options = {}) {
     return {
       sectionTextBoxFill: sanitizeSvgCssValue(options.sectionTextBoxFill, SVG_EXPORT_STYLE_DEFAULTS.sectionTextBoxFill),
@@ -11982,6 +12064,8 @@ codePane.addEventListener("input", () => {
       sectionTextBoxInactiveOpacity: parseSvgOpacityValue(options.sectionTextBoxInactiveOpacity, SVG_EXPORT_STYLE_DEFAULTS.sectionTextBoxInactiveOpacity),
       sectionTextBoxHoverOpacity: parseSvgOpacityValue(options.sectionTextBoxHoverOpacity, SVG_EXPORT_STYLE_DEFAULTS.sectionTextBoxHoverOpacity),
       sectionTextFill: sanitizeSvgCssValue(options.sectionTextFill, SVG_EXPORT_STYLE_DEFAULTS.sectionTextFill),
+      sectionTextStroke: sanitizeSvgCssValue(options.sectionTextStroke, SVG_EXPORT_STYLE_DEFAULTS.sectionTextStroke),
+      sectionTextStrokeWidth: parseSvgNonNegativeNumber(options.sectionTextStrokeWidth, SVG_EXPORT_STYLE_DEFAULTS.sectionTextStrokeWidth),
       sectionTextSize: parseSvgNonNegativeNumber(options.sectionTextSize, SVG_EXPORT_STYLE_DEFAULTS.sectionTextSize),
       sectionTextDisablePointerEvents: !!options.sectionTextDisablePointerEvents,
       rowNumberTextFill: sanitizeSvgCssValue(options.rowNumberTextFill, SVG_EXPORT_STYLE_DEFAULTS.rowNumberTextFill),
@@ -11995,16 +12079,17 @@ codePane.addEventListener("input", () => {
     priceRegions.forEach((region, idx) => {
       const color = normalizeColorToHex(region.color, "#c9cbcd");
       const rangeId = buildRangeId(region, idx);
-      const aliasClass = buildSvgPriceRegionAlias(idx);
       lines.push("");
       lines.push(`/* Colors for price region ${region.name} */`);
-      lines.push(`.pr-${rangeId}, .${aliasClass} { stroke: ${color}; fill: ${color}; background-color: ${color}; }`);
+      lines.push(`.pr-${rangeId} { stroke: ${color}; fill: ${color}; background-color: ${color}; }`);
     });
     return lines.join("\n").trim();
   }
 
   function buildSvgCssText(options = {}) {
     const styles = getSvgExportStyleOptions(options);
+    const sectionTextBoxMode = normalizeSvgSectionTextBoxMode(options.sectionTextBoxMode);
+    const isPriceRegionOutlineMode = sectionTextBoxMode === "price-region-outline";
     const sectionTextSize = styles.sectionTextSize;
     const sectionTextLargeSize = Math.max(sectionTextSize, sectionTextSize * 2);
     const pointerEventsLine = styles.sectionTextDisablePointerEvents
@@ -12017,14 +12102,22 @@ codePane.addEventListener("input", () => {
       ".open .always-visible-section-outline { fill: rgba(243, 243, 243, 0.8); stroke: #a3aaaf; stroke-dasharray: 30px 20px; stroke-width: 10px; }",
       ".unavailable .always-visible-section-outline { fill: #ececec; stroke: #485c6a; stroke-width: 10px; }",
       ".unavailable.open .always-visible-section-outline { fill: #ececec; stroke: #a3aaaf; stroke-width: 10px; }",
-      `.section-text { fill: ${styles.sectionTextFill}; font-family: Roboto; font-size: ${formatSvgNumber(sectionTextSize)}px; font-weight: 400; ${pointerEventsLine} }`,
+      `.section-text { fill: ${styles.sectionTextFill}; stroke: ${styles.sectionTextStroke}; stroke-width: ${formatSvgNumber(styles.sectionTextStrokeWidth)}px; paint-order: stroke fill; font-family: Roboto; font-size: ${formatSvgNumber(sectionTextSize)}px; font-weight: 400; ${pointerEventsLine} }`,
       `.section-text.large { font-size: ${formatSvgNumber(sectionTextLargeSize)}px; }`,
-      `.row-number-text { fill: ${styles.rowNumberTextFill}; font-family: Roboto; font-size: ${formatSvgNumber(styles.rowNumberTextSize)}px;${rowNumberDisplay} }`,
-      `.section-text-box { fill: ${styles.sectionTextBoxFill}; stroke: ${styles.sectionTextBoxStroke}; stroke-width: ${formatSvgNumber(styles.sectionTextBoxStrokeWidth)}px; opacity: ${formatSvgNumber(sectionTextBoxOpacity)}; transition: fill 500ms ease, stroke 500ms ease, stroke-width 500ms ease, opacity 500ms ease; }`,
-      ".unavailable .section-text-box { fill: #a3aaaf; }"
+      `.row-number-text { fill: ${styles.rowNumberTextFill}; font-family: Roboto; font-size: ${formatSvgNumber(styles.rowNumberTextSize)}px;${rowNumberDisplay} }`
     ];
+    if (isPriceRegionOutlineMode) {
+      lines.push(
+        `.section-text-box { stroke-width: ${formatSvgNumber(styles.sectionTextBoxStrokeWidth)}px; opacity: ${formatSvgNumber(sectionTextBoxOpacity)}; transition: stroke 500ms ease, stroke-width 500ms ease, opacity 500ms ease; }`
+      );
+    } else {
+      lines.push(
+        `.section-text-box { fill: ${styles.sectionTextBoxFill}; stroke: ${styles.sectionTextBoxStroke}; stroke-width: ${formatSvgNumber(styles.sectionTextBoxStrokeWidth)}px; opacity: ${formatSvgNumber(sectionTextBoxOpacity)}; transition: fill 500ms ease, stroke 500ms ease, stroke-width 500ms ease, opacity 500ms ease; }`,
+        ".unavailable .section-text-box { fill: #a3aaaf; }"
+      );
+    }
     if (styles.sectionTextBoxHoverEnabled) {
-      lines.splice(8, 0, `.section-text-box:hover { opacity: ${formatSvgNumber(styles.sectionTextBoxHoverOpacity)}; }`);
+      lines.push(`.section-text-box:hover { opacity: ${formatSvgNumber(styles.sectionTextBoxHoverOpacity)}; }`);
     }
     const priceCss = buildSvgPriceRegionCss();
     if (priceCss) {
@@ -13501,8 +13594,11 @@ codePane.addEventListener("input", () => {
   }
 
   function buildSvgFrontgroundMarkup(sectionOrder, contourBySection, outlineBySection, rowsBySection, options = {}) {
-    const sectionTextBoxMode = options.sectionTextBoxMode === "outline" ? "outline" : "rect";
+    const sectionTextBoxMode = normalizeSvgSectionTextBoxMode(options.sectionTextBoxMode);
     const sectionTextBoxCornerRadius = parseSvgCornerRadiusValue(options.sectionTextBoxCornerRadius, 75);
+    const priceRegionContourBySection = options.priceRegionContourBySection instanceof Map
+      ? options.priceRegionContourBySection
+      : new Map();
     const lines = [
       "    <g id=\"frontground-graphics\" class=\"graphics\">",
       "      <title>frontground-graphics</title>",
@@ -13529,7 +13625,23 @@ codePane.addEventListener("input", () => {
       lines.push(`          <title>section-visible-when-not-open section-${sectionCode}</title>`);
 
       lines.push("          <g>");
-      lines.push(`            ${buildSvgSectionTextBoxMarkup(sectionId, contourBySection, { x: rectX, y: rectY, width, height }, sectionTextBoxMode, sectionTextBoxCornerRadius)}`);
+      if (sectionTextBoxMode === "price-region-outline") {
+        const regionContours = priceRegionContourBySection.get(sectionId) || [];
+        regionContours.forEach((regionContour) => {
+          const outlinePath = buildSvgOutlinePathData(regionContour.contour, {
+            cornerRadius: sectionTextBoxCornerRadius
+          });
+          if (!outlinePath) return;
+          const classParts = ["section-text-box"];
+          if (regionContour.rangeId) classParts.push(`pr-${regionContour.rangeId}`);
+          const regionNameAttr = regionContour.name
+            ? ` data-price-region="${escapeXml(regionContour.name)}"`
+            : "";
+          lines.push(`            <path class="${classParts.join(" ")}" d="${outlinePath}"${regionNameAttr}/>`);
+        });
+      } else {
+        lines.push(`            ${buildSvgSectionTextBoxMarkup(sectionId, contourBySection, { x: rectX, y: rectY, width, height }, sectionTextBoxMode, sectionTextBoxCornerRadius)}`);
+      }
       lines.push(`            <text class="section-text" x="${formatSvgNumber(centerX)}" y="${formatSvgNumber(centerY)}" text-anchor="middle" dominant-baseline="middle" style="white-space: pre;">${escapeXml(text)}</text>`);
       lines.push("          </g>");
       lines.push("        </g>");
@@ -13727,6 +13839,7 @@ codePane.addEventListener("input", () => {
   function buildPriceRegionLookupsForSvg() {
     return priceRegions.map((region, idx) => ({
       rangeId: buildRangeId(region, idx),
+      name: String(region?.name || region?.id || buildRangeId(region, idx) || "").trim(),
       sections: new Set(region.sections),
       rows: new Set(region.rows),
       seats: new Set(region.seats)
@@ -13742,12 +13855,56 @@ codePane.addEventListener("input", () => {
     return null;
   }
 
+  function buildSvgPriceRegionContourBySection(sectionOrder, rowsBySection, priceRegionLookups) {
+    const contourBySection = new Map();
+    sectionOrder.forEach((sectionId) => {
+      const rows = rowsBySection.get(sectionId) || [];
+      if (!rows.length) return;
+      const rowsByRegionId = new Map();
+      rows.forEach((row) => {
+        const rowName = row?.name || "";
+        (Array.isArray(row?.seats) ? row.seats : []).forEach((seat) => {
+          const region = getSeatPriceRegionLookup(seat, priceRegionLookups);
+          if (!region?.rangeId) return;
+          if (!rowsByRegionId.has(region.rangeId)) rowsByRegionId.set(region.rangeId, new Map());
+          const regionRows = rowsByRegionId.get(region.rangeId);
+          if (!regionRows.has(row.rowId)) {
+            regionRows.set(row.rowId, {
+              rowId: row.rowId,
+              name: rowName,
+              seats: []
+            });
+          }
+          regionRows.get(row.rowId).seats.push(seat);
+        });
+      });
+      const regionContours = [];
+      priceRegionLookups.forEach((region) => {
+        const regionRowMap = rowsByRegionId.get(region.rangeId);
+        if (!regionRowMap) return;
+        const regionRows = rows
+          .map((row) => regionRowMap.get(row.rowId))
+          .filter((row) => row && Array.isArray(row.seats) && row.seats.length);
+        if (!regionRows.length) return;
+        const contour = buildSvgSectionContourFromRows(regionRows);
+        if (!contour || contour.length < 3) return;
+        regionContours.push({
+          rangeId: region.rangeId,
+          name: region.name,
+          contour
+        });
+      });
+      if (regionContours.length) contourBySection.set(sectionId, regionContours);
+    });
+    return contourBySection;
+  }
+
   async function buildSvgText(baseName, options = {}) {
     const supportSelection = normalizeSvgSupportPartSelection(
       options.svgSupportParts,
       typeof options.includeSupportGraphics === "boolean" ? options.includeSupportGraphics : null
     );
-    const sectionTextBoxMode = options.sectionTextBoxMode === "outline" ? "outline" : "rect";
+    const sectionTextBoxMode = normalizeSvgSectionTextBoxMode(options.sectionTextBoxMode);
     const sectionTextBoxCornerRadius = parseSvgCornerRadiusValue(options.sectionTextBoxCornerRadius, 75);
     const svgStyleOptions = getSvgExportStyleOptions(options);
     if (!seats.length) {
@@ -13814,6 +13971,7 @@ codePane.addEventListener("input", () => {
 
     const contourBySection = buildSvgSectionContourBySection(sectionOrder, outlineBySection, normalizedRowsBySection);
     const priceRegionLookups = buildPriceRegionLookupsForSvg();
+    const priceRegionContourBySection = buildSvgPriceRegionContourBySection(sectionOrder, normalizedRowsBySection, priceRegionLookups);
     const viewBox = computeSvgViewBox(contourBySection, normalizedRowsBySection);
     const supportBackgroundMarkup = buildSvgSupportBackgroundMarkup(viewBox, supportSelection);
     const supportHelperMarkup = buildSvgSupportHelperMarkup(supportSelection);
@@ -13822,9 +13980,13 @@ codePane.addEventListener("input", () => {
     const sectionsMarkup = buildSvgSectionsMarkup(sectionOrder, normalizedRowsBySection, contourBySection, outlineBySection, priceRegionLookups);
     const frontgroundMarkup = buildSvgFrontgroundMarkup(sectionOrder, contourBySection, outlineBySection, normalizedRowsBySection, {
       sectionTextBoxMode,
-      sectionTextBoxCornerRadius
+      sectionTextBoxCornerRadius,
+      priceRegionContourBySection
     });
-    const cssText = buildSvgCssText(svgStyleOptions);
+    const cssText = buildSvgCssText({
+      ...svgStyleOptions,
+      sectionTextBoxMode
+    });
     return buildSvgSkeleton(viewBox, cssText, outlineMarkup, supportHelperMarkup, rowNumberMarkup, sectionsMarkup, frontgroundMarkup);
   }
 
@@ -15079,6 +15241,7 @@ codePane.addEventListener("input", () => {
     applyExportSelectionPreset("none");
   });
   exportSvg?.addEventListener("change", updateSvgExportSettingsAvailability);
+  exportSvgSectionTextBoxMode?.addEventListener("change", updateSvgSectionTextBoxModeAvailability);
   exportSvgSectionTextBoxHoverEnabled?.addEventListener("change", updateSvgHoverEffectAvailability);
   exportName?.addEventListener("keydown", (e) => {
     if (e.key === "Enter") {
