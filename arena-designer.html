@@ -1033,6 +1033,51 @@
       padding-top: 0.15rem;
       flex: 0 0 auto;
     }
+    .export-modal__progress {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      min-height: 2.5rem;
+      padding: 0.55rem 0.7rem;
+      border-radius: 10px;
+      background: color-mix(in srgb, var(--card-bg) 75%, var(--canvas-bg) 25%);
+      border: 1px solid var(--divider);
+    }
+    .export-modal__progress[hidden] {
+      display: none;
+    }
+    .export-modal__spinner {
+      width: 1rem;
+      height: 1rem;
+      border-radius: 999px;
+      border: 2px solid color-mix(in srgb, var(--primary) 25%, transparent);
+      border-top-color: var(--primary);
+      animation: export-spinner-rotate 0.8s linear infinite;
+      flex: 0 0 auto;
+    }
+    .export-modal__progress-copy {
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.15rem;
+    }
+    .export-modal__progress-message {
+      font-size: 0.83rem;
+      font-weight: 600;
+    }
+    .export-modal__progress-detail {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+    #exportModal.is-busy .export-modal__main,
+    #exportModal.is-busy .export-svg-settings-panel,
+    #exportModal.is-busy .export-modal__header-fields {
+      opacity: 0.72;
+    }
+    @keyframes export-spinner-rotate {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
     .export-quick-actions {
       display: flex;
       flex-wrap: wrap;
@@ -4209,19 +4254,11 @@
             <div id="exportSvgSupportParts" class="export-svg-settings__options"></div>
             <div class="export-svg-settings__grid">
               <div class="export-svg-setting-field">
-                <label for="exportSvgSectionTextBoxMode">Section label shape</label>
-                <select id="exportSvgSectionTextBoxMode">
-                  <option value="rect">Rounded rectangle</option>
-                  <option value="outline">Section outline path</option>
-                  <option value="price-region-outline">Priceregion outline path</option>
-                </select>
-              </div>
-              <div class="export-svg-setting-field">
                 <label for="exportSvgSectionTextBoxCornerRadius">Corner radius</label>
                 <input id="exportSvgSectionTextBoxCornerRadius" type="number" min="0" step="5" value="75" />
               </div>
             </div>
-            <div class="export-svg-settings__hint">0 gives sharp corners. Outline mode uses the section outline when available.</div>
+            <div class="export-svg-settings__hint">0 gives sharp corners.</div>
           </div>
 
           <div class="export-svg-settings__group">
@@ -4301,6 +4338,13 @@
             </label>
           </div>
         </div>
+        </div>
+      </div>
+      <div id="exportProgress" class="export-modal__progress" hidden aria-live="polite">
+        <div class="export-modal__spinner" aria-hidden="true"></div>
+        <div class="export-modal__progress-copy">
+          <div id="exportProgressMessage" class="export-modal__progress-message"></div>
+          <div id="exportProgressDetail" class="export-modal__progress-detail"></div>
         </div>
       </div>
       <div class="new-layout-actions export-modal__actions">
@@ -4706,7 +4750,6 @@
   const exportSvg = document.getElementById("exportSvg");
   const exportSvgSettings = document.getElementById("exportSvgSettings");
   const exportSvgSupportParts = document.getElementById("exportSvgSupportParts");
-  const exportSvgSectionTextBoxMode = document.getElementById("exportSvgSectionTextBoxMode");
   const exportSvgSectionTextBoxCornerRadius = document.getElementById("exportSvgSectionTextBoxCornerRadius");
   const exportSvgSectionTextBoxFill = document.getElementById("exportSvgSectionTextBoxFill");
   const exportSvgSectionTextBoxStroke = document.getElementById("exportSvgSectionTextBoxStroke");
@@ -4729,8 +4772,10 @@
   const exportClearAllTypesBtn = document.getElementById("exportClearAllTypesBtn");
   const exportCancel = document.getElementById("exportCancel");
   const exportConfirm = document.getElementById("exportConfirm");
+  const exportProgress = document.getElementById("exportProgress");
+  const exportProgressMessage = document.getElementById("exportProgressMessage");
+  const exportProgressDetail = document.getElementById("exportProgressDetail");
   const SVG_EXPORT_STYLE_DEFAULTS = Object.freeze({
-    sectionTextBoxMode: "rect",
     sectionTextBoxCornerRadius: 75,
     sectionTextBoxFill: "#09517c",
     sectionTextBoxStroke: "#09517c",
@@ -4756,13 +4801,6 @@
     { key: "entrance", label: "Entrance", defaultChecked: false },
     { key: "stairs", label: "Stairs", defaultChecked: false }
   ]);
-
-  function normalizeSvgSectionTextBoxMode(value) {
-    const normalized = String(value || "").trim().toLowerCase();
-    if (normalized === "outline") return "outline";
-    if (normalized === "price-region-outline") return "price-region-outline";
-    return "rect";
-  }
 
   const numberedImportModeBtn = document.getElementById("numberedImportModeBtn");
   const historyCard = document.getElementById("historyCard");
@@ -5226,6 +5264,7 @@
   let hasUnsavedChanges = false;
   let hasLoadedTltFileForExport = false;
   let hasLoadedTprFileForExport = false;
+  let exportInProgress = false;
 
   let originalLines = [];
   let seatIdToLineIndex = new Map();
@@ -9026,7 +9065,6 @@ codePane.addEventListener("input", () => {
   function getSvgExportSettingsControls() {
     return [
       ...getSvgSupportPartCheckboxes(),
-      exportSvgSectionTextBoxMode,
       exportSvgSectionTextBoxCornerRadius,
       exportSvgSectionTextBoxFill,
       exportSvgSectionTextBoxStroke,
@@ -9046,7 +9084,6 @@ codePane.addEventListener("input", () => {
   }
 
   function applySvgExportStyleDefaultsToInputs() {
-    if (exportSvgSectionTextBoxMode) exportSvgSectionTextBoxMode.value = normalizeSvgSectionTextBoxMode(SVG_EXPORT_STYLE_DEFAULTS.sectionTextBoxMode);
     if (exportSvgSectionTextBoxCornerRadius) exportSvgSectionTextBoxCornerRadius.value = String(SVG_EXPORT_STYLE_DEFAULTS.sectionTextBoxCornerRadius);
     if (exportSvgSectionTextBoxFill) exportSvgSectionTextBoxFill.value = SVG_EXPORT_STYLE_DEFAULTS.sectionTextBoxFill;
     if (exportSvgSectionTextBoxStroke) exportSvgSectionTextBoxStroke.value = SVG_EXPORT_STYLE_DEFAULTS.sectionTextBoxStroke;
@@ -9062,7 +9099,6 @@ codePane.addEventListener("input", () => {
     if (exportSvgRowNumberTextFill) exportSvgRowNumberTextFill.value = SVG_EXPORT_STYLE_DEFAULTS.rowNumberTextFill;
     if (exportSvgRowNumberTextSize) exportSvgRowNumberTextSize.value = String(SVG_EXPORT_STYLE_DEFAULTS.rowNumberTextSize);
     if (exportSvgRowNumberTextHide) exportSvgRowNumberTextHide.checked = SVG_EXPORT_STYLE_DEFAULTS.rowNumberTextHide;
-    updateSvgSectionTextBoxModeAvailability();
     updateSvgHoverEffectAvailability();
   }
 
@@ -9095,7 +9131,6 @@ codePane.addEventListener("input", () => {
       exportSvg: !!exportSvg?.checked,
       exportLayoutSummaryXlsx: !!exportLayoutSummaryXlsx?.checked,
       svgSupportParts: getSvgSupportPartSelectionsFromInputs(),
-      sectionTextBoxMode: normalizeSvgSectionTextBoxMode(exportSvgSectionTextBoxMode?.value || SVG_EXPORT_STYLE_DEFAULTS.sectionTextBoxMode),
       sectionTextBoxCornerRadius: parseSvgCornerRadiusValue(exportSvgSectionTextBoxCornerRadius?.value, SVG_EXPORT_STYLE_DEFAULTS.sectionTextBoxCornerRadius),
       ...getSvgExportStyleOptionsFromInputs()
     };
@@ -9127,7 +9162,6 @@ codePane.addEventListener("input", () => {
       typeof preferences.exportSvgSupport === "boolean" ? preferences.exportSvgSupport : null
     );
 
-    applyValue(exportSvgSectionTextBoxMode, normalizeSvgSectionTextBoxMode(preferences.sectionTextBoxMode));
     applyValue(exportSvgSectionTextBoxCornerRadius, parseSvgCornerRadiusValue(preferences.sectionTextBoxCornerRadius, SVG_EXPORT_STYLE_DEFAULTS.sectionTextBoxCornerRadius));
     applyColor(exportSvgSectionTextBoxFill, preferences.sectionTextBoxFill, SVG_EXPORT_STYLE_DEFAULTS.sectionTextBoxFill);
     applyColor(exportSvgSectionTextBoxStroke, preferences.sectionTextBoxStroke, SVG_EXPORT_STYLE_DEFAULTS.sectionTextBoxStroke);
@@ -9145,7 +9179,6 @@ codePane.addEventListener("input", () => {
     applyColor(exportSvgRowNumberTextFill, preferences.rowNumberTextFill, SVG_EXPORT_STYLE_DEFAULTS.rowNumberTextFill);
     applyValue(exportSvgRowNumberTextSize, parseSvgNonNegativeNumber(preferences.rowNumberTextSize, SVG_EXPORT_STYLE_DEFAULTS.rowNumberTextSize));
     applyChecked(exportSvgRowNumberTextHide, preferences.rowNumberTextHide);
-    updateSvgSectionTextBoxModeAvailability();
     updateSvgHoverEffectAvailability();
   }
 
@@ -9157,6 +9190,35 @@ codePane.addEventListener("input", () => {
       lastExportDirectoryHandle = await loadLastExportDirectoryHandleFromDB();
     }
     return lastExportDirectoryHandle || lastDirectoryHandle || await tryGetDirectoryHandle(currentFileHandle);
+  }
+
+  function setExportProgressState({ active = false, message = "", detail = "" } = {}) {
+    if (exportProgress) exportProgress.hidden = !active;
+    if (exportProgressMessage) exportProgressMessage.textContent = active ? String(message || "") : "";
+    if (exportProgressDetail) exportProgressDetail.textContent = active ? String(detail || "") : "";
+  }
+
+  function setExportModalBusy(isBusy) {
+    exportInProgress = !!isBusy;
+    if (exportModal) exportModal.classList.toggle("is-busy", exportInProgress);
+    if (exportConfirm) {
+      exportConfirm.disabled = exportInProgress;
+      exportConfirm.textContent = exportInProgress ? "Exporting..." : "Export";
+    }
+    if (exportCancel) exportCancel.disabled = exportInProgress;
+    if (!exportModal) return;
+    exportModal.querySelectorAll("input, select, button").forEach((control) => {
+      if (control === exportConfirm || control === exportCancel) return;
+      control.disabled = exportInProgress;
+    });
+    if (!exportInProgress) updateExportOptionsAvailability();
+  }
+
+  async function yieldToUiFrame(count = 1) {
+    const safeCount = Math.max(1, Math.floor(Number(count) || 1));
+    for (let i = 0; i < safeCount; i++) {
+      await new Promise((resolve) => window.requestAnimationFrame(() => resolve()));
+    }
   }
 
   function updateSvgExportSettingsAvailability() {
@@ -9173,26 +9235,7 @@ codePane.addEventListener("input", () => {
       if (!enabled) exportSvgSettings.title = tooltip;
       else exportSvgSettings.removeAttribute("title");
     }
-    updateSvgSectionTextBoxModeAvailability();
     updateSvgHoverEffectAvailability();
-  }
-
-  function updateSvgSectionTextBoxModeAvailability() {
-    const svgEnabled = !!(exportSvg && !exportSvg.disabled && exportSvg.checked);
-    const sectionTextBoxMode = normalizeSvgSectionTextBoxMode(exportSvgSectionTextBoxMode?.value);
-    const usesInheritedPriceRegionStroke = sectionTextBoxMode === "price-region-outline";
-    const fillTooltip = svgEnabled
-      ? "Priceregion outline path uses no fill."
-      : (exportSvg?.disabled
-          ? (exportSvg.title || "Enable SVG export to change SVG export settings.")
-          : "Enable SVG export to change SVG export settings.");
-    const strokeTooltip = svgEnabled
-      ? "Priceregion outline path inherits stroke color from the price region settings."
-      : (exportSvg?.disabled
-          ? (exportSvg.title || "Enable SVG export to change SVG export settings.")
-          : "Enable SVG export to change SVG export settings.");
-    setSvgDependentExportControlState(exportSvgSectionTextBoxFill, svgEnabled && !usesInheritedPriceRegionStroke, fillTooltip);
-    setSvgDependentExportControlState(exportSvgSectionTextBoxStroke, svgEnabled && !usesInheritedPriceRegionStroke, strokeTooltip);
   }
 
   function updateSvgHoverEffectAvailability() {
@@ -9336,6 +9379,8 @@ codePane.addEventListener("input", () => {
 
   async function openExportModal() {
     if (exportOverlay) exportOverlay.style.display = "flex";
+    setExportModalBusy(false);
+    setExportProgressState({ active: false });
     if (exportName) {
       const base = currentFileName ? currentFileName.replace(/\.[^/.]+$/, "") : "";
       exportName.value = base || exportName.value || "";
@@ -9365,12 +9410,14 @@ codePane.addEventListener("input", () => {
   }
 
   function closeExportModal() {
+    if (exportInProgress) return;
     persistCurrentLayoutExportPrefs({
       settings: collectExportModalPreferencesFromInputs()
     }).catch((err) => {
       console.warn("Kunde inte spara exportinställningar:", err);
     });
     if (exportOverlay) exportOverlay.style.display = "none";
+    setExportProgressState({ active: false });
   }
 
   function openHelpModal() {
@@ -12270,8 +12317,6 @@ codePane.addEventListener("input", () => {
 
   function buildSvgCssText(options = {}) {
     const styles = getSvgExportStyleOptions(options);
-    const sectionTextBoxMode = normalizeSvgSectionTextBoxMode(options.sectionTextBoxMode);
-    const isPriceRegionOutlineMode = sectionTextBoxMode === "price-region-outline";
     const sectionTextSize = styles.sectionTextSize;
     const sectionTextLargeSize = Math.max(sectionTextSize, sectionTextSize * 2);
     const pointerEventsLine = styles.sectionTextDisablePointerEvents
@@ -12286,19 +12331,12 @@ codePane.addEventListener("input", () => {
       ".unavailable.open .always-visible-section-outline { fill: #ececec; stroke: #a3aaaf; stroke-width: 10px; }",
       `.section-text { fill: ${styles.sectionTextFill}; stroke: ${styles.sectionTextStroke}; stroke-width: ${formatSvgNumber(styles.sectionTextStrokeWidth)}px; paint-order: stroke fill; font-family: Roboto; font-size: ${formatSvgNumber(sectionTextSize)}px; font-weight: 400; ${pointerEventsLine} }`,
       `.section-text.large { font-size: ${formatSvgNumber(sectionTextLargeSize)}px; }`,
-      `.row-number-text { fill: ${styles.rowNumberTextFill}; font-family: Roboto; font-size: ${formatSvgNumber(styles.rowNumberTextSize)}px;${rowNumberDisplay} }`
+      `.row-number-text { fill: ${styles.rowNumberTextFill}; font-family: Roboto; font-size: ${formatSvgNumber(styles.rowNumberTextSize)}px;${rowNumberDisplay} }`,
+      `.section-text-box { fill: ${styles.sectionTextBoxFill}; stroke: ${styles.sectionTextBoxStroke}; stroke-width: ${formatSvgNumber(styles.sectionTextBoxStrokeWidth)}px; opacity: ${formatSvgNumber(sectionTextBoxOpacity)}; transition: fill 500ms ease, stroke 500ms ease, stroke-width 500ms ease, opacity 500ms ease; }`,
+      ".unavailable .section-text-box { fill: #a3aaaf; }"
     ];
-    if (isPriceRegionOutlineMode) {
-      lines.push(
-        `.section-text-box { stroke-width: ${formatSvgNumber(styles.sectionTextBoxStrokeWidth)}px; opacity: ${formatSvgNumber(sectionTextBoxOpacity)}; transition: stroke 500ms ease, stroke-width 500ms ease, opacity 500ms ease; }`
-      );
-    } else {
-      lines.push(
-        `.section-text-box { fill: ${styles.sectionTextBoxFill}; stroke: ${styles.sectionTextBoxStroke}; stroke-width: ${formatSvgNumber(styles.sectionTextBoxStrokeWidth)}px; opacity: ${formatSvgNumber(sectionTextBoxOpacity)}; transition: fill 500ms ease, stroke 500ms ease, stroke-width 500ms ease, opacity 500ms ease; }`,
-        ".unavailable .section-text-box { fill: #a3aaaf; }"
-      );
-    }
     if (styles.sectionTextBoxHoverEnabled) {
+      lines.push(`.unavailable .section-text-box:hover { opacity: ${formatSvgNumber(sectionTextBoxOpacity)}; }`);
       lines.push(`.section-text-box:hover { opacity: ${formatSvgNumber(styles.sectionTextBoxHoverOpacity)}; }`);
     }
     const priceCss = buildSvgPriceRegionCss();
@@ -12309,10 +12347,11 @@ codePane.addEventListener("input", () => {
     return lines.join("\n");
   }
 
-  function formatSvgNumber(num) {
+  function formatSvgNumber(num, maxDecimals = 3) {
     if (!Number.isFinite(num)) return "0";
     if (Math.abs(num - Math.round(num)) < 1e-6) return String(Math.round(num));
-    return num.toFixed(6).replace(/0+$/, "").replace(/\.$/, "");
+    const decimals = Math.max(0, Math.min(6, Math.floor(Number(maxDecimals) || 0)));
+    return num.toFixed(decimals).replace(/0+$/, "").replace(/\.$/, "");
   }
 
   function medianValue(values) {
@@ -12386,6 +12425,282 @@ codePane.addEventListener("input", () => {
       x: Math.round(point.x * scale) / scale,
       y: Math.round(point.y * scale) / scale
     };
+  }
+
+  function normalizeSvgAngle(angle) {
+    const tau = Math.PI * 2;
+    let normalized = angle % tau;
+    if (normalized < 0) normalized += tau;
+    return normalized;
+  }
+
+  function mergeSvgAngleIntervals(intervals, tolerance = 1e-4) {
+    if (!Array.isArray(intervals) || !intervals.length) return [];
+    const tau = Math.PI * 2;
+    const normalized = intervals
+      .map((interval) => ({
+        start: Number(interval?.start),
+        end: Number(interval?.end)
+      }))
+      .filter((interval) => Number.isFinite(interval.start) && Number.isFinite(interval.end))
+      .map((interval) => ({
+        start: Math.max(0, Math.min(tau, interval.start)),
+        end: Math.max(0, Math.min(tau, interval.end))
+      }))
+      .filter((interval) => (interval.end - interval.start) > tolerance)
+      .sort((a, b) => {
+        if (Math.abs(a.start - b.start) > tolerance) return a.start - b.start;
+        return a.end - b.end;
+      });
+    if (!normalized.length) return [];
+    const merged = [{ ...normalized[0] }];
+    for (let i = 1; i < normalized.length; i++) {
+      const current = normalized[i];
+      const previous = merged[merged.length - 1];
+      if (current.start <= previous.end + tolerance) {
+        previous.end = Math.max(previous.end, current.end);
+      } else {
+        merged.push({ ...current });
+      }
+    }
+    return merged;
+  }
+
+  function invertSvgAngleIntervals(intervals, tolerance = 1e-4) {
+    const tau = Math.PI * 2;
+    const merged = mergeSvgAngleIntervals(intervals, tolerance);
+    if (!merged.length) return [{ start: 0, end: tau }];
+    const visible = [];
+    let cursor = 0;
+    merged.forEach((interval) => {
+      if (interval.start > cursor + tolerance) {
+        visible.push({ start: cursor, end: interval.start });
+      }
+      cursor = Math.max(cursor, interval.end);
+    });
+    if (cursor < tau - tolerance) {
+      visible.push({ start: cursor, end: tau });
+    }
+    return visible.filter((interval) => (interval.end - interval.start) > tolerance);
+  }
+
+  function sampleSvgAngleInterval(startAngle, endAngle, maxStep, minPoints = 2) {
+    const span = Math.max(0, endAngle - startAngle);
+    const safeStep = Math.max(1e-3, Number(maxStep) || (Math.PI / 8));
+    const pointCount = Math.max(minPoints, Math.ceil(span / safeStep) + 1);
+    if (pointCount <= 1) return [startAngle + span / 2];
+    const angles = [];
+    for (let index = 0; index < pointCount; index++) {
+      const t = pointCount === 1 ? 0.5 : index / (pointCount - 1);
+      angles.push(startAngle + span * t);
+    }
+    return angles;
+  }
+
+  function dedupeSvgPointCloud(points, tolerance = 1) {
+    if (!Array.isArray(points) || !points.length) return [];
+    const safeTolerance = Math.max(1e-3, Number(tolerance) || 1);
+    const buckets = new Map();
+    points.forEach((point) => {
+      const x = Number(point?.x);
+      const y = Number(point?.y);
+      if (!Number.isFinite(x) || !Number.isFinite(y)) return;
+      const key = `${Math.round(x / safeTolerance)},${Math.round(y / safeTolerance)}`;
+      let bucket = buckets.get(key);
+      if (!bucket) {
+        bucket = { sumX: 0, sumY: 0, count: 0 };
+        buckets.set(key, bucket);
+      }
+      bucket.sumX += x;
+      bucket.sumY += y;
+      bucket.count += 1;
+    });
+    return Array.from(buckets.values())
+      .map((bucket) => ({
+        x: bucket.sumX / bucket.count,
+        y: bucket.sumY / bucket.count
+      }));
+  }
+
+  function computeSvgLineAngle(from, to) {
+    return Math.atan2(to.y - from.y, to.x - from.x);
+  }
+
+  function computeSvgTurnDelta(previousAngle, from, to) {
+    return normalizeSvgAngle(computeSvgLineAngle(from, to) - previousAngle);
+  }
+
+  function areSvgPointsEqual(pointA, pointB, tolerance = 1e-3) {
+    if (!pointA || !pointB) return false;
+    return Math.hypot(pointA.x - pointB.x, pointA.y - pointB.y) <= tolerance;
+  }
+
+  function computeSvgOrientation(pointA, pointB, pointC, tolerance = 1e-6) {
+    const cross = (pointB.x - pointA.x) * (pointC.y - pointA.y) - (pointB.y - pointA.y) * (pointC.x - pointA.x);
+    if (Math.abs(cross) <= tolerance) return 0;
+    return cross > 0 ? 1 : -1;
+  }
+
+  function isSvgPointOnSegment(pointA, pointB, pointC, tolerance = 1e-6) {
+    return (
+      Math.min(pointA.x, pointB.x) - tolerance <= pointC.x &&
+      pointC.x <= Math.max(pointA.x, pointB.x) + tolerance &&
+      Math.min(pointA.y, pointB.y) - tolerance <= pointC.y &&
+      pointC.y <= Math.max(pointA.y, pointB.y) + tolerance &&
+      computeSvgOrientation(pointA, pointB, pointC, tolerance) === 0
+    );
+  }
+
+  function doSvgSegmentsIntersect(pointA, pointB, pointC, pointD, tolerance = 1e-6) {
+    if (
+      areSvgPointsEqual(pointA, pointC, tolerance) ||
+      areSvgPointsEqual(pointA, pointD, tolerance) ||
+      areSvgPointsEqual(pointB, pointC, tolerance) ||
+      areSvgPointsEqual(pointB, pointD, tolerance)
+    ) {
+      return false;
+    }
+    const orientation1 = computeSvgOrientation(pointA, pointB, pointC, tolerance);
+    const orientation2 = computeSvgOrientation(pointA, pointB, pointD, tolerance);
+    const orientation3 = computeSvgOrientation(pointC, pointD, pointA, tolerance);
+    const orientation4 = computeSvgOrientation(pointC, pointD, pointB, tolerance);
+    if (orientation1 !== orientation2 && orientation3 !== orientation4) return true;
+    if (orientation1 === 0 && isSvgPointOnSegment(pointA, pointB, pointC, tolerance)) return true;
+    if (orientation2 === 0 && isSvgPointOnSegment(pointA, pointB, pointD, tolerance)) return true;
+    if (orientation3 === 0 && isSvgPointOnSegment(pointC, pointD, pointA, tolerance)) return true;
+    if (orientation4 === 0 && isSvgPointOnSegment(pointC, pointD, pointB, tolerance)) return true;
+    return false;
+  }
+
+  function doesSvgSegmentIntersectHull(hull, startPoint, endPoint, tolerance = 1e-6) {
+    if (!Array.isArray(hull) || hull.length < 2) return false;
+    for (let index = 0; index < hull.length - 1; index++) {
+      const edgeStart = hull[index];
+      const edgeEnd = hull[index + 1];
+      if (
+        areSvgPointsEqual(edgeStart, startPoint, tolerance) ||
+        areSvgPointsEqual(edgeEnd, startPoint, tolerance) ||
+        areSvgPointsEqual(edgeStart, endPoint, tolerance) ||
+        areSvgPointsEqual(edgeEnd, endPoint, tolerance)
+      ) {
+        continue;
+      }
+      if (doSvgSegmentsIntersect(startPoint, endPoint, edgeStart, edgeEnd, tolerance)) return true;
+    }
+    return false;
+  }
+
+  function isSvgPointInsidePolygon(point, polygon, tolerance = 1e-6) {
+    if (!point || !Array.isArray(polygon) || polygon.length < 3) return false;
+    for (let index = 0; index < polygon.length; index++) {
+      const current = polygon[index];
+      const next = polygon[(index + 1) % polygon.length];
+      if (isSvgPointOnSegment(current, next, point, tolerance)) return true;
+    }
+    let inside = false;
+    for (let index = 0, previousIndex = polygon.length - 1; index < polygon.length; previousIndex = index++) {
+      const pointA = polygon[index];
+      const pointB = polygon[previousIndex];
+      const intersects = ((pointA.y > point.y) !== (pointB.y > point.y))
+        && (point.x < ((pointB.x - pointA.x) * (point.y - pointA.y)) / ((pointB.y - pointA.y) || 1e-9) + pointA.x);
+      if (intersects) inside = !inside;
+    }
+    return inside;
+  }
+
+  function computeSvgPointCloudContainmentRatio(points, polygon, tolerance = 1e-6) {
+    if (!Array.isArray(points) || !points.length || !Array.isArray(polygon) || polygon.length < 3) return 0;
+    let contained = 0;
+    points.forEach((point) => {
+      if (isSvgPointInsidePolygon(point, polygon, tolerance)) contained++;
+    });
+    return contained / points.length;
+  }
+
+  function buildSvgConcaveHull(points, options = {}) {
+    const uniquePoints = dedupeSvgPointCloud(points, Math.max(0.5, Number(options.dedupeTolerance) || 1));
+    if (uniquePoints.length < 3) return uniquePoints;
+    if (uniquePoints.length === 3) return uniquePoints;
+    const tolerance = Math.max(1e-3, Number(options.tolerance) || 1e-3);
+    const initialNeighborCount = Math.max(3, Math.floor(Number(options.initialNeighborCount) || 6));
+    const maxNeighborCount = Math.max(initialNeighborCount, Math.min(uniquePoints.length - 1, Math.floor(Number(options.maxNeighborCount) || 24)));
+
+    function attemptConcaveHull(neighborCount) {
+      const firstPoint = uniquePoints.reduce((best, point) => {
+        if (!best) return point;
+        if (point.y < best.y - tolerance) return point;
+        if (Math.abs(point.y - best.y) <= tolerance && point.x < best.x) return point;
+        return best;
+      }, null);
+      if (!firstPoint) return [];
+      const available = uniquePoints.filter((point) => !areSvgPointsEqual(point, firstPoint, tolerance));
+      const hull = [firstPoint];
+      let currentPoint = firstPoint;
+      let previousAngle = 0;
+      let step = 2;
+      let guard = 0;
+      while ((available.length || step <= 4) && guard < uniquePoints.length * 6) {
+        guard++;
+        const candidates = [...available];
+        if (step > 3) candidates.push(firstPoint);
+        const candidateMetrics = candidates
+          .map((point) => ({
+            point,
+            distance: Math.hypot(point.x - currentPoint.x, point.y - currentPoint.y),
+            turnDelta: computeSvgTurnDelta(previousAngle, currentPoint, point)
+          }))
+          .filter((candidate) => candidate.distance > tolerance)
+          .sort((candidateA, candidateB) => candidateA.distance - candidateB.distance)
+          .slice(0, neighborCount);
+        if (
+          step > 3 &&
+          !candidateMetrics.some((candidate) => areSvgPointsEqual(candidate.point, firstPoint, tolerance))
+        ) {
+          candidateMetrics.push({
+            point: firstPoint,
+            distance: Math.hypot(firstPoint.x - currentPoint.x, firstPoint.y - currentPoint.y),
+            turnDelta: computeSvgTurnDelta(previousAngle, currentPoint, firstPoint)
+          });
+        }
+        const sortedCandidates = candidateMetrics
+          .sort((candidateA, candidateB) => {
+            if (Math.abs(candidateA.turnDelta - candidateB.turnDelta) > 1e-6) {
+              return candidateA.turnDelta - candidateB.turnDelta;
+            }
+            return candidateA.distance - candidateB.distance;
+          });
+        let nextPoint = null;
+        for (let index = 0; index < sortedCandidates.length; index++) {
+          const candidate = sortedCandidates[index].point;
+          if (areSvgPointsEqual(candidate, firstPoint, tolerance) && step <= 4) continue;
+          if (doesSvgSegmentIntersectHull(hull, currentPoint, candidate, tolerance)) continue;
+          nextPoint = candidate;
+          break;
+        }
+        if (!nextPoint) return [];
+        if (areSvgPointsEqual(nextPoint, firstPoint, tolerance)) {
+          hull.push(firstPoint);
+          break;
+        }
+        hull.push(nextPoint);
+        const pointIndex = available.findIndex((point) => areSvgPointsEqual(point, nextPoint, tolerance));
+        if (pointIndex >= 0) available.splice(pointIndex, 1);
+        previousAngle = computeSvgLineAngle(currentPoint, nextPoint);
+        currentPoint = nextPoint;
+        step++;
+      }
+      if (hull.length < 4 || !areSvgPointsEqual(hull[hull.length - 1], firstPoint, tolerance)) return [];
+      hull.pop();
+      const containmentRatio = computeSvgPointCloudContainmentRatio(uniquePoints, hull, Math.max(tolerance, 2));
+      if (containmentRatio < 0.94) return [];
+      return hull;
+    }
+
+    for (let neighborCount = initialNeighborCount; neighborCount <= maxNeighborCount; neighborCount++) {
+      const hull = attemptConcaveHull(neighborCount);
+      if (hull.length >= 3) return hull;
+    }
+    return computeConvexHull(uniquePoints);
   }
 
   function computeSvgSeatClusterTangent(seats) {
@@ -12940,6 +13255,7 @@ codePane.addEventListener("input", () => {
       const centerY = rowSeats.reduce((sum, seat) => sum + seat.centerY, 0) / rowSeats.length;
       rowEntries.push({
         rowId: row?.rowId || "",
+        name: row?.name || "",
         seats: rowSeats,
         centerX,
         centerY,
@@ -12947,6 +13263,43 @@ codePane.addEventListener("input", () => {
       });
     });
     return { rowEntries, allWidths };
+  }
+
+  function getSvgContourRowDisplayName(row) {
+    const explicitName = String(row?.name || "").trim();
+    if (explicitName) return explicitName;
+    const rowId = String(row?.rowId || "").trim();
+    if (!rowId) return "";
+    const parts = rowId.split(".");
+    return String(parts[parts.length - 1] || "").trim();
+  }
+
+  function normalizeSvgContourRowLabel(label) {
+    return String(label || "").trim().toLocaleLowerCase("sv-SE");
+  }
+
+  function buildSvgContourLogicalRows(rows) {
+    if (!Array.isArray(rows) || !rows.length) return [];
+    const logicalRows = [];
+    const logicalRowByLabel = new Map();
+    rows.forEach((row, index) => {
+      const seats = Array.isArray(row?.seats) ? row.seats.filter(Boolean) : [];
+      if (!seats.length) return;
+      const displayName = getSvgContourRowDisplayName(row);
+      const labelKey = normalizeSvgContourRowLabel(displayName);
+      let logicalRow = labelKey ? logicalRowByLabel.get(labelKey) : null;
+      if (!logicalRow) {
+        logicalRow = {
+          rowId: row?.rowId || `svg-contour-row-${index + 1}`,
+          name: displayName,
+          seats: []
+        };
+        logicalRows.push(logicalRow);
+        if (labelKey) logicalRowByLabel.set(labelKey, logicalRow);
+      }
+      logicalRow.seats.push(...seats);
+    });
+    return logicalRows;
   }
 
   function clusterSvgRowEntriesByVisualBand(rowEntries, axis, tolerance) {
@@ -13108,14 +13461,282 @@ codePane.addEventListener("input", () => {
     return buildSvgSectionContourFromVisualBandEntries(visualBands, sectionTangent, medianWidth);
   }
 
+  function buildSvgSectionContourFromOuterSeatPerimeter(rows) {
+    const { rowEntries, allWidths } = buildSvgContourRowEntries(rows);
+    const allSeats = rowEntries
+      .flatMap((entry) => entry.seats)
+      .filter((seat) => Number.isFinite(seat?.centerX) && Number.isFinite(seat?.centerY));
+    if (allSeats.length < 3) return [];
+    const medianWidth = Math.max(1, medianValue(allWidths) || 100);
+    const outlinePadding = Math.max(10, medianWidth * 0.12);
+    const seatGeometry = allSeats.map((seat) => {
+      const width = Number.isFinite(seat?.width) && seat.width > 0 ? seat.width : medianWidth;
+      return {
+        x: seat.centerX,
+        y: seat.centerY,
+        radius: width / 2 + outlinePadding
+      };
+    });
+    const tau = Math.PI * 2;
+    const overlapTolerance = Math.max(1, medianWidth * 0.02);
+    const minVisibleArc = Math.PI / 90;
+    const maxArcStep = Math.PI / 12;
+    const samplePoints = [];
+    let boundarySeatCount = 0;
+    for (let i = 0; i < seatGeometry.length; i++) {
+      const subject = seatGeometry[i];
+      const blockedIntervals = [];
+      let fullyBlocked = false;
+      for (let j = 0; j < seatGeometry.length; j++) {
+        if (i === j) continue;
+        const other = seatGeometry[j];
+        const dx = other.x - subject.x;
+        const dy = other.y - subject.y;
+        const distance = Math.hypot(dx, dy);
+        if (!Number.isFinite(distance)) continue;
+        if (distance >= (subject.radius + other.radius - overlapTolerance)) continue;
+        if (distance <= 1e-6) {
+          if (other.radius >= subject.radius - overlapTolerance) {
+            fullyBlocked = true;
+            break;
+          }
+          continue;
+        }
+        const cosine = (distance * distance + subject.radius * subject.radius - other.radius * other.radius) / (2 * distance * subject.radius);
+        if (cosine >= 1) continue;
+        if (cosine <= -1) {
+          fullyBlocked = true;
+          break;
+        }
+        const delta = Math.acos(Math.max(-1, Math.min(1, cosine)));
+        if (!Number.isFinite(delta) || delta <= 1e-4) continue;
+        const centerAngle = Math.atan2(dy, dx);
+        const startAngle = normalizeSvgAngle(centerAngle - delta);
+        const endAngle = normalizeSvgAngle(centerAngle + delta);
+        if (startAngle > endAngle) {
+          blockedIntervals.push({ start: 0, end: endAngle });
+          blockedIntervals.push({ start: startAngle, end: tau });
+        } else {
+          blockedIntervals.push({ start: startAngle, end: endAngle });
+        }
+      }
+      if (fullyBlocked) continue;
+      const visibleIntervals = invertSvgAngleIntervals(blockedIntervals);
+      let hasVisibleArc = false;
+      visibleIntervals.forEach((interval) => {
+        const span = interval.end - interval.start;
+        if (span <= minVisibleArc) return;
+        hasVisibleArc = true;
+        sampleSvgAngleInterval(interval.start, interval.end, maxArcStep, span > maxArcStep ? 3 : 2).forEach((angle) => {
+          samplePoints.push({
+            x: subject.x + Math.cos(angle) * subject.radius,
+            y: subject.y + Math.sin(angle) * subject.radius
+          });
+        });
+      });
+      if (hasVisibleArc) boundarySeatCount++;
+    }
+    if (samplePoints.length < 8 || boundarySeatCount < 3) return [];
+    let contour = buildSvgConcaveHull(samplePoints, {
+      dedupeTolerance: Math.max(1, medianWidth * 0.03),
+      tolerance: Math.max(1e-3, medianWidth * 0.01),
+      initialNeighborCount: 6,
+      maxNeighborCount: 22
+    });
+    if (contour.length < 6) return [];
+    let minSeatX = Infinity;
+    let maxSeatX = -Infinity;
+    let minSeatY = Infinity;
+    let maxSeatY = -Infinity;
+    seatGeometry.forEach((seat) => {
+      minSeatX = Math.min(minSeatX, seat.x - seat.radius);
+      maxSeatX = Math.max(maxSeatX, seat.x + seat.radius);
+      minSeatY = Math.min(minSeatY, seat.y - seat.radius);
+      maxSeatY = Math.max(maxSeatY, seat.y + seat.radius);
+    });
+    if (!Number.isFinite(minSeatX) || !Number.isFinite(minSeatY) || !Number.isFinite(maxSeatX) || !Number.isFinite(maxSeatY)) {
+      return [];
+    }
+    const contourSpanX = Math.max(...contour.map((point) => point.x)) - Math.min(...contour.map((point) => point.x));
+    const contourSpanY = Math.max(...contour.map((point) => point.y)) - Math.min(...contour.map((point) => point.y));
+    const seatSpanX = maxSeatX - minSeatX;
+    const seatSpanY = maxSeatY - minSeatY;
+    if ((seatSpanX > 1 && contourSpanX < seatSpanX * 0.8) || (seatSpanY > 1 && contourSpanY < seatSpanY * 0.8)) {
+      return [];
+    }
+    contour = removeSequentialDuplicateSvgPoints(contour, 1e-3);
+    contour = removeSvgCollinearPoints(contour, Math.max(1, medianWidth * 0.03));
+    contour = simplifySvgClosedPolygon(contour, Math.max(10, medianWidth * 0.18));
+    contour = removeSequentialDuplicateSvgPoints(contour, 0.1);
+    contour = removeSvgCollinearPoints(contour, Math.max(1, medianWidth * 0.035));
+    contour = contour.map((point) => roundSvgPoint(point, 0.1));
+    contour = removeSequentialDuplicateSvgPoints(contour, 0.1);
+    contour = removeSvgCollinearPoints(contour, Math.max(1, medianWidth * 0.04));
+    return contour.length >= 3 ? contour : [];
+  }
+
   function buildSvgSectionContourFromSeatGeometry(rows) {
+    const { rowEntries, allWidths } = buildSvgContourRowEntries(rows);
+    const allSeats = rowEntries.flatMap((entry) => entry.seats).filter((seat) => Number.isFinite(seat?.centerX) && Number.isFinite(seat?.centerY));
+    if (allSeats.length < 3) return [];
+    const medianWidth = Math.max(1, medianValue(allWidths) || 100);
+    let cellSize = Math.max(6, Math.min(14, medianWidth * 0.14));
+    const seatPadding = Math.max(6, medianWidth * 0.06);
+    const bridgeRadiusWorld = medianWidth / 2 + seatPadding;
+    const seatSpacings = [];
+    rowEntries.forEach((entry) => {
+      const seats = Array.isArray(entry?.seats) ? entry.seats.filter((seat) => Number.isFinite(seat?.centerX) && Number.isFinite(seat?.centerY)) : [];
+      for (let i = 1; i < seats.length; i++) {
+        const previous = seats[i - 1];
+        const current = seats[i];
+        const spacing = Math.hypot(current.centerX - previous.centerX, current.centerY - previous.centerY);
+        if (spacing > medianWidth * 0.25) seatSpacings.push(spacing);
+      }
+    });
+    const estimatedSeatPitch = medianValue(seatSpacings);
+    const rowCenterSpacings = [];
+    for (let i = 1; i < rowEntries.length; i++) {
+      const previous = rowEntries[i - 1];
+      const current = rowEntries[i];
+      const spacing = Math.hypot(current.centerX - previous.centerX, current.centerY - previous.centerY);
+      if (spacing > medianWidth * 0.25) rowCenterSpacings.push(spacing);
+    }
+    const estimatedRowPitch = medianValue(rowCenterSpacings);
+    const maxLinkDistance = Number.isFinite(estimatedSeatPitch) && estimatedSeatPitch > 0
+      ? Math.max(estimatedSeatPitch * 3.8, medianWidth * 3.5)
+      : medianWidth * 3.8;
+    let minX = Infinity;
+    let maxX = -Infinity;
+    let minY = Infinity;
+    let maxY = -Infinity;
+    allSeats.forEach((seat) => {
+      const width = Number.isFinite(seat?.width) && seat.width > 0 ? seat.width : medianWidth;
+      const radius = width / 2 + seatPadding;
+      minX = Math.min(minX, seat.centerX - radius);
+      maxX = Math.max(maxX, seat.centerX + radius);
+      minY = Math.min(minY, seat.centerY - radius);
+      maxY = Math.max(maxY, seat.centerY + radius);
+    });
+    if (!Number.isFinite(minX) || !Number.isFinite(minY) || !Number.isFinite(maxX) || !Number.isFinite(maxY)) return [];
+    const seatSpanX = maxX - minX;
+    const seatSpanY = maxY - minY;
+    const maxGridCells = 260000;
+    let gridMinX;
+    let gridMinY;
+    let gridWidth;
+    let gridHeight;
+    do {
+      gridMinX = minX - cellSize;
+      gridMinY = minY - cellSize;
+      gridWidth = Math.max(1, Math.ceil((maxX - minX + cellSize * 2) / cellSize));
+      gridHeight = Math.max(1, Math.ceil((maxY - minY + cellSize * 2) / cellSize));
+      if (gridWidth * gridHeight <= maxGridCells) break;
+      cellSize *= 1.2;
+    } while (gridWidth * gridHeight > maxGridCells && cellSize < medianWidth * 2);
+    const grid = new Uint8Array(gridWidth * gridHeight);
+    const markSeatCircle = (centerX, centerY, radius) => {
+      const startCol = Math.max(0, Math.floor((centerX - radius - gridMinX) / cellSize));
+      const endCol = Math.min(gridWidth - 1, Math.ceil((centerX + radius - gridMinX) / cellSize));
+      const startRow = Math.max(0, Math.floor((centerY - radius - gridMinY) / cellSize));
+      const endRow = Math.min(gridHeight - 1, Math.ceil((centerY + radius - gridMinY) / cellSize));
+      const radiusSquared = radius * radius;
+      for (let rowIndex = startRow; rowIndex <= endRow; rowIndex++) {
+        const sampleY = gridMinY + (rowIndex + 0.5) * cellSize;
+        for (let colIndex = startCol; colIndex <= endCol; colIndex++) {
+          const sampleX = gridMinX + (colIndex + 0.5) * cellSize;
+          const distanceSquared = (sampleX - centerX) * (sampleX - centerX) + (sampleY - centerY) * (sampleY - centerY);
+          if (distanceSquared <= radiusSquared) {
+            grid[rowIndex * gridWidth + colIndex] = 1;
+          }
+        }
+      }
+    };
+    allSeats.forEach((seat) => {
+      const width = Number.isFinite(seat?.width) && seat.width > 0 ? seat.width : medianWidth;
+      markSeatCircle(seat.centerX, seat.centerY, width / 2 + seatPadding);
+    });
+    const bridgeThickness = Math.max(1, Math.ceil(bridgeRadiusWorld / cellSize) - 1);
+    rowEntries.forEach((entry) => {
+      const seats = Array.isArray(entry?.seats) ? entry.seats.filter((seat) => Number.isFinite(seat?.centerX) && Number.isFinite(seat?.centerY)) : [];
+      for (let i = 1; i < seats.length; i++) {
+        const previous = seats[i - 1];
+        const current = seats[i];
+        const spacing = Math.hypot(current.centerX - previous.centerX, current.centerY - previous.centerY);
+        if (!Number.isFinite(spacing) || spacing < 1e-3 || spacing > maxLinkDistance) continue;
+        const startCol = Math.max(0, Math.min(gridWidth - 1, Math.round((previous.centerX - gridMinX) / cellSize)));
+        const startRow = Math.max(0, Math.min(gridHeight - 1, Math.round((previous.centerY - gridMinY) / cellSize)));
+        const endCol = Math.max(0, Math.min(gridWidth - 1, Math.round((current.centerX - gridMinX) / cellSize)));
+        const endRow = Math.max(0, Math.min(gridHeight - 1, Math.round((current.centerY - gridMinY) / cellSize)));
+        drawSvgGridBridge(grid, gridWidth, gridHeight, startCol, startRow, endCol, endRow, bridgeThickness);
+      }
+    });
+    const occupiedCells = new Set();
+    grid.forEach((value, index) => {
+      if (value) occupiedCells.add(index);
+    });
+    if (!occupiedCells.size) return [];
+    const closedOccupiedCells = closeSvgOccupiedGridGaps(occupiedCells, gridWidth, gridHeight, {
+      maxHorizontalGapCells: Math.max(1, Math.ceil(seatPadding / cellSize)),
+      maxVerticalGapCells: Math.max(1, Math.ceil(seatPadding / cellSize)),
+      passCount: 1
+    });
+    const workingGrid = new Uint8Array(gridWidth * gridHeight);
+    closedOccupiedCells.forEach((cellIndex) => {
+      if (cellIndex >= 0 && cellIndex < workingGrid.length) workingGrid[cellIndex] = 1;
+    });
+    const componentGapWorld = Number.isFinite(estimatedRowPitch) && estimatedRowPitch > 0
+      ? Math.max(0, estimatedRowPitch - bridgeRadiusWorld * 2)
+      : medianWidth;
+    mergeSvgGridComponents(workingGrid, gridWidth, gridHeight, Math.max(2, Math.ceil(componentGapWorld / cellSize) + 1), {
+      bridgeThickness: Math.max(1, Math.ceil((seatPadding * 0.5) / cellSize)),
+      maxIterations: Math.max(4, Math.min(18, rowEntries.length * 2))
+    });
+    const mergedOccupiedCells = new Set();
+    workingGrid.forEach((value, index) => {
+      if (value) mergedOccupiedCells.add(index);
+    });
+    const loops = traceSvgGridBoundaryLoops(mergedOccupiedCells, gridWidth, gridHeight);
+    if (!loops.length) return buildSvgSectionContourFromProjectedSeatGeometry(rows);
+    let bestLoop = null;
+    let bestArea = 0;
+    loops.forEach((loop) => {
+      const area = Math.abs(computeSvgPolygonArea(loop));
+      if (!bestLoop || area > bestArea) {
+        bestLoop = loop;
+        bestArea = area;
+      }
+    });
+    if (!bestLoop || bestLoop.length < 3) return buildSvgSectionContourFromProjectedSeatGeometry(rows);
+    let contour = bestLoop.map((point) => ({
+      x: gridMinX + point.x * cellSize,
+      y: gridMinY + point.y * cellSize
+    }));
+    const contourSpanX = Math.max(...contour.map((point) => point.x)) - Math.min(...contour.map((point) => point.x));
+    const contourSpanY = Math.max(...contour.map((point) => point.y)) - Math.min(...contour.map((point) => point.y));
+    const minimumExpectedSpanX = seatSpanX > medianWidth ? seatSpanX * 0.72 : seatSpanX;
+    const minimumExpectedSpanY = seatSpanY > medianWidth ? seatSpanY * 0.72 : seatSpanY;
+    if (contourSpanX < minimumExpectedSpanX || contourSpanY < minimumExpectedSpanY) {
+      return buildSvgSectionContourFromProjectedSeatGeometry(rows);
+    }
+    contour = removeSequentialDuplicateSvgPoints(contour, 1e-3);
+    contour = removeSvgCollinearPoints(contour, Math.max(1e-3, cellSize * 0.05));
+    contour = simplifySvgClosedPolygon(contour, Math.max(cellSize * 0.7, medianWidth * 0.08));
+    contour = removeSequentialDuplicateSvgPoints(contour, Math.max(1e-3, cellSize * 0.05));
+    contour = removeSvgCollinearPoints(contour, Math.max(1e-3, cellSize * 0.12));
+    contour = contour.map((point) => roundSvgPoint(point, 0.1));
+    contour = removeSequentialDuplicateSvgPoints(contour, 0.1);
+    contour = removeSvgCollinearPoints(contour, Math.max(1, medianWidth * 0.02));
+    return contour.length >= 3 ? contour : buildSvgSectionContourFromProjectedSeatGeometry(rows);
+  }
+
+  function buildSvgSectionContourFromProjectedSeatGeometry(rows) {
     const { rowEntries, allWidths } = buildSvgContourRowEntries(rows);
     const allSeats = rowEntries.flatMap((entry) => entry.seats);
     if (allSeats.length < 3) return [];
     const medianWidth = Math.max(1, medianValue(allWidths) || 100);
     const sectionTangent = rowEntries.length ? computeSvgSectionTangentFromRows(rowEntries) : computeSvgSeatClusterTangent(allSeats);
     const sectionNormal = { x: -sectionTangent.y, y: sectionTangent.x };
-    let cellSize = Math.max(14, Math.min(30, medianWidth * 0.32));
+    let cellSize = Math.max(8, Math.min(18, medianWidth * 0.18));
     const rowClusterTolerance = Math.max(10, medianWidth * 0.45);
     const projectedRowCenters = rowEntries
       .map((entry) => projectSvgPointToAxis(entry.centerX, entry.centerY, sectionNormal))
@@ -13139,34 +13760,39 @@ codePane.addEventListener("input", () => {
       }
     });
     const estimatedSeatPitch = medianValue(seatSpacings);
-    const baseSeatPadding = Math.max(12, medianWidth * 0.12);
-    const bridgingSeatPadding = Number.isFinite(estimatedRowPitch) && estimatedRowPitch > 0
-      ? Math.max(0, estimatedRowPitch / 2 - medianWidth / 2 + cellSize * 0.35)
-      : 0;
-    const seatPadding = Math.max(baseSeatPadding, bridgingSeatPadding);
+    const baseTangentialPadding = Math.max(8, medianWidth * 0.08);
+    const baseNormalPadding = Math.max(8, medianWidth * 0.08);
     const projectedSeats = allSeats.map((seat) => {
       const width = Number(seat?.width);
-      const seatRadius = (Number.isFinite(width) && width > 0 ? width : medianWidth) / 2;
+      const seatDiameter = Number.isFinite(width) && width > 0 ? width : medianWidth;
+      const seatRadius = seatDiameter / 2;
+      const tangentialPadding = Number.isFinite(estimatedSeatPitch) && estimatedSeatPitch > 0
+        ? Math.max(baseTangentialPadding, estimatedSeatPitch / 2 - seatRadius + cellSize * 0.25)
+        : baseTangentialPadding;
+      const normalPadding = Number.isFinite(estimatedRowPitch) && estimatedRowPitch > 0
+        ? Math.max(baseNormalPadding, estimatedRowPitch / 2 - seatRadius + cellSize * 0.35)
+        : baseNormalPadding;
       return {
         u: projectSvgPointToAxis(seat.centerX, seat.centerY, sectionTangent),
         v: projectSvgPointToAxis(seat.centerX, seat.centerY, sectionNormal),
-        radius: seatRadius + seatPadding
+        radiusU: seatRadius + tangentialPadding,
+        radiusV: seatRadius + normalPadding
       };
     });
     let minU = Infinity;
     let maxU = -Infinity;
     let minV = Infinity;
     let maxV = -Infinity;
-    projectedSeats.forEach(({ u, v, radius }) => {
-      minU = Math.min(minU, u - radius);
-      maxU = Math.max(maxU, u + radius);
-      minV = Math.min(minV, v - radius);
-      maxV = Math.max(maxV, v + radius);
+    projectedSeats.forEach(({ u, v, radiusU, radiusV }) => {
+      minU = Math.min(minU, u - radiusU);
+      maxU = Math.max(maxU, u + radiusU);
+      minV = Math.min(minV, v - radiusV);
+      maxV = Math.max(maxV, v + radiusV);
     });
     if (!Number.isFinite(minU) || !Number.isFinite(minV) || !Number.isFinite(maxU) || !Number.isFinite(maxV)) return [];
     const seatSpanU = maxU - minU;
     const seatSpanV = maxV - minV;
-    const maxGridCells = 160000;
+    const maxGridCells = 240000;
     let gridMinU;
     let gridMinV;
     let gridWidth;
@@ -13180,58 +13806,30 @@ codePane.addEventListener("input", () => {
       cellSize *= 1.2;
     } while (gridWidth * gridHeight > maxGridCells && cellSize < medianWidth * 2);
     const occupiedCells = new Set();
-    // Rasterize expanded seat circles into a local grid, then trace the outer boundary from the filled cells.
-    projectedSeats.forEach(({ u, v, radius }) => {
-      const radiusSquared = radius * radius;
-      const startCol = Math.max(0, Math.floor((u - radius - gridMinU) / cellSize));
-      const endCol = Math.min(gridWidth - 1, Math.ceil((u + radius - gridMinU) / cellSize));
-      const startRow = Math.max(0, Math.floor((v - radius - gridMinV) / cellSize));
-      const endRow = Math.min(gridHeight - 1, Math.ceil((v + radius - gridMinV) / cellSize));
+    // Build a local seat-union model from anisotropic seat footprints, then trace the union boundary.
+    projectedSeats.forEach(({ u, v, radiusU, radiusV }) => {
+      const startCol = Math.max(0, Math.floor((u - radiusU - gridMinU) / cellSize));
+      const endCol = Math.min(gridWidth - 1, Math.ceil((u + radiusU - gridMinU) / cellSize));
+      const startRow = Math.max(0, Math.floor((v - radiusV - gridMinV) / cellSize));
+      const endRow = Math.min(gridHeight - 1, Math.ceil((v + radiusV - gridMinV) / cellSize));
       for (let rowIndex = startRow; rowIndex <= endRow; rowIndex++) {
-        const cellMinV = gridMinV + rowIndex * cellSize;
-        const cellMaxV = cellMinV + cellSize;
-        const closestV = Math.max(cellMinV, Math.min(v, cellMaxV));
+        const sampleV = gridMinV + (rowIndex + 0.5) * cellSize;
         for (let colIndex = startCol; colIndex <= endCol; colIndex++) {
-          const cellMinU = gridMinU + colIndex * cellSize;
-          const cellMaxU = cellMinU + cellSize;
-          const closestU = Math.max(cellMinU, Math.min(u, cellMaxU));
-          const distanceSquared = (closestU - u) * (closestU - u) + (closestV - v) * (closestV - v);
-          if (distanceSquared <= radiusSquared) {
+          const sampleU = gridMinU + (colIndex + 0.5) * cellSize;
+          const normalizedDistance = ((sampleU - u) / radiusU) ** 2 + ((sampleV - v) / radiusV) ** 2;
+          if (normalizedDistance <= 1) {
             occupiedCells.add(rowIndex * gridWidth + colIndex);
           }
         }
       }
     });
     if (!occupiedCells.size) return [];
-    const effectiveSeatDiameter = medianWidth + seatPadding * 2;
-    const horizontalGapWorld = Number.isFinite(estimatedSeatPitch) && estimatedSeatPitch > 0
-      ? Math.max(0, estimatedSeatPitch - effectiveSeatDiameter)
-      : 0;
-    const verticalGapWorld = Number.isFinite(estimatedRowPitch) && estimatedRowPitch > 0
-      ? Math.max(0, estimatedRowPitch - effectiveSeatDiameter)
-      : 0;
     const closedOccupiedCells = closeSvgOccupiedGridGaps(occupiedCells, gridWidth, gridHeight, {
-      maxHorizontalGapCells: Math.ceil(horizontalGapWorld / cellSize) + 1,
-      maxVerticalGapCells: Math.ceil(verticalGapWorld / cellSize) + 2,
-      passCount: 3
+      maxHorizontalGapCells: 1,
+      maxVerticalGapCells: 1,
+      passCount: 1
     });
-    const workingGrid = new Uint8Array(gridWidth * gridHeight);
-    closedOccupiedCells.forEach((cellIndex) => {
-      if (cellIndex >= 0 && cellIndex < workingGrid.length) workingGrid[cellIndex] = 1;
-    });
-    mergeSvgGridComponents(workingGrid, gridWidth, gridHeight, Math.max(
-      Math.ceil(horizontalGapWorld / cellSize) + 2,
-      Math.ceil(verticalGapWorld / cellSize) + 3,
-      3
-    ), {
-      bridgeThickness: 1,
-      maxIterations: 8
-    });
-    const mergedOccupiedCells = new Set();
-    workingGrid.forEach((value, index) => {
-      if (value) mergedOccupiedCells.add(index);
-    });
-    const loops = traceSvgGridBoundaryLoops(mergedOccupiedCells, gridWidth, gridHeight);
+    const loops = traceSvgGridBoundaryLoops(closedOccupiedCells, gridWidth, gridHeight);
     if (!loops.length) return [];
     let bestLoop = null;
     let bestArea = 0;
@@ -13256,7 +13854,7 @@ codePane.addEventListener("input", () => {
     }
     contour = removeSequentialDuplicateSvgPoints(contour, 1e-3);
     contour = removeSvgCollinearPoints(contour, Math.max(1e-3, cellSize * 0.05));
-    contour = simplifySvgClosedPolygon(contour, Math.max(cellSize * 1.1, medianWidth * 0.22));
+    contour = simplifySvgClosedPolygon(contour, Math.max(cellSize * 0.9, medianWidth * 0.12));
     contour = removeSequentialDuplicateSvgPoints(contour, Math.max(1e-3, cellSize * 0.05));
     contour = removeSvgCollinearPoints(contour, Math.max(1e-3, cellSize * 0.15));
     contour = contour.map((point) => unprojectSvgPointFromAxes(point.x, point.y, sectionTangent, sectionNormal));
@@ -13346,25 +13944,15 @@ codePane.addEventListener("input", () => {
   }
 
   function buildSvgSectionContourFromRows(rows) {
-    let contour = buildSvgSectionContourFromVisualRows(rows);
+    const contourRows = buildSvgContourLogicalRows(rows);
+    let contour = buildSvgSectionContourFromOuterSeatPerimeter(contourRows);
     if (contour && contour.length >= 3) return contour;
-    contour = buildSvgSectionContourFromRowBands(rows);
+    contour = buildSvgSectionContourFromSeatGeometry(contourRows);
+    if (contour && contour.length >= 3) return contour;
+    contour = buildSvgSectionContourFromVisualRows(contourRows);
+    if (contour && contour.length >= 3) return contour;
+    contour = buildSvgSectionContourFromRowBands(contourRows);
     return contour && contour.length >= 3 ? contour : [];
-  }
-
-  function buildSvgSectionContourBySection(sectionOrder, outlineBySection, rowsBySection) {
-    const contourBySection = new Map();
-    sectionOrder.forEach((sectionId) => {
-      const rows = rowsBySection.get(sectionId) || [];
-      let contour = buildSvgSectionContourFromRows(rows);
-      if ((!contour || contour.length < 3) && outlineBySection.get(sectionId)?.coords?.length) {
-        contour = expandOutline(outlineBySection.get(sectionId).coords, 18);
-      }
-      if (contour && contour.length >= 3) {
-        contourBySection.set(sectionId, contour);
-      }
-    });
-    return contourBySection;
   }
 
   function buildSvgOutlinePathData(coords, options = {}) {
@@ -13439,19 +14027,6 @@ codePane.addEventListener("input", () => {
     return parts.join(" ");
   }
 
-  function buildSvgSectionTextBoxMarkup(sectionId, contourBySection, box, mode, cornerRadius) {
-    const safeCornerRadius = parseSvgCornerRadiusValue(cornerRadius, 75);
-    if (mode === "outline") {
-      const outlinePath = buildSvgOutlinePathData(contourBySection.get(sectionId), {
-        cornerRadius: safeCornerRadius
-      });
-      if (outlinePath) {
-        return `<path class="section-text-box" d="${outlinePath}"/>`;
-      }
-    }
-    return `<rect class="section-text-box" x="${formatSvgNumber(box.x)}" y="${formatSvgNumber(box.y)}" width="${formatSvgNumber(box.width)}" height="${formatSvgNumber(box.height)}" rx="${formatSvgNumber(safeCornerRadius)}" ry="${formatSvgNumber(safeCornerRadius)}"/>`;
-  }
-
   function computeRowStep(seats) {
     if (!seats || seats.length < 2) {
       const width = Number.isFinite(seats?.[0]?.width) ? seats[0].width : 100;
@@ -13473,14 +14048,14 @@ codePane.addEventListener("input", () => {
     return { dx, dy };
   }
 
-  function computeSectionBounds(sectionId, contourBySection, outlineBySection, rowsBySection) {
+  function computeSectionBounds(sectionId, outlineBySection, rowsBySection) {
     let minX = Infinity;
     let minY = Infinity;
     let maxX = -Infinity;
     let maxY = -Infinity;
-    const contour = contourBySection.get(sectionId);
-    if (contour && contour.length) {
-      contour.forEach((c) => {
+    const outline = outlineBySection.get(sectionId);
+    if (outline && outline.coords && outline.coords.length) {
+      outline.coords.forEach((c) => {
         const rx = Math.round(c.x);
         const ry = Math.round(c.y);
         minX = Math.min(minX, rx);
@@ -13489,30 +14064,18 @@ codePane.addEventListener("input", () => {
         maxY = Math.max(maxY, ry);
       });
     } else {
-      const outline = outlineBySection.get(sectionId);
-      if (outline && outline.coords && outline.coords.length) {
-        outline.coords.forEach((c) => {
-          const rx = Math.round(c.x);
-          const ry = Math.round(c.y);
-          minX = Math.min(minX, rx);
-          maxX = Math.max(maxX, rx);
-          minY = Math.min(minY, ry);
-          maxY = Math.max(maxY, ry);
-        });
-      } else {
-        const rows = rowsBySection.get(sectionId);
-        if (rows) {
-          rows.forEach((row) => {
-            row.seats.forEach((seat) => {
-              const rx = Math.round(seat.centerX);
-              const ry = Math.round(seat.centerY);
-              minX = Math.min(minX, rx);
-              maxX = Math.max(maxX, rx);
-              minY = Math.min(minY, ry);
-              maxY = Math.max(maxY, ry);
-            });
+      const rows = rowsBySection.get(sectionId);
+      if (rows) {
+        rows.forEach((row) => {
+          row.seats.forEach((seat) => {
+            const rx = Math.round(seat.centerX);
+            const ry = Math.round(seat.centerY);
+            minX = Math.min(minX, rx);
+            maxX = Math.max(maxX, rx);
+            minY = Math.min(minY, ry);
+            maxY = Math.max(maxY, ry);
           });
-        }
+        });
       }
     }
     if (!Number.isFinite(minX) || !Number.isFinite(minY)) return null;
@@ -13708,7 +14271,7 @@ codePane.addEventListener("input", () => {
     return lines.filter(Boolean).join("\n");
   }
 
-  function buildSvgSectionOutlines(sectionOrder, contourBySection, backgroundMarkup = "") {
+  function buildSvgSectionOutlines(sectionOrder, outlineBySection, backgroundMarkup = "") {
     const lines = [
       "      <g id=\"background-graphics-section-graphics-always-visible\" class=\"section-graphics-always-visible\">",
       "        <title>background-graphics-section-graphics-always-visible</title>"
@@ -13718,9 +14281,10 @@ codePane.addEventListener("input", () => {
     }
     sectionOrder.forEach((sectionId) => {
       const sectionCode = sectionIdToOutlineCode(sectionId);
-      const contour = contourBySection.get(sectionId);
-      if (!contour || !contour.length) return;
-      const path = buildSvgOutlinePathData(contour);
+      const outline = outlineBySection.get(sectionId);
+      if (!outline?.coords?.length) return;
+      const path = buildSvgOutlinePathData(outline.coords);
+      if (!path) return;
       lines.push(`        <g class="section-always-visible section-${sectionCode}" style="visibility: hidden;">`);
       lines.push(`          <title>section-always-visible section-${sectionCode}</title>`);
       lines.push(`          <path d="${path}" class="always-visible-section-outline"/>`);
@@ -13775,12 +14339,10 @@ codePane.addEventListener("input", () => {
     return lines.join("\n");
   }
 
-  function buildSvgFrontgroundMarkup(sectionOrder, contourBySection, outlineBySection, rowsBySection, options = {}) {
-    const sectionTextBoxMode = normalizeSvgSectionTextBoxMode(options.sectionTextBoxMode);
-    const sectionTextBoxCornerRadius = parseSvgCornerRadiusValue(options.sectionTextBoxCornerRadius, 75);
-    const priceRegionContourBySection = options.priceRegionContourBySection instanceof Map
-      ? options.priceRegionContourBySection
-      : new Map();
+  function buildSvgFrontgroundMarkup(sectionOrder, outlineBySection, rowsBySection, sectionTextBoxCornerRadius = 75, sectionTextSize = SVG_EXPORT_STYLE_DEFAULTS.sectionTextSize) {
+    const safeCornerRadius = parseSvgCornerRadiusValue(sectionTextBoxCornerRadius, 75);
+    const safeSectionTextSize = parseSvgNonNegativeNumber(sectionTextSize, SVG_EXPORT_STYLE_DEFAULTS.sectionTextSize);
+    const textBoxScale = Math.max(0.2, safeSectionTextSize / SVG_EXPORT_STYLE_DEFAULTS.sectionTextSize);
     const lines = [
       "    <g id=\"frontground-graphics\" class=\"graphics\">",
       "      <title>frontground-graphics</title>",
@@ -13792,13 +14354,13 @@ codePane.addEventListener("input", () => {
       const sectionCode = sectionIdToOutlineCode(sectionId);
       const sectionName = sectionNames.get(sectionId) || "";
       if (!sectionName) return;
-      const bounds = computeSectionBounds(sectionId, contourBySection, outlineBySection, rowsBySection);
+      const bounds = computeSectionBounds(sectionId, outlineBySection, rowsBySection);
       if (!bounds) return;
       const centerX = (bounds.minX + bounds.maxX) / 2;
       const centerY = (bounds.minY + bounds.maxY) / 2;
       const text = sectionName;
-      const width = Math.max(1000, text.length * 200);
-      const height = 500;
+      const width = Math.max(1000, text.length * 200) * textBoxScale;
+      const height = 500 * textBoxScale;
       const yOffset = height / 38;
       const rectX = centerX - width / 2;
       const rectY = centerY - height / 2 - yOffset;
@@ -13807,23 +14369,7 @@ codePane.addEventListener("input", () => {
       lines.push(`          <title>section-visible-when-not-open section-${sectionCode}</title>`);
 
       lines.push("          <g>");
-      if (sectionTextBoxMode === "price-region-outline") {
-        const regionContours = priceRegionContourBySection.get(sectionId) || [];
-        regionContours.forEach((regionContour) => {
-          const outlinePath = buildSvgOutlinePathData(regionContour.contour, {
-            cornerRadius: sectionTextBoxCornerRadius
-          });
-          if (!outlinePath) return;
-          const classParts = ["section-text-box"];
-          if (regionContour.rangeId) classParts.push(`pr-${regionContour.rangeId}`);
-          const regionNameAttr = regionContour.name
-            ? ` data-price-region="${escapeXml(regionContour.name)}"`
-            : "";
-          lines.push(`            <path class="${classParts.join(" ")}" d="${outlinePath}"${regionNameAttr}/>`);
-        });
-      } else {
-        lines.push(`            ${buildSvgSectionTextBoxMarkup(sectionId, contourBySection, { x: rectX, y: rectY, width, height }, sectionTextBoxMode, sectionTextBoxCornerRadius)}`);
-      }
+      lines.push(`            <rect class="section-text-box" x="${formatSvgNumber(rectX)}" y="${formatSvgNumber(rectY)}" width="${formatSvgNumber(width)}" height="${formatSvgNumber(height)}" rx="${formatSvgNumber(safeCornerRadius)}" ry="${formatSvgNumber(safeCornerRadius)}"/>`);
       lines.push(`            <text class="section-text" x="${formatSvgNumber(centerX)}" y="${formatSvgNumber(centerY)}" text-anchor="middle" dominant-baseline="middle" style="white-space: pre;">${escapeXml(text)}</text>`);
       lines.push("          </g>");
       lines.push("        </g>");
@@ -13848,7 +14394,7 @@ codePane.addEventListener("input", () => {
     return points.join(" ");
   }
 
-  function buildSvgSectionsMarkup(sectionOrder, rowsBySection, contourBySection, outlineBySection, priceRegionLookups) {
+  function buildSvgSectionsMarkup(sectionOrder, rowsBySection, outlineBySection, priceRegionLookups) {
     const lines = [
       "    <g id=\"sections\">",
       "      <title>sections</title>"
@@ -13860,7 +14406,7 @@ codePane.addEventListener("input", () => {
       const parts = parseSectionIdParts(sectionId);
       const dataId = parts.major != null ? String(parts.major) : String(sectionId || "");
 
-      const bounds = computeSectionBounds(sectionId, contourBySection, outlineBySection, rowsBySection);
+      const bounds = computeSectionBounds(sectionId, outlineBySection, rowsBySection);
       const hasBounds = !!bounds;
       const minXr = hasBounds ? bounds.minX : 0;
       const minYr = hasBounds ? bounds.minY : 0;
@@ -13973,15 +14519,15 @@ codePane.addEventListener("input", () => {
     return lines.filter(Boolean).join("\n");
   }
 
-  function computeSvgViewBox(contourBySection, rowsBySection) {
+  function computeSvgViewBox(outlineBySection, rowsBySection) {
     let minX = Infinity;
     let minY = Infinity;
     let maxX = -Infinity;
     let maxY = -Infinity;
 
-    contourBySection.forEach((contour) => {
-      if (!contour || !contour.length) return;
-      contour.forEach((c) => {
+    outlineBySection.forEach((outline) => {
+      if (!outline?.coords?.length) return;
+      outline.coords.forEach((c) => {
         minX = Math.min(minX, c.x);
         maxX = Math.max(maxX, c.x);
         minY = Math.min(minY, c.y);
@@ -14037,58 +14583,14 @@ codePane.addEventListener("input", () => {
     return null;
   }
 
-  function buildSvgPriceRegionContourBySection(sectionOrder, rowsBySection, priceRegionLookups) {
-    const contourBySection = new Map();
-    sectionOrder.forEach((sectionId) => {
-      const rows = rowsBySection.get(sectionId) || [];
-      if (!rows.length) return;
-      const rowsByRegionId = new Map();
-      rows.forEach((row) => {
-        const rowName = row?.name || "";
-        (Array.isArray(row?.seats) ? row.seats : []).forEach((seat) => {
-          const region = getSeatPriceRegionLookup(seat, priceRegionLookups);
-          if (!region?.rangeId) return;
-          if (!rowsByRegionId.has(region.rangeId)) rowsByRegionId.set(region.rangeId, new Map());
-          const regionRows = rowsByRegionId.get(region.rangeId);
-          if (!regionRows.has(row.rowId)) {
-            regionRows.set(row.rowId, {
-              rowId: row.rowId,
-              name: rowName,
-              seats: []
-            });
-          }
-          regionRows.get(row.rowId).seats.push(seat);
-        });
-      });
-      const regionContours = [];
-      priceRegionLookups.forEach((region) => {
-        const regionRowMap = rowsByRegionId.get(region.rangeId);
-        if (!regionRowMap) return;
-        const regionRows = rows
-          .map((row) => regionRowMap.get(row.rowId))
-          .filter((row) => row && Array.isArray(row.seats) && row.seats.length);
-        if (!regionRows.length) return;
-        const contour = buildSvgSectionContourFromRows(regionRows);
-        if (!contour || contour.length < 3) return;
-        regionContours.push({
-          rangeId: region.rangeId,
-          name: region.name,
-          contour
-        });
-      });
-      if (regionContours.length) contourBySection.set(sectionId, regionContours);
-    });
-    return contourBySection;
-  }
-
-  async function buildSvgText(baseName, options = {}) {
+  async function buildSvgText(options = {}) {
     const supportSelection = normalizeSvgSupportPartSelection(
       options.svgSupportParts,
       typeof options.includeSupportGraphics === "boolean" ? options.includeSupportGraphics : null
     );
-    const sectionTextBoxMode = normalizeSvgSectionTextBoxMode(options.sectionTextBoxMode);
     const sectionTextBoxCornerRadius = parseSvgCornerRadiusValue(options.sectionTextBoxCornerRadius, 75);
     const svgStyleOptions = getSvgExportStyleOptions(options);
+    const progressCallback = typeof options.onProgress === "function" ? options.onProgress : null;
     if (!seats.length) {
       return [
         "<?xml version=\"1.0\" encoding=\"utf-8\"?>",
@@ -14100,11 +14602,6 @@ codePane.addEventListener("input", () => {
         "</svg>"
       ].join("\n");
     }
-
-    const outlineBySection = new Map();
-    outlines.forEach((outline) => {
-      if (outline && outline.sectionId) outlineBySection.set(outline.sectionId, outline);
-    });
 
     const rowsBySection = new Map();
     seats.forEach((seat) => {
@@ -14151,24 +14648,42 @@ codePane.addEventListener("input", () => {
       normalizedRowsBySection.set(sectionId, rows);
     });
 
-    const contourBySection = buildSvgSectionContourBySection(sectionOrder, outlineBySection, normalizedRowsBySection);
+    const outlineBySection = new Map();
+    const computedOutlines = computeSectionOutlinesFromSeats(20);
+    computedOutlines.forEach((outline) => {
+      if (outline?.sectionId) outlineBySection.set(outline.sectionId, outline);
+    });
+    outlines.forEach((outline) => {
+      if (outline?.sectionId && !outlineBySection.has(outline.sectionId)) {
+        outlineBySection.set(outline.sectionId, outline);
+      }
+    });
+
+    if (progressCallback) {
+      await progressCallback("Building SVG section outlines", `${sectionOrder.length} sections`);
+    } else {
+      await yieldToUiFrame();
+    }
     const priceRegionLookups = buildPriceRegionLookupsForSvg();
-    const priceRegionContourBySection = buildSvgPriceRegionContourBySection(sectionOrder, normalizedRowsBySection, priceRegionLookups);
-    const viewBox = computeSvgViewBox(contourBySection, normalizedRowsBySection);
+    const viewBox = computeSvgViewBox(outlineBySection, normalizedRowsBySection);
+    if (progressCallback) {
+      await progressCallback("Composing SVG markup", "Finalizing document");
+    } else {
+      await yieldToUiFrame();
+    }
     const supportBackgroundMarkup = buildSvgSupportBackgroundMarkup(viewBox, supportSelection);
     const supportHelperMarkup = buildSvgSupportHelperMarkup(supportSelection);
-    const outlineMarkup = buildSvgSectionOutlines(sectionOrder, contourBySection, supportBackgroundMarkup);
+    const outlineMarkup = buildSvgSectionOutlines(sectionOrder, outlineBySection, supportBackgroundMarkup);
     const rowNumberMarkup = buildSvgRowNumberMarkup(sectionOrder, normalizedRowsBySection);
-    const sectionsMarkup = buildSvgSectionsMarkup(sectionOrder, normalizedRowsBySection, contourBySection, outlineBySection, priceRegionLookups);
-    const frontgroundMarkup = buildSvgFrontgroundMarkup(sectionOrder, contourBySection, outlineBySection, normalizedRowsBySection, {
-      sectionTextBoxMode,
+    const sectionsMarkup = buildSvgSectionsMarkup(sectionOrder, normalizedRowsBySection, outlineBySection, priceRegionLookups);
+    const frontgroundMarkup = buildSvgFrontgroundMarkup(
+      sectionOrder,
+      outlineBySection,
+      normalizedRowsBySection,
       sectionTextBoxCornerRadius,
-      priceRegionContourBySection
-    });
-    const cssText = buildSvgCssText({
-      ...svgStyleOptions,
-      sectionTextBoxMode
-    });
+      svgStyleOptions.sectionTextSize
+    );
+    const cssText = buildSvgCssText(svgStyleOptions);
     return buildSvgSkeleton(viewBox, cssText, outlineMarkup, supportHelperMarkup, rowNumberMarkup, sectionsMarkup, frontgroundMarkup);
   }
 
@@ -14314,39 +14829,78 @@ codePane.addEventListener("input", () => {
     const metaVenueId = getLayoutMeta().venueId || "";
     const venueId = (exportVenueId?.value || "").trim() || metaVenueId;
     const exportPreferences = collectExportModalPreferencesFromInputs();
-    const files = [];
     const hasSeatBlockAssignments = hasAnySeatBlockAssignments();
     const exportTlmChecked = !!exportTlm?.checked;
     const shouldLinkTlmInTlc = hasSeatBlockAssignments;
+    const exportTasks = [];
     if (exportTlc?.checked) {
-      files.push({
+      exportTasks.push({
+        label: "TLC",
         name: `${baseName}.tlc`,
-        text: buildTlcText(baseName, venueId, {
-          layoutModificationFile: shouldLinkTlmInTlc ? `${baseName}.tlm` : ""
+        build: async () => ({
+          name: `${baseName}.tlc`,
+          text: buildTlcText(baseName, venueId, {
+            layoutModificationFile: shouldLinkTlmInTlc ? `${baseName}.tlm` : ""
+          })
         })
       });
     }
     if (exportTlt?.checked) {
-      const normalized = normalizeLayoutStructureForPersist();
-      if (normalized) {
-        hasUnsavedChanges = true;
-        updateSaveButton();
-      }
-      const tltText = stripEmptyLines(updateTltVenueId(codePane.value || "", venueId));
-      if (!validateTltTextBeforePersist(tltText, "export")) return false;
-      files.push({ name: `${baseName}.tlt`, text: tltText });
+      exportTasks.push({
+        label: "TLT",
+        name: `${baseName}.tlt`,
+        build: async () => {
+          const normalized = normalizeLayoutStructureForPersist();
+          if (normalized) {
+            hasUnsavedChanges = true;
+            updateSaveButton();
+          }
+          const tltText = stripEmptyLines(updateTltVenueId(codePane.value || "", venueId));
+          if (!validateTltTextBeforePersist(tltText, "export")) return false;
+          return { name: `${baseName}.tlt`, text: tltText };
+        }
+      });
     }
-    if (exportTpr?.checked) files.push({ name: `${baseName}.tpr`, text: stripEmptyLines(buildTprText(baseName, venueId)) });
-    if (exportTlmChecked) files.push({ name: `${baseName}.tlm`, text: stripEmptyLines(buildTlmText(baseName, venueId)) });
-    if (exportCss?.checked) files.push({ name: `${baseName}.css`, text: buildCssText() });
+    if (exportTpr?.checked) {
+      exportTasks.push({
+        label: "TPR",
+        name: `${baseName}.tpr`,
+        build: async () => ({ name: `${baseName}.tpr`, text: stripEmptyLines(buildTprText(baseName, venueId)) })
+      });
+    }
+    if (exportTlmChecked) {
+      exportTasks.push({
+        label: "TLM",
+        name: `${baseName}.tlm`,
+        build: async () => ({ name: `${baseName}.tlm`, text: stripEmptyLines(buildTlmText(baseName, venueId)) })
+      });
+    }
+    if (exportCss?.checked) {
+      exportTasks.push({
+        label: "CSS",
+        name: `${baseName}.css`,
+        build: async () => ({ name: `${baseName}.css`, text: buildCssText() })
+      });
+    }
     if (exportSvg?.checked) {
-      files.push({
+      exportTasks.push({
+        label: "SVG",
         name: `${baseName}.svg`,
-        text: await buildSvgText(baseName, {
-          svgSupportParts: getSvgSupportPartSelectionsFromInputs(),
-          sectionTextBoxMode: exportSvgSectionTextBoxMode?.value || "rect",
-          sectionTextBoxCornerRadius: parseSvgCornerRadiusValue(exportSvgSectionTextBoxCornerRadius?.value, 75),
-          ...getSvgExportStyleOptionsFromInputs()
+        build: async () => ({
+          name: `${baseName}.svg`,
+          text: await buildSvgText({
+            svgSupportParts: getSvgSupportPartSelectionsFromInputs(),
+            sectionTextBoxCornerRadius: parseSvgCornerRadiusValue(exportSvgSectionTextBoxCornerRadius?.value, 75),
+            onProgress: async (message, detail = "") => {
+              setExportProgressState({
+                active: true,
+                message,
+                detail: detail || "SVG export in progress"
+              });
+              await yieldToUiFrame();
+            },
+            ...getSvgExportStyleOptionsFromInputs()
+          })
         })
       });
     }
@@ -14366,28 +14920,65 @@ codePane.addEventListener("input", () => {
         alert("Excel export requires XLSX library.");
         return false;
       }
-      const workbook = buildLayoutSummaryWorkbook();
-      const workbookData = XLSX.write(workbook, { bookType: "xlsx", type: "array", compression: true });
-      files.push({
+      exportTasks.push({
+        label: "Excel Summary",
         name: `${baseName}-layout-summary.xlsx`,
-        binary: workbookData,
-        mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        build: async () => {
+          const workbook = buildLayoutSummaryWorkbook();
+          const workbookData = XLSX.write(workbook, { bookType: "xlsx", type: "array", compression: true });
+          return {
+            name: `${baseName}-layout-summary.xlsx`,
+            binary: workbookData,
+            mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+          };
+        }
       });
     }
 
-    if (!files.length) {
+    if (!exportTasks.length) {
       alert("Select at least one file to export.");
       return false;
     }
 
+    let resolvedDir = null;
     if (typeof window.showDirectoryPicker === "function") {
       try {
         const startDir = await getPreferredExportDirectoryHandleForCurrentLayout();
         const pickerOpts = startDir ? { startIn: startDir } : {};
         const dir = await window.showDirectoryPicker(pickerOpts);
-        const resolvedDir = await tryGetDirectoryHandle(dir) || dir;
+        resolvedDir = await tryGetDirectoryHandle(dir) || dir;
         lastExportDirectoryHandle = resolvedDir;
-        for (const file of files) {
+      } catch (err) {
+        if (err?.name === "AbortError") return false;
+        console.warn("Export via mappval misslyckades, fallback till nedladdning:", err);
+      }
+    }
+
+    setExportModalBusy(true);
+    try {
+      const files = [];
+      for (let index = 0; index < exportTasks.length; index++) {
+        const task = exportTasks[index];
+        setExportProgressState({
+          active: true,
+          message: `Building ${task.label}`,
+          detail: `${index + 1} / ${exportTasks.length} · ${task.name}`
+        });
+        await yieldToUiFrame();
+        const file = await task.build();
+        if (file === false) return false;
+        if (file) files.push(file);
+      }
+
+      if (resolvedDir) {
+        for (let index = 0; index < files.length; index++) {
+          const file = files[index];
+          setExportProgressState({
+            active: true,
+            message: `Saving ${file.name}`,
+            detail: `${index + 1} / ${files.length} files`
+          });
+          await yieldToUiFrame();
           const handle = await resolvedDir.getFileHandle(file.name, { create: true });
           const writable = await handle.createWritable();
           const payload = Object.prototype.hasOwnProperty.call(file, "binary") ? file.binary : file.text;
@@ -14400,23 +14991,33 @@ codePane.addEventListener("input", () => {
           exportDirectoryHandle: resolvedDir
         });
         return true;
-      } catch (err) {
-        if (err?.name === "AbortError") return false;
-        console.warn("Export via mappval misslyckades, fallback till nedladdning:", err);
       }
-    }
 
-    files.forEach((file) => {
-      if (Object.prototype.hasOwnProperty.call(file, "binary")) {
-        downloadBinaryFile(file.name, file.binary, file.mimeType);
-      } else {
-        downloadTextFile(file.name, file.text);
-      }
-    });
-    await persistCurrentLayoutExportPrefs({
-      settings: exportPreferences
-    });
-    return true;
+      setExportProgressState({
+        active: true,
+        message: "Starting browser downloads",
+        detail: `${files.length} files`
+      });
+      await yieldToUiFrame();
+      files.forEach((file) => {
+        if (Object.prototype.hasOwnProperty.call(file, "binary")) {
+          downloadBinaryFile(file.name, file.binary, file.mimeType);
+        } else {
+          downloadTextFile(file.name, file.text);
+        }
+      });
+      await persistCurrentLayoutExportPrefs({
+        settings: exportPreferences
+      });
+      return true;
+    } catch (err) {
+      console.error("Export failed:", err);
+      alert(`Export failed: ${err?.message || err}`);
+      return false;
+    } finally {
+      setExportModalBusy(false);
+      setExportProgressState({ active: false });
+    }
   }
 
   function buildPriceRegionTargetsFromSelection() {
@@ -15423,7 +16024,6 @@ codePane.addEventListener("input", () => {
     applyExportSelectionPreset("none");
   });
   exportSvg?.addEventListener("change", updateSvgExportSettingsAvailability);
-  exportSvgSectionTextBoxMode?.addEventListener("change", updateSvgSectionTextBoxModeAvailability);
   exportSvgSectionTextBoxHoverEnabled?.addEventListener("change", updateSvgHoverEffectAvailability);
   exportName?.addEventListener("keydown", (e) => {
     if (e.key === "Enter") {
@@ -26414,5 +27014,3 @@ function nudgeSelection(dxScreen, dyScreen) {
 
   </body>
   </html>
-
-
