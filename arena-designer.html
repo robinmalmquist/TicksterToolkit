@@ -1344,7 +1344,6 @@
         linear-gradient(currentColor 0 0) 0 100% / 100% 2px no-repeat;
     }
 
-    #numberedImportModeBtn,
     #helpBtn,
     #themeToggleBtn {
       background: var(--tick-turq-dark);
@@ -1481,10 +1480,6 @@
     .price-region-toolbar-grid .c-button {
       width: 100%;
       min-width: 0;
-    }
-
-    #numberedImportCard[hidden] {
-      display: none !important;
     }
 
     .history-panel__controls {
@@ -1666,268 +1661,6 @@
     html[data-theme="dark"] .validation-item--ok {
       border-color: #166534;
       background: #12251a;
-    }
-
-    .numbered-import-state {
-      display: flex;
-      flex-direction: column;
-      gap: 0.25rem;
-      font-size: 0.76rem;
-      color: #4b5563;
-      background: #f5f8fc;
-      border: 1px solid #dbe6f4;
-      border-radius: 8px;
-      padding: 0.45rem 0.55rem;
-    }
-
-    .numbered-import-issues {
-      display: none;
-      font-size: 0.74rem;
-      color: #7f1d1d;
-      background: #fee2e2;
-      border: 1px solid #fecaca;
-      border-radius: 8px;
-      padding: 0.45rem 0.55rem;
-    }
-
-    .numbered-import-issues.is-visible {
-      display: block;
-    }
-
-    .numbered-import-issues__summary {
-      list-style: none;
-      display: flex;
-      align-items: center;
-      gap: 0.35rem;
-      cursor: pointer;
-      user-select: none;
-      font-weight: 600;
-      outline: none;
-    }
-
-    .numbered-import-issues__summary::-webkit-details-marker {
-      display: none;
-    }
-
-    .numbered-import-issues__summary::before {
-      content: "";
-      width: 6px;
-      height: 6px;
-      border-right: 2px solid currentColor;
-      border-bottom: 2px solid currentColor;
-      transform: rotate(-45deg);
-      transition: transform var(--transition-fast);
-      flex: 0 0 auto;
-      margin-top: -1px;
-      opacity: 0.85;
-    }
-
-    .numbered-import-issues[open] .numbered-import-issues__summary::before {
-      transform: rotate(45deg);
-    }
-
-    .numbered-import-issues__summary:focus-visible {
-      box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.2);
-      border-radius: 6px;
-    }
-
-    .numbered-import-issues__content {
-      margin-top: 0.35rem;
-      line-height: 1.35;
-      white-space: pre-wrap;
-    }
-
-    .numbered-import-list {
-      display: flex;
-      flex-direction: column;
-      gap: 0.45rem;
-      max-height: 42vh;
-      overflow: auto;
-      padding-right: 0.2rem;
-    }
-
-    .numbered-import-list__empty {
-      font-size: 0.76rem;
-      color: #5b6673;
-      border: 1px dashed #c8d2df;
-      border-radius: 8px;
-      padding: 0.55rem;
-      background: #f8fbff;
-    }
-
-    .numbered-import-item {
-      border: 1px solid #d7dfec;
-      background: #f8fbff;
-      border-radius: 8px;
-      padding: 0.45rem 0.55rem;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 0.5rem;
-      cursor: grab;
-      user-select: none;
-      position: relative;
-    }
-
-    .numbered-import-item.is-active {
-      border-color: #0c6ba5;
-      box-shadow: 0 0 0 1px rgba(12, 107, 165, 0.25);
-      background: #ebf7ff;
-    }
-
-    .numbered-import-item.is-complete {
-      border-color: #5cae8f;
-      background: #edf9f1;
-    }
-
-    .numbered-import-item.is-complete::after {
-      content: "✅";
-      position: absolute;
-      left: 50%;
-      top: 50%;
-      transform: translate(-50%, -50%);
-      font-size: 1.35rem;
-      line-height: 1;
-      opacity: 0.78;
-      pointer-events: none;
-      z-index: 3;
-    }
-
-    .numbered-import-item__main {
-      min-width: 0;
-      display: flex;
-      flex-direction: column;
-      gap: 0.15rem;
-      position: relative;
-      z-index: 2;
-    }
-
-    .numbered-import-item__ref {
-      font-size: 0.8rem;
-      font-weight: 700;
-      color: #1f3342;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .numbered-import-item__meta {
-      font-size: 0.74rem;
-      color: #5b6673;
-    }
-
-    .numbered-import-item__rows {
-      margin-top: 0.2rem;
-      display: flex;
-      flex-direction: column;
-      gap: 0.1rem;
-      font-size: 0.68rem;
-      color: #4a5568;
-      line-height: 1.25;
-    }
-
-    .numbered-import-item__rowline {
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .numbered-import-item__actions {
-      display: inline-flex;
-      flex-direction: column;
-      align-items: stretch;
-      gap: 0.35rem;
-      position: relative;
-      z-index: 2;
-    }
-
-    .numbered-import-item__btn {
-      min-width: 0;
-      padding: 0.2rem 0.45rem;
-      font-size: 0.7rem;
-      line-height: 1.2;
-    }
-
-    .numbered-import-options {
-      display: flex;
-      flex-direction: column;
-      gap: 0.3rem;
-      border: 1px solid #dbe6f4;
-      border-radius: 8px;
-      background: #f8fbff;
-      padding: 0.45rem 0.55rem;
-    }
-
-    .numbered-import-options__title {
-      font-weight: 600;
-      color: #2c3e50;
-    }
-
-    .numbered-import-options__summary {
-      list-style: none;
-      display: flex;
-      align-items: center;
-      gap: 0.35rem;
-      cursor: pointer;
-      user-select: none;
-      color: #2c3e50;
-      outline: none;
-    }
-
-    .numbered-import-options__summary::-webkit-details-marker {
-      display: none;
-    }
-
-    .numbered-import-options__summary::before {
-      content: "";
-      width: 6px;
-      height: 6px;
-      border-right: 2px solid #4a5568;
-      border-bottom: 2px solid #4a5568;
-      transform: rotate(-45deg);
-      transition: transform var(--transition-fast);
-      flex: 0 0 auto;
-      margin-top: -1px;
-    }
-
-    .numbered-import-options[open] .numbered-import-options__summary::before {
-      transform: rotate(45deg);
-    }
-
-    .numbered-import-options__summary:focus-visible {
-      box-shadow: 0 0 0 2px rgba(12, 107, 165, 0.25);
-      border-radius: 6px;
-    }
-
-    .numbered-import-options__content {
-      display: flex;
-      flex-direction: column;
-      gap: 0.3rem;
-      padding-top: 0.1rem;
-    }
-
-    .numbered-import-section-list {
-      display: flex;
-      flex-direction: column;
-      gap: 0.2rem;
-      max-height: 9.5rem;
-      overflow: auto;
-      padding-right: 0.2rem;
-    }
-
-    .numbered-import-section-empty {
-      font-size: 0.72rem;
-      color: #5b6673;
-      border: 1px dashed #c8d2df;
-      border-radius: 6px;
-      padding: 0.35rem 0.45rem;
-      background: #f8fbff;
-    }
-
-    #numberedImportModeBtn.c-button--active {
-      border-color: #0c6ba5;
-      background: #0c6ba5;
-      color: #ffffff;
     }
 
     .price-region-item {
@@ -3016,88 +2749,6 @@
       box-shadow: inset 0 -2px 0 #38bdf8;
     }
 
-    html[data-theme="dark"] #numberedImportModeBtn.c-button--active {
-      border-color: #38bdf8;
-      background: #0e7490;
-      color: #ecfeff;
-    }
-
-    html[data-theme="dark"] .numbered-import-state {
-      color: #cbd5e1;
-      background: #0f172a;
-      border-color: #1e293b;
-    }
-
-    html[data-theme="dark"] .numbered-import-issues {
-      color: #fecaca;
-      background: rgba(127, 29, 29, 0.3);
-      border-color: rgba(248, 113, 113, 0.5);
-    }
-
-    html[data-theme="dark"] .numbered-import-list__empty {
-      color: #cbd5e1;
-      border-color: var(--dark-ghost-border);
-      background: var(--dark-elevated);
-    }
-
-    html[data-theme="dark"] .numbered-import-item {
-      background: var(--dark-elevated);
-      border-color: var(--dark-border);
-      box-shadow: var(--dark-shadow-item);
-    }
-
-    html[data-theme="dark"] .numbered-import-item.is-active {
-      border-color: #38bdf8;
-      box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.35);
-      background: #0f2234;
-    }
-
-    html[data-theme="dark"] .numbered-import-item.is-complete {
-      border-color: #2f855a;
-      background: #10231d;
-    }
-
-    html[data-theme="dark"] .numbered-import-item.is-complete::after {
-      opacity: 0.9;
-      filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.55));
-    }
-
-    html[data-theme="dark"] .numbered-import-item__ref {
-      color: #e2e8f0;
-    }
-
-    html[data-theme="dark"] .numbered-import-item__meta {
-      color: #94a3b8;
-    }
-
-    html[data-theme="dark"] .numbered-import-item__rows {
-      color: #a8b7cb;
-    }
-
-    html[data-theme="dark"] .numbered-import-options {
-      border-color: #263244;
-      background: #101a2a;
-    }
-
-    html[data-theme="dark"] .numbered-import-options__title {
-      color: #dbe6f4;
-    }
-
-    html[data-theme="dark"] .numbered-import-options__summary {
-      color: #dbe6f4;
-    }
-
-    html[data-theme="dark"] .numbered-import-options__summary::before {
-      border-right-color: #9fb0c7;
-      border-bottom-color: #9fb0c7;
-    }
-
-    html[data-theme="dark"] .numbered-import-section-empty {
-      color: #9fb0c7;
-      border-color: var(--dark-ghost-border);
-      background: var(--dark-elevated);
-    }
-
     html[data-theme="dark"] .price-region-item__header {
       color: var(--dark-text);
     }
@@ -3796,84 +3447,6 @@
         </div>
       </div>
 
-      <div id="numberedImportCard" class="c-card" data-collapsible="true" data-collapsed="false" hidden>
-        <div class="c-card__header">
-          <div class="c-card__title">Import</div>
-          <button class="c-card__toggle" type="button" aria-expanded="true" aria-label="Toggle panel" onclick="toggleRightPanel(this)"></button>
-        </div>
-        <div class="c-card__body c-toolbar">
-          <div class="c-toolbar c-toolbar--horizontal" style="gap:0.35rem;">
-            <button id="numberedImportLoadTltBtn" class="c-button c-button--ghost c-button--small">Load TLT</button>
-            <input type="file" id="numberedImportTltInput" accept=".tlt" style="display:none" />
-            <button id="numberedImportLoadXlsxBtn" class="c-button c-button--ghost c-button--small">Load XLSX</button>
-            <input type="file" id="numberedImportXlsxInput" accept=".xlsx,.xls" style="display:none" />
-          </div>
-          <label class="bg-control u-font--small" title="Ignore seats that exist in TLT but not in Excel, and keep them available for placement.">
-            <input type="checkbox" id="numberedImportAllowAllTltSeats" data-numbered-import-control="true" />
-            Allow all TLT seats when placing
-          </label>
-          <details class="numbered-import-options">
-            <summary class="numbered-import-options__summary">
-              <span class="numbered-import-options__title u-font--small">Placement settings</span>
-            </summary>
-            <div class="numbered-import-options__content">
-              <label class="bg-control u-font--small">
-                <input type="radio" name="numberedImportPlacementMode" id="numberedImportModePurchase" value="all" checked />
-                Place purchase
-              </label>
-              <label class="bg-control u-font--small">
-                <input type="radio" name="numberedImportPlacementMode" id="numberedImportModeSeat" value="seat" />
-                Place seat
-              </label>
-            </div>
-          </details>
-          <details class="numbered-import-options">
-            <summary class="numbered-import-options__summary">
-              <span class="numbered-import-options__title u-font--small">Sections</span>
-            </summary>
-            <div class="numbered-import-options__content">
-              <label class="bg-control u-font--small">
-                <input type="checkbox" id="numberedImportSectionsAll" data-numbered-import-control="true" checked />
-                All sections
-              </label>
-              <div id="numberedImportSectionList" class="numbered-import-section-list"></div>
-            </div>
-          </details>
-          <details class="numbered-import-options">
-            <summary class="numbered-import-options__summary">
-              <span class="numbered-import-options__title u-font--small">Auto placement order</span>
-            </summary>
-            <div class="numbered-import-options__content">
-              <label class="bg-control u-font--small">
-                <input type="radio" name="numberedImportAutoOrderMode" id="numberedImportAutoOrderRow1" value="row1" data-numbered-import-control="true" checked />
-                Place from row 1
-              </label>
-              <label class="bg-control u-font--small">
-                <input type="radio" name="numberedImportAutoOrderMode" id="numberedImportAutoOrderGoodness" value="goodness" data-numbered-import-control="true" />
-                Place by goodness
-              </label>
-            </div>
-          </details>
-          <div class="c-toolbar c-toolbar--horizontal" style="gap:0.35rem;">
-            <button id="numberedImportAutoPlaceAllBtn" class="c-button c-button--ghost c-button--small" disabled>Place all purchases</button>
-            <button id="numberedImportClearBtn" class="c-button c-button--ghost c-button--small" disabled>Clear all</button>
-          </div>
-          <div class="c-toolbar c-toolbar--horizontal" style="gap:0.35rem;">
-            <button id="numberedImportExportBtn" class="c-button c-button--primary c-button--small" disabled>Export XLSX</button>
-          </div>
-          <div id="numberedImportState" class="numbered-import-state">
-            <div id="numberedImportLayoutState">Layout: not loaded</div>
-            <div id="numberedImportExcelState">Excel: not loaded</div>
-            <div id="numberedImportValidationState">Validation: waiting for files</div>
-          </div>
-          <details id="numberedImportIssues" class="numbered-import-issues">
-            <summary id="numberedImportIssuesSummary" class="numbered-import-issues__summary">Warnings (0)</summary>
-            <div id="numberedImportErrors" class="numbered-import-issues__content"></div>
-          </details>
-          <div id="numberedImportPurchaseList" class="numbered-import-list"></div>
-        </div>
-      </div>
-
     </aside>
     <div id="appMenuOverlay" aria-hidden="true">
       <div id="appMenuPanel" aria-label="Arena Designer menu">
@@ -3891,7 +3464,6 @@
         </button>
 
         <button id="exportBtn" class="c-button c-button--primary c-button--icon-left">Export</button>
-        <button id="numberedImportModeBtn" class="c-button c-button--ghost c-button--icon-left" title="Toggle Import mode">Import mode</button>
         <button id="helpBtn" class="c-button c-button--ghost c-button--icon-left" title="Help">
           Help
         </button>
@@ -3934,14 +3506,6 @@
         <button id="unblockSelectionMenuItem" class="context-menu__item" type="button">Unblock selected seat(s)</button>
         <button id="deleteSelectionMenuItem" class="context-menu__item" type="button">Delete selected seat(s)</button>
         <button id="toggleSeatShapeMenuItem" class="context-menu__item" type="button">Show as squares</button>
-      </div>
-    </div>
-    <div id="numberedImportPurchaseMenu" class="context-menu" aria-hidden="true">
-      <div class="context-menu__list">
-        <button id="numberedImportMenuClearPurchase" class="context-menu__item" type="button">Clear purchase</button>
-        <button id="numberedImportMenuClearRow" class="context-menu__item" type="button">Clear row</button>
-        <button id="numberedImportMenuPushLeft" class="context-menu__item" type="button">Push placed left</button>
-        <button id="numberedImportMenuPushRight" class="context-menu__item" type="button">Push placed right</button>
       </div>
     </div>
   <input type="file" id="bgFileInput" accept="image/*" style="display:none" />
@@ -4642,11 +4206,6 @@
 
   const tooltipEl = document.getElementById("tooltip");
   const seatContextMenu = document.getElementById("seatContextMenu");
-  const numberedImportPurchaseMenu = document.getElementById("numberedImportPurchaseMenu");
-  const numberedImportMenuClearPurchase = document.getElementById("numberedImportMenuClearPurchase");
-  const numberedImportMenuClearRow = document.getElementById("numberedImportMenuClearRow");
-  const numberedImportMenuPushLeft = document.getElementById("numberedImportMenuPushLeft");
-  const numberedImportMenuPushRight = document.getElementById("numberedImportMenuPushRight");
   const deleteSelectionMenuItem = document.getElementById("deleteSelectionMenuItem");
   const attributeMenuItem = document.getElementById("attributeMenuItem");
   const goodnessFromPointMenuItem = document.getElementById("goodnessFromPointMenuItem");
@@ -4802,7 +4361,6 @@
     { key: "stairs", label: "Stairs", defaultChecked: false }
   ]);
 
-  const numberedImportModeBtn = document.getElementById("numberedImportModeBtn");
   const historyCard = document.getElementById("historyCard");
   const historyBackBtn = document.getElementById("historyBackBtn");
   const historyForwardBtn = document.getElementById("historyForwardBtn");
@@ -4813,29 +4371,6 @@
   const validationSummary = document.getElementById("validationSummary");
   const validationList = document.getElementById("validationList");
   const displayCard = document.getElementById("displayCard");
-  const numberedImportCard = document.getElementById("numberedImportCard");
-  const numberedImportLoadTltBtn = document.getElementById("numberedImportLoadTltBtn");
-  const numberedImportTltInput = document.getElementById("numberedImportTltInput");
-  const numberedImportLoadXlsxBtn = document.getElementById("numberedImportLoadXlsxBtn");
-  const numberedImportXlsxInput = document.getElementById("numberedImportXlsxInput");
-  const numberedImportAllowAllTltSeats = document.getElementById("numberedImportAllowAllTltSeats");
-  const numberedImportModePurchase = document.getElementById("numberedImportModePurchase");
-  const numberedImportModeSeat = document.getElementById("numberedImportModeSeat");
-  const numberedImportSectionsAll = document.getElementById("numberedImportSectionsAll");
-  const numberedImportSectionList = document.getElementById("numberedImportSectionList");
-  const numberedImportAutoOrderRow1 = document.getElementById("numberedImportAutoOrderRow1");
-  const numberedImportAutoOrderGoodness = document.getElementById("numberedImportAutoOrderGoodness");
-  const numberedImportAutoPlaceAllBtn = document.getElementById("numberedImportAutoPlaceAllBtn");
-  const numberedImportClearBtn = document.getElementById("numberedImportClearBtn");
-  const numberedImportExportBtn = document.getElementById("numberedImportExportBtn");
-  const numberedImportState = document.getElementById("numberedImportState");
-  const numberedImportLayoutState = document.getElementById("numberedImportLayoutState");
-  const numberedImportExcelState = document.getElementById("numberedImportExcelState");
-  const numberedImportValidationState = document.getElementById("numberedImportValidationState");
-  const numberedImportIssues = document.getElementById("numberedImportIssues");
-  const numberedImportIssuesSummary = document.getElementById("numberedImportIssuesSummary");
-  const numberedImportErrors = document.getElementById("numberedImportErrors");
-  const numberedImportPurchaseList = document.getElementById("numberedImportPurchaseList");
   const helpOverlay = document.getElementById("helpOverlay");
   const helpClose = document.getElementById("helpClose");
   const createPriceRegionBtn = document.getElementById("createPriceRegionBtn");
@@ -5145,30 +4680,6 @@
   let priceRegionDraggingRegionId = "";
   let forceSaveAs = false;
   let layoutActive = false;
-  let numberedImportMode = false;
-  let numberedImportWorkbookName = "";
-  let numberedImportWorkbookBuffer = null;
-  let numberedImportParsed = null;
-  let numberedImportPurchases = [];
-  let numberedImportPurchaseByRefNo = new Map();
-  let numberedImportAssignmentsBySeatId = new Map();
-  let numberedImportSelectedRefNo = "";
-  let numberedImportDraggingRefNo = "";
-  let numberedImportValidationErrors = [];
-  let numberedImportValidationWarnings = [];
-  let numberedImportReady = false;
-  let numberedImportBlockedSeatIds = new Set();
-  let numberedImportAllowAllLayoutSeatsOverride = false;
-  let numberedImportPlacementMode = "all";
-  let numberedImportUseAllSections = true;
-  let numberedImportSelectedSectionKeys = new Set();
-  let numberedImportAutoOrderMode = "row1";
-  let numberedImportHoverPreviewRefNo = "";
-  let numberedImportHoverPreviewSeatId = "";
-  let numberedImportHoverPreviewSeatIds = new Set();
-  let numberedImportContextRefNo = "";
-  let numberedImportContextRowId = "";
-
   // Kamera/transform
   let translateX = 0;
   let translateY = 0;
@@ -5414,7 +4925,7 @@
     if (priceRegionBaseColorInput) {
       priceRegionBaseColorInput.value = normalizeColorToHex(priceRegionBaseColor, DEFAULT_PRICE_REGION_BASE_COLOR);
       priceRegionBaseColorInput.style.display = usesBaseColor ? "" : "none";
-      priceRegionBaseColorInput.disabled = !layoutActive || numberedImportMode || !usesBaseColor;
+      priceRegionBaseColorInput.disabled = !layoutActive || !usesBaseColor;
     }
   }
 
@@ -5817,7 +5328,6 @@
     renderEntryPointList();
     updateEntryPointUi();
     updateSeatBlockUi();
-    handleNumberedImportLayoutChanged();
     const outlinesChangedOnLoad = syncOutlinesIntoOriginalLines();
     if (outlinesChangedOnLoad) {
       const newText = originalLines.join("\n");
@@ -5923,24 +5433,6 @@
       entryPoints: cloneJsonData(entryPoints, []),
       seatBlocks: cloneJsonData(seatBlocks, []),
       activeSeatBlockId: activeSeatBlockId || "",
-      numberedImportAssignmentsBySeatId: Array.from(numberedImportAssignmentsBySeatId.entries()),
-      numberedImportPurchases: cloneJsonData(numberedImportPurchases, []),
-      numberedImportBlockedSeatIds: Array.from(numberedImportBlockedSeatIds),
-      numberedImportAllowAllLayoutSeatsOverride: !!numberedImportAllowAllLayoutSeatsOverride,
-      numberedImportSelectedSectionKeys: Array.from(numberedImportSelectedSectionKeys),
-      numberedImportUseAllSections: !!numberedImportUseAllSections,
-      numberedImportPlacementMode: numberedImportPlacementMode || "all",
-      numberedImportAutoOrderMode: numberedImportAutoOrderMode || "row1",
-      numberedImportSelectedRefNo: numberedImportSelectedRefNo || "",
-      numberedImportDraggingRefNo: numberedImportDraggingRefNo || "",
-      numberedImportValidationErrors: Array.isArray(numberedImportValidationErrors) ? [...numberedImportValidationErrors] : [],
-      numberedImportValidationWarnings: Array.isArray(numberedImportValidationWarnings) ? [...numberedImportValidationWarnings] : [],
-      numberedImportReady: !!numberedImportReady,
-      numberedImportHoverPreviewRefNo: numberedImportHoverPreviewRefNo || "",
-      numberedImportHoverPreviewSeatId: numberedImportHoverPreviewSeatId || "",
-      numberedImportHoverPreviewSeatIds: Array.from(numberedImportHoverPreviewSeatIds),
-      numberedImportContextRefNo: numberedImportContextRefNo || "",
-      numberedImportContextRowId: numberedImportContextRowId || "",
       reshapePivotSeatIdsByRow: Array.from(reshapePivotSeatIdsByRow.entries()),
       reshapePivotSeatId: Array.from(reshapePivotSeatIdsByRow.values())[0] || ""
     };
@@ -6000,41 +5492,6 @@
       activeSeatBlockId = seatBlocks[0]?.id || "";
     }
 
-    numberedImportAssignmentsBySeatId = new Map(
-      Array.isArray(state.numberedImportAssignmentsBySeatId) ? state.numberedImportAssignmentsBySeatId : []
-    );
-    numberedImportPurchases = Array.isArray(state.numberedImportPurchases)
-      ? cloneJsonData(state.numberedImportPurchases, [])
-      : [];
-    numberedImportPurchaseByRefNo = new Map(
-      numberedImportPurchases
-        .filter((purchase) => purchase && purchase.refNo != null)
-        .map((purchase) => [purchase.refNo, purchase])
-    );
-    numberedImportBlockedSeatIds = new Set(
-      Array.isArray(state.numberedImportBlockedSeatIds) ? state.numberedImportBlockedSeatIds : []
-    );
-    numberedImportAllowAllLayoutSeatsOverride = !!state.numberedImportAllowAllLayoutSeatsOverride;
-    numberedImportSelectedSectionKeys = new Set(
-      Array.isArray(state.numberedImportSelectedSectionKeys) ? state.numberedImportSelectedSectionKeys : []
-    );
-    numberedImportUseAllSections = typeof state.numberedImportUseAllSections === "boolean"
-      ? state.numberedImportUseAllSections
-      : true;
-    numberedImportPlacementMode = state.numberedImportPlacementMode === "seat" ? "seat" : "all";
-    numberedImportAutoOrderMode = state.numberedImportAutoOrderMode === "goodness" ? "goodness" : "row1";
-    numberedImportSelectedRefNo = state.numberedImportSelectedRefNo || "";
-    numberedImportDraggingRefNo = state.numberedImportDraggingRefNo || "";
-    numberedImportValidationErrors = Array.isArray(state.numberedImportValidationErrors) ? [...state.numberedImportValidationErrors] : [];
-    numberedImportValidationWarnings = Array.isArray(state.numberedImportValidationWarnings) ? [...state.numberedImportValidationWarnings] : [];
-    numberedImportReady = !!state.numberedImportReady;
-    numberedImportHoverPreviewRefNo = state.numberedImportHoverPreviewRefNo || "";
-    numberedImportHoverPreviewSeatId = state.numberedImportHoverPreviewSeatId || "";
-    numberedImportHoverPreviewSeatIds = new Set(
-      Array.isArray(state.numberedImportHoverPreviewSeatIds) ? state.numberedImportHoverPreviewSeatIds : []
-    );
-    numberedImportContextRefNo = state.numberedImportContextRefNo || "";
-    numberedImportContextRowId = state.numberedImportContextRowId || "";
     reshapePivotSeatIdsByRow = new Map();
     if (Array.isArray(state.reshapePivotSeatIdsByRow)) {
       state.reshapePivotSeatIdsByRow.forEach((entry) => {
@@ -6075,8 +5532,6 @@
     updateEntryPointUi();
     renderSeatBlockList();
     updateSeatBlockUi();
-    updateNumberedImportStateUi();
-
     seatCountEl.textContent = seats.length.toString();
     const uniqueSections = new Set(seats.map((seat) => seat.sectionId).filter(Boolean));
     sectionCountEl.textContent = uniqueSections.size.toString();
@@ -6338,16 +5793,6 @@
       return "Seat blocks updated";
     }
 
-    if (
-      !snapshotEntriesEqual(previousSnapshot.numberedImportAssignmentsBySeatId, snapshot.numberedImportAssignmentsBySeatId) ||
-      !snapshotJsonEqual(previousSnapshot.numberedImportPurchases, snapshot.numberedImportPurchases) ||
-      !snapshotJsonEqual(previousSnapshot.numberedImportBlockedSeatIds, snapshot.numberedImportBlockedSeatIds) ||
-      previousSnapshot.numberedImportAllowAllLayoutSeatsOverride !== snapshot.numberedImportAllowAllLayoutSeatsOverride ||
-      previousSnapshot.numberedImportPlacementMode !== snapshot.numberedImportPlacementMode ||
-      previousSnapshot.numberedImportAutoOrderMode !== snapshot.numberedImportAutoOrderMode
-    ) {
-      return "Import placement updated";
-    }
 
     const prevLineCount = Array.isArray(previousSnapshot.originalLines) ? previousSnapshot.originalLines.length : 0;
     const nextLineCount = Array.isArray(snapshot.originalLines) ? snapshot.originalLines.length : 0;
@@ -6820,7 +6265,7 @@
 
   function updateBackgroundMoveButtons() {
     const hasImage = !!backgroundState.img;
-    const disabledByMode = numberedImportMode;
+    const disabledByMode = false;
     if (bgToggleBtn) {
       bgToggleBtn.disabled = !hasImage || disabledByMode;
       const toggleLabel = backgroundState.enabled ? "Hide background image" : "Show background image";
@@ -7632,7 +7077,6 @@ codePane.addEventListener("input", () => {
     loadEntryPointsFromStorage();
     loadSeatBlocksFromStorage();
     loadGoodnessSettingsFromStorage();
-    handleNumberedImportLayoutChanged();
   }
 
   function clearLayoutState() {
@@ -7696,7 +7140,6 @@ codePane.addEventListener("input", () => {
     } catch (err) {
       console.warn("Kunde inte rensa session i localStorage:", err);
     }
-    handleNumberedImportLayoutChanged();
   }
 
   function applyControlAvailability() {
@@ -7711,38 +7154,10 @@ codePane.addEventListener("input", () => {
       "newProjectName",
       "newVenueId",
       "helpBtn",
-      "themeToggleBtn",
-      "numberedImportModeBtn"
-    ]);
-    const numberedImportEnabledIds = new Set([
-      "appMenuToggleBtn",
-      "numberedImportModeBtn",
-      "helpBtn",
-      "themeToggleBtn",
-      "numberedImportLoadTltBtn",
-      "numberedImportTltInput",
-      "numberedImportLoadXlsxBtn",
-      "numberedImportXlsxInput",
-      "numberedImportAllowAllTltSeats",
-      "numberedImportModePurchase",
-      "numberedImportModeSeat",
-      "numberedImportSectionsAll",
-      "numberedImportAutoOrderRow1",
-      "numberedImportAutoOrderGoodness",
-      "numberedImportAutoPlaceAllBtn",
-      "numberedImportClearBtn",
-      "numberedImportExportBtn"
+      "themeToggleBtn"
     ]);
     controls.forEach((control) => {
       const controlId = control.id || "";
-      const isDisplayControl = !!control.closest("#displayCard");
-      if (numberedImportMode) {
-        const canUseInNumberedImport = numberedImportEnabledIds.has(controlId) ||
-          control.dataset.numberedImportControl === "true" ||
-          isDisplayControl;
-        control.disabled = !canUseInNumberedImport;
-        return;
-      }
       if (alwaysEnabledIds.has(controlId)) {
         control.disabled = false;
         return;
@@ -7753,7 +7168,6 @@ codePane.addEventListener("input", () => {
     updateMoveButtonState();
     updateBackgroundMoveButtons();
     updatePriceRegionColorModeUi();
-    updateNumberedImportStateUi();
   }
 
   function setLayoutActive(active) {
@@ -7989,7 +7403,7 @@ codePane.addEventListener("input", () => {
       deleteBtn.textContent = "x";
       deleteBtn.dataset.role = "price-region-delete";
       deleteBtn.dataset.regionId = region.id;
-      const canReorder = !numberedImportMode && priceRegions.length > 1;
+      const canReorder = priceRegions.length > 1;
       const dragEdge = document.createElement("div");
       dragEdge.className = "price-region-item__drag-edge";
       dragEdge.dataset.role = "price-region-drag";
@@ -7998,7 +7412,7 @@ codePane.addEventListener("input", () => {
       dragEdge.classList.toggle("price-region-item__drag-edge--disabled", !canReorder);
       const dragTitle = canReorder
         ? "Drag left edge to reorder"
-        : (numberedImportMode ? "Reordering is disabled in import mode" : "Need at least two price regions to reorder");
+        : "Need at least two price regions to reorder";
       dragEdge.title = dragTitle;
       dragEdge.setAttribute("aria-label", dragTitle);
       const seatCount = getPriceRegionSeatCount(region);
@@ -8101,7 +7515,7 @@ codePane.addEventListener("input", () => {
       staleBtn.textContent = warningState.text;
       staleBtn.dataset.role = "price-region-stale";
       staleBtn.dataset.regionId = region.id;
-      staleBtn.disabled = numberedImportMode || warningState.disabled;
+      staleBtn.disabled = warningState.disabled;
       staleBtn.title = warningState.title;
       staleBtn.setAttribute("aria-label", warningState.title);
       colorControls.appendChild(fillGroup);
@@ -8123,7 +7537,7 @@ codePane.addEventListener("input", () => {
 
   function updatePriceRegionUi() {
     if (!priceRegionList) return;
-    const hasSelection = !numberedImportMode && getSelectedSeats().length > 0;
+    const hasSelection = getSelectedSeats().length > 0;
     const existingSeatIds = new Set(seats.map((s) => s.seatId));
     priceRegionList.querySelectorAll("[data-role='price-region-add']").forEach((btn) => {
       btn.disabled = !hasSelection;
@@ -8133,21 +7547,21 @@ codePane.addEventListener("input", () => {
       const regionId = btn.dataset.regionId;
       const region = priceRegions.find(r => r.id === regionId);
       const hasItems = region ? (region.sections.length + region.rows.length + region.seats.length) > 0 : false;
-      btn.disabled = numberedImportMode || !hasItems;
+      btn.disabled = !hasItems;
     });
     priceRegionList.querySelectorAll("[data-role='price-region-clear']").forEach((btn) => {
       const regionId = btn.dataset.regionId;
       const region = priceRegions.find(r => r.id === regionId);
       const hasItems = region ? (region.sections.length + region.rows.length + region.seats.length) > 0 : false;
-      btn.disabled = numberedImportMode || !hasItems;
+      btn.disabled = !hasItems;
     });
-    const canReorder = !numberedImportMode && priceRegions.length > 1;
+    const canReorder = priceRegions.length > 1;
     priceRegionList.querySelectorAll("[data-role='price-region-drag']").forEach((handle) => {
       handle.draggable = canReorder;
       handle.classList.toggle("price-region-item__drag-edge--disabled", !canReorder);
       const title = canReorder
         ? "Drag left edge to reorder"
-        : (numberedImportMode ? "Reordering is disabled in import mode" : "Need at least two price regions to reorder");
+        : "Need at least two price regions to reorder";
       handle.title = title;
       handle.setAttribute("aria-label", title);
     });
@@ -8155,7 +7569,7 @@ codePane.addEventListener("input", () => {
       const regionId = btn.dataset.regionId;
       const region = priceRegions.find((r) => r.id === regionId);
       const warningState = getPriceRegionWarningState(region, existingSeatIds);
-      btn.disabled = numberedImportMode || warningState.disabled;
+      btn.disabled = warningState.disabled;
       btn.classList.remove(...PRICE_REGION_WARNING_TONE_CLASSES);
       btn.classList.add(warningState.toneClass);
       btn.textContent = warningState.text;
@@ -8477,7 +7891,7 @@ codePane.addEventListener("input", () => {
 
   function updateSeatBlockUi() {
     if (!seatBlockList) return;
-    const hasSelection = !numberedImportMode && getSelectedSeats().length > 0;
+    const hasSelection = getSelectedSeats().length > 0;
     seatBlockList.querySelectorAll("[data-role='seat-block-add']").forEach((btn) => {
       const blockId = btn.dataset.seatBlockId || "";
       btn.disabled = !hasSelection;
@@ -8487,13 +7901,13 @@ codePane.addEventListener("input", () => {
       const blockId = btn.dataset.seatBlockId || "";
       const block = seatBlocks.find((item) => item.id === blockId);
       const hasItems = block ? getSeatBlockSeatCount(block) > 0 : false;
-      btn.disabled = numberedImportMode || !hasItems;
+      btn.disabled = !hasItems;
     });
     seatBlockList.querySelectorAll("[data-role='seat-block-clear']").forEach((btn) => {
       const blockId = btn.dataset.seatBlockId || "";
       const block = seatBlocks.find((item) => item.id === blockId);
       const hasItems = block ? getSeatBlockSeatCount(block) > 0 : false;
-      btn.disabled = numberedImportMode || !hasItems;
+      btn.disabled = !hasItems;
     });
   }
 
@@ -8900,22 +8314,6 @@ codePane.addEventListener("input", () => {
       });
     });
 
-    if (numberedImportMode) {
-      if (numberedImportValidationErrors.length) {
-        items.push({
-          level: "error",
-          text: `Import validation has ${numberedImportValidationErrors.length} error(s).`,
-          action: { id: "open-import-panel", label: "Open" }
-        });
-      } else if (numberedImportValidationWarnings.length) {
-        items.push({
-          level: "warning",
-          text: `Import validation has ${numberedImportValidationWarnings.length} warning(s).`,
-          action: { id: "open-import-panel", label: "Open" }
-        });
-      }
-    }
-
     if (!items.length) {
       items.push({
         level: "ok",
@@ -8990,9 +8388,6 @@ codePane.addEventListener("input", () => {
     if (actionId === "open-price-regions") {
       openRightPanelCard(priceRegionList?.closest(".c-card"));
       return;
-    }
-    if (actionId === "open-import-panel") {
-      if (numberedImportMode) openRightPanelCard(numberedImportCard);
     }
   }
 
@@ -10348,1918 +9743,6 @@ codePane.addEventListener("input", () => {
     return afterText !== beforeText;
   }
 
-  function normalizeNumberedImportHeader(value) {
-    const text = String(value == null ? "" : value)
-      .trim()
-      .toLowerCase();
-    const normalized = typeof text.normalize === "function"
-      ? text.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-      : text;
-    return normalized.replace(/\s+/g, " ");
-  }
-
-  function normalizeNumericId(value) {
-    if (value == null) return "";
-    if (typeof value === "number") {
-      if (!Number.isFinite(value)) return "";
-      return String(Math.trunc(value));
-    }
-    let raw = String(value).trim();
-    if (!raw) return "";
-    raw = raw.replace(/\s+/g, "");
-    if (/^[+-]?\d+(\.\d+)?([eE][+-]?\d+)?$/.test(raw)) {
-      const asNumber = Number(raw);
-      if (Number.isFinite(asNumber)) {
-        return String(Math.trunc(asNumber));
-      }
-    }
-    if (/^\d+\.0+$/.test(raw)) {
-      raw = raw.replace(/\.0+$/, "");
-    }
-    if (/^\d+$/.test(raw)) return raw;
-    return raw.replace(/[^\d]/g, "");
-  }
-
-  function findNumberedImportHeaderRow(rows, requiredColumns) {
-    for (let rowIndex = 0; rowIndex < rows.length; rowIndex++) {
-      const row = Array.isArray(rows[rowIndex]) ? rows[rowIndex] : [];
-      const columns = {};
-      row.forEach((cell, cellIndex) => {
-        const key = normalizeNumberedImportHeader(cell);
-        if (!key || columns[key] != null) return;
-        columns[key] = cellIndex;
-      });
-      const hasAll = requiredColumns.every((columnName) => columns[columnName] != null);
-      if (hasAll) {
-        return { rowIndex, columns };
-      }
-    }
-    return null;
-  }
-
-  function getNumberedImportHeaderColumns(row) {
-    const columns = {};
-    const source = Array.isArray(row) ? row : [];
-    source.forEach((cell, cellIndex) => {
-      const key = normalizeNumberedImportHeader(cell);
-      if (!key) return;
-      if (!Array.isArray(columns[key])) columns[key] = [];
-      columns[key].push(cellIndex);
-    });
-    return columns;
-  }
-
-  function pickLastNumberedImportHeaderColumn(columnsByName, ...names) {
-    for (const name of names) {
-      const candidates = Array.isArray(columnsByName?.[name]) ? columnsByName[name] : [];
-      if (candidates.length) return candidates[candidates.length - 1];
-    }
-    return null;
-  }
-
-  function parsePositiveInteger(value) {
-    if (value == null) return null;
-    const parsed = parseInt(String(value).trim(), 10);
-    if (!Number.isFinite(parsed) || parsed <= 0) return null;
-    return parsed;
-  }
-
-  function normalizeNumberedImportStatus(value) {
-    const text = String(value == null ? "" : value)
-      .trim()
-      .toLowerCase();
-    const normalized = typeof text.normalize === "function"
-      ? text.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-      : text;
-    return normalized.replace(/\s+/g, " ");
-  }
-
-  function parseNumberedImportDateValue(value) {
-    if (value == null || value === "") return Number.POSITIVE_INFINITY;
-    if (value instanceof Date) {
-      const dateValue = value.getTime();
-      return Number.isFinite(dateValue) ? dateValue : Number.POSITIVE_INFINITY;
-    }
-    if (typeof value === "number" && Number.isFinite(value)) {
-      if (typeof XLSX !== "undefined" && XLSX?.SSF?.parse_date_code) {
-        const parsed = XLSX.SSF.parse_date_code(value);
-        if (parsed && Number.isFinite(parsed.y) && Number.isFinite(parsed.m) && Number.isFinite(parsed.d)) {
-          const hours = Number.isFinite(parsed.H) ? parsed.H : 0;
-          const minutes = Number.isFinite(parsed.M) ? parsed.M : 0;
-          const seconds = Number.isFinite(parsed.S) ? parsed.S : 0;
-          const millis = Number.isFinite(parsed.u) ? Math.round(parsed.u * 1000) : 0;
-          return new Date(parsed.y, parsed.m - 1, parsed.d, hours, minutes, seconds, millis).getTime();
-        }
-      }
-      return value;
-    }
-    const text = String(value).trim();
-    if (!text) return Number.POSITIVE_INFINITY;
-    const isoMatch = text.match(/^(\d{4})-(\d{2})-(\d{2})(?:[ T](\d{1,2})(?::(\d{2})(?::(\d{2}))?)?)?$/);
-    if (isoMatch) {
-      const year = parseInt(isoMatch[1], 10);
-      const month = parseInt(isoMatch[2], 10) - 1;
-      const day = parseInt(isoMatch[3], 10);
-      const hours = parseInt(isoMatch[4] || "0", 10);
-      const minutes = parseInt(isoMatch[5] || "0", 10);
-      const seconds = parseInt(isoMatch[6] || "0", 10);
-      return new Date(year, month, day, hours, minutes, seconds, 0).getTime();
-    }
-    const parsed = Date.parse(text);
-    return Number.isFinite(parsed) ? parsed : Number.POSITIVE_INFINITY;
-  }
-
-  function buildNumberedImportTemplateRowsFromLayout() {
-    const rowsByNumeric = new Map();
-    seats.forEach((seat) => {
-      const numericId = normalizeNumericId(seatIdToSvgCode(seat?.seatId));
-      if (!numericId || rowsByNumeric.has(numericId)) return;
-      rowsByNumeric.set(numericId, {
-        identifier: numericId,
-        key: numericId.toLowerCase()
-      });
-    });
-    return Array.from(rowsByNumeric.values())
-      .sort((first, second) => String(first.identifier || "").localeCompare(
-        String(second.identifier || ""),
-        "sv",
-        { numeric: true, sensitivity: "base" }
-      ))
-      .map((row, index) => ({
-        rowIndex: index + 1,
-        identifier: row.identifier,
-        key: row.key
-      }));
-  }
-
-  function parseNumberedImportSimpleTicketListWorkbook(workbook) {
-    if (!workbook || !Array.isArray(workbook.SheetNames) || !workbook.SheetNames.length) return null;
-    for (const sheetName of workbook.SheetNames) {
-      const sheet = workbook.Sheets[sheetName];
-      if (!sheet) continue;
-      const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: true, defval: "" });
-      const header = findNumberedImportHeaderRow(rows, ["status", "biljettyp", "refno"]);
-      if (!header) continue;
-      const headerRow = Array.isArray(rows[header.rowIndex]) ? rows[header.rowIndex] : [];
-      const columnsByName = getNumberedImportHeaderColumns(headerRow);
-      const pickLastColumn = (...names) => {
-        return pickLastNumberedImportHeaderColumn(columnsByName, ...names);
-      };
-      const statusCol = pickLastColumn("status");
-      const refNoCol = pickLastColumn("refno");
-      const ticketTypeCol = pickLastColumn("biljettyp");
-      const ticketCodeCol = pickLastColumn("biljettkod", "ticket code", "ticketcode");
-      const purchasedCol = pickLastColumn("kopt", "purchased", "purchase date");
-      const firstNameCol = pickLastColumn("firstname", "first name", "fornamn");
-      const lastNameCol = pickLastColumn("lastname", "last name", "surname", "efternamn");
-      const emailCol = pickLastColumn("email", "e-mail", "mail", "e-post", "epost");
-      if (statusCol == null || refNoCol == null || ticketTypeCol == null || purchasedCol == null) continue;
-
-      const existingRows = [];
-      let skippedByStatus = 0;
-      let skippedMissingRefNo = 0;
-      for (let rowIndex = header.rowIndex + 1; rowIndex < rows.length; rowIndex++) {
-        const row = Array.isArray(rows[rowIndex]) ? rows[rowIndex] : [];
-        const statusRaw = String(row[statusCol] || "").trim();
-        const status = normalizeNumberedImportStatus(statusRaw);
-        if (status !== "ej anvand") {
-          skippedByStatus++;
-          continue;
-        }
-        const refNo = String(row[refNoCol] || "").trim();
-        if (!refNo) {
-          skippedMissingRefNo++;
-          continue;
-        }
-        const ticketType = String(row[ticketTypeCol] || "").trim();
-        const ticketCode = ticketCodeCol != null ? String(row[ticketCodeCol] || "").trim() : "";
-        const purchasedAtRaw = purchasedCol != null ? row[purchasedCol] : "";
-        const purchasedAtMs = parseNumberedImportDateValue(purchasedAtRaw);
-        const firstName = firstNameCol != null ? String(row[firstNameCol] || "").trim() : "";
-        const lastName = lastNameCol != null ? String(row[lastNameCol] || "").trim() : "";
-        const email = emailCol != null ? String(row[emailCol] || "").trim() : "";
-        existingRows.push({
-          rowIndex,
-          refNo,
-          numericId: "",
-          identifier: "",
-          sectionName: "",
-          rowName: "",
-          seatName: "",
-          noOfTickets: null,
-          ticketType,
-          ticketCode,
-          firstName,
-          lastName,
-          email,
-          purchasedAt: purchasedAtRaw,
-          purchasedAtMs
-        });
-      }
-
-      const warnings = [];
-      if (skippedByStatus > 0) {
-        warnings.push(`${sheetName}: skipped ${skippedByStatus} row(s) where Status is not "Ej anvand".`);
-      }
-      if (skippedMissingRefNo > 0) {
-        warnings.push(`${sheetName}: skipped ${skippedMissingRefNo} row(s) with missing RefNo.`);
-      }
-      if (!existingRows.length) {
-        warnings.push(`${sheetName}: no purchasable rows were found after filtering Status = "Ej anvand".`);
-      }
-
-      return {
-        issues: [],
-        warnings,
-        seatsByNumeric: new Map(),
-        seatsByIdentifier: new Map(),
-        existingRows,
-        template: {
-          sheetName: "Import Template",
-          headerRowIndex: 0,
-          seatColIndex: 0,
-          purchaseGroupColIndex: 1,
-          refNoColIndex: 2,
-          rows: buildNumberedImportTemplateRowsFromLayout()
-        },
-        reportType: "ticket-list",
-        allowsAllLayoutSeats: true,
-        purchaseSortMode: "purchase-date-asc",
-        purchaseListMode: "ticket-type-summary",
-        sourceSheetName: sheetName
-      };
-    }
-    return null;
-  }
-
-  function buildNumberedImportLayoutSeatMap() {
-    const numericToSeat = new Map();
-    const duplicates = new Set();
-    seats.forEach((seat) => {
-      const numericId = normalizeNumericId(seatIdToSvgCode(seat.seatId));
-      if (!numericId) return;
-      if (numericToSeat.has(numericId)) duplicates.add(numericId);
-      numericToSeat.set(numericId, seat);
-    });
-    return { numericToSeat, duplicates: Array.from(duplicates) };
-  }
-
-  function parseNumberedImportWorkbook(workbook) {
-    const issues = [];
-    const warnings = [];
-    if (!workbook || !Array.isArray(workbook.SheetNames) || !workbook.SheetNames.length) {
-      return { issues: ["No sheets found in workbook."], warnings, seatsByNumeric: new Map(), seatsByIdentifier: new Map(), existingRows: [], template: null };
-    }
-    const findSheetName = (name) => {
-      const key = normalizeNumberedImportHeader(name);
-      return workbook.SheetNames.find((sheetName) => normalizeNumberedImportHeader(sheetName) === key) || "";
-    };
-    const seatsSheetName = findSheetName("Seats");
-    const purchasesSheetName = findSheetName("Existing Purchases");
-    const templateSheetName = findSheetName("Import Template");
-    if (!seatsSheetName || !purchasesSheetName || !templateSheetName) {
-      const fallbackParsed = parseNumberedImportSimpleTicketListWorkbook(workbook);
-      if (fallbackParsed) return fallbackParsed;
-    }
-    if (!seatsSheetName) issues.push('Missing sheet "Seats".');
-    if (!purchasesSheetName) issues.push('Missing sheet "Existing Purchases".');
-    if (!templateSheetName) issues.push('Missing sheet "Import Template".');
-    if (issues.length) {
-      return { issues, warnings, seatsByNumeric: new Map(), seatsByIdentifier: new Map(), existingRows: [], template: null };
-    }
-
-    const seatsSheet = workbook.Sheets[seatsSheetName];
-    const purchasesSheet = workbook.Sheets[purchasesSheetName];
-    const templateSheet = workbook.Sheets[templateSheetName];
-    const seatsRows = XLSX.utils.sheet_to_json(seatsSheet, { header: 1, raw: true, defval: "" });
-    const purchasesRows = XLSX.utils.sheet_to_json(purchasesSheet, { header: 1, raw: true, defval: "" });
-    const templateRows = XLSX.utils.sheet_to_json(templateSheet, { header: 1, raw: true, defval: "" });
-
-    const seatsHeader = findNumberedImportHeaderRow(seatsRows, ["identifier", "numericid"]);
-    const purchasesHeader =
-      findNumberedImportHeaderRow(purchasesRows, ["refno", "identifier", "numericid"]) ||
-      findNumberedImportHeaderRow(purchasesRows, ["refno", "nooftickets"]);
-    const templateHeader = findNumberedImportHeaderRow(templateRows, ["seat", "purchase group", "refno"]);
-    if (!seatsHeader) issues.push('Could not find header row in "Seats" (requires Identifier + NumericId).');
-    if (!purchasesHeader) issues.push('Could not find header row in "Existing Purchases" (requires RefNo + Identifier + NumericId).');
-    if (!templateHeader) issues.push('Could not find header row in "Import Template" (requires Seat + Purchase Group + RefNo).');
-    if (issues.length) {
-      return { issues, warnings, seatsByNumeric: new Map(), seatsByIdentifier: new Map(), existingRows: [], template: null };
-    }
-
-    const seatsByNumeric = new Map();
-    const seatsByIdentifier = new Map();
-    const seatDuplicates = new Set();
-    const identifierDuplicates = new Set();
-    for (let rowIndex = seatsHeader.rowIndex + 1; rowIndex < seatsRows.length; rowIndex++) {
-      const row = Array.isArray(seatsRows[rowIndex]) ? seatsRows[rowIndex] : [];
-      const identifier = String(row[seatsHeader.columns["identifier"]] || "").trim();
-      const numericId = normalizeNumericId(row[seatsHeader.columns["numericid"]]);
-      if (!identifier && !numericId) continue;
-      if (!identifier || !numericId) {
-        issues.push(`Seats row ${rowIndex + 1}: both Identifier and NumericId are required.`);
-        continue;
-      }
-      const identifierKey = identifier.toLowerCase();
-      if (seatsByNumeric.has(numericId)) seatDuplicates.add(numericId);
-      if (seatsByIdentifier.has(identifierKey)) identifierDuplicates.add(identifier);
-      seatsByNumeric.set(numericId, { identifier, numericId });
-      seatsByIdentifier.set(identifierKey, { identifier, numericId });
-    }
-    if (seatDuplicates.size) {
-      issues.push(`Seats contains duplicate NumericId values (${Array.from(seatDuplicates).slice(0, 6).join(", ")}${seatDuplicates.size > 6 ? ", ..." : ""}).`);
-    }
-    if (identifierDuplicates.size) {
-      issues.push(`Seats contains duplicate Identifier values (${Array.from(identifierDuplicates).slice(0, 6).join(", ")}${identifierDuplicates.size > 6 ? ", ..." : ""}).`);
-    }
-
-    const purchasesHeaderRow = Array.isArray(purchasesRows[purchasesHeader.rowIndex]) ? purchasesRows[purchasesHeader.rowIndex] : [];
-    const purchasesHeaderColumns = getNumberedImportHeaderColumns(purchasesHeaderRow);
-    const refNoCandidates = Array.isArray(purchasesHeaderColumns["refno"]) ? purchasesHeaderColumns["refno"] : [];
-    const numericCandidates = Array.isArray(purchasesHeaderColumns["numericid"]) ? purchasesHeaderColumns["numericid"] : [];
-    const identifierCandidates = Array.isArray(purchasesHeaderColumns["identifier"]) ? purchasesHeaderColumns["identifier"] : [];
-    const sectionNameCandidates = Array.isArray(purchasesHeaderColumns["sectionname"]) ? purchasesHeaderColumns["sectionname"] : [];
-    const rowNameCandidates = Array.isArray(purchasesHeaderColumns["rowname"]) ? purchasesHeaderColumns["rowname"] : [];
-    const seatNameCandidates = Array.isArray(purchasesHeaderColumns["seatname"]) ? purchasesHeaderColumns["seatname"] : [];
-    const noOfTicketsCandidates = Array.isArray(purchasesHeaderColumns["nooftickets"]) ? purchasesHeaderColumns["nooftickets"] : [];
-    const firstNameCol = pickLastNumberedImportHeaderColumn(purchasesHeaderColumns, "firstname", "first name", "fornamn");
-    const lastNameCol = pickLastNumberedImportHeaderColumn(purchasesHeaderColumns, "lastname", "last name", "surname", "efternamn");
-    const emailCol = pickLastNumberedImportHeaderColumn(purchasesHeaderColumns, "email", "e-mail", "mail", "e-post", "epost");
-
-    const numericCol = numericCandidates.length
-      ? numericCandidates[numericCandidates.length - 1]
-      : purchasesHeader.columns["numericid"];
-    const identifierCol = identifierCandidates.length
-      ? identifierCandidates[identifierCandidates.length - 1]
-      : purchasesHeader.columns["identifier"];
-    const sectionNameCol = sectionNameCandidates.length
-      ? sectionNameCandidates[sectionNameCandidates.length - 1]
-      : null;
-    const rowNameCol = rowNameCandidates.length
-      ? rowNameCandidates[rowNameCandidates.length - 1]
-      : null;
-    const seatNameCol = seatNameCandidates.length
-      ? seatNameCandidates[seatNameCandidates.length - 1]
-      : null;
-
-    let refNoCol = purchasesHeader.columns["refno"];
-    if (refNoCandidates.length > 1) {
-      const anchorCol = seatNameCol != null ? seatNameCol : (numericCol != null ? numericCol : identifierCol);
-      let selectedRefNoCol = null;
-      if (anchorCol != null) {
-        const afterAnchor = refNoCandidates.filter((colIndex) => colIndex > anchorCol).sort((a, b) => a - b);
-        if (afterAnchor.length) selectedRefNoCol = afterAnchor[0];
-      }
-      if (selectedRefNoCol == null) {
-        selectedRefNoCol = refNoCandidates[refNoCandidates.length - 1];
-      }
-      refNoCol = selectedRefNoCol;
-      warnings.push(`Existing Purchases: multiple RefNo columns found. Using the seat-level RefNo column.`);
-    } else if (refNoCandidates.length === 1) {
-      refNoCol = refNoCandidates[0];
-    }
-
-    let noOfTicketsCol = null;
-    if (noOfTicketsCandidates.length) {
-      if (refNoCol != null) {
-        const nearest = [...noOfTicketsCandidates].sort((a, b) => Math.abs(a - refNoCol) - Math.abs(b - refNoCol))[0];
-        if (nearest != null && Math.abs(nearest - refNoCol) <= 3) {
-          noOfTicketsCol = nearest;
-        }
-      }
-      if (noOfTicketsCol == null && noOfTicketsCandidates.length === 1 && refNoCandidates.length <= 1) {
-        noOfTicketsCol = noOfTicketsCandidates[0];
-      }
-    }
-
-    const existingRows = [];
-    for (let rowIndex = purchasesHeader.rowIndex + 1; rowIndex < purchasesRows.length; rowIndex++) {
-      const row = Array.isArray(purchasesRows[rowIndex]) ? purchasesRows[rowIndex] : [];
-      const refNo = refNoCol != null ? String(row[refNoCol] || "").trim() : "";
-      if (!refNo) continue;
-      const identifier = identifierCol != null ? String(row[identifierCol] || "").trim() : "";
-      let numericId = numericCol != null ? normalizeNumericId(row[numericCol]) : "";
-      if (!numericId && identifier) {
-        const fromIdentifier = seatsByIdentifier.get(identifier.toLowerCase());
-        if (fromIdentifier) numericId = fromIdentifier.numericId;
-      }
-      if (!numericId) {
-        warnings.push(`Existing Purchases row ${rowIndex + 1}: missing NumericId. Row kept for ticket count only.`);
-      } else if (!seatsByNumeric.has(numericId)) {
-        warnings.push(`Existing Purchases row ${rowIndex + 1}: NumericId ${numericId} is missing in Seats sheet. Row kept for ticket count only.`);
-      }
-      const sectionName = sectionNameCol != null ? String(row[sectionNameCol] || "").trim() : "";
-      const rowName = rowNameCol != null ? String(row[rowNameCol] || "").trim() : "";
-      const seatName = seatNameCol != null ? String(row[seatNameCol] || "").trim() : "";
-      const noOfTickets = noOfTicketsCol != null ? parsePositiveInteger(row[noOfTicketsCol]) : null;
-      const firstName = firstNameCol != null ? String(row[firstNameCol] || "").trim() : "";
-      const lastName = lastNameCol != null ? String(row[lastNameCol] || "").trim() : "";
-      const email = emailCol != null ? String(row[emailCol] || "").trim() : "";
-      existingRows.push({
-        rowIndex,
-        refNo,
-        numericId,
-        identifier,
-        sectionName,
-        rowName,
-        seatName,
-        noOfTickets,
-        firstName,
-        lastName,
-        email
-      });
-    }
-    if (!existingRows.length) {
-      warnings.push('No rows with RefNo found in "Existing Purchases".');
-    }
-
-    const templateRowsByIdentifier = [];
-    const templateIdentifierCol = templateHeader.columns["seat"];
-    for (let rowIndex = templateHeader.rowIndex + 1; rowIndex < templateRows.length; rowIndex++) {
-      const row = Array.isArray(templateRows[rowIndex]) ? templateRows[rowIndex] : [];
-      const identifier = String(row[templateIdentifierCol] || "").trim();
-      if (!identifier) continue;
-      templateRowsByIdentifier.push({
-        rowIndex,
-        identifier,
-        key: identifier.toLowerCase()
-      });
-      if (!seatsByIdentifier.has(identifier.toLowerCase())) {
-        issues.push(`Import Template row ${rowIndex + 1}: seat "${identifier}" is missing in Seats sheet.`);
-      }
-    }
-    if (!templateRowsByIdentifier.length) {
-      issues.push("Import Template contains no seat rows.");
-    }
-
-    return {
-      issues,
-      warnings,
-      seatsByNumeric,
-      seatsByIdentifier,
-      existingRows,
-      template: {
-        sheetName: templateSheetName,
-        headerRowIndex: templateHeader.rowIndex,
-        seatColIndex: templateHeader.columns["seat"],
-        purchaseGroupColIndex: templateHeader.columns["purchase group"],
-        refNoColIndex: templateHeader.columns["refno"],
-        rows: templateRowsByIdentifier
-      }
-    };
-  }
-
-  function getNumberedImportCurrentFileName() {
-    const fileName = String(currentFileName || "").trim();
-    if (fileName) return fileName;
-    return seats.length ? "Loaded layout" : "Not loaded";
-  }
-
-  function numberedImportAllowsAllLayoutSeats(parsed = numberedImportParsed) {
-    return !!(parsed?.allowsAllLayoutSeats === true || numberedImportAllowAllLayoutSeatsOverride);
-  }
-
-  function setNumberedImportAllowAllLayoutSeatsOverride(enabled, options = {}) {
-    const nextValue = !!enabled;
-    const preserveAssignments = options.preserveAssignments !== false;
-    if (numberedImportAllowAllLayoutSeatsOverride === nextValue) {
-      updateNumberedImportStateUi();
-      return;
-    }
-    numberedImportAllowAllLayoutSeatsOverride = nextValue;
-    handleNumberedImportLayoutChanged({ preserveAssignments });
-  }
-
-  function setNumberedImportIssues(errors = [], warnings = []) {
-    if (!numberedImportErrors || !numberedImportIssues || !numberedImportIssuesSummary) return;
-    const lines = [];
-    if (errors.length) {
-      lines.push("Errors:");
-      errors.slice(0, 12).forEach((message) => lines.push(`- ${message}`));
-      if (errors.length > 12) lines.push(`- ... ${errors.length - 12} more`);
-    }
-    if (warnings.length) {
-      if (lines.length) lines.push("");
-      lines.push("Warnings:");
-      warnings.slice(0, 8).forEach((message) => lines.push(`- ${message}`));
-      if (warnings.length > 8) lines.push(`- ... ${warnings.length - 8} more`);
-    }
-
-    if (!lines.length) {
-      numberedImportErrors.textContent = "";
-      numberedImportIssues.classList.remove("is-visible");
-      numberedImportIssues.open = false;
-      return;
-    }
-
-    const warningCount = Array.isArray(warnings) ? warnings.length : 0;
-    const errorCount = Array.isArray(errors) ? errors.length : 0;
-    if (warningCount > 0) {
-      numberedImportIssuesSummary.textContent = errorCount > 0
-        ? `Warnings (${warningCount}) • Errors (${errorCount})`
-        : `Warnings (${warningCount})`;
-    } else {
-      numberedImportIssuesSummary.textContent = `Errors (${errorCount})`;
-    }
-
-    numberedImportErrors.textContent = lines.join("\n");
-    numberedImportIssues.classList.add("is-visible");
-    numberedImportIssues.open = false;
-  }
-
-  function clearNumberedImportAssignments() {
-    numberedImportAssignmentsBySeatId = new Map();
-    numberedImportPurchases.forEach((purchase) => {
-      purchase.assignedSeatIds = [];
-    });
-  }
-
-  function clearNumberedImportPurchase(refNo) {
-    const purchase = numberedImportPurchaseByRefNo.get(refNo);
-    if (!purchase) return;
-    (purchase.assignedSeatIds || []).forEach((seatId) => {
-      numberedImportAssignmentsBySeatId.delete(seatId);
-    });
-    purchase.assignedSeatIds = [];
-  }
-
-  function getNumberedImportPurchasesInDisplayOrder() {
-    return [...numberedImportPurchases].sort((first, second) => {
-      const firstComplete = isNumberedImportPurchaseComplete(first) ? 1 : 0;
-      const secondComplete = isNumberedImportPurchaseComplete(second) ? 1 : 0;
-      if (firstComplete !== secondComplete) return firstComplete - secondComplete;
-      const firstBaseOrder = Number(first?.listBaseOrder);
-      const secondBaseOrder = Number(second?.listBaseOrder);
-      const firstHasBase = Number.isFinite(firstBaseOrder);
-      const secondHasBase = Number.isFinite(secondBaseOrder);
-      if (firstHasBase && secondHasBase && firstBaseOrder !== secondBaseOrder) {
-        return firstBaseOrder - secondBaseOrder;
-      }
-      if (firstHasBase !== secondHasBase) return firstHasBase ? -1 : 1;
-      return String(first?.refNo || "").localeCompare(String(second?.refNo || ""), "sv", { numeric: true, sensitivity: "base" });
-    });
-  }
-
-  function isNumberedImportSeatAssignableByWorkbook(seat) {
-    if (!seat || !seat.seatId || !numberedImportParsed) return false;
-    if (numberedImportAllowsAllLayoutSeats()) return true;
-    if (numberedImportBlockedSeatIds.has(seat.seatId)) return false;
-    const numericId = normalizeNumericId(seatIdToSvgCode(seat.seatId));
-    return !!(numericId && numberedImportParsed.seatsByNumeric.has(numericId));
-  }
-
-  function getNumberedImportSingleAssignedRowId(purchase) {
-    if (!purchase || !Array.isArray(purchase.assignedSeatIds) || !purchase.assignedSeatIds.length) return "";
-    const seatById = new Map(seats.map((seat) => [seat.seatId, seat]));
-    const rowIds = new Set();
-    purchase.assignedSeatIds.forEach((seatId) => {
-      const rowId = String(seatById.get(seatId)?.rowId || "").trim();
-      if (rowId) rowIds.add(rowId);
-    });
-    if (rowIds.size !== 1) return "";
-    return Array.from(rowIds)[0];
-  }
-
-  function hasNumberedImportPlacedSeatsOnRow(rowId) {
-    const currentRowId = String(rowId || "").trim();
-    if (!currentRowId) return false;
-    return seats.some((seat) => {
-      if (seat.rowId !== currentRowId) return false;
-      return numberedImportAssignmentsBySeatId.has(seat.seatId);
-    });
-  }
-
-  function buildNumberedImportRowPushPlan(rowId, direction = "left") {
-    const currentRowId = String(rowId || "").trim();
-    const normalizedDirection = direction === "right" ? "right" : "left";
-    if (!currentRowId || !numberedImportReady || !numberedImportParsed) return null;
-    const orderedRowSeats = sortSeatsInRow(seats.filter((seat) => seat.rowId === currentRowId));
-    if (!orderedRowSeats.length) return null;
-    const step = normalizedDirection === "right" ? 1 : -1;
-    const assignedEntries = [];
-    orderedRowSeats.forEach((seat, index) => {
-      const refNo = String(numberedImportAssignmentsBySeatId.get(seat.seatId) || "").trim();
-      if (!refNo) return;
-      assignedEntries.push({
-        refNo,
-        fromSeatId: seat.seatId,
-        index
-      });
-    });
-    if (!assignedEntries.length) return null;
-
-    const rowAssignedSeatIds = assignedEntries.map((entry) => entry.fromSeatId);
-    const rowAssignedSeatIdSet = new Set(rowAssignedSeatIds);
-    const assignments = [];
-    for (const entry of assignedEntries) {
-      const targetIndex = entry.index + step;
-      if (targetIndex < 0 || targetIndex >= orderedRowSeats.length) return null;
-      const targetSeat = orderedRowSeats[targetIndex];
-      if (!isNumberedImportSeatAssignableByWorkbook(targetSeat)) return null;
-      const targetSeatId = String(targetSeat?.seatId || "").trim();
-      if (!targetSeatId) return null;
-      const targetRefNo = String(numberedImportAssignmentsBySeatId.get(targetSeatId) || "").trim();
-      if (targetRefNo && !rowAssignedSeatIdSet.has(targetSeatId)) return null;
-      assignments.push({
-        refNo: entry.refNo,
-        fromSeatId: entry.fromSeatId,
-        toSeatId: targetSeatId
-      });
-    }
-
-    return {
-      rowId: currentRowId,
-      direction: normalizedDirection,
-      changed: true,
-      assignments,
-      rowAssignedSeatIds
-    };
-  }
-
-  function applyNumberedImportRowPushPlan(plan) {
-    if (!plan || !Array.isArray(plan.assignments) || !plan.assignments.length) return false;
-    const rowAssignedSeatSet = new Set(
-      Array.isArray(plan.rowAssignedSeatIds)
-        ? plan.rowAssignedSeatIds.map((seatId) => String(seatId || "").trim()).filter(Boolean)
-        : []
-    );
-    if (!rowAssignedSeatSet.size) return false;
-
-    rowAssignedSeatSet.forEach((seatId) => {
-      const refNo = String(numberedImportAssignmentsBySeatId.get(seatId) || "").trim();
-      if (!refNo) return;
-      numberedImportAssignmentsBySeatId.delete(seatId);
-      const purchase = numberedImportPurchaseByRefNo.get(refNo);
-      if (!purchase || !Array.isArray(purchase.assignedSeatIds)) return;
-      purchase.assignedSeatIds = purchase.assignedSeatIds.filter((assignedSeatId) => assignedSeatId !== seatId);
-    });
-
-    plan.assignments.forEach((assignment) => {
-      const refNo = String(assignment?.refNo || "").trim();
-      const toSeatId = String(assignment?.toSeatId || "").trim();
-      if (!refNo || !toSeatId) return;
-      numberedImportAssignmentsBySeatId.set(toSeatId, refNo);
-      const purchase = numberedImportPurchaseByRefNo.get(refNo);
-      if (!purchase) return;
-      const assignedSeatIds = Array.isArray(purchase.assignedSeatIds) ? purchase.assignedSeatIds : [];
-      if (!assignedSeatIds.includes(toSeatId)) assignedSeatIds.push(toSeatId);
-      purchase.assignedSeatIds = assignedSeatIds;
-    });
-    return true;
-  }
-
-  function clearNumberedImportRowAssignments(rowId) {
-    const currentRowId = String(rowId || "").trim();
-    if (!currentRowId) return false;
-    let changed = false;
-    seats.forEach((seat) => {
-      if (seat.rowId !== currentRowId) return;
-      const refNo = String(numberedImportAssignmentsBySeatId.get(seat.seatId) || "").trim();
-      if (!refNo) return;
-      numberedImportAssignmentsBySeatId.delete(seat.seatId);
-      const purchase = numberedImportPurchaseByRefNo.get(refNo);
-      if (purchase && Array.isArray(purchase.assignedSeatIds)) {
-        purchase.assignedSeatIds = purchase.assignedSeatIds.filter((assignedSeatId) => assignedSeatId !== seat.seatId);
-      }
-      changed = true;
-    });
-    return changed;
-  }
-
-  function closeNumberedImportPurchaseMenu() {
-    if (!numberedImportPurchaseMenu) return;
-    numberedImportPurchaseMenu.classList.remove("open");
-    numberedImportPurchaseMenu.setAttribute("aria-hidden", "true");
-    numberedImportContextRefNo = "";
-    numberedImportContextRowId = "";
-  }
-
-  function openNumberedImportPurchaseMenu(clientX, clientY, refNo, rowIdOverride = "") {
-    if (!numberedImportPurchaseMenu || !numberedImportReady) return;
-    const purchase = numberedImportPurchaseByRefNo.get(refNo);
-    if (!purchase) return;
-    const placedCount = Array.isArray(purchase.assignedSeatIds) ? purchase.assignedSeatIds.length : 0;
-    const rowId = String(rowIdOverride || "").trim() || getNumberedImportSingleAssignedRowId(purchase);
-    const rowHasAssignments = hasNumberedImportPlacedSeatsOnRow(rowId);
-    const leftPlan = buildNumberedImportRowPushPlan(rowId, "left");
-    const rightPlan = buildNumberedImportRowPushPlan(rowId, "right");
-
-    numberedImportContextRefNo = purchase.refNo;
-    numberedImportContextRowId = rowId;
-    if (numberedImportMenuClearPurchase) numberedImportMenuClearPurchase.disabled = placedCount <= 0;
-    if (numberedImportMenuClearRow) numberedImportMenuClearRow.disabled = !rowHasAssignments;
-    if (numberedImportMenuPushLeft) numberedImportMenuPushLeft.disabled = !(leftPlan && leftPlan.changed);
-    if (numberedImportMenuPushRight) numberedImportMenuPushRight.disabled = !(rightPlan && rightPlan.changed);
-
-    numberedImportPurchaseMenu.style.left = `${clientX}px`;
-    numberedImportPurchaseMenu.style.top = `${clientY}px`;
-    numberedImportPurchaseMenu.classList.add("open");
-    numberedImportPurchaseMenu.setAttribute("aria-hidden", "false");
-
-    const padding = 8;
-    const menuRect = numberedImportPurchaseMenu.getBoundingClientRect();
-    let left = clientX;
-    let top = clientY;
-    if (left + menuRect.width > window.innerWidth - padding) {
-      left = window.innerWidth - menuRect.width - padding;
-    }
-    if (top + menuRect.height > window.innerHeight - padding) {
-      top = window.innerHeight - menuRect.height - padding;
-    }
-    if (left < padding) left = padding;
-    if (top < padding) top = padding;
-    numberedImportPurchaseMenu.style.left = `${left}px`;
-    numberedImportPurchaseMenu.style.top = `${top}px`;
-  }
-
-  function clearNumberedImportHoverPreview() {
-    const hadPreview =
-      numberedImportHoverPreviewSeatIds.size > 0 ||
-      !!numberedImportHoverPreviewSeatId ||
-      !!numberedImportHoverPreviewRefNo;
-    numberedImportHoverPreviewRefNo = "";
-    numberedImportHoverPreviewSeatId = "";
-    numberedImportHoverPreviewSeatIds = new Set();
-    return hadPreview;
-  }
-
-  function setsHaveSameValues(first, second) {
-    if (first.size !== second.size) return false;
-    for (const value of first) {
-      if (!second.has(value)) return false;
-    }
-    return true;
-  }
-
-  function setNumberedImportHoverPreview(refNo, seatId, seatIds = []) {
-    const nextRefNo = String(refNo || "").trim();
-    const nextSeatId = String(seatId || "").trim();
-    const nextSeatSet = new Set(
-      Array.isArray(seatIds)
-        ? seatIds.map((value) => String(value || "").trim()).filter(Boolean)
-        : []
-    );
-    const changed =
-      numberedImportHoverPreviewRefNo !== nextRefNo ||
-      numberedImportHoverPreviewSeatId !== nextSeatId ||
-      !setsHaveSameValues(numberedImportHoverPreviewSeatIds, nextSeatSet);
-    if (!changed) return false;
-    numberedImportHoverPreviewRefNo = nextRefNo;
-    numberedImportHoverPreviewSeatId = nextSeatId;
-    numberedImportHoverPreviewSeatIds = nextSeatSet;
-    return true;
-  }
-
-  function getNumberedImportContiguousRunAroundTarget(refNo, targetSeatId, requiredCount) {
-    const targetId = String(targetSeatId || "").trim();
-    if (!refNo || !targetId) return null;
-    const neededCount = Number(requiredCount);
-    if (!Number.isFinite(neededCount) || neededCount <= 0) return null;
-    const targetSeat = seats.find((seat) => seat.seatId === targetId);
-    if (!targetSeat || !targetSeat.rowId) return null;
-    const orderedRowSeats = sortSeatsInRow(seats.filter((seat) => seat.rowId === targetSeat.rowId));
-    if (orderedRowSeats.length < neededCount) return null;
-    const targetIndex = orderedRowSeats.findIndex((seat) => seat.seatId === targetId);
-    if (targetIndex < 0) return null;
-    const minStart = Math.max(0, targetIndex - neededCount + 1);
-    const maxStart = Math.min(targetIndex, orderedRowSeats.length - neededCount);
-    if (maxStart < minStart) return null;
-
-    let bestStart = -1;
-    let bestScore = Number.POSITIVE_INFINITY;
-    for (let start = minStart; start <= maxStart; start++) {
-      let valid = true;
-      let score = 0;
-      for (let index = start; index < start + neededCount; index++) {
-        const seat = orderedRowSeats[index];
-        if (!canAssignNumberedImportSeat(seat, refNo)) {
-          valid = false;
-          break;
-        }
-        score += Math.abs(index - targetIndex);
-      }
-      if (!valid) continue;
-      if (score < bestScore) {
-        bestScore = score;
-        bestStart = start;
-      }
-    }
-    if (bestStart < 0) return null;
-    return orderedRowSeats.slice(bestStart, bestStart + neededCount);
-  }
-
-  function getNumberedImportHoverPreviewSeatIds(refNo, targetSeatId) {
-    const currentRefNo = String(refNo || "").trim();
-    const currentSeatId = String(targetSeatId || "").trim();
-    if (!numberedImportMode || !numberedImportReady || !currentRefNo || !currentSeatId) return [];
-    const purchase = numberedImportPurchaseByRefNo.get(currentRefNo);
-    if (!purchase) return [];
-    if (numberedImportPlacementMode === "seat") {
-      const seat = seats.find((entry) => entry.seatId === currentSeatId);
-      return seat && canAssignNumberedImportSeat(seat, currentRefNo) ? [currentSeatId] : [];
-    }
-    const requiredCount = Number.isFinite(purchase.ticketCount) ? purchase.ticketCount : 0;
-    const run = getNumberedImportContiguousRunAroundTarget(currentRefNo, currentSeatId, requiredCount);
-    return Array.isArray(run) ? run.map((seat) => seat.seatId).filter(Boolean) : [];
-  }
-
-  function isNumberedImportPurchaseComplete(purchase) {
-    if (!purchase) return false;
-    const placedCount = Array.isArray(purchase.assignedSeatIds) ? purchase.assignedSeatIds.length : 0;
-    return purchase.ticketCount > 0 && placedCount === purchase.ticketCount;
-  }
-
-  function getNextNumberedImportPurchaseRefNo(currentRefNo) {
-    const orderedPurchases = getNumberedImportPurchasesInDisplayOrder();
-    if (!orderedPurchases.length) return "";
-    const listLength = orderedPurchases.length;
-    const currentIndex = orderedPurchases.findIndex((purchase) => purchase.refNo === currentRefNo);
-    const startIndex = currentIndex >= 0 ? currentIndex : -1;
-    for (let offset = 1; offset <= listLength; offset++) {
-      const index = (startIndex + offset + listLength) % listLength;
-      const candidate = orderedPurchases[index];
-      if (!isNumberedImportPurchaseComplete(candidate)) {
-        return candidate.refNo;
-      }
-    }
-    if (currentIndex >= 0) return orderedPurchases[currentIndex].refNo;
-    return orderedPurchases[0].refNo;
-  }
-
-  function canAssignNumberedImportSeat(seat, refNo = "") {
-    if (!seat || !seat.seatId || !numberedImportParsed) return false;
-    const assignedRefNo = numberedImportAssignmentsBySeatId.get(seat.seatId);
-    if (assignedRefNo && assignedRefNo !== refNo) return false;
-    if (numberedImportAllowsAllLayoutSeats()) return true;
-    if (numberedImportBlockedSeatIds.has(seat.seatId)) return false;
-    const numericId = normalizeNumericId(seatIdToSvgCode(seat.seatId));
-    if (!numericId || !numberedImportParsed.seatsByNumeric.has(numericId)) return false;
-    return true;
-  }
-
-  function getNumberedImportSeatSectionKey(seat) {
-    const sectionId = String(seat?.sectionId || "").trim();
-    if (sectionId) return sectionId;
-    return String(seat?.sectionName || "").trim();
-  }
-
-  function getNumberedImportSeatSectionLabel(seat, fallbackKey = "") {
-    const bySeat = String(seat?.sectionName || "").trim();
-    if (bySeat) return bySeat;
-    const sectionId = String(seat?.sectionId || "").trim();
-    const byMap = sectionId ? String(sectionNames.get(sectionId) || "").trim() : "";
-    if (byMap) return byMap;
-    return fallbackKey || "Unknown section";
-  }
-
-  function getNumberedImportLayoutSections() {
-    const sectionsByKey = new Map();
-    seats.forEach((seat) => {
-      const key = getNumberedImportSeatSectionKey(seat);
-      if (!key) return;
-      if (!sectionsByKey.has(key)) {
-        sectionsByKey.set(key, {
-          key,
-          label: getNumberedImportSeatSectionLabel(seat, key)
-        });
-      }
-    });
-    return Array.from(sectionsByKey.values()).sort((first, second) => {
-      const labelCompare = String(first.label || "").localeCompare(String(second.label || ""), "sv", { numeric: true, sensitivity: "base" });
-      if (labelCompare !== 0) return labelCompare;
-      return String(first.key || "").localeCompare(String(second.key || ""), "sv", { numeric: true, sensitivity: "base" });
-    });
-  }
-
-  function hasNumberedImportGoodnessData() {
-    return seats.some((seat) => {
-      const goodness = Number(seat?.goodness);
-      return Number.isFinite(goodness) && goodness > 0;
-    });
-  }
-
-  function renderNumberedImportSectionFilters() {
-    if (!numberedImportSectionList || !numberedImportSectionsAll) return;
-    const sections = getNumberedImportLayoutSections();
-    const availableKeys = new Set(sections.map((section) => section.key));
-    numberedImportSelectedSectionKeys = new Set(
-      Array.from(numberedImportSelectedSectionKeys).filter((key) => availableKeys.has(key))
-    );
-    if (!numberedImportSelectedSectionKeys.size) numberedImportUseAllSections = true;
-    numberedImportSectionsAll.checked = numberedImportUseAllSections;
-    numberedImportSectionList.innerHTML = "";
-
-    if (!sections.length) {
-      const empty = document.createElement("div");
-      empty.className = "numbered-import-section-empty";
-      empty.textContent = "No sections found in layout.";
-      numberedImportSectionList.appendChild(empty);
-      return;
-    }
-
-    sections.forEach((section) => {
-      const label = document.createElement("label");
-      label.className = "bg-control u-font--small";
-      const input = document.createElement("input");
-      input.type = "checkbox";
-      input.dataset.numberedImportControl = "true";
-      input.dataset.sectionKey = section.key;
-      input.checked = !numberedImportUseAllSections && numberedImportSelectedSectionKeys.has(section.key);
-      input.addEventListener("change", () => {
-        if (input.checked) {
-          numberedImportUseAllSections = false;
-          numberedImportSelectedSectionKeys.add(section.key);
-        } else {
-          numberedImportSelectedSectionKeys.delete(section.key);
-          if (!numberedImportSelectedSectionKeys.size) {
-            numberedImportUseAllSections = true;
-          }
-        }
-        renderNumberedImportSectionFilters();
-        updateNumberedImportStateUi();
-      });
-      label.appendChild(input);
-      label.appendChild(document.createTextNode(section.label));
-      numberedImportSectionList.appendChild(label);
-    });
-  }
-
-  function parseNumberedImportOrderNumber(value) {
-    const text = String(value || "").trim();
-    if (!text) return Number.POSITIVE_INFINITY;
-    const match = text.match(/-?\d+(?:[.,]\d+)?/);
-    if (!match) return Number.POSITIVE_INFINITY;
-    const parsed = parseFloat(match[0].replace(",", "."));
-    return Number.isFinite(parsed) ? parsed : Number.POSITIVE_INFINITY;
-  }
-
-  function compareNumberedImportRowNames(firstRowName, secondRowName) {
-    const firstText = String(firstRowName || "").trim();
-    const secondText = String(secondRowName || "").trim();
-    const firstNumeric = parseNumberedImportOrderNumber(firstText);
-    const secondNumeric = parseNumberedImportOrderNumber(secondText);
-    const firstHasNumeric = Number.isFinite(firstNumeric);
-    const secondHasNumeric = Number.isFinite(secondNumeric);
-
-    if (firstHasNumeric && secondHasNumeric && firstNumeric !== secondNumeric) {
-      return firstNumeric - secondNumeric;
-    }
-    if (firstHasNumeric !== secondHasNumeric) {
-      return firstHasNumeric ? -1 : 1;
-    }
-    return firstText.localeCompare(secondText, "sv", { numeric: true, sensitivity: "base" });
-  }
-
-  function getNumberedImportPrimarySectionName(purchase) {
-    if (!purchase || !Array.isArray(purchase.rows)) return "";
-    const match = purchase.rows.find((row) => String(row?.sectionName || "").trim());
-    return match ? String(match.sectionName || "").trim() : "";
-  }
-
-  function getNumberedImportPrimaryRowName(purchase) {
-    if (!purchase || !Array.isArray(purchase.rows)) return "";
-    const match = purchase.rows.find((row) => String(row?.rowName || "").trim());
-    return match ? String(match.rowName || "").trim() : "";
-  }
-
-  function getNumberedImportRowOrderValue(row) {
-    if (!row) return Number.POSITIVE_INFINITY;
-    const firstSeat = Array.isArray(row.orderedSeats) ? row.orderedSeats[0] : null;
-    const fromRowName = parseNumberedImportOrderNumber(firstSeat?.rowName);
-    if (Number.isFinite(fromRowName)) return fromRowName;
-    const rowIdTokens = String(row.rowId || "").split(".");
-    const fromRowId = parseNumberedImportOrderNumber(rowIdTokens[rowIdTokens.length - 1]);
-    if (Number.isFinite(fromRowId)) return fromRowId;
-    return Number.POSITIVE_INFINITY;
-  }
-
-  function getNumberedImportSeatGoodnessScore(seat) {
-    const goodness = Number(seat?.goodness);
-    return Number.isFinite(goodness) ? goodness : Number.POSITIVE_INFINITY;
-  }
-
-  function buildNumberedImportAutoPlacementRows() {
-    const allowedSections = numberedImportUseAllSections
-      ? null
-      : new Set(Array.from(numberedImportSelectedSectionKeys));
-    const rowsByKey = new Map();
-    seats.forEach((seat) => {
-      if (!seat?.rowId) return;
-      const sectionKey = getNumberedImportSeatSectionKey(seat);
-      if (allowedSections && (!sectionKey || !allowedSections.has(sectionKey))) return;
-      const rowKey = `${sectionKey || ""}::${seat.rowId}`;
-      let row = rowsByKey.get(rowKey);
-      if (!row) {
-        row = {
-          rowId: seat.rowId,
-          sectionKey,
-          sectionLabel: getNumberedImportSeatSectionLabel(seat, sectionKey),
-          seats: []
-        };
-        rowsByKey.set(rowKey, row);
-      }
-      row.seats.push(seat);
-    });
-
-    const rows = Array.from(rowsByKey.values()).map((row) => {
-      const orderedSeats = sortSeatsInRow(row.seats);
-      let sumX = 0;
-      let sumY = 0;
-      orderedSeats.forEach((seat) => {
-        sumX += Number(seat.vx) || 0;
-        sumY += Number(seat.vy) || 0;
-      });
-      const count = orderedSeats.length || 1;
-      return {
-        rowId: row.rowId,
-        sectionKey: row.sectionKey,
-        sectionLabel: row.sectionLabel,
-        orderedSeats,
-        rowOrderValue: getNumberedImportRowOrderValue({ rowId: row.rowId, orderedSeats }),
-        avgX: sumX / count,
-        avgY: sumY / count
-      };
-    });
-
-    rows.sort((first, second) => {
-      const sectionCompare = String(first.sectionLabel || first.sectionKey || "").localeCompare(
-        String(second.sectionLabel || second.sectionKey || ""),
-        "sv",
-        { numeric: true, sensitivity: "base" }
-      );
-      if (sectionCompare !== 0) return sectionCompare;
-      if (first.rowOrderValue !== second.rowOrderValue) return first.rowOrderValue - second.rowOrderValue;
-      if (Math.abs(first.avgY - second.avgY) > 1e-6) return first.avgY - second.avgY;
-      if (Math.abs(first.avgX - second.avgX) > 1e-6) return first.avgX - second.avgX;
-      return String(first.rowId || "").localeCompare(String(second.rowId || ""), "sv", { numeric: true, sensitivity: "base" });
-    });
-
-    rows.forEach((row, index) => {
-      row.orderIndex = index;
-    });
-    return rows;
-  }
-
-  function findNumberedImportFirstRun(row, requiredCount, refNo) {
-    if (!row || !Array.isArray(row.orderedSeats) || row.orderedSeats.length < requiredCount) return null;
-    const maxStart = row.orderedSeats.length - requiredCount;
-    for (let start = 0; start <= maxStart; start++) {
-      let valid = true;
-      let goodnessScore = 0;
-      for (let offset = 0; offset < requiredCount; offset++) {
-        const seat = row.orderedSeats[start + offset];
-        if (!canAssignNumberedImportSeat(seat, refNo)) {
-          valid = false;
-          break;
-        }
-        const seatGoodness = getNumberedImportSeatGoodnessScore(seat);
-        goodnessScore += Number.isFinite(seatGoodness) ? seatGoodness : 1e9;
-      }
-      if (!valid) continue;
-      return {
-        row,
-        start,
-        seats: row.orderedSeats.slice(start, start + requiredCount),
-        goodnessScore
-      };
-    }
-    return null;
-  }
-
-  function findNumberedImportBestGoodnessRun(row, requiredCount, refNo) {
-    if (!row || !Array.isArray(row.orderedSeats) || row.orderedSeats.length < requiredCount) return null;
-    const maxStart = row.orderedSeats.length - requiredCount;
-    let best = null;
-    for (let start = 0; start <= maxStart; start++) {
-      let valid = true;
-      let goodnessScore = 0;
-      for (let offset = 0; offset < requiredCount; offset++) {
-        const seat = row.orderedSeats[start + offset];
-        if (!canAssignNumberedImportSeat(seat, refNo)) {
-          valid = false;
-          break;
-        }
-        const seatGoodness = getNumberedImportSeatGoodnessScore(seat);
-        goodnessScore += Number.isFinite(seatGoodness) ? seatGoodness : 1e9;
-      }
-      if (!valid) continue;
-      if (!best || goodnessScore < best.goodnessScore || (goodnessScore === best.goodnessScore && start < best.start)) {
-        best = {
-          row,
-          start,
-          seats: row.orderedSeats.slice(start, start + requiredCount),
-          goodnessScore
-        };
-      }
-    }
-    return best;
-  }
-
-  function findNumberedImportPlacementRun(orderedRows, requiredCount, refNo, useGoodness) {
-    if (!Array.isArray(orderedRows) || !orderedRows.length) return null;
-    if (!Number.isFinite(requiredCount) || requiredCount <= 0) return null;
-    if (useGoodness) {
-      let bestRun = null;
-      for (const row of orderedRows) {
-        const candidateRun = findNumberedImportBestGoodnessRun(row, requiredCount, refNo);
-        if (!candidateRun) continue;
-        if (!bestRun) {
-          bestRun = candidateRun;
-          continue;
-        }
-        if (candidateRun.goodnessScore < bestRun.goodnessScore) {
-          bestRun = candidateRun;
-          continue;
-        }
-        if (candidateRun.goodnessScore === bestRun.goodnessScore) {
-          if ((candidateRun.row.orderIndex || 0) < (bestRun.row.orderIndex || 0)) {
-            bestRun = candidateRun;
-            continue;
-          }
-          if ((candidateRun.row.orderIndex || 0) === (bestRun.row.orderIndex || 0) && candidateRun.start < bestRun.start) {
-            bestRun = candidateRun;
-          }
-        }
-      }
-      return bestRun ? bestRun.seats : null;
-    }
-
-    for (const row of orderedRows) {
-      const firstRun = findNumberedImportFirstRun(row, requiredCount, refNo);
-      if (firstRun) return firstRun.seats;
-    }
-    return null;
-  }
-
-  function setNumberedImportPlacementMode(mode) {
-    numberedImportPlacementMode = mode === "seat" ? "seat" : "all";
-    updateNumberedImportPlacementModeUi();
-  }
-
-  function setNumberedImportAutoOrderMode(mode) {
-    numberedImportAutoOrderMode = mode === "goodness" ? "goodness" : "row1";
-    updateNumberedImportPlacementModeUi();
-  }
-
-  function updateNumberedImportPlacementModeUi() {
-    if (numberedImportModePurchase) {
-      numberedImportModePurchase.checked = numberedImportPlacementMode !== "seat";
-    }
-    if (numberedImportModeSeat) {
-      numberedImportModeSeat.checked = numberedImportPlacementMode === "seat";
-    }
-    const goodnessAvailable = hasNumberedImportGoodnessData();
-    if (!goodnessAvailable && numberedImportAutoOrderMode === "goodness") {
-      numberedImportAutoOrderMode = "row1";
-    }
-    if (numberedImportAutoOrderRow1) {
-      numberedImportAutoOrderRow1.checked = numberedImportAutoOrderMode !== "goodness";
-    }
-    if (numberedImportAutoOrderGoodness) {
-      numberedImportAutoOrderGoodness.checked = numberedImportAutoOrderMode === "goodness";
-      numberedImportAutoOrderGoodness.disabled = !goodnessAvailable;
-      numberedImportAutoOrderGoodness.title = goodnessAvailable ? "" : "No goodness values found in this layout.";
-    }
-  }
-
-  function autoPlaceAllNumberedImportPurchases() {
-    if (!numberedImportReady || !numberedImportParsed || !numberedImportPurchases.length) return;
-    if (numberedImportAssignmentsBySeatId.size > 0) {
-      const ok = confirm("Clear current placements and auto-place all purchases?");
-      if (!ok) return;
-    }
-
-    clearNumberedImportAssignments();
-
-    const orderedRows = buildNumberedImportAutoPlacementRows();
-    if (!orderedRows.length) {
-      alert("No rows available for the selected section filter.");
-      return;
-    }
-    const goodnessAvailable = hasNumberedImportGoodnessData();
-    const useGoodness = numberedImportAutoOrderMode === "goodness" && goodnessAvailable;
-
-    const failures = [];
-    let placedPurchases = 0;
-    numberedImportPurchases.forEach((purchase) => {
-      purchase.assignedSeatIds = [];
-    });
-
-    for (const purchase of numberedImportPurchases) {
-      const requiredCount = Number.isFinite(purchase.ticketCount) ? purchase.ticketCount : 0;
-      if (requiredCount <= 0) {
-        failures.push(`${purchase.refNo} (${requiredCount})`);
-        continue;
-      }
-
-      const selectedRun = findNumberedImportPlacementRun(orderedRows, requiredCount, purchase.refNo, useGoodness);
-
-      if (!selectedRun) {
-        failures.push(`${purchase.refNo} (${requiredCount})`);
-        continue;
-      }
-
-      const seatIds = selectedRun.map((seat) => seat.seatId);
-      seatIds.forEach((seatId) => numberedImportAssignmentsBySeatId.set(seatId, purchase.refNo));
-      purchase.assignedSeatIds = seatIds;
-      placedPurchases += 1;
-    }
-
-    numberedImportSelectedRefNo = getNextNumberedImportPurchaseRefNo("") || (numberedImportPurchases[0]?.refNo || "");
-    refreshNumberedImportUi();
-
-    if (failures.length) {
-      const preview = failures.slice(0, 8).join(", ");
-      const suffix = failures.length > 8 ? `, ... +${failures.length - 8} more` : "";
-      alert(
-        `Auto placement finished: ${placedPurchases}/${numberedImportPurchases.length} purchases placed. Could not place ${failures.length}: ${preview}${suffix}.`
-      );
-    } else {
-      alert(`Auto placement finished: ${placedPurchases}/${numberedImportPurchases.length} purchases placed.`);
-    }
-  }
-
-  function placeNumberedImportPurchaseBySettings(refNo) {
-    if (!numberedImportReady || !numberedImportParsed) return false;
-    const purchase = numberedImportPurchaseByRefNo.get(refNo);
-    if (!purchase) return false;
-
-    const orderedRows = buildNumberedImportAutoPlacementRows();
-    if (!orderedRows.length) {
-      alert("No rows available for the selected section filter.");
-      return false;
-    }
-
-    const requiredCount = Number.isFinite(purchase.ticketCount) ? purchase.ticketCount : 0;
-    if (requiredCount <= 0) {
-      alert(`Could not place purchase ${refNo}. Invalid ticket count (${requiredCount}).`);
-      return false;
-    }
-
-    const previousAssigned = Array.isArray(purchase.assignedSeatIds) ? [...purchase.assignedSeatIds] : [];
-    previousAssigned.forEach((seatId) => {
-      numberedImportAssignmentsBySeatId.delete(seatId);
-    });
-
-    const goodnessAvailable = hasNumberedImportGoodnessData();
-    const useGoodness = numberedImportAutoOrderMode === "goodness" && goodnessAvailable;
-    const selectedRun = findNumberedImportPlacementRun(orderedRows, requiredCount, purchase.refNo, useGoodness);
-
-    if (!selectedRun) {
-      previousAssigned.forEach((seatId) => {
-        numberedImportAssignmentsBySeatId.set(seatId, refNo);
-      });
-      purchase.assignedSeatIds = previousAssigned;
-      alert(`Could not place purchase ${refNo} with current section/order settings.`);
-      refreshNumberedImportUi();
-      return false;
-    }
-
-    const seatIds = selectedRun.map((seat) => seat.seatId);
-    seatIds.forEach((seatId) => {
-      numberedImportAssignmentsBySeatId.set(seatId, refNo);
-    });
-    purchase.assignedSeatIds = seatIds;
-    numberedImportSelectedRefNo = getNextNumberedImportPurchaseRefNo(refNo);
-    refreshNumberedImportUi();
-    return true;
-  }
-
-  function getNumberedImportPurchaseColor(refNo) {
-    let hash = 0;
-    const text = String(refNo || "");
-    for (let i = 0; i < text.length; i++) {
-      hash = ((hash << 5) - hash) + text.charCodeAt(i);
-      hash |= 0;
-    }
-    const hue = Math.abs(hash) % 360;
-    return `hsl(${hue} 72% 58%)`;
-  }
-
-  function renderNumberedImportPurchaseList() {
-    if (!numberedImportPurchaseList) return;
-    numberedImportPurchaseList.innerHTML = "";
-    const appendEmpty = (text) => {
-      const empty = document.createElement("div");
-      empty.className = "numbered-import-list__empty";
-      empty.textContent = text;
-      numberedImportPurchaseList.appendChild(empty);
-    };
-    if (!numberedImportMode) return;
-    if (!numberedImportWorkbookName) {
-      appendEmpty("Load an XLSX file to list purchases.");
-      return;
-    }
-    if (numberedImportValidationErrors.length) {
-      appendEmpty("Validation failed. Resolve errors before placement.");
-      return;
-    }
-    const displayPurchases = getNumberedImportPurchasesInDisplayOrder();
-    if (!displayPurchases.length) {
-      appendEmpty("No purchases were found in the workbook.");
-      return;
-    }
-
-    displayPurchases.forEach((purchase) => {
-      const placedCount = Array.isArray(purchase.assignedSeatIds) ? purchase.assignedSeatIds.length : 0;
-      const complete = isNumberedImportPurchaseComplete(purchase);
-      const item = document.createElement("div");
-      item.className = "numbered-import-item";
-      if (purchase.refNo === numberedImportSelectedRefNo) item.classList.add("is-active");
-      if (complete) item.classList.add("is-complete");
-      item.draggable = true;
-      item.dataset.refNo = purchase.refNo;
-      item.style.borderLeft = `6px solid ${getNumberedImportPurchaseColor(purchase.refNo)}`;
-
-      const main = document.createElement("div");
-      main.className = "numbered-import-item__main";
-      const ref = document.createElement("div");
-      ref.className = "numbered-import-item__ref";
-      ref.textContent = purchase.refNo;
-      const meta = document.createElement("div");
-      meta.className = "numbered-import-item__meta";
-      meta.textContent = `Placed ${placedCount}/${purchase.ticketCount}`;
-      main.appendChild(ref);
-      main.appendChild(meta);
-
-      const rowInfo = document.createElement("div");
-      rowInfo.className = "numbered-import-item__rows";
-      const ticketTypeSummary = Array.isArray(purchase.ticketTypeSummary) ? purchase.ticketTypeSummary : [];
-      const summaryOnly = purchase.purchaseListMode === "ticket-type-summary";
-      if (ticketTypeSummary.length) {
-        ticketTypeSummary.forEach((summaryText) => {
-          const line = document.createElement("div");
-          line.className = "numbered-import-item__rowline";
-          line.textContent = summaryText;
-          rowInfo.appendChild(line);
-        });
-      }
-      if (!summaryOnly) {
-        (purchase.rows || []).forEach((row) => {
-          const sectionName = String(row.sectionName || "").trim();
-          const rowName = String(row.rowName || "").trim();
-          const seatName = String(row.seatName || "").trim();
-          const segments = [];
-          if (sectionName) segments.push(sectionName);
-          if (rowName) segments.push(rowName);
-          if (seatName) segments.push(seatName);
-          const line = document.createElement("div");
-          line.className = "numbered-import-item__rowline";
-          line.textContent = segments.join(" / ") || String(row.identifier || row.numericId || "").trim();
-          rowInfo.appendChild(line);
-        });
-      }
-      if (!rowInfo.childElementCount) {
-        const line = document.createElement("div");
-        line.className = "numbered-import-item__rowline";
-        line.textContent = "No row details";
-        rowInfo.appendChild(line);
-      }
-      main.appendChild(rowInfo);
-
-      const actions = document.createElement("div");
-      actions.className = "numbered-import-item__actions";
-      const placeBtn = document.createElement("button");
-      placeBtn.type = "button";
-      placeBtn.className = "c-button c-button--ghost c-button--small numbered-import-item__btn";
-      placeBtn.textContent = "Place";
-      placeBtn.dataset.numberedImportControl = "true";
-      placeBtn.disabled = !numberedImportReady || purchase.ticketCount <= 0;
-      placeBtn.addEventListener("click", (event) => {
-        event.stopPropagation();
-        placeNumberedImportPurchaseBySettings(purchase.refNo);
-      });
-      actions.appendChild(placeBtn);
-
-      const clearBtn = document.createElement("button");
-      clearBtn.type = "button";
-      clearBtn.className = "c-button c-button--ghost c-button--small numbered-import-item__btn";
-      clearBtn.textContent = "Clear";
-      clearBtn.dataset.numberedImportControl = "true";
-      clearBtn.disabled = placedCount === 0;
-      clearBtn.addEventListener("click", (event) => {
-        event.stopPropagation();
-        clearNumberedImportPurchase(purchase.refNo);
-        refreshNumberedImportUi();
-      });
-      actions.appendChild(clearBtn);
-
-      item.appendChild(main);
-      item.appendChild(actions);
-
-      item.addEventListener("click", () => {
-        selectNumberedImportPurchase(purchase.refNo);
-      });
-      item.addEventListener("dragstart", (event) => {
-        if (!numberedImportReady) return;
-        numberedImportDraggingRefNo = purchase.refNo;
-        selectNumberedImportPurchase(purchase.refNo);
-        if (event.dataTransfer) {
-          event.dataTransfer.effectAllowed = "move";
-          event.dataTransfer.setData("text/plain", purchase.refNo);
-        }
-      });
-      item.addEventListener("dragend", () => {
-        numberedImportDraggingRefNo = "";
-      });
-      numberedImportPurchaseList.appendChild(item);
-    });
-  }
-
-  function refreshNumberedImportUi() {
-    clearNumberedImportHoverPreview();
-    closeNumberedImportPurchaseMenu();
-    renderNumberedImportPurchaseList();
-    updateNumberedImportStateUi();
-    renderCanvas();
-  }
-
-  function updateNumberedImportStateUi() {
-    updateRightPanelVisibilityForNumberedImport();
-    if (numberedImportCard) {
-      numberedImportCard.hidden = !numberedImportMode;
-    }
-    renderNumberedImportSectionFilters();
-    updateNumberedImportPlacementModeUi();
-    if (numberedImportState) {
-      numberedImportState.style.display = numberedImportMode ? "" : "none";
-    }
-    if (numberedImportLayoutState) {
-      numberedImportLayoutState.textContent = `Layout: ${getNumberedImportCurrentFileName()} (${seats.length} seats)`;
-    }
-    if (numberedImportExcelState) {
-      numberedImportExcelState.textContent = numberedImportWorkbookName
-        ? `Excel: ${numberedImportWorkbookName}`
-        : "Excel: not loaded";
-    }
-    if (numberedImportAllowAllTltSeats) {
-      const workbookAlreadyAllowsAll = numberedImportParsed?.allowsAllLayoutSeats === true;
-      numberedImportAllowAllTltSeats.checked = numberedImportAllowsAllLayoutSeats();
-      numberedImportAllowAllTltSeats.disabled = !numberedImportMode || !seats.length || !numberedImportWorkbookName || workbookAlreadyAllowsAll;
-      numberedImportAllowAllTltSeats.title = workbookAlreadyAllowsAll
-        ? "This workbook already allows all layout seats."
-        : "Ignore seats that exist in TLT but not in Excel, and keep them available for placement.";
-    }
-    if (numberedImportValidationState) {
-      if (!numberedImportWorkbookName) {
-        numberedImportValidationState.textContent = "Validation: waiting for files";
-      } else if (numberedImportValidationErrors.length) {
-        numberedImportValidationState.textContent = `Validation: failed (${numberedImportValidationErrors.length} errors)`;
-      } else if (!numberedImportReady) {
-        numberedImportValidationState.textContent = "Validation: no purchasable rows found";
-      } else {
-        const totalSeats = numberedImportPurchases.reduce((sum, purchase) => sum + purchase.ticketCount, 0);
-        const placedSeats = numberedImportPurchases.reduce((sum, purchase) => sum + (purchase.assignedSeatIds?.length || 0), 0);
-        const allTltSeatsSuffix = numberedImportAllowsAllLayoutSeats()
-          ? " • All TLT seats enabled"
-          : "";
-        const blockedSuffix = numberedImportBlockedSeatIds.size
-          ? ` • Blocked ${numberedImportBlockedSeatIds.size}`
-          : "";
-        numberedImportValidationState.textContent = `Validation: OK • Purchases ${numberedImportPurchases.length} • Placed ${placedSeats}/${totalSeats}${allTltSeatsSuffix}${blockedSuffix}`;
-      }
-    }
-    const allPlaced = numberedImportReady && numberedImportPurchases.every((purchase) => {
-      return isNumberedImportPurchaseComplete(purchase);
-    });
-    const disablePlacementControls = !numberedImportMode || !numberedImportReady || numberedImportPurchases.length === 0;
-    if (numberedImportModePurchase) numberedImportModePurchase.disabled = disablePlacementControls;
-    if (numberedImportModeSeat) numberedImportModeSeat.disabled = disablePlacementControls;
-    if (numberedImportSectionsAll) numberedImportSectionsAll.disabled = disablePlacementControls;
-    if (numberedImportSectionList) {
-      const sectionInputs = numberedImportSectionList.querySelectorAll("input[type='checkbox'][data-section-key]");
-      sectionInputs.forEach((input) => {
-        input.disabled = disablePlacementControls;
-      });
-    }
-    if (numberedImportAutoOrderRow1) numberedImportAutoOrderRow1.disabled = disablePlacementControls;
-    if (numberedImportAutoOrderGoodness) {
-      const goodnessAvailable = hasNumberedImportGoodnessData();
-      numberedImportAutoOrderGoodness.disabled = disablePlacementControls || !goodnessAvailable;
-    }
-    if (numberedImportAutoPlaceAllBtn) numberedImportAutoPlaceAllBtn.disabled = disablePlacementControls;
-    if (numberedImportExportBtn) numberedImportExportBtn.disabled = !numberedImportMode || !allPlaced;
-    if (numberedImportClearBtn) numberedImportClearBtn.disabled = !numberedImportMode || numberedImportAssignmentsBySeatId.size === 0;
-  }
-
-  function validateNumberedImportAgainstLayout(parsed) {
-    const errors = [];
-    const warnings = [];
-    if (!parsed) {
-      errors.push("No XLSX workbook loaded.");
-      return { errors, warnings, purchases: [], blockedSeatIds: [] };
-    }
-    if (Array.isArray(parsed.issues)) errors.push(...parsed.issues);
-    if (Array.isArray(parsed.warnings)) warnings.push(...parsed.warnings);
-
-    if (!seats.length) {
-      errors.push("Load a TLT layout before validating import.");
-      return { errors, warnings, purchases: [], blockedSeatIds: [] };
-    }
-    const { numericToSeat, duplicates } = buildNumberedImportLayoutSeatMap();
-    if (duplicates.length) {
-      errors.push(`TLT contains duplicate NumericId values (${duplicates.slice(0, 6).join(", ")}${duplicates.length > 6 ? ", ..." : ""}).`);
-    }
-
-    const layoutIds = new Set(numericToSeat.keys());
-    const workbookAllowsAllLayoutSeats = parsed.allowsAllLayoutSeats === true;
-    const allowsAllLayoutSeats = numberedImportAllowsAllLayoutSeats(parsed);
-    const excelIds = allowsAllLayoutSeats
-      ? new Set(layoutIds)
-      : new Set(parsed.seatsByNumeric.keys());
-    const missingInLayout = [];
-    const missingInExcel = [];
-    excelIds.forEach((numericId) => {
-      if (!layoutIds.has(numericId)) missingInLayout.push(numericId);
-    });
-    layoutIds.forEach((numericId) => {
-      if (!excelIds.has(numericId)) missingInExcel.push(numericId);
-    });
-    if (missingInLayout.length) {
-      warnings.push(`Seats mismatch: ${missingInLayout.length} seat(s) exist in Excel but not in TLT. They are ignored for placement in this layout (e.g. ${missingInLayout.slice(0, 6).join(", ")}${missingInLayout.length > 6 ? ", ..." : ""}).`);
-    }
-    const blockedSeatIds = [];
-    if (missingInExcel.length) {
-      if (allowsAllLayoutSeats) {
-        warnings.push(
-          workbookAllowsAllLayoutSeats
-            ? `Seats mismatch: ${missingInExcel.length} seat(s) exist in TLT but not in Excel. They remain available because this workbook allows all layout seats (e.g. ${missingInExcel.slice(0, 6).join(", ")}${missingInExcel.length > 6 ? ", ..." : ""}).`
-            : `Seats mismatch: ${missingInExcel.length} seat(s) exist in TLT but not in Excel. Override is enabled, so these seats remain available in canvas and export will use the current TLT seat list (e.g. ${missingInExcel.slice(0, 6).join(", ")}${missingInExcel.length > 6 ? ", ..." : ""}).`
-        );
-      } else {
-        warnings.push(`Seats mismatch: ${missingInExcel.length} seat(s) exist in TLT but not in Excel. These seats are blocked in canvas (e.g. ${missingInExcel.slice(0, 6).join(", ")}${missingInExcel.length > 6 ? ", ..." : ""}).`);
-        missingInExcel.forEach((numericId) => {
-          const seat = numericToSeat.get(numericId);
-          if (seat?.seatId) blockedSeatIds.push(seat.seatId);
-        });
-      }
-    }
-
-    const grouped = new Map();
-    parsed.existingRows.forEach((row) => {
-      const seat = row.numericId ? numericToSeat.get(row.numericId) : null;
-      let purchase = grouped.get(row.refNo);
-      if (!purchase) {
-        purchase = {
-          refNo: row.refNo,
-          rows: [],
-          ticketTypeCounts: new Map(),
-          reportedCounts: [],
-          ticketCount: 0,
-          reportedNoOfTickets: null,
-          oldestPurchaseAtMs: Number.POSITIVE_INFINITY,
-          purchaseListMode: parsed.purchaseListMode || "rows",
-          firstName: "",
-          lastName: "",
-          email: "",
-          assignedSeatIds: []
-        };
-        grouped.set(row.refNo, purchase);
-      }
-      const seatId = seat?.seatId || "";
-      purchase.rows.push({ ...row, seatId });
-      if (!purchase.firstName && row.firstName) purchase.firstName = String(row.firstName || "").trim();
-      if (!purchase.lastName && row.lastName) purchase.lastName = String(row.lastName || "").trim();
-      if (!purchase.email && row.email) purchase.email = String(row.email || "").trim();
-      const ticketType = String(row.ticketType || "").trim();
-      if (ticketType) {
-        purchase.ticketTypeCounts.set(ticketType, (purchase.ticketTypeCounts.get(ticketType) || 0) + 1);
-      }
-      const purchasedAtMs = Number(row.purchasedAtMs);
-      if (Number.isFinite(purchasedAtMs) && purchasedAtMs < purchase.oldestPurchaseAtMs) {
-        purchase.oldestPurchaseAtMs = purchasedAtMs;
-      }
-      if (Number.isFinite(row.noOfTickets)) {
-        purchase.reportedCounts.push(row.noOfTickets);
-      }
-    });
-    const purchases = Array.from(grouped.values()).map((purchase) => {
-      purchase.ticketCount = purchase.rows.length;
-      purchase.primarySectionName = getNumberedImportPrimarySectionName(purchase);
-      purchase.primaryRowName = getNumberedImportPrimaryRowName(purchase);
-      purchase.ticketTypeSummary = Array.from(purchase.ticketTypeCounts.entries())
-        .sort((first, second) => String(first[0] || "").localeCompare(String(second[0] || ""), "sv", { numeric: true, sensitivity: "base" }))
-        .map(([ticketType, count]) => `${ticketType}: ${count}`);
-      if (purchase.reportedCounts.length) {
-        purchase.reportedNoOfTickets = Math.max(...purchase.reportedCounts);
-        if (purchase.reportedNoOfTickets !== purchase.ticketCount) {
-          warnings.push(`RefNo ${purchase.refNo}: NoOfTickets column differs from row count (${purchase.reportedNoOfTickets} vs ${purchase.ticketCount}). Row count is used.`);
-        }
-      }
-      if (purchase.ticketCount <= 0) {
-        warnings.push(`RefNo ${purchase.refNo}: no rows were found.`);
-      }
-      return purchase;
-    }).sort((a, b) => {
-      if (parsed.purchaseSortMode === "purchase-date-asc") {
-        const aTime = Number.isFinite(a.oldestPurchaseAtMs) ? a.oldestPurchaseAtMs : Number.POSITIVE_INFINITY;
-        const bTime = Number.isFinite(b.oldestPurchaseAtMs) ? b.oldestPurchaseAtMs : Number.POSITIVE_INFINITY;
-        if (aTime !== bTime) return aTime - bTime;
-        return String(a.refNo || "").localeCompare(String(b.refNo || ""), "sv", { numeric: true, sensitivity: "base" });
-      }
-      const sectionCompare = String(a.primarySectionName || "").localeCompare(
-        String(b.primarySectionName || ""),
-        "sv",
-        { numeric: true, sensitivity: "base" }
-      );
-      if (sectionCompare !== 0) return sectionCompare;
-      const rowCompare = compareNumberedImportRowNames(a.primaryRowName, b.primaryRowName);
-      if (rowCompare !== 0) return rowCompare;
-      return String(a.refNo || "").localeCompare(String(b.refNo || ""), "sv", { numeric: true, sensitivity: "base" });
-    });
-    purchases.forEach((purchase, index) => {
-      purchase.listBaseOrder = index;
-    });
-    if (!purchases.length && !errors.length) {
-      warnings.push(allowsAllLayoutSeats
-        ? "No purchasable rows were found."
-        : "No purchase rows with valid seat mapping were found.");
-    }
-    return { errors, warnings, purchases, blockedSeatIds };
-  }
-
-  function handleNumberedImportLayoutChanged(options = {}) {
-    const preserveAssignments = !!options.preserveAssignments;
-    const previousAssignmentsBySeatId = preserveAssignments
-      ? new Map(numberedImportAssignmentsBySeatId)
-      : new Map();
-    numberedImportValidationErrors = [];
-    numberedImportValidationWarnings = [];
-    numberedImportPurchases = [];
-    numberedImportPurchaseByRefNo = new Map();
-    numberedImportBlockedSeatIds = new Set();
-    clearNumberedImportAssignments();
-    numberedImportReady = false;
-
-    if (numberedImportParsed) {
-      const validation = validateNumberedImportAgainstLayout(numberedImportParsed);
-      numberedImportValidationErrors = validation.errors;
-      numberedImportValidationWarnings = validation.warnings;
-      numberedImportPurchases = validation.purchases;
-      numberedImportBlockedSeatIds = new Set(validation.blockedSeatIds || []);
-      numberedImportPurchaseByRefNo = new Map(numberedImportPurchases.map((purchase) => [purchase.refNo, purchase]));
-      numberedImportReady = numberedImportValidationErrors.length === 0 && numberedImportPurchases.length > 0;
-      if (preserveAssignments && previousAssignmentsBySeatId.size && numberedImportReady) {
-        previousAssignmentsBySeatId.forEach((refNo, seatId) => {
-          const purchase = numberedImportPurchaseByRefNo.get(refNo);
-          const seat = seats.find((entry) => entry.seatId === seatId);
-          if (!purchase || !seat || !canAssignNumberedImportSeat(seat, refNo)) return;
-          numberedImportAssignmentsBySeatId.set(seatId, refNo);
-          if (!Array.isArray(purchase.assignedSeatIds)) purchase.assignedSeatIds = [];
-          if (!purchase.assignedSeatIds.includes(seatId)) purchase.assignedSeatIds.push(seatId);
-        });
-        numberedImportPurchases.forEach((purchase) => {
-          const assignedSeatIds = Array.isArray(purchase.assignedSeatIds) ? purchase.assignedSeatIds : [];
-          if (assignedSeatIds.length <= purchase.ticketCount) return;
-          const trimmedSeatIds = assignedSeatIds.slice(0, purchase.ticketCount);
-          const trimmedSeatSet = new Set(trimmedSeatIds);
-          assignedSeatIds.forEach((seatId) => {
-            if (!trimmedSeatSet.has(seatId)) numberedImportAssignmentsBySeatId.delete(seatId);
-          });
-          purchase.assignedSeatIds = trimmedSeatIds;
-        });
-      }
-    }
-    if (numberedImportSelectedRefNo && !numberedImportPurchaseByRefNo.has(numberedImportSelectedRefNo)) {
-      numberedImportSelectedRefNo = "";
-    }
-    if (!numberedImportSelectedRefNo && numberedImportPurchases.length) {
-      const displayPurchases = getNumberedImportPurchasesInDisplayOrder();
-      numberedImportSelectedRefNo = displayPurchases[0]?.refNo || numberedImportPurchases[0].refNo;
-    }
-    renderNumberedImportSectionFilters();
-    setNumberedImportIssues(numberedImportValidationErrors, numberedImportValidationWarnings);
-    refreshNumberedImportUi();
-  }
-
-  async function loadNumberedImportXlsx(file) {
-    if (!file) return;
-    if (typeof XLSX === "undefined") {
-      alert("Excel import requires XLSX library.");
-      return;
-    }
-    try {
-      const buffer = await file.arrayBuffer();
-      const workbook = XLSX.read(buffer, { type: "array", cellDates: false });
-      numberedImportWorkbookName = file.name || "workbook.xlsx";
-      numberedImportWorkbookBuffer = buffer;
-      numberedImportParsed = parseNumberedImportWorkbook(workbook);
-      handleNumberedImportLayoutChanged();
-    } catch (error) {
-      console.warn("Failed to parse import workbook:", error);
-      numberedImportWorkbookName = "";
-      numberedImportWorkbookBuffer = null;
-      numberedImportParsed = null;
-      numberedImportValidationErrors = ["Could not read the XLSX file."];
-      numberedImportValidationWarnings = [];
-      numberedImportPurchases = [];
-      numberedImportPurchaseByRefNo = new Map();
-      numberedImportBlockedSeatIds = new Set();
-      clearNumberedImportAssignments();
-      numberedImportReady = false;
-      setNumberedImportIssues(numberedImportValidationErrors, numberedImportValidationWarnings);
-      refreshNumberedImportUi();
-    }
-  }
-
-  function selectNumberedImportPurchase(refNo) {
-    if (!numberedImportPurchaseByRefNo.has(refNo)) return;
-    numberedImportSelectedRefNo = refNo;
-    clearNumberedImportHoverPreview();
-    renderNumberedImportPurchaseList();
-    renderCanvas();
-  }
-
-  function assignNumberedImportPurchaseAtSeat(refNo, targetSeatId) {
-    if (!numberedImportReady || !numberedImportParsed) return false;
-    const purchase = numberedImportPurchaseByRefNo.get(refNo);
-    if (!purchase) return false;
-    const targetSeat = seats.find((seat) => seat.seatId === targetSeatId);
-    if (!targetSeat) return false;
-    if (!canAssignNumberedImportSeat(targetSeat, refNo)) return false;
-
-    if (numberedImportPlacementMode === "seat") {
-      const requiredCount = purchase.ticketCount;
-      const currentAssigned = Array.isArray(purchase.assignedSeatIds) ? [...purchase.assignedSeatIds] : [];
-      const existingIndex = currentAssigned.indexOf(targetSeatId);
-      if (existingIndex >= 0) {
-        currentAssigned.splice(existingIndex, 1);
-        numberedImportAssignmentsBySeatId.delete(targetSeatId);
-        purchase.assignedSeatIds = currentAssigned;
-        numberedImportSelectedRefNo = refNo;
-        refreshNumberedImportUi();
-        return true;
-      }
-
-      if (currentAssigned.length >= requiredCount) {
-        alert(`Purchase ${refNo} already has ${requiredCount} placed seats. Remove one seat first or switch to Place all.`);
-        return false;
-      }
-
-      numberedImportAssignmentsBySeatId.set(targetSeatId, refNo);
-      purchase.assignedSeatIds = [...currentAssigned, targetSeatId];
-      numberedImportSelectedRefNo = isNumberedImportPurchaseComplete(purchase)
-        ? getNextNumberedImportPurchaseRefNo(refNo)
-        : refNo;
-      refreshNumberedImportUi();
-      return true;
-    }
-
-    if (!targetSeat.rowId) return false;
-    const previousAssigned = Array.isArray(purchase.assignedSeatIds) ? [...purchase.assignedSeatIds] : [];
-    previousAssigned.forEach((seatId) => numberedImportAssignmentsBySeatId.delete(seatId));
-    const requiredCount = purchase.ticketCount;
-    const failPlacement = (message) => {
-      previousAssigned.forEach((seatId) => numberedImportAssignmentsBySeatId.set(seatId, refNo));
-      purchase.assignedSeatIds = previousAssigned;
-      if (message) {
-        alert(message);
-      }
-      refreshNumberedImportUi();
-      return false;
-    };
-
-    const selectedRun = getNumberedImportContiguousRunAroundTarget(refNo, targetSeatId, requiredCount);
-    if (!selectedRun || !selectedRun.length) {
-      return failPlacement(
-        `Could not place purchase ${refNo}. Need ${requiredCount} contiguous free seats around target seat on row ${targetSeat.rowId}.`
-      );
-    }
-
-    const selectedSeatIds = selectedRun.map((seat) => seat.seatId);
-    selectedSeatIds.forEach((seatId) => {
-      numberedImportAssignmentsBySeatId.set(seatId, refNo);
-    });
-    purchase.assignedSeatIds = selectedSeatIds;
-    numberedImportSelectedRefNo = getNextNumberedImportPurchaseRefNo(refNo);
-    refreshNumberedImportUi();
-    return true;
-  }
-
-  function handleNumberedImportCanvasPlacement(worldX, worldY, explicitRefNo = "") {
-    if (!numberedImportMode || !numberedImportReady) return false;
-    const refNo = explicitRefNo || numberedImportSelectedRefNo || numberedImportDraggingRefNo;
-    if (!refNo) return false;
-    const hit = hitTestSeat(worldX, worldY);
-    if (!hit) return false;
-    return assignNumberedImportPurchaseAtSeat(refNo, hit.seatId);
-  }
-
-  async function exportNumberedImportWorkbook() {
-    if (!numberedImportReady || !numberedImportParsed) return;
-    const allPlaced = numberedImportPurchases.every((purchase) => {
-      return isNumberedImportPurchaseComplete(purchase);
-    });
-    if (!allPlaced) {
-      alert("Place all purchases before export.");
-      return;
-    }
-    if (typeof XLSX === "undefined") {
-      alert("Excel export requires XLSX library.");
-      return;
-    }
-
-    const allowsAllLayoutSeats = numberedImportAllowsAllLayoutSeats(numberedImportParsed);
-    let templateRows = Array.isArray(numberedImportParsed.template?.rows)
-      ? numberedImportParsed.template.rows
-      : [];
-    if (allowsAllLayoutSeats) {
-      templateRows = buildNumberedImportTemplateRowsFromLayout();
-    }
-    if (!templateRows.length) {
-      alert('Could not read seat rows from "Import Template".');
-      return;
-    }
-
-    const refNoByIdentifier = new Map();
-    numberedImportPurchases.forEach((purchase) => {
-      const refNo = String(purchase.refNo || "").trim();
-      (purchase.assignedSeatIds || []).forEach((seatId) => {
-        const numericId = normalizeNumericId(seatIdToSvgCode(seatId));
-        if (!numericId) return;
-        const seatRecord = numberedImportParsed.seatsByNumeric.get(numericId);
-        let identifier = String(seatRecord?.identifier || "").trim().toLowerCase();
-        if (!identifier && allowsAllLayoutSeats) {
-          identifier = numericId.toLowerCase();
-        }
-        if (!identifier) return;
-        refNoByIdentifier.set(identifier, refNo);
-      });
-    });
-
-    const rows = [["Seat", "Purchase Group", "RefNo", "FirstName", "LastName", "Email"]];
-    templateRows.forEach((templateRow) => {
-      const identifier = String(templateRow?.identifier || "").trim();
-      if (!identifier) return;
-      const key = String(templateRow?.key || "").trim().toLowerCase() || identifier.toLowerCase();
-      const refNo = refNoByIdentifier.get(key) || "";
-      const purchase = refNo ? numberedImportPurchaseByRefNo.get(refNo) : null;
-      rows.push([
-        identifier,
-        refNo,
-        refNo,
-        String(purchase?.firstName || "").trim(),
-        String(purchase?.lastName || "").trim(),
-        String(purchase?.email || "").trim()
-      ]);
-    });
-    if (rows.length <= 1) {
-      alert('No seat rows were found in "Import Template".');
-      return;
-    }
-
-    const workbook = XLSX.utils.book_new();
-    const sheet = XLSX.utils.aoa_to_sheet(rows);
-    sheet["!cols"] = [{ wch: 42 }, { wch: 20 }, { wch: 20 }, { wch: 22 }, { wch: 22 }, { wch: 32 }];
-    XLSX.utils.book_append_sheet(workbook, sheet, "Import Template");
-
-    const exportBase = numberedImportWorkbookName
-      ? numberedImportWorkbookName.replace(/\.(xlsx|xls)$/i, "")
-      : "numbered-import";
-    const exportName = `${exportBase}-import-template.xlsx`;
-    XLSX.writeFile(workbook, exportName, { compression: true });
-  }
-
-  function setNumberedImportMode(enabled) {
-    const nextMode = !!enabled;
-    if (numberedImportMode === nextMode) return;
-    numberedImportMode = nextMode;
-    numberedImportDraggingRefNo = "";
-    clearNumberedImportHoverPreview();
-    if (!numberedImportMode) {
-      numberedImportSelectedRefNo = "";
-    } else {
-      closeAllModals();
-      isDraggingSelection = false;
-      isRotatingSelection = false;
-      isResizingSelection = false;
-      isBendingSelection = false;
-      isReshapingRow = false;
-      hasReshapedDuringDrag = false;
-      reshapeDragTarget = null;
-      reshapeStartSnapshot = null;
-      reshapeSnapshotById = null;
-      reshapeRowsData = null;
-      reshapeActiveRowId = null;
-      selectionRectActive = false;
-      isPanning = false;
-      isDraggingBackground = false;
-      clearSelectionSeats(seats);
-      lastSelectedSeatId = null;
-      setTool("select");
-    }
-    if (numberedImportModeBtn) {
-      numberedImportModeBtn.classList.toggle("c-button--active", numberedImportMode);
-      numberedImportModeBtn.textContent = numberedImportMode ? "Import mode ON" : "Import mode";    
-    }
-    updateRightPanelVisibilityForNumberedImport();
-    if (numberedImportMode) {
-      collapseRightPanelsForNumberedImport();
-      renderNumberedImportSectionFilters();
-    }
-    applyControlAvailability();
-    refreshNumberedImportUi();
-  }
 
   function sanitizeSvgCssValue(value, fallback) {
     const normalized = String(value ?? "")
@@ -15588,7 +13071,7 @@ codePane.addEventListener("input", () => {
 
   function updateEntryPointUi() {
     if (!entryPointList) return;
-    const hasSelection = !numberedImportMode && getSelectedSeats().length > 0;
+    const hasSelection = getSelectedSeats().length > 0;
     entryPointList.querySelectorAll("[data-role='entry-point-add']").forEach((btn) => {
       btn.disabled = !hasSelection;
     });
@@ -15596,13 +13079,13 @@ codePane.addEventListener("input", () => {
       const entryPointId = btn.dataset.entryPointId;
       const entryPoint = entryPoints.find(ep => ep.id === entryPointId);
       const hasItems = entryPoint ? getEntryPointSeatIds(entryPoint).size > 0 : false;
-      btn.disabled = numberedImportMode || !hasItems;
+      btn.disabled = !hasItems;
     });
     entryPointList.querySelectorAll("[data-role='entry-point-clear']").forEach((btn) => {
       const entryPointId = btn.dataset.entryPointId;
       const entryPoint = entryPoints.find(ep => ep.id === entryPointId);
       const hasItems = entryPoint ? getEntryPointSeatIds(entryPoint).size > 0 : false;
-      btn.disabled = numberedImportMode || !hasItems;
+      btn.disabled = !hasItems;
     });
     scheduleValidationPanelRefresh();
   }
@@ -15839,7 +13322,6 @@ codePane.addEventListener("input", () => {
     const altSectionConfirmMessage = options.altSectionConfirmMessage || "You have unsaved changes. Close anyway?";
     closeAppMenu();
     closeSeatContextMenu();
-    closeNumberedImportPurchaseMenu();
     closeExportModal();
     closeHelpModal();
     closeAttributeModal();
@@ -16030,111 +13512,6 @@ codePane.addEventListener("input", () => {
       e.preventDefault();
       exportConfirm?.click();
     }
-  });
-  numberedImportModeBtn?.addEventListener("click", () => {
-    setNumberedImportMode(!numberedImportMode);
-  });
-  numberedImportLoadTltBtn?.addEventListener("click", () => {
-    numberedImportTltInput?.click();
-  });
-  numberedImportTltInput?.addEventListener("change", async (e) => {
-    const file = e.target.files && e.target.files[0];
-    if (!file) return;
-    try {
-      await openFileFromInput(file);
-      handleNumberedImportLayoutChanged();
-    } finally {
-      numberedImportTltInput.value = "";
-    }
-  });
-  numberedImportLoadXlsxBtn?.addEventListener("click", () => {
-    numberedImportXlsxInput?.click();
-  });
-  numberedImportXlsxInput?.addEventListener("change", async (e) => {
-    const file = e.target.files && e.target.files[0];
-    if (!file) return;
-    try {
-      await loadNumberedImportXlsx(file);
-    } finally {
-      numberedImportXlsxInput.value = "";
-    }
-  });
-  numberedImportAllowAllTltSeats?.addEventListener("change", () => {
-    if (numberedImportParsed?.allowsAllLayoutSeats) {
-      updateNumberedImportStateUi();
-      return;
-    }
-    setNumberedImportAllowAllLayoutSeatsOverride(!!numberedImportAllowAllTltSeats.checked, {
-      preserveAssignments: true
-    });
-  });
-  numberedImportModePurchase?.addEventListener("change", () => {
-    if (numberedImportModePurchase.checked) setNumberedImportPlacementMode("all");
-  });
-  numberedImportModeSeat?.addEventListener("change", () => {
-    if (numberedImportModeSeat.checked) setNumberedImportPlacementMode("seat");
-  });
-  numberedImportSectionsAll?.addEventListener("change", () => {
-    if (numberedImportSectionsAll.checked) {
-      numberedImportUseAllSections = true;
-    } else if (numberedImportSelectedSectionKeys.size > 0) {
-      numberedImportUseAllSections = false;
-    } else {
-      numberedImportUseAllSections = true;
-    }
-    renderNumberedImportSectionFilters();
-    updateNumberedImportStateUi();
-  });
-  numberedImportAutoOrderRow1?.addEventListener("change", () => {
-    if (numberedImportAutoOrderRow1.checked) setNumberedImportAutoOrderMode("row1");
-  });
-  numberedImportAutoOrderGoodness?.addEventListener("change", () => {
-    if (numberedImportAutoOrderGoodness.checked) setNumberedImportAutoOrderMode("goodness");
-  });
-  numberedImportAutoPlaceAllBtn?.addEventListener("click", () => {
-    autoPlaceAllNumberedImportPurchases();
-  });
-  numberedImportClearBtn?.addEventListener("click", () => {
-    clearNumberedImportAssignments();
-    refreshNumberedImportUi();
-  });
-  numberedImportExportBtn?.addEventListener("click", async () => {
-    await exportNumberedImportWorkbook();
-  });
-  numberedImportMenuClearPurchase?.addEventListener("click", () => {
-    const refNo = String(numberedImportContextRefNo || "").trim();
-    if (!refNo) return;
-    closeNumberedImportPurchaseMenu();
-    clearNumberedImportPurchase(refNo);
-    refreshNumberedImportUi();
-  });
-  numberedImportMenuClearRow?.addEventListener("click", () => {
-    const rowId = String(numberedImportContextRowId || "").trim();
-    if (!rowId) return;
-    closeNumberedImportPurchaseMenu();
-    const changed = clearNumberedImportRowAssignments(rowId);
-    if (!changed) return;
-    refreshNumberedImportUi();
-  });
-  numberedImportMenuPushLeft?.addEventListener("click", () => {
-    const rowId = String(numberedImportContextRowId || "").trim();
-    if (!rowId) return;
-    const plan = buildNumberedImportRowPushPlan(rowId, "left");
-    closeNumberedImportPurchaseMenu();
-    if (!plan || !plan.changed) return;
-    const changed = applyNumberedImportRowPushPlan(plan);
-    if (!changed) return;
-    refreshNumberedImportUi();
-  });
-  numberedImportMenuPushRight?.addEventListener("click", () => {
-    const rowId = String(numberedImportContextRowId || "").trim();
-    if (!rowId) return;
-    const plan = buildNumberedImportRowPushPlan(rowId, "right");
-    closeNumberedImportPurchaseMenu();
-    if (!plan || !plan.changed) return;
-    const changed = applyNumberedImportRowPushPlan(plan);
-    if (!changed) return;
-    refreshNumberedImportUi();
   });
   helpBtn?.addEventListener("click", openHelpModal);
   helpClose?.addEventListener("click", closeHelpModal);
@@ -16449,7 +13826,7 @@ codePane.addEventListener("input", () => {
   priceRegionList?.addEventListener("dragstart", (e) => {
     const handle = e.target instanceof Element ? e.target.closest("[data-role='price-region-drag']") : null;
     if (!handle || !(handle instanceof HTMLElement)) return;
-    if (numberedImportMode || !handle.draggable) {
+    if (!handle.draggable) {
       e.preventDefault();
       return;
     }
@@ -16745,12 +14122,12 @@ codePane.addEventListener("input", () => {
   });
 
   function updateSaveButton() {
-    saveBtn.disabled = !layoutActive || numberedImportMode || !hasUnsavedChanges;
-    if (saveAsBtn) saveAsBtn.disabled = !layoutActive || numberedImportMode;
+    saveBtn.disabled = !layoutActive || !hasUnsavedChanges;
+    if (saveAsBtn) saveAsBtn.disabled = !layoutActive;
   }
 
   function updateMoveButtonState() {
-    if (numberedImportMode || !layoutActive) {
+    if (!layoutActive) {
       moveToolBtn.disabled = true;
       rotateToolBtn.disabled = true;
       resizeToolBtn.disabled = true;
@@ -16798,7 +14175,7 @@ codePane.addEventListener("input", () => {
   }
 
   function updateAlignButtons() {
-    if (numberedImportMode || !layoutActive) {
+    if (!layoutActive) {
       alignTopBtn.disabled = true;
       alignBottomBtn.disabled = true;
       alignLeftBtn.disabled = true;
@@ -16970,9 +14347,6 @@ codePane.addEventListener("input", () => {
     const goodnessStats = showGoodnessHeatmap ? computeGoodnessStats() : null;
     const selectionStroke = getSelectionStrokePalette();
     const blockedSeatIds = getAllSeatBlockSeatIds();
-    const hasNumberedImportPreview = numberedImportMode && numberedImportHoverPreviewSeatIds.size > 0;
-    const hasNumberedImportPreviewTarget = numberedImportMode && !!numberedImportHoverPreviewSeatId;
-    const hasNumberedImportPreviewRefNo = numberedImportMode && !!numberedImportHoverPreviewRefNo;
 
     // Platser
     for (const s of seats) {
@@ -16992,20 +14366,8 @@ codePane.addEventListener("input", () => {
       if (renderGrayscale) {
         baseColor = "#9ca8b7";
       }
-      const isBlockedNumberedSeat = numberedImportMode && numberedImportBlockedSeatIds.has(s.seatId);
       const isSeatBlocked = blockedSeatIds.has(s.seatId);
-      const assignedRefNo = numberedImportMode ? numberedImportAssignmentsBySeatId.get(s.seatId) : "";
-      const isAssignedSeat = !!assignedRefNo;
-      const isActiveAssignedSeat = isAssignedSeat && assignedRefNo === numberedImportSelectedRefNo;
       const isHighlightedSeat = highlightedSeatIds.has(s.seatId);
-      const isPreviewSeat = hasNumberedImportPreview && numberedImportHoverPreviewSeatIds.has(s.seatId);
-      const isPreviewTargetSeat = hasNumberedImportPreviewTarget && s.seatId === numberedImportHoverPreviewSeatId;
-      const isPreviewInvalidTarget = hasNumberedImportPreviewRefNo && isPreviewTargetSeat && !isPreviewSeat && !hasNumberedImportPreview;
-      if (isBlockedNumberedSeat) {
-        baseColor = "#9aa5b1";
-      } else if (isAssignedSeat) {
-        baseColor = getNumberedImportPurchaseColor(assignedRefNo);
-      }
 
       // Fyrkantsläge (massor av platser)
       if (useRectDots) {
@@ -17039,26 +14401,6 @@ codePane.addEventListener("input", () => {
             );
           }
         }
-        if (isActiveAssignedSeat) {
-          ctx.lineWidth = 1.6 / scale;
-          ctx.strokeStyle = "rgba(17, 24, 39, 0.95)";
-          ctx.strokeRect(
-            s.vx - rectSizeWorld * 1.3,
-            s.vy - rectSizeWorld * 1.3,
-            rectSizeWorld * 2.6,
-            rectSizeWorld * 2.6
-          );
-        }
-        if (isBlockedNumberedSeat) {
-          ctx.lineWidth = 1.6 / scale;
-          ctx.strokeStyle = "rgba(17, 24, 39, 0.9)";
-          ctx.beginPath();
-          ctx.moveTo(s.vx - rectSizeWorld, s.vy - rectSizeWorld);
-          ctx.lineTo(s.vx + rectSizeWorld, s.vy + rectSizeWorld);
-          ctx.moveTo(s.vx + rectSizeWorld, s.vy - rectSizeWorld);
-          ctx.lineTo(s.vx - rectSizeWorld, s.vy + rectSizeWorld);
-          ctx.stroke();
-        }
         if (isSeatBlocked) {
           ctx.lineWidth = 2 / scale;
           ctx.strokeStyle = "rgba(220, 38, 38, 0.98)";
@@ -17085,33 +14427,6 @@ codePane.addEventListener("input", () => {
             s.vy - rectSizeWorld * 2.1,
             rectSizeWorld * 4.2,
             rectSizeWorld * 4.2
-          );
-        }
-        if (isPreviewSeat) {
-          ctx.lineWidth = 2.8 / scale;
-          ctx.strokeStyle = "rgba(56, 189, 248, 0.98)";
-          ctx.strokeRect(
-            s.vx - rectSizeWorld * 2.7,
-            s.vy - rectSizeWorld * 2.7,
-            rectSizeWorld * 5.4,
-            rectSizeWorld * 5.4
-          );
-          ctx.lineWidth = 1.2 / scale;
-          ctx.strokeStyle = "rgba(17, 24, 39, 0.95)";
-          ctx.strokeRect(
-            s.vx - rectSizeWorld * 2.7,
-            s.vy - rectSizeWorld * 2.7,
-            rectSizeWorld * 5.4,
-            rectSizeWorld * 5.4
-          );
-        } else if (isPreviewInvalidTarget) {
-          ctx.lineWidth = 2.8 / scale;
-          ctx.strokeStyle = "rgba(239, 68, 68, 0.98)";
-          ctx.strokeRect(
-            s.vx - rectSizeWorld * 2.5,
-            s.vy - rectSizeWorld * 2.5,
-            rectSizeWorld * 5,
-            rectSizeWorld * 5
           );
         }
         if (s.attributes && s.attributes.length) {
@@ -17184,50 +14499,12 @@ codePane.addEventListener("input", () => {
         if (s.selected) {
           strokeSeatShape(selectionStroke.outerWidth / scale, selectionStroke.outerColor);
           strokeSeatShape(selectionStroke.innerWidth / scale, selectionStroke.innerColor);
-        } else if (isBlockedNumberedSeat) {
-          strokeSeatShape(1.6 / scale, "rgba(17,24,39,0.9)");
-        } else if (isAssignedSeat) {
-          strokeSeatShape(1.6 / scale, "rgba(17,24,39,0.55)");
         } else if (!isTinySeatRender) {
           strokeSeatShape(1.2 / scale, "rgba(0,0,0,0.25)");
-        }
-        if (isActiveAssignedSeat) {
-          strokeSeatShape(3 / scale, "rgba(255,255,255,0.95)");
-          strokeSeatShape(1.6 / scale, "rgba(17,24,39,0.95)");
         }
         if (isHighlightedSeat) {
           strokeSeatShape(3.2 / scale, "rgba(255,214,10,0.98)");
           strokeSeatShape(1.4 / scale, "rgba(17,24,39,0.95)");
-        }
-        if (isPreviewSeat) {
-          strokeSeatShape(3.4 / scale, "rgba(56,189,248,0.98)");
-          strokeSeatShape(1.4 / scale, "rgba(17,24,39,0.95)");
-        } else if (isPreviewInvalidTarget) {
-          strokeSeatShape(3.4 / scale, "rgba(239,68,68,0.98)");
-        }
-        if (isBlockedNumberedSeat) {
-          const useLocalSquareCoords = drawAsSquare && hasSeatRotation;
-          if (useLocalSquareCoords) {
-            ctx.save();
-            ctx.translate(s.vx, s.vy);
-            ctx.rotate(seatRotationRad);
-          }
-          ctx.lineWidth = 1.8 / scale;
-          ctx.strokeStyle = "rgba(17,24,39,0.9)";
-          ctx.beginPath();
-          if (useLocalSquareCoords) {
-            ctx.moveTo(-worldRadius * 0.75, -worldRadius * 0.75);
-            ctx.lineTo(worldRadius * 0.75, worldRadius * 0.75);
-            ctx.moveTo(worldRadius * 0.75, -worldRadius * 0.75);
-            ctx.lineTo(-worldRadius * 0.75, worldRadius * 0.75);
-          } else {
-            ctx.moveTo(s.vx - worldRadius * 0.75, s.vy - worldRadius * 0.75);
-            ctx.lineTo(s.vx + worldRadius * 0.75, s.vy + worldRadius * 0.75);
-            ctx.moveTo(s.vx + worldRadius * 0.75, s.vy - worldRadius * 0.75);
-            ctx.lineTo(s.vx - worldRadius * 0.75, s.vy + worldRadius * 0.75);
-          }
-          ctx.stroke();
-          if (useLocalSquareCoords) ctx.restore();
         }
         if (isSeatBlocked) {
           const useLocalSquareCoords = drawAsSquare && hasSeatRotation;
@@ -19117,54 +16394,6 @@ function nudgeSelection(dxScreen, dyScreen) {
       renderSeatBlockList();
     }
 
-    let numberedImportChanged = false;
-    if (numberedImportAssignmentsBySeatId instanceof Map && numberedImportAssignmentsBySeatId.size) {
-      const nextAssignments = new Map();
-      numberedImportAssignmentsBySeatId.forEach((refNo, seatId) => {
-        const mappedSeatId = seatIdMap.get(seatId) || seatId;
-        if (mappedSeatId !== seatId) numberedImportChanged = true;
-        nextAssignments.set(mappedSeatId, refNo);
-      });
-      if (nextAssignments.size !== numberedImportAssignmentsBySeatId.size) {
-        numberedImportChanged = true;
-      }
-      numberedImportAssignmentsBySeatId = nextAssignments;
-    }
-    numberedImportPurchases.forEach((purchase) => {
-      const seatRes = remapValueArray(purchase?.assignedSeatIds, seatIdMap);
-      if (seatRes.changed) {
-        purchase.assignedSeatIds = seatRes.next;
-        numberedImportChanged = true;
-      }
-    });
-    if (numberedImportBlockedSeatIds instanceof Set && numberedImportBlockedSeatIds.size) {
-      const nextBlocked = new Set();
-      numberedImportBlockedSeatIds.forEach((seatId) => {
-        const mappedSeatId = seatIdMap.get(seatId) || seatId;
-        if (mappedSeatId !== seatId) numberedImportChanged = true;
-        nextBlocked.add(mappedSeatId);
-      });
-      numberedImportBlockedSeatIds = nextBlocked;
-    }
-    if (numberedImportHoverPreviewSeatId) {
-      const mappedSeatId = seatIdMap.get(numberedImportHoverPreviewSeatId) || numberedImportHoverPreviewSeatId;
-      if (mappedSeatId !== numberedImportHoverPreviewSeatId) {
-        numberedImportHoverPreviewSeatId = mappedSeatId;
-        numberedImportChanged = true;
-      }
-    }
-    if (numberedImportHoverPreviewSeatIds instanceof Set && numberedImportHoverPreviewSeatIds.size) {
-      const nextPreviewSet = new Set();
-      numberedImportHoverPreviewSeatIds.forEach((seatId) => {
-        const mappedSeatId = seatIdMap.get(seatId) || seatId;
-        if (mappedSeatId !== seatId) numberedImportChanged = true;
-        nextPreviewSet.add(mappedSeatId);
-      });
-      numberedImportHoverPreviewSeatIds = nextPreviewSet;
-    }
-    if (numberedImportChanged && numberedImportMode) {
-      refreshNumberedImportUi();
-    }
 
     return true;
   }
@@ -19747,7 +16976,6 @@ function nudgeSelection(dxScreen, dyScreen) {
     if (codePane.value !== newText) {
       codePane.value = newText;
     }
-    updateNumberedImportStateUi();
     renderCanvas();
     updateMoveButtonState();
     hasUnsavedChanges = true;
@@ -19865,74 +17093,6 @@ function nudgeSelection(dxScreen, dyScreen) {
       renderSeatBlockList();
     }
 
-    let numberedImportChanged = false;
-    if (numberedImportAssignmentsBySeatId instanceof Map && numberedImportAssignmentsBySeatId.size) {
-      const nextAssignments = new Map();
-      numberedImportAssignmentsBySeatId.forEach((refNo, seatId) => {
-        const mappedSeatId = seatIdMap.get(seatId) || seatId;
-        if (mappedSeatId !== seatId) numberedImportChanged = true;
-        nextAssignments.set(mappedSeatId, refNo);
-      });
-      if (nextAssignments.size !== numberedImportAssignmentsBySeatId.size) {
-        numberedImportChanged = true;
-      }
-      numberedImportAssignmentsBySeatId = nextAssignments;
-    }
-    numberedImportPurchases.forEach((purchase) => {
-      const seatRes = remapValueArray(purchase?.assignedSeatIds, seatIdMap);
-      if (seatRes.changed) {
-        purchase.assignedSeatIds = seatRes.next;
-        numberedImportChanged = true;
-      }
-    });
-    if (numberedImportBlockedSeatIds instanceof Set && numberedImportBlockedSeatIds.size) {
-      const nextBlocked = new Set();
-      numberedImportBlockedSeatIds.forEach((seatId) => {
-        const mappedSeatId = seatIdMap.get(seatId) || seatId;
-        if (mappedSeatId !== seatId) numberedImportChanged = true;
-        nextBlocked.add(mappedSeatId);
-      });
-      numberedImportBlockedSeatIds = nextBlocked;
-    }
-    if (numberedImportHoverPreviewSeatId) {
-      const mappedSeatId = seatIdMap.get(numberedImportHoverPreviewSeatId) || numberedImportHoverPreviewSeatId;
-      if (mappedSeatId !== numberedImportHoverPreviewSeatId) {
-        numberedImportHoverPreviewSeatId = mappedSeatId;
-        numberedImportChanged = true;
-      }
-    }
-    if (numberedImportHoverPreviewSeatIds instanceof Set && numberedImportHoverPreviewSeatIds.size) {
-      const nextPreviewSet = new Set();
-      numberedImportHoverPreviewSeatIds.forEach((seatId) => {
-        const mappedSeatId = seatIdMap.get(seatId) || seatId;
-        if (mappedSeatId !== seatId) numberedImportChanged = true;
-        nextPreviewSet.add(mappedSeatId);
-      });
-      numberedImportHoverPreviewSeatIds = nextPreviewSet;
-    }
-    if (numberedImportSelectedSectionKeys instanceof Set && numberedImportSelectedSectionKeys.size) {
-      const nextSelectedSections = new Set();
-      numberedImportSelectedSectionKeys.forEach((sectionKey) => {
-        nextSelectedSections.add(sectionIdMap.get(sectionKey) || sectionKey);
-      });
-      if (nextSelectedSections.size !== numberedImportSelectedSectionKeys.size ||
-          Array.from(nextSelectedSections).some((key) => !numberedImportSelectedSectionKeys.has(key))) {
-        numberedImportSelectedSectionKeys = nextSelectedSections;
-        if (!numberedImportSelectedSectionKeys.size) {
-          numberedImportUseAllSections = true;
-        }
-        numberedImportChanged = true;
-      }
-    }
-    if (numberedImportContextRowId && rowIdMap.has(numberedImportContextRowId)) {
-      numberedImportContextRowId = rowIdMap.get(numberedImportContextRowId);
-      numberedImportChanged = true;
-    }
-    if (numberedImportChanged && numberedImportMode) {
-      refreshNumberedImportUi();
-    } else {
-      updateNumberedImportStateUi();
-    }
 
     const normalizedStructure = normalizeLayoutStructureForPersist();
     if (!normalizedStructure) {
@@ -20138,54 +17298,6 @@ function nudgeSelection(dxScreen, dyScreen) {
       renderSeatBlockList();
     }
 
-    let numberedImportChanged = false;
-    if (numberedImportAssignmentsBySeatId instanceof Map && numberedImportAssignmentsBySeatId.size) {
-      const nextAssignments = new Map();
-      numberedImportAssignmentsBySeatId.forEach((refNo, seatId) => {
-        const mappedSeatId = seatIdMap.get(seatId) || seatId;
-        if (mappedSeatId !== seatId) numberedImportChanged = true;
-        nextAssignments.set(mappedSeatId, refNo);
-      });
-      if (nextAssignments.size !== numberedImportAssignmentsBySeatId.size) {
-        numberedImportChanged = true;
-      }
-      numberedImportAssignmentsBySeatId = nextAssignments;
-    }
-    numberedImportPurchases.forEach((purchase) => {
-      const seatRes = remapValueArray(purchase?.assignedSeatIds, seatIdMap);
-      if (seatRes.changed) {
-        purchase.assignedSeatIds = seatRes.next;
-        numberedImportChanged = true;
-      }
-    });
-    if (numberedImportBlockedSeatIds instanceof Set && numberedImportBlockedSeatIds.size) {
-      const nextBlocked = new Set();
-      numberedImportBlockedSeatIds.forEach((seatId) => {
-        const mappedSeatId = seatIdMap.get(seatId) || seatId;
-        if (mappedSeatId !== seatId) numberedImportChanged = true;
-        nextBlocked.add(mappedSeatId);
-      });
-      numberedImportBlockedSeatIds = nextBlocked;
-    }
-    if (numberedImportHoverPreviewSeatId) {
-      const mappedSeatId = seatIdMap.get(numberedImportHoverPreviewSeatId) || numberedImportHoverPreviewSeatId;
-      if (mappedSeatId !== numberedImportHoverPreviewSeatId) {
-        numberedImportHoverPreviewSeatId = mappedSeatId;
-        numberedImportChanged = true;
-      }
-    }
-    if (numberedImportHoverPreviewSeatIds instanceof Set && numberedImportHoverPreviewSeatIds.size) {
-      const nextPreviewSet = new Set();
-      numberedImportHoverPreviewSeatIds.forEach((seatId) => {
-        const mappedSeatId = seatIdMap.get(seatId) || seatId;
-        if (mappedSeatId !== seatId) numberedImportChanged = true;
-        nextPreviewSet.add(mappedSeatId);
-      });
-      numberedImportHoverPreviewSeatIds = nextPreviewSet;
-    }
-    if (numberedImportChanged && numberedImportMode) {
-      refreshNumberedImportUi();
-    }
 
     const normalizedStructure = normalizeLayoutStructureForPersist();
     if (!normalizedStructure) {
@@ -20417,20 +17529,6 @@ function nudgeSelection(dxScreen, dyScreen) {
     const canvasX = e.clientX - rect.left;
     const canvasY = e.clientY - rect.top;
     const { worldX, worldY } = screenToWorld(canvasX, canvasY);
-
-    if (numberedImportMode) {
-      if (e.ctrlKey) {
-        isPanning = true;
-        panStartX = e.clientX;
-        panStartY = e.clientY;
-        panStartTranslateX = translateX;
-        panStartTranslateY = translateY;
-        canvasContainer.classList.add("panning");
-        return;
-      }
-      handleNumberedImportCanvasPlacement(worldX, worldY);
-      return;
-    }
 
     if (backgroundMoveMode && backgroundState.img) {
       isDraggingBackground = true;
@@ -20687,27 +17785,6 @@ function nudgeSelection(dxScreen, dyScreen) {
     }
   });
 
-  canvas.addEventListener("dragover", (e) => {
-    if (!numberedImportMode || !numberedImportReady) return;
-    const dragRefNo = (e.dataTransfer && e.dataTransfer.getData("text/plain")) || numberedImportDraggingRefNo || numberedImportSelectedRefNo;
-    if (!dragRefNo) return;
-    e.preventDefault();
-    if (e.dataTransfer) e.dataTransfer.dropEffect = "move";
-  });
-
-  canvas.addEventListener("drop", (e) => {
-    if (!numberedImportMode || !numberedImportReady) return;
-    const dragRefNo = (e.dataTransfer && e.dataTransfer.getData("text/plain")) || numberedImportDraggingRefNo || numberedImportSelectedRefNo;
-    if (!dragRefNo) return;
-    e.preventDefault();
-    const rect = canvas.getBoundingClientRect();
-    const canvasX = e.clientX - rect.left;
-    const canvasY = e.clientY - rect.top;
-    const { worldX, worldY } = screenToWorld(canvasX, canvasY);
-    handleNumberedImportCanvasPlacement(worldX, worldY, dragRefNo);
-    numberedImportDraggingRefNo = "";
-  });
-
     const ATTRIBUTE_OPTIONS = [
     { label: "Wheelchair", value: "Wheelchair" },
     { label: "Accompanying person", value: "AccompanyingPerson" },
@@ -20776,7 +17853,6 @@ function nudgeSelection(dxScreen, dyScreen) {
 
   function openSeatContextMenu(x, y, options = {}) {
     if (!seatContextMenu) return;
-    closeNumberedImportPurchaseMenu();
     const mode = options.mode === "shape-toggle" ? "shape-toggle" : "selection";
     const selectedSeats = getSelectedSeats();
     setSeatContextMenuMode(mode);
@@ -22560,13 +19636,6 @@ function nudgeSelection(dxScreen, dyScreen) {
     if (seatContextMenu && seatContextMenu.classList.contains("open") && !seatContextMenu.contains(e.target)) {
       closeSeatContextMenu();
     }
-    if (
-      numberedImportPurchaseMenu &&
-      numberedImportPurchaseMenu.classList.contains("open") &&
-      !numberedImportPurchaseMenu.contains(e.target)
-    ) {
-      closeNumberedImportPurchaseMenu();
-    }
   });
 
   document.addEventListener("keydown", (e) => {
@@ -22581,12 +19650,10 @@ function nudgeSelection(dxScreen, dyScreen) {
   window.addEventListener("blur", () => {
     closeAppMenu();
     closeSeatContextMenu();
-    closeNumberedImportPurchaseMenu();
   });
   window.addEventListener("resize", () => {
     closeAppMenu();
     closeSeatContextMenu();
-    closeNumberedImportPurchaseMenu();
   });
 
   canvas.addEventListener("contextmenu", (e) => {
@@ -22594,20 +19661,6 @@ function nudgeSelection(dxScreen, dyScreen) {
     const canvasX = e.clientX - rect.left;
     const canvasY = e.clientY - rect.top;
     const { worldX, worldY } = screenToWorld(canvasX, canvasY);
-
-    if (numberedImportMode) {
-      e.preventDefault();
-      const hit = hitTestSeat(worldX, worldY);
-      const refNo = String(numberedImportAssignmentsBySeatId.get(hit?.seatId || "") || "").trim();
-      if (!hit || !refNo) {
-        closeNumberedImportPurchaseMenu();
-        return;
-      }
-      selectNumberedImportPurchase(refNo);
-      closeSeatContextMenu();
-      openNumberedImportPurchaseMenu(e.clientX, e.clientY, refNo, hit.rowId || "");
-      return;
-    }
 
     if (currentTool === "reshape") {
       const hit = hitTestSeat(worldX, worldY);
@@ -22646,19 +19699,6 @@ function nudgeSelection(dxScreen, dyScreen) {
     const canvasX = e.clientX - rect.left;
     const canvasY = e.clientY - rect.top;
     const { worldX, worldY } = screenToWorld(canvasX, canvasY);
-    let numberedImportPreviewChanged = false;
-
-    if (numberedImportMode) {
-      if (isPanning || isDraggingBackground || !numberedImportReady) {
-        numberedImportPreviewChanged = clearNumberedImportHoverPreview();
-      } else {
-        const previewRefNo = numberedImportDraggingRefNo || numberedImportSelectedRefNo || "";
-        const previewHit = hitTestSeat(worldX, worldY);
-        const previewSeatId = previewHit?.seatId || "";
-        const previewSeatIds = getNumberedImportHoverPreviewSeatIds(previewRefNo, previewSeatId);
-        numberedImportPreviewChanged = setNumberedImportHoverPreview(previewRefNo, previewSeatId, previewSeatIds);
-      }
-    }
 
     if (isDraggingBackground) {
       backgroundState.originX = backgroundDragOriginX + (worldX - backgroundDragStartWorldX);
@@ -22884,7 +19924,7 @@ function nudgeSelection(dxScreen, dyScreen) {
     } else {
       const hadHoverSeat = !!hoverSeat;
       hoverSeat = null;
-      if (numberedImportPreviewChanged || hadHoverSeat) {
+      if (hadHoverSeat) {
         renderCanvas();
       }
     }
@@ -23000,7 +20040,6 @@ function nudgeSelection(dxScreen, dyScreen) {
 
   canvas.addEventListener("mouseleave", () => {
     hoverSeat = null;
-    clearNumberedImportHoverPreview();
     if (isDraggingBackground) {
       isDraggingBackground = false;
       saveSessionToLocalStorage();
@@ -23114,15 +20153,6 @@ function nudgeSelection(dxScreen, dyScreen) {
         activeEl.isContentEditable);
     if (isTextInput && (e.ctrlKey || e.metaKey) && key !== "s") return;
 
-    if (numberedImportMode) {
-      if ((e.ctrlKey || e.metaKey) && key === "s") {
-        e.preventDefault();
-        if (!numberedImportExportBtn?.disabled) {
-          numberedImportExportBtn.click();
-        }
-      }
-      return;
-    }
 
     const altSectionManagerOpen = !!(altSectionManagerOverlay && altSectionManagerOverlay.style.display === "flex");
     if (altSectionManagerOpen) {
@@ -26445,35 +23475,6 @@ function nudgeSelection(dxScreen, dyScreen) {
     toggle.setAttribute("aria-expanded", collapsed ? "false" : "true");
   }
 
-  function updateRightPanelVisibilityForNumberedImport() {
-    const panels = document.getElementById("right-panels");
-    if (!panels) return;
-    const cards = panels.querySelectorAll(".c-card[data-collapsible='true']");
-    cards.forEach((card) => {
-      const isNumberedImportCard = numberedImportCard && card === numberedImportCard;
-      const isDisplayPanel = displayCard && card === displayCard;
-      const shouldShow = numberedImportMode
-        ? (isNumberedImportCard || isDisplayPanel)
-        : !isNumberedImportCard;
-      // Use inline display to avoid author CSS overriding [hidden] on cards.
-      card.hidden = !shouldShow;
-      card.style.display = shouldShow ? "" : "none";
-    });
-    const openVisibleCards = getVisibleRightPanelCards().filter((card) => !card.classList.contains("c-card--collapsed"));
-    if (openVisibleCards.length > 1) {
-      openVisibleCards.slice(1).forEach((card) => setRightPanelCollapsedState(card, true));
-    }
-  }
-
-  function collapseRightPanelsForNumberedImport() {
-    const panels = document.getElementById("right-panels");
-    if (!panels) return;
-    const cards = panels.querySelectorAll(".c-card[data-collapsible='true']");
-    cards.forEach((card) => {
-      const isNumberedImportCard = numberedImportCard && card === numberedImportCard;
-      setRightPanelCollapsedState(card, !isNumberedImportCard);
-    });
-  }
 
   const rightPanels = document.getElementById("right-panels");
   rightPanels?.querySelectorAll(".c-card[data-collapsible='true']").forEach((card) => {

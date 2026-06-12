@@ -1,0 +1,1011 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Numbered Import Tool</title>
+  <link rel="icon" href="https://tickster.github.io/styleguide/logos/logo_t_circle_blue.png" type="image/png" />
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=SUSE:wght@400;500;600;700&family=SUSE+Mono:wght@400;600&display=swap');
+
+    :root {
+      --app-bg: #edf3f8;
+      --panel-bg: #ffffff;
+      --panel-border: #d6dee6;
+      --panel-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+      --canvas-bg: #f7fafc;
+      --text-main: #102033;
+      --text-muted: #64748b;
+      --accent: #0f7dc2;
+      --accent-strong: #0b5f94;
+      --danger: #d9485f;
+      --radius: 16px;
+      --radius-sm: 10px;
+      --font-main: "SUSE", system-ui, sans-serif;
+      --font-mono: "SUSE Mono", ui-monospace, monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+    }
+
+    body {
+      font-family: var(--font-main);
+      color: var(--text-main);
+      background:
+        radial-gradient(circle at top left, rgba(96, 165, 250, 0.18), transparent 28%),
+        radial-gradient(circle at bottom right, rgba(14, 165, 233, 0.14), transparent 26%),
+        var(--app-bg);
+      overflow: hidden;
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+      font: inherit;
+    }
+
+    #app {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 360px;
+      gap: 16px;
+      height: 100vh;
+      padding: 16px;
+    }
+
+    .canvas-shell,
+    .panel-shell {
+      min-height: 0;
+    }
+
+    .canvas-shell {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .canvas-header,
+    .card {
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: var(--radius);
+      box-shadow: var(--panel-shadow);
+    }
+
+    .canvas-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 14px 18px;
+    }
+
+    .canvas-header__title {
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .canvas-header__meta {
+      color: var(--text-muted);
+      font-size: 0.92rem;
+    }
+
+    #canvas-container {
+      position: relative;
+      flex: 1;
+      min-height: 0;
+      background: #fff;
+      border: 1px solid var(--panel-border);
+      border-radius: var(--radius);
+      box-shadow: var(--panel-shadow);
+      overflow: hidden;
+      cursor: grab;
+    }
+
+    #canvas-container.is-panning {
+      cursor: grabbing;
+    }
+
+    #layoutCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    #canvasStatus {
+      position: absolute;
+      left: 16px;
+      bottom: 16px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.72);
+      color: #f8fafc;
+      font-size: 0.84rem;
+      backdrop-filter: blur(8px);
+      pointer-events: none;
+    }
+
+    .panel-shell {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      min-height: 0;
+    }
+
+    .card {
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+
+    .card__header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 16px 18px 12px;
+    }
+
+    .card__title {
+      font-size: 0.88rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .card__toggle {
+      width: 32px;
+      height: 32px;
+      border: 0;
+      border-radius: 999px;
+      background: #e8f1f7;
+      color: var(--accent-strong);
+      cursor: pointer;
+      position: relative;
+    }
+
+    .card__toggle::before {
+      content: "▾";
+      font-size: 0.95rem;
+      line-height: 1;
+    }
+
+    .card[data-collapsed="true"] .card__toggle::before {
+      content: "▸";
+    }
+
+    .card__body {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding: 0 18px 18px;
+      min-height: 0;
+    }
+
+    .card[data-collapsed="true"] .card__body {
+      display: none;
+    }
+
+    .control-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 12px;
+      border: 1px solid #e2e8f0;
+      border-radius: var(--radius-sm);
+      background: #f8fbfd;
+    }
+
+    .control-group__title {
+      font-size: 0.84rem;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    label.control {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.92rem;
+      color: var(--text-main);
+    }
+
+    input[type="checkbox"],
+    input[type="radio"] {
+      accent-color: var(--accent);
+    }
+
+    .button-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .button {
+      border: 1px solid transparent;
+      border-radius: 999px;
+      padding: 9px 14px;
+      background: #eff6fb;
+      color: var(--text-main);
+      cursor: pointer;
+      font-size: 0.92rem;
+      font-weight: 600;
+      transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+    }
+
+    .button:hover:not(:disabled) {
+      background: #dcecf8;
+    }
+
+    .button:disabled {
+      opacity: 0.45;
+      cursor: default;
+    }
+
+    .button--primary {
+      background: var(--accent);
+      color: #ffffff;
+    }
+
+    .button--primary:hover:not(:disabled) {
+      background: var(--accent-strong);
+    }
+
+    .button--danger {
+      background: #fff1f3;
+      color: var(--danger);
+      border-color: #ffd5dc;
+    }
+
+    details.options {
+      border: 1px solid #dbe6f4;
+      border-radius: var(--radius-sm);
+      background: #f8fbff;
+      overflow: hidden;
+    }
+
+    details.options summary {
+      list-style: none;
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      cursor: pointer;
+      padding: 0;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    details.options summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .options__body {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+      padding: 0.1rem 0 0;
+    }
+
+    #numberedImportState {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      padding: 0.45rem 0.55rem;
+      border-radius: 8px;
+      background: #f5f8fc;
+      border: 1px solid #dbe6f4;
+      color: #4b5563;
+      font-size: 0.76rem;
+    }
+
+    #numberedImportIssues {
+      border: 1px solid #fecaca;
+      border-radius: 8px;
+      background: #fee2e2;
+      overflow: hidden;
+    }
+
+    #numberedImportIssues summary {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      cursor: pointer;
+      padding: 0;
+      font-size: 0.74rem;
+      font-weight: 600;
+      color: #7f1d1d;
+      list-style: none;
+    }
+
+    #numberedImportIssues summary::-webkit-details-marker {
+      display: none;
+    }
+
+    #numberedImportErrors {
+      padding: 0;
+      margin: 0.35rem 0 0;
+      white-space: pre-wrap;
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      color: #7c2d12;
+    }
+
+    #numberedImportPurchaseList {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      overflow: auto;
+      min-height: 160px;
+      padding-right: 4px;
+    }
+
+    .numbered-import-list__empty {
+      padding: 12px;
+      border-radius: var(--radius-sm);
+      background: #f8fbfd;
+      border: 1px dashed #cbd5e1;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    .numbered-import-item {
+      display: flex;
+      gap: 12px;
+      align-items: stretch;
+      padding: 12px;
+      border-radius: 14px;
+      border: 1px solid #dbe3eb;
+      background: #ffffff;
+      box-shadow: 0 4px 18px rgba(15, 23, 42, 0.04);
+      cursor: pointer;
+    }
+
+    .numbered-import-item.is-active {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px rgba(15, 125, 194, 0.16);
+    }
+
+    .numbered-import-item.is-complete {
+      background: #f5fbf6;
+    }
+
+    .numbered-import-item__main {
+      min-width: 0;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .numbered-import-item__ref {
+      font-family: var(--font-mono);
+      font-size: 0.9rem;
+      font-weight: 700;
+    }
+
+    .numbered-import-item__meta,
+    .numbered-import-item__rowline {
+      font-size: 0.84rem;
+      color: var(--text-muted);
+    }
+
+    .numbered-import-item__rows {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .numbered-import-item__actions {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      justify-content: center;
+    }
+
+    .numbered-import-item__btn {
+      min-width: 86px;
+    }
+
+    #numberedImportSectionList {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .numbered-import-section-empty {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+    }
+
+    #tooltip {
+      position: fixed;
+      z-index: 30;
+      display: none;
+      max-width: 320px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: rgba(15, 23, 42, 0.92);
+      color: #f8fafc;
+      font-size: 0.82rem;
+      white-space: pre-line;
+      pointer-events: none;
+      box-shadow: 0 10px 28px rgba(15, 23, 42, 0.28);
+      backdrop-filter: blur(10px);
+    }
+
+    .context-menu {
+      position: fixed;
+      z-index: 35;
+      display: none;
+      min-width: 210px;
+      padding: 8px;
+      border-radius: 14px;
+      border: 1px solid #d7dfe7;
+      background: rgba(255, 255, 255, 0.98);
+      box-shadow: 0 16px 40px rgba(15, 23, 42, 0.18);
+    }
+
+    .context-menu.open {
+      display: block;
+    }
+
+    .context-menu__list {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .context-menu__item {
+      border: 0;
+      border-radius: 10px;
+      background: #f8fbfd;
+      color: var(--text-main);
+      padding: 10px 12px;
+      text-align: left;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+
+    .context-menu__item:hover:not(:disabled) {
+      background: #e6f1f8;
+    }
+
+    .context-menu__item:disabled {
+      opacity: 0.45;
+      cursor: default;
+    }
+
+    /* Import-app overrides aligned with arena-designer right-panel styling */
+    #right-panels {
+      padding: 0;
+      border: none;
+      overflow-y: auto;
+      overflow-x: hidden;
+      min-height: 0;
+      align-self: stretch;
+      padding-right: 4px;
+    }
+
+    #right-panels .c-card,
+    #right-panels .card {
+      flex: 0 0 auto;
+      min-height: fit-content;
+    }
+
+    #right-panels .c-card {
+      gap: 0.5rem;
+    }
+
+    #right-panels .c-card__header,
+    #right-panels .card__header {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      margin-bottom: 1rem;
+      padding: 16px 18px 0;
+    }
+
+    #right-panels .c-card__body,
+    #right-panels .card__body {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      padding: 0 18px 18px;
+    }
+
+    #right-panels .c-card__toggle,
+    #right-panels .card__toggle {
+      margin-left: auto;
+      width: 22px;
+      height: 22px;
+      border-radius: 6px;
+      border: 1px solid var(--panel-border);
+      background: #f7f9fc;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background 0.15s ease-out, border-color 0.15s ease-out, transform 0.15s ease-out;
+      flex: 0 0 auto;
+    }
+
+    #right-panels .c-card__toggle:hover,
+    #right-panels .card__toggle:hover {
+      background: #edf5ff;
+      border-color: var(--accent);
+    }
+
+    #right-panels .c-card__toggle::before,
+    #right-panels .card__toggle::before {
+      content: "";
+      width: 6px;
+      height: 6px;
+      border-right: 2px solid var(--text-main);
+      border-bottom: 2px solid var(--text-main);
+      transform: rotate(45deg);
+      transition: transform 0.15s ease-out;
+    }
+
+    #right-panels .c-card.c-card--collapsed .c-card__toggle::before,
+    #right-panels .c-card.c-card--collapsed .card__toggle::before,
+    #right-panels .c-card[data-collapsed="true"] .c-card__toggle::before,
+    #right-panels .c-card[data-collapsed="true"] .card__toggle::before {
+      transform: rotate(-45deg);
+    }
+
+    #right-panels .c-card.c-card--collapsed .c-card__body,
+    #right-panels .c-card.c-card--collapsed .card__body,
+    #right-panels .c-card__body[hidden],
+    #right-panels .card__body[hidden] {
+      display: none !important;
+    }
+
+    #right-panels .button {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    #right-panels .button-row .button {
+      min-width: 0;
+      flex: 1 1 0;
+    }
+
+    #right-panels label.control {
+      min-width: 0;
+      align-items: flex-start;
+      line-height: 1.35;
+    }
+
+    #right-panels label.control input {
+      flex: 0 0 auto;
+      margin-top: 0.12rem;
+    }
+
+    .numbered-import-options {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+      border: 1px solid #dbe6f4;
+      border-radius: 8px;
+      background: #f8fbff;
+      padding: 0.45rem 0.55rem;
+    }
+
+    .numbered-import-options__title {
+      font-weight: 600;
+      color: #2c3e50;
+    }
+
+    .numbered-import-options__summary {
+      list-style: none;
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      cursor: pointer;
+      user-select: none;
+      color: #2c3e50;
+      outline: none;
+      padding: 0;
+    }
+
+    .numbered-import-options__summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .numbered-import-options__summary::before {
+      content: "";
+      width: 6px;
+      height: 6px;
+      border-right: 2px solid #4a5568;
+      border-bottom: 2px solid #4a5568;
+      transform: rotate(-45deg);
+      transition: transform 0.15s ease-out;
+      flex: 0 0 auto;
+      margin-top: -1px;
+    }
+
+    .numbered-import-options[open] .numbered-import-options__summary::before {
+      transform: rotate(45deg);
+    }
+
+    .numbered-import-options__summary:focus-visible {
+      box-shadow: 0 0 0 2px rgba(12, 107, 165, 0.25);
+      border-radius: 6px;
+    }
+
+    .numbered-import-options__content {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+      padding-top: 0.1rem;
+    }
+
+    .numbered-import-state {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      font-size: 0.76rem;
+      color: #4b5563;
+      background: #f5f8fc;
+      border: 1px solid #dbe6f4;
+      border-radius: 8px;
+      padding: 0.45rem 0.55rem;
+    }
+
+    .numbered-import-issues {
+      display: none;
+      font-size: 0.74rem;
+      color: #7f1d1d;
+      background: #fee2e2;
+      border: 1px solid #fecaca;
+      border-radius: 8px;
+      padding: 0.45rem 0.55rem;
+    }
+
+    .numbered-import-issues.is-visible {
+      display: block;
+    }
+
+    .numbered-import-issues__summary {
+      list-style: none;
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      cursor: pointer;
+      user-select: none;
+      font-weight: 600;
+      outline: none;
+      padding: 0;
+    }
+
+    .numbered-import-issues__summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .numbered-import-issues__summary::before {
+      content: "";
+      width: 6px;
+      height: 6px;
+      border-right: 2px solid currentColor;
+      border-bottom: 2px solid currentColor;
+      transform: rotate(-45deg);
+      transition: transform 0.15s ease-out;
+      flex: 0 0 auto;
+      margin-top: -1px;
+      opacity: 0.85;
+    }
+
+    .numbered-import-issues[open] .numbered-import-issues__summary::before {
+      transform: rotate(45deg);
+    }
+
+    #numberedImportErrors.numbered-import-issues__content {
+      margin-top: 0.35rem;
+      margin-bottom: 0;
+      padding: 0;
+      white-space: pre-wrap;
+      font-family: var(--font-mono);
+      line-height: 1.35;
+    }
+
+    .numbered-import-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.45rem;
+      max-height: 42vh;
+      overflow: auto;
+      min-height: 160px;
+      padding-right: 0.2rem;
+    }
+
+    .numbered-import-list__empty {
+      font-size: 0.76rem;
+      color: #5b6673;
+      border: 1px dashed #c8d2df;
+      border-radius: 8px;
+      padding: 0.55rem;
+      background: #f8fbff;
+    }
+
+    .numbered-import-item {
+      border: 1px solid #d7dfec;
+      background: #f8fbff;
+      border-radius: 8px;
+      padding: 0.45rem 0.55rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      cursor: grab;
+      user-select: none;
+      position: relative;
+    }
+
+    .numbered-import-item.is-active {
+      border-color: #0c6ba5;
+      box-shadow: 0 0 0 1px rgba(12, 107, 165, 0.25);
+      background: #ebf7ff;
+    }
+
+    .numbered-import-item.is-complete {
+      border-color: #5cae8f;
+      background: #edf9f1;
+    }
+
+    .numbered-import-item__main {
+      min-width: 0;
+      flex: 1 1 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 0.15rem;
+      position: relative;
+      z-index: 2;
+    }
+
+    .numbered-import-item__ref {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #1f3342;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .numbered-import-item__meta {
+      font-size: 0.74rem;
+      color: #5b6673;
+    }
+
+    .numbered-import-item__rows {
+      margin-top: 0.2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.1rem;
+      font-size: 0.68rem;
+      color: #4a5568;
+      line-height: 1.25;
+    }
+
+    .numbered-import-item__rowline {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .numbered-import-item__actions {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 0.35rem;
+      position: relative;
+      z-index: 2;
+    }
+
+    .numbered-import-item__btn {
+      min-width: 0;
+      padding: 0.2rem 0.45rem;
+      font-size: 0.7rem;
+      line-height: 1.2;
+    }
+
+    .numbered-import-section-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+    }
+
+    @media (max-width: 1100px) {
+      #app {
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-rows: minmax(0, 1fr) auto;
+      }
+
+      .panel-shell {
+        max-height: 42vh;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <section class="canvas-shell">
+      <div class="canvas-header">
+        <div class="canvas-header__title">Numbered Import Tool</div>
+        <div id="layoutMeta" class="canvas-header__meta">Ladda en TLT-fil för att börja.</div>
+      </div>
+      <div id="canvas-container">
+        <canvas id="layoutCanvas"></canvas>
+        <div id="canvasStatus">Ingen layout laddad</div>
+      </div>
+    </section>
+
+    <aside class="panel-shell" id="right-panels">
+      <section class="card c-card" id="displayCard" data-collapsible="true" data-collapsed="false">
+        <div class="card__header c-card__header">
+          <div class="card__title c-card__title">Display</div>
+          <button class="card__toggle c-card__toggle" type="button" aria-expanded="true" aria-label="Toggle panel" onclick="toggleRightPanel(this)"></button>
+        </div>
+        <div class="card__body c-card__body">
+          <div class="control-stack">
+            <label class="control">
+              <input type="checkbox" id="viewSectionNamesToggle" />
+              Display section name
+            </label>
+          </div>
+
+          <div class="control-group">
+            <div class="control-group__title">Overlay (O)</div>
+            <label class="control">
+              <input type="radio" name="overlayMode" id="viewOverlayNone" value="none" />
+              No overlay
+            </label>
+            <label class="control">
+              <input type="radio" name="overlayMode" id="viewOverlayPrice" value="price" />
+              Show price regions
+            </label>
+            <label class="control">
+              <input type="radio" name="overlayMode" id="viewOverlayGoodness" value="goodness" checked />
+              Show goodness heatmap
+            </label>
+          </div>
+
+          <div class="control-group">
+            <div class="control-group__title">Seat Information (I)</div>
+            <label class="control">
+              <input type="radio" name="seatLabelMode" id="viewSeatLabelNone" value="none" checked />
+              No information
+            </label>
+            <label class="control">
+              <input type="radio" name="seatLabelMode" id="viewSeatLabelRow" value="row" />
+              Display row number
+            </label>
+            <label class="control">
+              <input type="radio" name="seatLabelMode" id="viewSeatLabelSeat" value="seat" />
+              Display seat number
+            </label>
+          </div>
+        </div>
+      </section>
+
+      <section class="card c-card" id="numberedImportCard" data-collapsible="true" data-collapsed="false">
+        <div class="card__header c-card__header">
+          <div class="card__title c-card__title">Import</div>
+          <button class="card__toggle c-card__toggle" type="button" aria-expanded="true" aria-label="Toggle panel" onclick="toggleRightPanel(this)"></button>
+        </div>
+        <div class="card__body c-card__body">
+          <div class="button-row">
+            <button id="numberedImportLoadTltBtn" class="button" type="button">Load TLT</button>
+            <input type="file" id="numberedImportTltInput" accept=".tlt" hidden />
+            <button id="numberedImportLoadXlsxBtn" class="button" type="button">Load XLSX</button>
+            <input type="file" id="numberedImportXlsxInput" accept=".xlsx,.xls" hidden />
+          </div>
+
+          <label class="control">
+            <input type="checkbox" id="numberedImportAllowAllTltSeats" />
+            Allow all TLT seats when placing
+          </label>
+
+          <details class="options numbered-import-options" open>
+            <summary class="numbered-import-options__summary">
+              <span class="numbered-import-options__title">Placement settings</span>
+            </summary>
+            <div class="options__body numbered-import-options__content">
+              <label class="control">
+                <input type="radio" name="numberedImportPlacementMode" id="numberedImportModePurchase" value="all" checked />
+                Place purchase
+              </label>
+              <label class="control">
+                <input type="radio" name="numberedImportPlacementMode" id="numberedImportModeSeat" value="seat" />
+                Place seat
+              </label>
+            </div>
+          </details>
+
+          <details class="options numbered-import-options" open>
+            <summary class="numbered-import-options__summary">
+              <span class="numbered-import-options__title">Sections</span>
+            </summary>
+            <div class="options__body numbered-import-options__content">
+              <label class="control">
+                <input type="checkbox" id="numberedImportSectionsAll" checked />
+                All sections
+              </label>
+              <div id="numberedImportSectionList" class="numbered-import-section-list"></div>
+            </div>
+          </details>
+
+          <details class="options numbered-import-options" open>
+            <summary class="numbered-import-options__summary">
+              <span class="numbered-import-options__title">Auto placement order</span>
+            </summary>
+            <div class="options__body numbered-import-options__content">
+              <label class="control">
+                <input type="radio" name="numberedImportAutoOrderMode" id="numberedImportAutoOrderRow1" value="row1" checked />
+                Place from row 1
+              </label>
+              <label class="control">
+                <input type="radio" name="numberedImportAutoOrderMode" id="numberedImportAutoOrderGoodness" value="goodness" />
+                Place by goodness
+              </label>
+            </div>
+          </details>
+
+          <div class="button-row">
+            <button id="numberedImportAutoPlaceAllBtn" class="button" type="button" disabled>Place all purchases</button>
+            <button id="numberedImportClearBtn" class="button button--danger" type="button" disabled>Clear all</button>
+          </div>
+
+          <div class="button-row">
+            <button id="numberedImportExportBtn" class="button button--primary" type="button" disabled>Export XLSX</button>
+          </div>
+
+          <div id="numberedImportState" class="numbered-import-state">
+            <div id="numberedImportLayoutState">Layout: not loaded</div>
+            <div id="numberedImportExcelState">Excel: not loaded</div>
+            <div id="numberedImportValidationState">Validation: waiting for files</div>
+          </div>
+
+          <details id="numberedImportIssues" class="numbered-import-issues">
+            <summary id="numberedImportIssuesSummary" class="numbered-import-issues__summary">Warnings (0)</summary>
+            <pre id="numberedImportErrors" class="numbered-import-issues__content"></pre>
+          </details>
+
+          <div id="numberedImportPurchaseList" class="numbered-import-list"></div>
+        </div>
+      </section>
+    </aside>
+  </div>
+
+  <div id="tooltip"></div>
+
+  <div id="numberedImportPurchaseMenu" class="context-menu" aria-hidden="true">
+    <div class="context-menu__list">
+      <button id="numberedImportMenuClearPurchase" class="context-menu__item" type="button">Clear purchase</button>
+      <button id="numberedImportMenuClearRow" class="context-menu__item" type="button">Clear row</button>
+      <button id="numberedImportMenuPushLeft" class="context-menu__item" type="button">Push placed left</button>
+      <button id="numberedImportMenuPushRight" class="context-menu__item" type="button">Push placed right</button>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="numbered-import-tool.js"></script>
+</body>
+</html>
