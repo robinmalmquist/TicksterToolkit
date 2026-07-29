@@ -889,6 +889,7 @@
     #exportOverlay,
     #helpOverlay,
     #seatEditOverlay,
+    #seatNameEditOverlay,
     #rowEditOverlay,
     #sectionEditOverlay,
     #priceRegionStaleOverlay,
@@ -2172,6 +2173,7 @@
 
     #attributeModal,
     #seatEditModal,
+    #seatNameEditModal,
     #rowEditModal,
     #sectionEditModal,
     #priceRegionStaleModal,
@@ -2187,6 +2189,7 @@
     }
 
     #seatEditModal,
+    #seatNameEditModal,
     #rowEditModal,
     #sectionEditModal,
     #priceRegionStaleModal {
@@ -2199,6 +2202,7 @@
 
     #attributeModal header,
     #seatEditModal header,
+    #seatNameEditModal header,
     #rowEditModal header,
     #sectionEditModal header,
     #priceRegionStaleModal header,
@@ -2212,6 +2216,7 @@
 
     #attributeModal main,
     #seatEditModal main,
+    #seatNameEditModal main,
     #rowEditModal main,
     #sectionEditModal main,
     #priceRegionStaleModal main,
@@ -2223,6 +2228,7 @@
 
     #attributeModal footer,
     #seatEditModal footer,
+    #seatNameEditModal footer,
     #rowEditModal footer,
     #sectionEditModal footer,
     #priceRegionStaleModal footer,
@@ -2316,6 +2322,21 @@
 
     .edit-field--section-editor {
       grid-column: 1 / -1;
+    }
+
+    .seat-name-edit-field {
+      grid-column: 1 / -1;
+    }
+
+    .seat-name-edit-field input[aria-invalid="true"] {
+      border-color: #d92d20;
+      box-shadow: 0 0 0 2px rgba(217,45,32,0.12);
+    }
+
+    .seat-name-edit-error {
+      min-height: 1.1em;
+      color: #b42318;
+      font-size: 0.8rem;
     }
 
     .edit-field__inline-controls {
@@ -2495,6 +2516,7 @@
     html[data-theme="dark"] #helpModal,
     html[data-theme="dark"] #goodnessModal,
     html[data-theme="dark"] #seatEditModal,
+    html[data-theme="dark"] #seatNameEditModal,
     html[data-theme="dark"] #rowEditModal,
     html[data-theme="dark"] #sectionEditModal,
     html[data-theme="dark"] #highlightSeatsModal,
@@ -2631,6 +2653,7 @@
     html[data-theme="dark"] #helpOverlay,
     html[data-theme="dark"] #goodnessOverlay,
     html[data-theme="dark"] #seatEditOverlay,
+    html[data-theme="dark"] #seatNameEditOverlay,
     html[data-theme="dark"] #rowEditOverlay,
     html[data-theme="dark"] #sectionEditOverlay,
     html[data-theme="dark"] #priceRegionStaleOverlay,
@@ -2644,6 +2667,7 @@
     html[data-theme="dark"] #helpModal h3,
     html[data-theme="dark"] #goodnessModal h3,
     html[data-theme="dark"] #seatEditModal h3,
+    html[data-theme="dark"] #seatNameEditModal h3,
     html[data-theme="dark"] #rowEditModal h3,
     html[data-theme="dark"] #sectionEditModal h3,
     html[data-theme="dark"] #priceRegionStaleModal h3,
@@ -2680,6 +2704,7 @@
     }
 
     html[data-theme="dark"] #seatEditModal header,
+    html[data-theme="dark"] #seatNameEditModal header,
     html[data-theme="dark"] #rowEditModal header,
     html[data-theme="dark"] #sectionEditModal header,
     html[data-theme="dark"] #priceRegionStaleModal header,
@@ -2688,6 +2713,7 @@
     }
 
     html[data-theme="dark"] #seatEditModal main,
+    html[data-theme="dark"] #seatNameEditModal main,
     html[data-theme="dark"] #rowEditModal main,
     html[data-theme="dark"] #sectionEditModal main,
     html[data-theme="dark"] #priceRegionStaleModal main,
@@ -2697,6 +2723,7 @@
     }
 
     html[data-theme="dark"] #seatEditModal footer,
+    html[data-theme="dark"] #seatNameEditModal footer,
     html[data-theme="dark"] #rowEditModal footer,
     html[data-theme="dark"] #sectionEditModal footer,
     html[data-theme="dark"] #priceRegionStaleModal footer,
@@ -2729,6 +2756,10 @@
       background: var(--dark-bg);
       border-color: var(--dark-border);
       color: var(--dark-text);
+    }
+
+    html[data-theme="dark"] .seat-name-edit-error {
+      color: #fda29b;
     }
 
     html[data-theme="dark"] .edit-item__meta {
@@ -3482,6 +3513,7 @@
       <div class="context-menu__list">
         <button id="editSeatsMenuItem" class="context-menu__item" type="button">Edit seat(s)</button>
         <button id="editRowsMenuItem" class="context-menu__item" type="button">Edit row(s)</button>
+        <button id="editSeatNamesMenuItem" class="context-menu__item" type="button">Edit Seat Names</button>
         <button id="editSectionsMenuItem" class="context-menu__item" type="button">Edit sections</button>
         <button id="duplicateSectionsMenuItem" class="context-menu__item" type="button">Duplicate section(s)</button>
         <button id="mergeSectionsMenuItem" class="context-menu__item" type="button">Merge sections</button>
@@ -4051,6 +4083,25 @@
     </div>
   </div>
 
+  <div id="seatNameEditOverlay">
+    <div id="seatNameEditModal" role="dialog" aria-modal="true" aria-labelledby="seatNameEditTitle">
+      <header>
+        <h3 id="seatNameEditTitle">Edit Seat Names</h3>
+        <button id="seatNameEditClose" type="button" class="c-button c-button--ghost c-button--small">Close</button>
+      </header>
+      <main>
+        <div class="u-font--small" style="margin-bottom:0.5rem;">
+          Enter one seat name per seat, separated by commas. Each row must contain exactly the same number of names as seats.
+        </div>
+        <div id="seatNameEditList" class="edit-list"></div>
+      </main>
+      <footer>
+        <button id="seatNameEditCancel" type="button" class="c-button c-button--ghost c-button--small">Cancel</button>
+        <button id="seatNameEditSave" type="button" class="c-button c-button--primary c-button--small">Save</button>
+      </footer>
+    </div>
+  </div>
+
   <div id="rowEditOverlay">
     <div id="rowEditModal">
       <header>
@@ -4213,6 +4264,7 @@
   const unblockSelectionMenuItem = document.getElementById("unblockSelectionMenuItem");
   const editSeatsMenuItem = document.getElementById("editSeatsMenuItem");
   const editRowsMenuItem = document.getElementById("editRowsMenuItem");
+  const editSeatNamesMenuItem = document.getElementById("editSeatNamesMenuItem");
   const mergeRowsMenuItem = document.getElementById("mergeRowsMenuItem");
   const splitRowMenuItem = document.getElementById("splitRowMenuItem");
   const duplicateSectionsMenuItem = document.getElementById("duplicateSectionsMenuItem");
@@ -4246,6 +4298,11 @@
   const seatEditClose = document.getElementById("seatEditClose");
   const seatEditCancel = document.getElementById("seatEditCancel");
   const seatEditSave = document.getElementById("seatEditSave");
+  const seatNameEditOverlay = document.getElementById("seatNameEditOverlay");
+  const seatNameEditList = document.getElementById("seatNameEditList");
+  const seatNameEditClose = document.getElementById("seatNameEditClose");
+  const seatNameEditCancel = document.getElementById("seatNameEditCancel");
+  const seatNameEditSave = document.getElementById("seatNameEditSave");
   const rowEditOverlay = document.getElementById("rowEditOverlay");
   const rowEditList = document.getElementById("rowEditList");
   const rowEditAddPrefixBtn = document.getElementById("rowEditAddPrefixBtn");
@@ -8839,6 +8896,7 @@ codePane.addEventListener("input", () => {
       isOverlayOpen(helpOverlay) ||
       isOverlayOpen(attributeModalOverlay) ||
       isOverlayOpen(seatEditOverlay) ||
+      isOverlayOpen(seatNameEditOverlay) ||
       isOverlayOpen(rowEditOverlay) ||
       isOverlayOpen(sectionEditOverlay) ||
       isOverlayOpen(highlightSeatsOverlay) ||
@@ -13326,6 +13384,7 @@ codePane.addEventListener("input", () => {
     closeHelpModal();
     closeAttributeModal();
     closeSeatEditModal();
+    closeSeatNameEditModal();
     closeRowEditModal();
     closeSectionEditModal();
     closeDuplicateSectionModal();
@@ -17825,6 +17884,7 @@ function nudgeSelection(dxScreen, dyScreen) {
     const selectionItems = [
       editSeatsMenuItem,
       editRowsMenuItem,
+      editSeatNamesMenuItem,
       duplicateSectionsMenuItem,
       mergeSectionsMenuItem,
       mergeRowsMenuItem,
@@ -17872,6 +17932,9 @@ function nudgeSelection(dxScreen, dyScreen) {
       }
       if (editRowsMenuItem) {
         editRowsMenuItem.disabled = selectionMode !== "row" || getSelectedRows().size === 0;
+      }
+      if (editSeatNamesMenuItem) {
+        editSeatNamesMenuItem.disabled = selectionMode !== "row" || getSelectedRows().size === 0;
       }
       const rows = getSelectedRows();
       let sameSection = true;
@@ -18134,6 +18197,159 @@ function nudgeSelection(dxScreen, dyScreen) {
 
   function closeSeatEditModal() {
     if (seatEditOverlay) seatEditOverlay.style.display = "none";
+  }
+
+  function getSelectedRowsForSeatNameEditing() {
+    const selectedRows = getSelectedRows();
+    const rows = [];
+    selectedRows.forEach((selectedRowSeats, rowId) => {
+      const rowSeats = seats.filter((seat) => seat.rowId === rowId);
+      const orderedSeats = sortSeatsInRow(rowSeats.length ? rowSeats : selectedRowSeats);
+      if (!orderedSeats.length) return;
+      rows.push({
+        rowId,
+        rowName: orderedSeats[0]?.rowName || rowId,
+        seats: orderedSeats
+      });
+    });
+    return rows;
+  }
+
+  function parseSeatNamesForRow(value, expectedCount) {
+    const names = String(value ?? "").split(",").map((name) => name.trim());
+    if (names.length !== expectedCount) {
+      return {
+        names,
+        error: `Enter ${expectedCount} name${expectedCount === 1 ? "" : "s"}; ${names.length} given.`
+      };
+    }
+    if (names.some((name) => !name)) {
+      return {
+        names,
+        error: "Every seat needs a name."
+      };
+    }
+    return { names, error: "" };
+  }
+
+  function validateSeatNameEditInput(input) {
+    if (!input) return { names: [], error: "" };
+    const expectedCount = Number(input.dataset.expectedCount) || 0;
+    const result = parseSeatNamesForRow(input.value, expectedCount);
+    const errorEl = input.closest(".edit-item")?.querySelector("[data-role='seat-name-edit-error']");
+    input.setAttribute("aria-invalid", result.error ? "true" : "false");
+    if (errorEl) errorEl.textContent = result.error;
+    return result;
+  }
+
+  function buildSeatNameEditList() {
+    if (!seatNameEditList) return;
+    seatNameEditList.innerHTML = "";
+    const rows = getSelectedRowsForSeatNameEditing();
+    rows.forEach((row) => {
+      const item = document.createElement("div");
+      item.className = "edit-item";
+      item.dataset.rowId = row.rowId;
+      item.dataset.seatIds = JSON.stringify(row.seats.map((seat) => seat.seatId));
+
+      const title = document.createElement("div");
+      title.className = "edit-item__title";
+      title.textContent = `Row ${row.rowName} contains ${row.seats.length} seat${row.seats.length === 1 ? "" : "s"} | RowId ${row.rowId}`;
+
+      const field = document.createElement("label");
+      field.className = "edit-field seat-name-edit-field";
+      const label = document.createElement("span");
+      label.textContent = "Seat names (comma-separated)";
+      const input = document.createElement("input");
+      input.type = "text";
+      input.value = row.seats.map((seat) => String(seat.name ?? "")).join(", ");
+      input.dataset.role = "seat-names";
+      input.dataset.expectedCount = String(row.seats.length);
+      const error = document.createElement("div");
+      error.className = "seat-name-edit-error";
+      error.dataset.role = "seat-name-edit-error";
+      error.setAttribute("aria-live", "polite");
+      input.setAttribute("aria-describedby", `seat-name-edit-error-${row.rowId}`);
+      error.id = `seat-name-edit-error-${row.rowId}`;
+      input.addEventListener("input", () => validateSeatNameEditInput(input));
+
+      field.appendChild(label);
+      field.appendChild(input);
+      item.appendChild(title);
+      item.appendChild(field);
+      item.appendChild(error);
+      seatNameEditList.appendChild(item);
+      validateSeatNameEditInput(input);
+    });
+  }
+
+  function openSeatNameEditModal() {
+    buildSeatNameEditList();
+    if (!seatNameEditList || seatNameEditList.childElementCount === 0) return;
+    if (seatNameEditOverlay) seatNameEditOverlay.style.display = "flex";
+    const firstInput = seatNameEditList.querySelector("input[data-role='seat-names']");
+    if (firstInput) setTimeout(() => firstInput.focus(), 50);
+  }
+
+  function closeSeatNameEditModal() {
+    if (seatNameEditOverlay) seatNameEditOverlay.style.display = "none";
+  }
+
+  function saveSeatNamesForSelectedRows() {
+    if (!seatNameEditList) return false;
+    const edits = [];
+    const seatMap = new Map(seats.map((seat) => [seat.seatId, seat]));
+    let firstInvalidInput = null;
+    seatNameEditList.querySelectorAll(".edit-item").forEach((item) => {
+      const input = item.querySelector("input[data-role='seat-names']");
+      const result = validateSeatNameEditInput(input);
+      if (result.error) {
+        if (!firstInvalidInput) firstInvalidInput = input;
+        return;
+      }
+      let seatIds = [];
+      try {
+        seatIds = JSON.parse(item.dataset.seatIds || "[]");
+      } catch (_) {
+        seatIds = [];
+      }
+      if (seatIds.length !== result.names.length || seatIds.some((seatId) => !seatMap.has(seatId))) {
+        if (!firstInvalidInput) firstInvalidInput = input;
+        input.setAttribute("aria-invalid", "true");
+        const errorEl = item.querySelector("[data-role='seat-name-edit-error']");
+        if (errorEl) errorEl.textContent = "The seats in this row could not be matched. Reopen the dialog and try again.";
+        return;
+      }
+      edits.push({ seatIds, names: result.names });
+    });
+
+    if (firstInvalidInput) {
+      firstInvalidInput.focus();
+      return false;
+    }
+
+    let changed = false;
+    edits.forEach(({ seatIds, names }) => {
+      seatIds.forEach((seatId, index) => {
+        const seat = seatMap.get(seatId);
+        const name = names[index];
+        if (seat && String(seat.name ?? "") !== name) {
+          seat.name = name;
+          changed = true;
+        }
+      });
+    });
+
+    if (changed) {
+      updateCodeFromSeats();
+      renderCanvas();
+      hasUnsavedChanges = true;
+      updateSaveButton();
+      saveSessionToLocalStorage();
+      pushHistorySnapshot();
+    }
+    closeSeatNameEditModal();
+    return true;
   }
 
   function applyBulkPrefixToEditList(listEl, inputSelector, promptMessage) {
@@ -19224,6 +19440,10 @@ function nudgeSelection(dxScreen, dyScreen) {
     closeSeatContextMenu();
     openRowEditModal();
   });
+  editSeatNamesMenuItem?.addEventListener("click", () => {
+    closeSeatContextMenu();
+    openSeatNameEditModal();
+  });
   mergeRowsMenuItem?.addEventListener("click", () => {
     closeSeatContextMenu();
     const changed = mergeSelectedRows();
@@ -19447,6 +19667,10 @@ function nudgeSelection(dxScreen, dyScreen) {
     }
     closeSeatEditModal();
   });
+
+  seatNameEditClose?.addEventListener("click", closeSeatNameEditModal);
+  seatNameEditCancel?.addEventListener("click", closeSeatNameEditModal);
+  seatNameEditSave?.addEventListener("click", saveSeatNamesForSelectedRows);
 
   rowEditClose?.addEventListener("click", closeRowEditModal);
   rowEditCancel?.addEventListener("click", closeRowEditModal);
