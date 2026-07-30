@@ -1143,7 +1143,16 @@
       gap: 0.3rem;
       font-size: 0.9rem;
     }
+    .export-svg-settings__group > .export-svg-setting-field + .export-svg-setting-field {
+      border-top: 1px solid #d7dde8;
+      padding-top: 0.75rem;
+    }
     .export-svg-setting-field label {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: #3b4a58;
+    }
+    .export-svg-setting-label {
       font-size: 0.82rem;
       font-weight: 600;
       color: #3b4a58;
@@ -1161,6 +1170,18 @@
       width: 100%;
       background: transparent;
       cursor: pointer;
+    }
+    .export-svg-mode-options .export-option {
+      font-size: 0.9rem;
+      font-weight: 400;
+      color: inherit;
+    }
+    .export-svg-mode-options input[type="radio"] {
+      width: auto;
+      min-height: 0;
+      padding: 0;
+      border: 0;
+      border-radius: 0;
     }
     .export-svg-settings__hint {
       font-size: 0.78rem;
@@ -3847,14 +3868,29 @@
           <div class="export-svg-settings__content">
           <div class="export-svg-settings__group">
             <div class="export-svg-settings__group-title">Layout</div>
-            <div id="exportSvgSupportParts" class="export-svg-settings__options"></div>
-            <div class="export-svg-settings__grid">
-              <div class="export-svg-setting-field">
-                <label for="exportSvgSectionTextBoxCornerRadius">Corner radius</label>
-                <input id="exportSvgSectionTextBoxCornerRadius" type="number" min="0" step="5" value="75" />
+            <div class="export-svg-setting-field export-svg-mode-options" role="radiogroup" aria-labelledby="exportSvgModeLabel">
+              <div id="exportSvgModeLabel" class="export-svg-setting-label">SVG export mode</div>
+              <div class="export-svg-settings__options">
+                <label class="export-option">
+                  <input type="radio" name="exportSvgMode" value="full" checked />
+                  Full SVG
+                </label>
+                <label class="export-option">
+                  <input type="radio" name="exportSvgMode" value="sections" />
+                  Only replace Sections group
+                </label>
               </div>
+              <div id="exportSvgModeHint" class="export-svg-settings__hint">Full SVG creates a complete SVG file.</div>
             </div>
-            <div class="export-svg-settings__hint">0 gives sharp corners.</div>
+            <div class="export-svg-setting-field">
+              <div class="export-svg-setting-label">SVG elements</div>
+              <div id="exportSvgSupportParts" class="export-svg-settings__options"></div>
+            </div>
+            <div class="export-svg-setting-field">
+              <label for="exportSvgSectionTextBoxCornerRadius">Corner radius</label>
+              <input id="exportSvgSectionTextBoxCornerRadius" type="number" min="0" step="5" value="75" />
+              <div class="export-svg-settings__hint">0 gives sharp corners.</div>
+            </div>
           </div>
 
           <div class="export-svg-settings__group">
@@ -4365,6 +4401,8 @@
   const exportCss = document.getElementById("exportCss");
   const exportSvg = document.getElementById("exportSvg");
   const exportSvgSettings = document.getElementById("exportSvgSettings");
+  const exportSvgModeOptions = Array.from(document.querySelectorAll('input[name="exportSvgMode"]'));
+  const exportSvgModeHint = document.getElementById("exportSvgModeHint");
   const exportSvgSupportParts = document.getElementById("exportSvgSupportParts");
   const exportSvgSectionTextBoxCornerRadius = document.getElementById("exportSvgSectionTextBoxCornerRadius");
   const exportSvgSectionTextBoxFill = document.getElementById("exportSvgSectionTextBoxFill");
@@ -4417,6 +4455,20 @@
     { key: "entrance", label: "Entrance", defaultChecked: false },
     { key: "stairs", label: "Stairs", defaultChecked: false }
   ]);
+
+  function normalizeSvgExportMode(value) {
+    return value === "sections" ? "sections" : "full";
+  }
+
+  function getSelectedSvgExportMode() {
+    return normalizeSvgExportMode(exportSvgModeOptions.find((input) => input.checked)?.value);
+  }
+
+  function setSelectedSvgExportMode(value) {
+    const normalized = normalizeSvgExportMode(value);
+    const matchingOption = exportSvgModeOptions.find((input) => input.value === normalized);
+    if (matchingOption) matchingOption.checked = true;
+  }
 
   const historyCard = document.getElementById("historyCard");
   const historyBackBtn = document.getElementById("historyBackBtn");
@@ -8516,6 +8568,13 @@ codePane.addEventListener("input", () => {
 
   function getSvgExportSettingsControls() {
     return [
+      ...exportSvgModeOptions,
+      ...getSvgSectionGroupSettingsControls()
+    ].filter(Boolean);
+  }
+
+  function getSvgSectionGroupSettingsControls() {
+    return [
       ...getSvgSupportPartCheckboxes(),
       exportSvgSectionTextBoxCornerRadius,
       exportSvgSectionTextBoxFill,
@@ -8581,6 +8640,7 @@ codePane.addEventListener("input", () => {
       exportTlm: !!exportTlm?.checked,
       exportCss: !!exportCss?.checked,
       exportSvg: !!exportSvg?.checked,
+      svgExportMode: getSelectedSvgExportMode(),
       exportLayoutSummaryXlsx: !!exportLayoutSummaryXlsx?.checked,
       svgSupportParts: getSvgSupportPartSelectionsFromInputs(),
       sectionTextBoxCornerRadius: parseSvgCornerRadiusValue(exportSvgSectionTextBoxCornerRadius?.value, SVG_EXPORT_STYLE_DEFAULTS.sectionTextBoxCornerRadius),
@@ -8608,6 +8668,7 @@ codePane.addEventListener("input", () => {
     applyChecked(exportTlm, preferences.exportTlm);
     applyChecked(exportCss, preferences.exportCss);
     applyChecked(exportSvg, preferences.exportSvg);
+    setSelectedSvgExportMode(preferences.svgExportMode);
     applyChecked(exportLayoutSummaryXlsx, preferences.exportLayoutSummaryXlsx);
     applySvgSupportPartSelectionsToInputs(
       preferences.svgSupportParts,
@@ -8631,7 +8692,7 @@ codePane.addEventListener("input", () => {
     applyColor(exportSvgRowNumberTextFill, preferences.rowNumberTextFill, SVG_EXPORT_STYLE_DEFAULTS.rowNumberTextFill);
     applyValue(exportSvgRowNumberTextSize, parseSvgNonNegativeNumber(preferences.rowNumberTextSize, SVG_EXPORT_STYLE_DEFAULTS.rowNumberTextSize));
     applyChecked(exportSvgRowNumberTextHide, preferences.rowNumberTextHide);
-    updateSvgHoverEffectAvailability();
+    updateSvgExportSettingsAvailability();
   }
 
   async function getPreferredExportDirectoryHandleForCurrentLayout() {
@@ -8678,8 +8739,13 @@ codePane.addEventListener("input", () => {
     const tooltip = exportSvg?.disabled
       ? (exportSvg.title || "Enable SVG export to change SVG export settings.")
       : "Enable SVG export to change SVG export settings.";
-    getSvgExportSettingsControls().forEach((control) => {
-      setSvgDependentExportControlState(control, enabled, tooltip);
+    const onlyReplaceSections = getSelectedSvgExportMode() === "sections";
+    exportSvgModeOptions.forEach((control) => setSvgDependentExportControlState(control, enabled, tooltip));
+    const sectionSettingsTooltip = onlyReplaceSections
+      ? "Only the #sections group is updated in this mode. These settings apply to Full SVG exports."
+      : tooltip;
+    getSvgSectionGroupSettingsControls().forEach((control) => {
+      setSvgDependentExportControlState(control, enabled && !onlyReplaceSections, sectionSettingsTooltip);
     });
     if (exportSvgSettings) {
       exportSvgSettings.classList.toggle("export-svg-settings--disabled", !enabled);
@@ -8687,13 +8753,21 @@ codePane.addEventListener("input", () => {
       if (!enabled) exportSvgSettings.title = tooltip;
       else exportSvgSettings.removeAttribute("title");
     }
+    if (exportSvgModeHint) {
+      exportSvgModeHint.textContent = onlyReplaceSections
+        ? "Choose an existing SVG when exporting. Only <g id=\"sections\"> is replaced; all other SVG markup is preserved."
+        : "Full SVG creates a complete SVG file.";
+    }
     updateSvgHoverEffectAvailability();
   }
 
   function updateSvgHoverEffectAvailability() {
     const svgEnabled = !!(exportSvg && !exportSvg.disabled && exportSvg.checked);
-    const hoverEnabled = svgEnabled && !!exportSvgSectionTextBoxHoverEnabled?.checked;
-    const tooltip = svgEnabled
+    const onlyReplaceSections = getSelectedSvgExportMode() === "sections";
+    const hoverEnabled = svgEnabled && !onlyReplaceSections && !!exportSvgSectionTextBoxHoverEnabled?.checked;
+    const tooltip = onlyReplaceSections
+      ? "Only the #sections group is updated in this mode. These settings apply to Full SVG exports."
+      : svgEnabled
       ? "Enable hover effect to change hover opacity."
       : (exportSvg?.disabled
           ? (exportSvg.title || "Enable SVG export to change SVG export settings.")
@@ -12228,6 +12302,189 @@ codePane.addEventListener("input", () => {
     return buildSvgSkeleton(viewBox, cssText, outlineMarkup, supportHelperMarkup, rowNumberMarkup, sectionsMarkup, frontgroundMarkup);
   }
 
+  function findSvgMarkupTagEnd(markup, startIndex) {
+    let quote = "";
+    for (let index = startIndex + 1; index < markup.length; index++) {
+      const char = markup[index];
+      if (quote) {
+        if (char === quote) quote = "";
+        continue;
+      }
+      if (char === '"' || char === "'") {
+        quote = char;
+        continue;
+      }
+      if (char === ">") return index;
+    }
+    return -1;
+  }
+
+  function findSvgElementRangeById(markup, targetId) {
+    const svgText = String(markup || "");
+    const stack = [];
+    let searchFrom = 0;
+
+    while (searchFrom < svgText.length) {
+      const start = svgText.indexOf("<", searchFrom);
+      if (start === -1) break;
+      if (svgText.startsWith("<!--", start)) {
+        const commentEnd = svgText.indexOf("-->", start + 4);
+        searchFrom = commentEnd === -1 ? svgText.length : commentEnd + 3;
+        continue;
+      }
+      if (svgText.startsWith("<![CDATA[", start)) {
+        const cdataEnd = svgText.indexOf("]]>", start + 9);
+        searchFrom = cdataEnd === -1 ? svgText.length : cdataEnd + 3;
+        continue;
+      }
+      if (svgText.startsWith("<?", start)) {
+        const processingInstructionEnd = svgText.indexOf("?>", start + 2);
+        searchFrom = processingInstructionEnd === -1 ? svgText.length : processingInstructionEnd + 2;
+        continue;
+      }
+
+      const end = findSvgMarkupTagEnd(svgText, start);
+      if (end === -1) return null;
+      const tag = svgText.slice(start, end + 1);
+      const tagMatch = /^<\s*(\/?)\s*([A-Za-z_][\w:.-]*)\b/.exec(tag);
+      if (!tagMatch) {
+        searchFrom = end + 1;
+        continue;
+      }
+
+      const isClosingTag = !!tagMatch[1];
+      const tagName = tagMatch[2];
+      if (isClosingTag) {
+        const openElement = stack.pop();
+        if (!openElement || openElement.tagName !== tagName) return null;
+        if (openElement.id === targetId) {
+          return { start: openElement.start, end: end + 1 };
+        }
+      } else {
+        const isSelfClosing = /\/\s*>$/.test(tag);
+        const idMatch = /(?:^|\s)id\s*=\s*(?:"([^"]*)"|'([^']*)')/.exec(tag);
+        const element = {
+          id: idMatch ? (idMatch[1] ?? idMatch[2] ?? "") : "",
+          start,
+          tagName
+        };
+        if (isSelfClosing) {
+          if (element.id === targetId) return null;
+        } else {
+          stack.push(element);
+        }
+      }
+      searchFrom = end + 1;
+    }
+    return null;
+  }
+
+  function getSvgLineIndent(markup, index) {
+    const lineStart = Math.max(0, String(markup || "").lastIndexOf("\n", Math.max(0, index - 1)) + 1);
+    const linePrefix = String(markup || "").slice(lineStart, index);
+    return /^[\t ]*$/.test(linePrefix) ? linePrefix : "";
+  }
+
+  function alignSvgElementMarkup(markup, sourceIndent, targetIndent, lineEnding) {
+    const lines = String(markup || "").split(/\r\n|\n|\r/);
+    return lines.map((line, index) => {
+      if (index === 0) return line;
+      const leading = (line.match(/^[\t ]*/) || [""])[0];
+      const relativeIndent = leading.startsWith(sourceIndent)
+        ? leading.slice(sourceIndent.length)
+        : leading;
+      return `${targetIndent}${relativeIndent}${line.slice(leading.length)}`;
+    }).join(lineEnding);
+  }
+
+  function assertSvgSectionsGroup(svgText, fileName) {
+    const parser = new DOMParser();
+    const documentSvg = parser.parseFromString(String(svgText || ""), "image/svg+xml");
+    if (documentSvg.querySelector("parsererror") || documentSvg.documentElement?.localName !== "svg") {
+      throw new Error(`${fileName} is not a valid SVG file.`);
+    }
+    const sectionsGroup = documentSvg.getElementById("sections") || documentSvg.querySelector('[id="sections"]');
+    if (!sectionsGroup || sectionsGroup.localName !== "g") {
+      throw new Error(`${fileName} does not contain a <g id="sections"> group.`);
+    }
+  }
+
+  function replaceSvgSectionsGroup(existingSvgText, generatedSvgText, fileName = "The selected SVG") {
+    assertSvgSectionsGroup(existingSvgText, fileName);
+    assertSvgSectionsGroup(generatedSvgText, "The generated SVG");
+    const existingRange = findSvgElementRangeById(existingSvgText, "sections");
+    const generatedRange = findSvgElementRangeById(generatedSvgText, "sections");
+    if (!existingRange || !generatedRange) {
+      throw new Error("Could not locate the #sections group in the SVG markup.");
+    }
+
+    const generatedSectionsMarkup = String(generatedSvgText).slice(generatedRange.start, generatedRange.end);
+    const sourceIndent = getSvgLineIndent(generatedSvgText, generatedRange.start);
+    const targetIndent = getSvgLineIndent(existingSvgText, existingRange.start);
+    const lineEnding = String(existingSvgText).includes("\r\n") ? "\r\n" : "\n";
+    const alignedSectionsMarkup = alignSvgElementMarkup(generatedSectionsMarkup, sourceIndent, targetIndent, lineEnding);
+    return `${String(existingSvgText).slice(0, existingRange.start)}${alignedSectionsMarkup}${String(existingSvgText).slice(existingRange.end)}`;
+  }
+
+  async function chooseExistingSvgFileForSectionReplacement() {
+    const pickerOptions = {
+      multiple: false,
+      types: [{
+        description: "SVG files",
+        accept: { "image/svg+xml": [".svg"] }
+      }]
+    };
+    if (typeof window.showOpenFilePicker === "function") {
+      try {
+        const [fileHandle] = await window.showOpenFilePicker(pickerOptions);
+        if (!fileHandle) return null;
+        const file = await fileHandle.getFile();
+        return {
+          fileHandle,
+          name: file.name || "layout.svg",
+          text: await file.text()
+        };
+      } catch (err) {
+        if (err?.name === "AbortError") return null;
+        console.warn("Could not open SVG with the file picker; using browser file selection instead:", err);
+      }
+    }
+
+    return new Promise((resolve, reject) => {
+      const input = document.createElement("input");
+      input.type = "file";
+      input.accept = ".svg,image/svg+xml";
+      input.addEventListener("cancel", () => resolve(null), { once: true });
+      input.addEventListener("change", async () => {
+        const file = input.files?.[0];
+        if (!file) {
+          resolve(null);
+          return;
+        }
+        try {
+          resolve({ name: file.name || "layout.svg", text: await file.text() });
+        } catch (err) {
+          reject(err);
+        }
+      }, { once: true });
+      input.click();
+    });
+  }
+
+  async function writeTextToExistingFile(fileHandle, text) {
+    if (!fileHandle?.createWritable) {
+      throw new Error("This browser cannot update the selected SVG file directly.");
+    }
+    if (typeof fileHandle.queryPermission === "function" && typeof fileHandle.requestPermission === "function") {
+      let permission = await fileHandle.queryPermission({ mode: "readwrite" });
+      if (permission !== "granted") permission = await fileHandle.requestPermission({ mode: "readwrite" });
+      if (permission !== "granted") throw new Error("Permission to update the selected SVG file was denied.");
+    }
+    const writable = await fileHandle.createWritable();
+    await writable.write(text);
+    await writable.close();
+  }
+
   function downloadTextFile(filename, text) {
     const blob = new Blob([text], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
@@ -12369,6 +12626,18 @@ codePane.addEventListener("input", () => {
     const baseName = getExportBaseName();
     const metaVenueId = getLayoutMeta().venueId || "";
     const venueId = (exportVenueId?.value || "").trim() || metaVenueId;
+    const svgExportMode = getSelectedSvgExportMode();
+    let svgReplacementTarget = null;
+    if (exportSvg?.checked && svgExportMode === "sections") {
+      try {
+        svgReplacementTarget = await chooseExistingSvgFileForSectionReplacement();
+      } catch (err) {
+        console.error("Could not read selected SVG file:", err);
+        alert(`Could not read the selected SVG file: ${err?.message || err}`);
+        return false;
+      }
+      if (!svgReplacementTarget) return false;
+    }
     const exportPreferences = collectExportModalPreferencesFromInputs();
     const hasSeatBlockAssignments = hasAnySeatBlockAssignments();
     const exportTlmChecked = !!exportTlm?.checked;
@@ -12425,11 +12694,11 @@ codePane.addEventListener("input", () => {
     }
     if (exportSvg?.checked) {
       exportTasks.push({
-        label: "SVG",
-        name: `${baseName}.svg`,
-        build: async () => ({
-          name: `${baseName}.svg`,
-          text: await buildSvgText({
+        label: svgExportMode === "sections" ? "SVG sections" : "SVG",
+        name: svgReplacementTarget?.name || `${baseName}.svg`,
+        existingFileHandle: svgReplacementTarget?.fileHandle || null,
+        build: async () => {
+          const generatedSvgText = await buildSvgText({
             svgSupportParts: getSvgSupportPartSelectionsFromInputs(),
             sectionTextBoxCornerRadius: parseSvgCornerRadiusValue(exportSvgSectionTextBoxCornerRadius?.value, 75),
             onProgress: async (message, detail = "") => {
@@ -12441,8 +12710,14 @@ codePane.addEventListener("input", () => {
               await yieldToUiFrame();
             },
             ...getSvgExportStyleOptionsFromInputs()
-          })
-        })
+          });
+          return {
+            name: svgReplacementTarget?.name || `${baseName}.svg`,
+            text: svgExportMode === "sections"
+              ? replaceSvgSectionsGroup(svgReplacementTarget.text, generatedSvgText, svgReplacementTarget.name)
+              : generatedSvgText
+          };
+        }
       });
     }
     if (exportLayoutSummaryXlsx?.checked) {
@@ -12482,7 +12757,8 @@ codePane.addEventListener("input", () => {
     }
 
     let resolvedDir = null;
-    if (typeof window.showDirectoryPicker === "function") {
+    const needsExportDirectory = exportTasks.some((task) => !task.existingFileHandle);
+    if (needsExportDirectory && typeof window.showDirectoryPicker === "function") {
       try {
         const startDir = await getPreferredExportDirectoryHandleForCurrentLayout();
         const pickerOpts = startDir ? { startIn: startDir } : {};
@@ -12508,7 +12784,7 @@ codePane.addEventListener("input", () => {
         await yieldToUiFrame();
         const file = await task.build();
         if (file === false) return false;
-        if (file) files.push(file);
+        if (file) files.push({ ...file, existingFileHandle: task.existingFileHandle || null });
       }
 
       if (resolvedDir) {
@@ -12516,10 +12792,14 @@ codePane.addEventListener("input", () => {
           const file = files[index];
           setExportProgressState({
             active: true,
-            message: `Saving ${file.name}`,
+            message: file.existingFileHandle ? `Updating ${file.name}` : `Saving ${file.name}`,
             detail: `${index + 1} / ${files.length} files`
           });
           await yieldToUiFrame();
+          if (file.existingFileHandle) {
+            await writeTextToExistingFile(file.existingFileHandle, file.text);
+            continue;
+          }
           const handle = await resolvedDir.getFileHandle(file.name, { create: true });
           const writable = await handle.createWritable();
           const payload = Object.prototype.hasOwnProperty.call(file, "binary") ? file.binary : file.text;
@@ -12540,13 +12820,17 @@ codePane.addEventListener("input", () => {
         detail: `${files.length} files`
       });
       await yieldToUiFrame();
-      files.forEach((file) => {
+      for (const file of files) {
+        if (file.existingFileHandle) {
+          await writeTextToExistingFile(file.existingFileHandle, file.text);
+          continue;
+        }
         if (Object.prototype.hasOwnProperty.call(file, "binary")) {
           downloadBinaryFile(file.name, file.binary, file.mimeType);
         } else {
           downloadTextFile(file.name, file.text);
         }
-      });
+      }
       await persistCurrentLayoutExportPrefs({
         settings: exportPreferences
       });
@@ -13565,6 +13849,7 @@ codePane.addEventListener("input", () => {
     applyExportSelectionPreset("none");
   });
   exportSvg?.addEventListener("change", updateSvgExportSettingsAvailability);
+  exportSvgModeOptions.forEach((option) => option.addEventListener("change", updateSvgExportSettingsAvailability));
   exportSvgSectionTextBoxHoverEnabled?.addEventListener("change", updateSvgHoverEffectAvailability);
   exportName?.addEventListener("keydown", (e) => {
     if (e.key === "Enter") {
