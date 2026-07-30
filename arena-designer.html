@@ -289,6 +289,7 @@
     }
 
     #newLayoutBtn:not(:disabled),
+    #emptyNewLayoutBtn:not(:disabled),
     #openSectionManagerBtn:not(:disabled),
     #altSectionCreateBtn:not(:disabled) {
       background: #00804f;
@@ -297,6 +298,7 @@
     }
 
     #newLayoutBtn:hover:not(:disabled),
+    #emptyNewLayoutBtn:hover:not(:disabled),
     #openSectionManagerBtn:hover:not(:disabled),
     #altSectionCreateBtn:hover:not(:disabled) {
       background: #006a41;
@@ -304,6 +306,7 @@
     }
 
     #newLayoutBtn:disabled,
+    #emptyNewLayoutBtn:disabled,
     #openSectionManagerBtn:disabled,
     #altSectionCreateBtn:disabled {
       background: #768680;
@@ -331,6 +334,7 @@
     }
 
     #openFileBtnTop:not(:disabled),
+    #emptyOpenLayoutBtn:not(:disabled),
     #saveBtn:not(:disabled),
     #saveAsBtn:not(:disabled),
     #exportBtn:not(:disabled) {
@@ -340,6 +344,7 @@
     }
 
     #openFileBtnTop:hover:not(:disabled),
+    #emptyOpenLayoutBtn:hover:not(:disabled),
     #saveBtn:hover:not(:disabled),
     #saveAsBtn:hover:not(:disabled),
     #exportBtn:hover:not(:disabled) {
@@ -348,6 +353,7 @@
     }
 
     #openFileBtnTop:disabled,
+    #emptyOpenLayoutBtn:disabled,
     #saveBtn:disabled,
     #saveAsBtn:disabled,
     #exportBtn:disabled {
@@ -2984,6 +2990,7 @@
       padding: 0.75rem;
       cursor: default;
       overflow: hidden;
+      position: relative;
       box-shadow: var(--card-shadow);
     }
 
@@ -2996,6 +3003,64 @@
       border-radius: 8px;
       border: 1px solid #f1f1f1;
       display: block;
+    }
+
+    #emptyLayoutPrompt {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      display: grid;
+      place-items: center;
+      padding: 2rem;
+      pointer-events: none;
+    }
+
+    #emptyLayoutPrompt[hidden] {
+      display: none;
+    }
+
+    .empty-layout-prompt__card {
+      width: min(470px, 100%);
+      padding: 2.5rem;
+      text-align: center;
+      background: rgba(255, 255, 255, 0.96);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-card);
+      box-shadow: var(--card-shadow);
+      pointer-events: auto;
+    }
+
+    .empty-layout-prompt__card h2 {
+      margin: 0;
+      color: var(--tick-blue-dark);
+      font-size: 1.85rem;
+    }
+
+    .empty-layout-prompt__card p {
+      margin: 0.8rem 0 1.5rem;
+      color: #5d6b78;
+      font-size: 1.05rem;
+      line-height: 1.5;
+    }
+
+    .empty-layout-prompt__actions {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.75rem;
+    }
+
+    html[data-theme="dark"] .empty-layout-prompt__card {
+      background: rgba(31, 41, 55, 0.96);
+      border-color: var(--dark-border);
+    }
+
+    html[data-theme="dark"] .empty-layout-prompt__card h2 {
+      color: var(--tick-blue-light);
+    }
+
+    html[data-theme="dark"] .empty-layout-prompt__card p {
+      color: var(--dark-muted);
     }
 
     /* Kodruta nedtill */
@@ -3329,6 +3394,16 @@
 
       <div id="canvas-container">
         <canvas id="layoutCanvas"></canvas>
+        <section id="emptyLayoutPrompt" aria-labelledby="emptyLayoutPromptTitle">
+          <div class="empty-layout-prompt__card">
+            <h2 id="emptyLayoutPromptTitle">No layout loaded</h2>
+            <p>Open an existing layout or create a new one to get started.</p>
+            <div class="empty-layout-prompt__actions">
+              <button id="emptyOpenLayoutBtn" class="c-button c-button--primary" type="button">Open layout</button>
+              <button id="emptyNewLayoutBtn" class="c-button c-button--primary" type="button">Create new</button>
+            </div>
+          </div>
+        </section>
       </div>
     </section>
 
@@ -4242,6 +4317,9 @@
   // --- Globala variabler ---
   const canvas = document.getElementById("layoutCanvas");
   const canvasContainer = document.getElementById("canvas-container");
+  const emptyLayoutPrompt = document.getElementById("emptyLayoutPrompt");
+  const emptyOpenLayoutBtn = document.getElementById("emptyOpenLayoutBtn");
+  const emptyNewLayoutBtn = document.getElementById("emptyNewLayoutBtn");
   const ctx = canvas.getContext("2d");
 
   const codePane = document.getElementById("code-pane");
@@ -7257,6 +7335,8 @@ codePane.addEventListener("input", () => {
       "appMenuToggleBtn",
       "newLayoutBtn",
       "openFileBtnTop",
+      "emptyOpenLayoutBtn",
+      "emptyNewLayoutBtn",
       "fileInput",
       "newLayoutCancel",
       "newLayoutStart",
@@ -7281,6 +7361,7 @@ codePane.addEventListener("input", () => {
 
   function setLayoutActive(active) {
     layoutActive = !!active;
+    if (emptyLayoutPrompt) emptyLayoutPrompt.hidden = layoutActive;
     applyControlAvailability();
   }
 
@@ -13573,6 +13654,8 @@ codePane.addEventListener("input", () => {
   openFileBtnTop?.addEventListener("click", () => {
     openFile();
   });
+  emptyOpenLayoutBtn?.addEventListener("click", openFile);
+  emptyNewLayoutBtn?.addEventListener("click", openNewLayoutModal);
 
   saveBtn?.addEventListener("click", () => {
     if (!hasUnsavedChanges && currentFileHandle) {
@@ -15032,9 +15115,6 @@ codePane.addEventListener("input", () => {
 
     if (!seats.length) {
       ctx.restore();
-      ctx.fillStyle = "#777";
-      ctx.font = "24px SUSE";
-      ctx.fillText("No layout has been loaded or created. Click Open layout or Create new to get started.", 15, 30);
       lastVisibleSeatCount = 0;
       return;
     }
