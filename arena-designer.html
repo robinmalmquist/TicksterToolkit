@@ -4071,6 +4071,7 @@
             Zoom: <strong>CTRL + scroll</strong><br/>
             Multi-select: <strong>SHIFT + click</strong><br/>
             Box select: <strong>Drag without CTRL</strong><br/>
+            Delete selection: <strong>DEL</strong><br/>
             Undo: <strong>CTRL + Z</strong>
           </div>
           <div class="help-text">
@@ -20810,6 +20811,14 @@ function nudgeSelection(dxScreen, dyScreen) {
 
     // Om man skriver i textfält: inga fler genvägar
     if (isTextInput) return;
+
+    if (key === "delete") {
+      if (!getSelectedSeats().length) return;
+      e.preventDefault();
+      closeSeatContextMenu();
+      deleteSelectionByMode();
+      return;
+    }
 
     if (key === "escape" && currentTool === "reshape" && reshapePivotSeatIdsByRow.size) {
       e.preventDefault();
