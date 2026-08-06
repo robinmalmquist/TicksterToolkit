@@ -8407,20 +8407,38 @@ codePane.addEventListener("input", () => {
     return count;
   }
 
-  function countPriceRegionsWithStaleMappingsForValidation() {
-    if (!Array.isArray(priceRegions) || !priceRegions.length) return 0;
-    const existingSeatIds = new Set(seats.map((s) => s.seatId));
-    const existingRowIds = new Set(seats.map((s) => s.rowId).filter(Boolean));
-    const existingSectionIds = new Set(seats.map((s) => s.sectionId).filter(Boolean));
-    let staleCount = 0;
-    priceRegions.forEach((region) => {
-      if (!region) return;
-      const hasStale = (Array.isArray(region.sections) && region.sections.some((id) => !existingSectionIds.has(id)))
-        || (Array.isArray(region.rows) && region.rows.some((id) => !existingRowIds.has(id)))
-        || (Array.isArray(region.seats) && region.seats.some((id) => !existingSeatIds.has(id)));
-      if (hasStale) staleCount += 1;
+  function getMissingPriceRegionReferenceIds(values, existingIds) {
+    const missing = [];
+    const seen = new Set();
+    (Array.isArray(values) ? values : []).forEach((value) => {
+      const id = String(value ?? "").trim();
+      const displayId = id || "(empty ID)";
+      if (existingIds.has(id) || seen.has(displayId)) return;
+      seen.add(displayId);
+      missing.push(displayId);
     });
-    return staleCount;
+    return missing.sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: "base" }));
+  }
+
+  function collectStalePriceRegionMappingsForValidation() {
+    if (!Array.isArray(priceRegions) || !priceRegions.length) return [];
+    const existingSeatIds = new Set(seats.map((seat) => String(seat?.seatId ?? "").trim()).filter(Boolean));
+    const existingRowIds = new Set(seats.map((seat) => String(seat?.rowId ?? "").trim()).filter(Boolean));
+    const existingSectionIds = new Set(seats.map((seat) => String(seat?.sectionId ?? "").trim()).filter(Boolean));
+
+    return priceRegions.map((region, index) => {
+      if (!region) return null;
+      const missingSections = getMissingPriceRegionReferenceIds(region.sections, existingSectionIds);
+      const missingRows = getMissingPriceRegionReferenceIds(region.rows, existingRowIds);
+      const missingSeats = getMissingPriceRegionReferenceIds(region.seats, existingSeatIds);
+      if (!missingSections.length && !missingRows.length && !missingSeats.length) return null;
+      return {
+        regionName: String(region.name || region.id || `Price region ${index + 1}`).trim(),
+        missingSections,
+        missingRows,
+        missingSeats
+      };
+    }).filter(Boolean);
   }
 
   function collectDuplicateSectionNamesForValidation() {
@@ -8468,14 +8486,18 @@ codePane.addEventListener("input", () => {
       });
     }
 
-    const stalePriceRegions = countPriceRegionsWithStaleMappingsForValidation();
-    if (stalePriceRegions > 0) {
+    const stalePriceRegionMappings = collectStalePriceRegionMappingsForValidation();
+    stalePriceRegionMappings.forEach((mapping) => {
+      const missingReferences = [];
+      if (mapping.missingSections.length) missingReferences.push(`Missing section IDs: ${mapping.missingSections.join(", ")}`);
+      if (mapping.missingRows.length) missingReferences.push(`Missing row IDs: ${mapping.missingRows.join(", ")}`);
+      if (mapping.missingSeats.length) missingReferences.push(`Missing seat IDs: ${mapping.missingSeats.join(", ")}`);
       items.push({
         level: "error",
-        text: `${stalePriceRegions} price region(s) reference rows/sections/seats that do not exist.`,
+        text: `Price region “${mapping.regionName}” has references that are not in the layout:\n${missingReferences.join("\n")}`,
         action: { id: "open-price-regions", label: "Open" }
       });
-    }
+    });
 
     const seatsWithoutEntry = countSeatsWithoutEntryPointsForValidation();
     if (seatsWithoutEntry > 0) {
