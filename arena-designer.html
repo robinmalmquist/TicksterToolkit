@@ -3063,8 +3063,6 @@
       color: var(--dark-muted);
     }
 
-    /* Kodruta nedtill */
-
 
     /* Tooltip */
 
@@ -4184,6 +4182,7 @@
         </div>
         <div class="edit-bulk-actions">
           <button id="seatEditAddPrefixBtn" type="button" class="c-button c-button--ghost c-button--small">Add prefix</button>
+          <button id="seatEditAddSuffixBtn" type="button" class="c-button c-button--ghost c-button--small">Add suffix</button>
           <button id="seatEditRenameAllBtn" type="button" class="c-button c-button--ghost c-button--small">Rename all</button>
         </div>
         <div id="seatEditList" class="edit-list"></div>
@@ -4226,6 +4225,7 @@
         </div>
         <div class="edit-bulk-actions">
           <button id="rowEditAddPrefixBtn" type="button" class="c-button c-button--ghost c-button--small">Add prefix</button>
+          <button id="rowEditAddSuffixBtn" type="button" class="c-button c-button--ghost c-button--small">Add suffix</button>
           <button id="rowEditRenameAllBtn" type="button" class="c-button c-button--ghost c-button--small">Rename all</button>
         </div>
         <div id="rowEditList" class="edit-list"></div>
@@ -4409,6 +4409,7 @@
   const seatEditOverlay = document.getElementById("seatEditOverlay");
   const seatEditList = document.getElementById("seatEditList");
   const seatEditAddPrefixBtn = document.getElementById("seatEditAddPrefixBtn");
+  const seatEditAddSuffixBtn = document.getElementById("seatEditAddSuffixBtn");
   const seatEditRenameAllBtn = document.getElementById("seatEditRenameAllBtn");
   const seatEditClose = document.getElementById("seatEditClose");
   const seatEditCancel = document.getElementById("seatEditCancel");
@@ -4421,6 +4422,7 @@
   const rowEditOverlay = document.getElementById("rowEditOverlay");
   const rowEditList = document.getElementById("rowEditList");
   const rowEditAddPrefixBtn = document.getElementById("rowEditAddPrefixBtn");
+  const rowEditAddSuffixBtn = document.getElementById("rowEditAddSuffixBtn");
   const rowEditRenameAllBtn = document.getElementById("rowEditRenameAllBtn");
   const rowEditClose = document.getElementById("rowEditClose");
   const rowEditCancel = document.getElementById("rowEditCancel");
@@ -18733,6 +18735,21 @@ function nudgeSelection(dxScreen, dyScreen) {
     });
   }
 
+  function applyBulkSuffixToEditList(listEl, inputSelector, promptMessage) {
+    if (!listEl) return;
+    const raw = prompt(promptMessage);
+    if (raw == null) return;
+    const suffix = String(raw).trim();
+    if (!suffix) {
+      alert("Enter a suffix.");
+      return;
+    }
+    listEl.querySelectorAll(inputSelector).forEach((input) => {
+      const current = String(input.value || "").trim();
+      input.value = current ? `${current} ${suffix}` : suffix;
+    });
+  }
+
   function applyBulkRenameToEditList(listEl, inputSelector, promptMessage) {
     if (!listEl) return;
     const raw = prompt(promptMessage);
@@ -19959,6 +19976,13 @@ function nudgeSelection(dxScreen, dyScreen) {
       "Enter prefix for all selected seats:"
     );
   });
+  seatEditAddSuffixBtn?.addEventListener("click", () => {
+    applyBulkSuffixToEditList(
+      seatEditList,
+      "input[data-role='seat-name']",
+      "Enter suffix for all selected seats:"
+    );
+  });
   seatEditRenameAllBtn?.addEventListener("click", () => {
     applyBulkRenameToEditList(
       seatEditList,
@@ -20045,6 +20069,13 @@ function nudgeSelection(dxScreen, dyScreen) {
       rowEditList,
       "input[data-role='row-name']",
       "Enter prefix for all selected rows:"
+    );
+  });
+  rowEditAddSuffixBtn?.addEventListener("click", () => {
+    applyBulkSuffixToEditList(
+      rowEditList,
+      "input[data-role='row-name']",
+      "Enter suffix for all selected rows:"
     );
   });
   rowEditRenameAllBtn?.addEventListener("click", () => {
