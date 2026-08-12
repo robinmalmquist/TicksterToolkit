@@ -10031,9 +10031,11 @@ codePane.addEventListener("input", () => {
       const fillColor = getPriceRegionFillColor(region, "#c9cbcd");
       const strokeColor = getPriceRegionStrokeColor(region, fillColor);
       const rangeId = buildRangeId(region, idx);
+      const exportClass = `pr${idx + 1}`;
       lines.push("");
       lines.push(`/* Colors for price region ${region.name} */`);
       lines.push(`.pr-${rangeId} { stroke: ${strokeColor}; fill: ${fillColor}; background-color: ${fillColor}; }`);
+      lines.push(`.${exportClass} { stroke: ${strokeColor}; fill: ${fillColor}; background-color: ${fillColor}; }`);
     });
     return lines.join("\n").trim();
   }
