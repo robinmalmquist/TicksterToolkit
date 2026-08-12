@@ -3991,7 +3991,7 @@
             <div class="export-svg-settings__grid export-svg-settings__grid--compact">
               <div class="export-svg-setting-field">
                 <label for="exportSvgSectionTextBoxInactiveOpacity">Inactive opacity</label>
-                <input id="exportSvgSectionTextBoxInactiveOpacity" type="number" min="0" max="1" step="0.05" value="0.3" />
+                <input id="exportSvgSectionTextBoxInactiveOpacity" type="number" min="0" max="1" step="0.05" value="0.7" />
               </div>
               <div class="export-svg-setting-field">
                 <label for="exportSvgSectionTextBoxHoverOpacity">Hover opacity</label>
@@ -4518,7 +4518,7 @@
     sectionTextBoxStroke: "#09517c",
     sectionTextBoxStrokeWidth: 0,
     sectionTextBoxHoverEnabled: true,
-    sectionTextBoxInactiveOpacity: 0.3,
+    sectionTextBoxInactiveOpacity: 0.7,
     sectionTextBoxHoverOpacity: 1,
     sectionTextFill: "#ffffff",
     sectionTextStroke: "#ffffff",
@@ -10034,8 +10034,7 @@ codePane.addEventListener("input", () => {
       const exportClass = `pr${idx + 1}`;
       lines.push("");
       lines.push(`/* Colors for price region ${region.name} */`);
-      lines.push(`.pr-${rangeId} { stroke: ${strokeColor}; fill: ${fillColor}; background-color: ${fillColor}; }`);
-      lines.push(`.${exportClass} { stroke: ${strokeColor}; fill: ${fillColor}; background-color: ${fillColor}; }`);
+      lines.push(`.pr-${rangeId}, .${exportClass} { stroke: ${strokeColor}; fill: ${fillColor}; background-color: ${fillColor}; }`);
     });
     return lines.join("\n").trim();
   }
