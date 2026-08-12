@@ -4529,6 +4529,7 @@
     rowNumberTextSize: 75,
     rowNumberTextHide: false
   });
+  const SVG_EXPORT_STYLE_SETTINGS_VERSION = 2;
   const SVG_EXPORT_SUPPORT_PARTS = Object.freeze([
     { key: "background", label: "Background", defaultChecked: true },
     { key: "stage", label: "Stage", defaultChecked: false },
@@ -8751,6 +8752,7 @@ codePane.addEventListener("input", () => {
       svgExportMode: getSelectedSvgExportMode(),
       exportLayoutSummaryXlsx: !!exportLayoutSummaryXlsx?.checked,
       svgSupportParts: getSvgSupportPartSelectionsFromInputs(),
+      svgExportStyleSettingsVersion: SVG_EXPORT_STYLE_SETTINGS_VERSION,
       sectionTextBoxCornerRadius: parseSvgCornerRadiusValue(exportSvgSectionTextBoxCornerRadius?.value, SVG_EXPORT_STYLE_DEFAULTS.sectionTextBoxCornerRadius),
       ...getSvgExportStyleOptionsFromInputs()
     };
@@ -8790,7 +8792,16 @@ codePane.addEventListener("input", () => {
     applyChecked(exportSvgSectionTextBoxHoverEnabled, typeof preferences.sectionTextBoxHoverEnabled === "boolean"
       ? preferences.sectionTextBoxHoverEnabled
       : SVG_EXPORT_STYLE_DEFAULTS.sectionTextBoxHoverEnabled);
-    applyValue(exportSvgSectionTextBoxInactiveOpacity, parseSvgOpacityValue(preferences.sectionTextBoxInactiveOpacity, SVG_EXPORT_STYLE_DEFAULTS.sectionTextBoxInactiveOpacity));
+    const savedInactiveOpacity = parseSvgOpacityValue(preferences.sectionTextBoxInactiveOpacity, SVG_EXPORT_STYLE_DEFAULTS.sectionTextBoxInactiveOpacity);
+    const savedSvgExportStyleSettingsVersion = Number(preferences.svgExportStyleSettingsVersion);
+    const usesLegacySectionTextBoxDefaults = !Number.isFinite(savedSvgExportStyleSettingsVersion)
+      || savedSvgExportStyleSettingsVersion < SVG_EXPORT_STYLE_SETTINGS_VERSION;
+    applyValue(
+      exportSvgSectionTextBoxInactiveOpacity,
+      usesLegacySectionTextBoxDefaults && savedInactiveOpacity === 0.3
+        ? SVG_EXPORT_STYLE_DEFAULTS.sectionTextBoxInactiveOpacity
+        : savedInactiveOpacity
+    );
     applyValue(exportSvgSectionTextBoxHoverOpacity, parseSvgOpacityValue(preferences.sectionTextBoxHoverOpacity, SVG_EXPORT_STYLE_DEFAULTS.sectionTextBoxHoverOpacity));
     applyColor(exportSvgSectionTextFill, preferences.sectionTextFill, SVG_EXPORT_STYLE_DEFAULTS.sectionTextFill);
     applyColor(exportSvgSectionTextStroke, preferences.sectionTextStroke, SVG_EXPORT_STYLE_DEFAULTS.sectionTextStroke);
@@ -10057,10 +10068,10 @@ codePane.addEventListener("input", () => {
       `.section-text.large { font-size: ${formatSvgNumber(sectionTextLargeSize)}px; }`,
       `.row-number-text { fill: ${styles.rowNumberTextFill}; font-family: Roboto; font-size: ${formatSvgNumber(styles.rowNumberTextSize)}px;${rowNumberDisplay} }`,
       `.section-text-box { fill: ${styles.sectionTextBoxFill}; stroke: ${styles.sectionTextBoxStroke}; stroke-width: ${formatSvgNumber(styles.sectionTextBoxStrokeWidth)}px; opacity: ${formatSvgNumber(sectionTextBoxOpacity)}; transition: fill 500ms ease, stroke 500ms ease, stroke-width 500ms ease, opacity 500ms ease; }`,
-      ".unavailable .section-text-box { fill: #a3aaaf; }"
+      ".unavailable .section-text-box { fill: #a3aaaf; opacity: 0.3; }"
     ];
     if (styles.sectionTextBoxHoverEnabled) {
-      lines.push(`.unavailable .section-text-box:hover { opacity: ${formatSvgNumber(sectionTextBoxOpacity)}; }`);
+      lines.push(".unavailable .section-text-box:hover { opacity: 0.3; }");
       lines.push(`.section-text-box:hover { opacity: ${formatSvgNumber(styles.sectionTextBoxHoverOpacity)}; }`);
     }
     const priceCss = buildSvgPriceRegionCss();
