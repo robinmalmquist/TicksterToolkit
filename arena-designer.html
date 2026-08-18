@@ -1144,6 +1144,20 @@
     .export-svg-settings__grid--compact {
       grid-template-columns: repeat(3, minmax(0, 1fr));
     }
+    .export-svg-settings__grid--two-columns {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    #exportSvgSectionTextBoxHoverSettings {
+      display: grid;
+      gap: 0.55rem;
+    }
+    #exportSvgSectionTextBoxHoverSettings[hidden] {
+      display: none;
+    }
+    #exportSvgSectionTextBoxOpacitySettings[hidden],
+    #exportSvgSectionTextBoxSaturationBrightnessSettings[hidden] {
+      display: none;
+    }
     .export-svg-setting-field {
       display: flex;
       flex-direction: column;
@@ -2654,6 +2668,10 @@
       .export-svg-settings__grid--compact {
         grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
       }
+
+      .export-svg-settings__grid--two-columns {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
     }
 
     html[data-theme="dark"] .help-text {
@@ -3496,7 +3514,7 @@
         </div>
         <div class="c-card__body c-toolbar">
           <div class="price-region-toolbar-grid">
-            <button id="createPriceRegionBtn" class="c-button c-button--ghost c-button--small">Add</button>
+            <button id="createPriceRegionBtn" class="c-button c-button--ghost c-button--small">Create new</button>
             <button id="loadPriceRegionBtn" class="c-button c-button--ghost c-button--small">Load TPR</button>
             <button id="loadPriceRegionCssBtn" class="c-button c-button--ghost c-button--small">Load CSS</button>
             <button id="removeAllPriceRegionsBtn" class="c-button c-button--ghost c-button--small">Remove all</button>
@@ -3527,7 +3545,7 @@
           <button class="c-card__toggle" type="button" aria-expanded="true" aria-label="Toggle panel" onclick="toggleRightPanel(this)"></button>
         </div>
         <div class="c-card__body c-toolbar">
-          <button id="createEntryPointBtn" class="c-button c-button--ghost c-button--small">Add entry point</button>
+          <button id="createEntryPointBtn" class="c-button c-button--ghost c-button--small">Create entry point(s)</button>
           <button id="selectSeatsNoEntryPointBtn" class="c-button c-button--ghost c-button--small">Select seats without entry points</button>
           <div id="entryPointList" class="price-region-list"></div>
         </div>
@@ -3540,7 +3558,7 @@
         </div>
         <div class="c-card__body c-toolbar">
           <div class="c-toolbar c-toolbar--horizontal" style="gap:0.35rem;">
-            <button id="createSeatBlockBtn" class="c-button c-button--ghost c-button--small">Add block</button>
+            <button id="createSeatBlockBtn" class="c-button c-button--ghost c-button--small">Create block</button>
             <button id="loadSeatBlockBtn" class="c-button c-button--ghost c-button--small">Load blocks from file</button>
           </div>
           <input type="file" id="seatBlockFileInput" accept=".tlm,.txt" style="display:none" />
@@ -3988,17 +4006,50 @@
               <input type="checkbox" id="exportSvgSectionTextBoxHoverEnabled" checked />
               Enable hover effect
             </label>
-            <div class="export-svg-settings__grid export-svg-settings__grid--compact">
-              <div class="export-svg-setting-field">
-                <label for="exportSvgSectionTextBoxInactiveOpacity">Inactive opacity</label>
-                <input id="exportSvgSectionTextBoxInactiveOpacity" type="number" min="0" max="1" step="0.05" value="0.7" />
+            <div id="exportSvgSectionTextBoxHoverSettings">
+              <div class="export-svg-setting-field export-svg-mode-options" role="radiogroup" aria-labelledby="exportSvgSectionTextBoxHoverEffectLabel">
+                <div id="exportSvgSectionTextBoxHoverEffectLabel" class="export-svg-setting-label">Hover effect</div>
+                <div class="export-svg-settings__options">
+                  <label class="export-option">
+                    <input type="radio" name="exportSvgSectionTextBoxHoverEffect" value="opacity" checked />
+                    Opacity
+                  </label>
+                  <label class="export-option">
+                    <input type="radio" name="exportSvgSectionTextBoxHoverEffect" value="saturation-brightness" />
+                    Saturation/Brightness
+                  </label>
+                </div>
               </div>
-              <div class="export-svg-setting-field">
-                <label for="exportSvgSectionTextBoxHoverOpacity">Hover opacity</label>
-                <input id="exportSvgSectionTextBoxHoverOpacity" type="number" min="0" max="1" step="0.05" value="1" />
+              <div id="exportSvgSectionTextBoxOpacitySettings" class="export-svg-settings__grid export-svg-settings__grid--compact">
+                <div class="export-svg-setting-field">
+                  <label for="exportSvgSectionTextBoxInactiveOpacity">Inactive opacity</label>
+                  <input id="exportSvgSectionTextBoxInactiveOpacity" type="number" min="0" max="1" step="0.05" value="0.7" />
+                </div>
+                <div class="export-svg-setting-field">
+                  <label for="exportSvgSectionTextBoxHoverOpacity">Hover opacity</label>
+                  <input id="exportSvgSectionTextBoxHoverOpacity" type="number" min="0" max="1" step="0.05" value="1" />
+                </div>
               </div>
+              <div id="exportSvgSectionTextBoxSaturationBrightnessSettings" class="export-svg-settings__grid export-svg-settings__grid--compact export-svg-settings__grid--two-columns" hidden>
+                <div class="export-svg-setting-field">
+                  <label for="exportSvgSectionTextBoxInactiveSaturation">Inactive saturation (%)</label>
+                  <input id="exportSvgSectionTextBoxInactiveSaturation" type="number" min="0" step="1" value="75" />
+                </div>
+                <div class="export-svg-setting-field">
+                  <label for="exportSvgSectionTextBoxInactiveBrightness">Inactive brightness (%)</label>
+                  <input id="exportSvgSectionTextBoxInactiveBrightness" type="number" min="0" step="1" value="90" />
+                </div>
+                <div class="export-svg-setting-field">
+                  <label for="exportSvgSectionTextBoxHoverSaturation">Hover saturation (%)</label>
+                  <input id="exportSvgSectionTextBoxHoverSaturation" type="number" min="0" step="1" value="100" />
+                </div>
+                <div class="export-svg-setting-field">
+                  <label for="exportSvgSectionTextBoxHoverBrightness">Hover brightness (%)</label>
+                  <input id="exportSvgSectionTextBoxHoverBrightness" type="number" min="0" step="1" value="100" />
+                </div>
+              </div>
+              <div id="exportSvgSectionTextBoxHoverEffectHint" class="export-svg-settings__hint">Hover keeps the current fill and stroke colors and only animates opacity.</div>
             </div>
-            <div class="export-svg-settings__hint">Hover keeps the current fill and stroke colors and only animates opacity.</div>
           </div>
 
           <div class="export-svg-settings__group">
@@ -4485,6 +4536,7 @@
   const exportSvg = document.getElementById("exportSvg");
   const exportSvgSettings = document.getElementById("exportSvgSettings");
   const exportSvgModeOptions = Array.from(document.querySelectorAll('input[name="exportSvgMode"]'));
+  const exportSvgSectionTextBoxHoverEffectOptions = Array.from(document.querySelectorAll('input[name="exportSvgSectionTextBoxHoverEffect"]'));
   const exportSvgModeHint = document.getElementById("exportSvgModeHint");
   const exportSvgSupportParts = document.getElementById("exportSvgSupportParts");
   const exportSvgSectionTextBoxCornerRadius = document.getElementById("exportSvgSectionTextBoxCornerRadius");
@@ -4492,8 +4544,16 @@
   const exportSvgSectionTextBoxStroke = document.getElementById("exportSvgSectionTextBoxStroke");
   const exportSvgSectionTextBoxStrokeWidth = document.getElementById("exportSvgSectionTextBoxStrokeWidth");
   const exportSvgSectionTextBoxHoverEnabled = document.getElementById("exportSvgSectionTextBoxHoverEnabled");
+  const exportSvgSectionTextBoxHoverSettings = document.getElementById("exportSvgSectionTextBoxHoverSettings");
+  const exportSvgSectionTextBoxOpacitySettings = document.getElementById("exportSvgSectionTextBoxOpacitySettings");
+  const exportSvgSectionTextBoxSaturationBrightnessSettings = document.getElementById("exportSvgSectionTextBoxSaturationBrightnessSettings");
+  const exportSvgSectionTextBoxHoverEffectHint = document.getElementById("exportSvgSectionTextBoxHoverEffectHint");
   const exportSvgSectionTextBoxInactiveOpacity = document.getElementById("exportSvgSectionTextBoxInactiveOpacity");
   const exportSvgSectionTextBoxHoverOpacity = document.getElementById("exportSvgSectionTextBoxHoverOpacity");
+  const exportSvgSectionTextBoxInactiveSaturation = document.getElementById("exportSvgSectionTextBoxInactiveSaturation");
+  const exportSvgSectionTextBoxInactiveBrightness = document.getElementById("exportSvgSectionTextBoxInactiveBrightness");
+  const exportSvgSectionTextBoxHoverSaturation = document.getElementById("exportSvgSectionTextBoxHoverSaturation");
+  const exportSvgSectionTextBoxHoverBrightness = document.getElementById("exportSvgSectionTextBoxHoverBrightness");
   const exportSvgSectionTextFill = document.getElementById("exportSvgSectionTextFill");
   const exportSvgSectionTextStroke = document.getElementById("exportSvgSectionTextStroke");
   const exportSvgSectionTextStrokeWidth = document.getElementById("exportSvgSectionTextStrokeWidth");
@@ -4518,8 +4578,13 @@
     sectionTextBoxStroke: "#09517c",
     sectionTextBoxStrokeWidth: 0,
     sectionTextBoxHoverEnabled: true,
+    sectionTextBoxHoverEffect: "opacity",
     sectionTextBoxInactiveOpacity: 0.7,
     sectionTextBoxHoverOpacity: 1,
+    sectionTextBoxInactiveSaturation: 75,
+    sectionTextBoxInactiveBrightness: 90,
+    sectionTextBoxHoverSaturation: 100,
+    sectionTextBoxHoverBrightness: 100,
     sectionTextFill: "#ffffff",
     sectionTextStroke: "#ffffff",
     sectionTextStrokeWidth: 0,
@@ -4529,7 +4594,7 @@
     rowNumberTextSize: 75,
     rowNumberTextHide: false
   });
-  const SVG_EXPORT_STYLE_SETTINGS_VERSION = 2;
+  const SVG_EXPORT_STYLE_SETTINGS_VERSION = 4;
   const SVG_EXPORT_SUPPORT_PARTS = Object.freeze([
     { key: "background", label: "Background", defaultChecked: true },
     { key: "stage", label: "Stage", defaultChecked: false },
@@ -4551,6 +4616,22 @@
   function setSelectedSvgExportMode(value) {
     const normalized = normalizeSvgExportMode(value);
     const matchingOption = exportSvgModeOptions.find((input) => input.value === normalized);
+    if (matchingOption) matchingOption.checked = true;
+  }
+
+  function normalizeSvgSectionTextBoxHoverEffect(value) {
+    return value === "saturation-brightness" ? "saturation-brightness" : "opacity";
+  }
+
+  function getSelectedSvgSectionTextBoxHoverEffect() {
+    return normalizeSvgSectionTextBoxHoverEffect(
+      exportSvgSectionTextBoxHoverEffectOptions.find((input) => input.checked)?.value
+    );
+  }
+
+  function setSelectedSvgSectionTextBoxHoverEffect(value) {
+    const normalized = normalizeSvgSectionTextBoxHoverEffect(value);
+    const matchingOption = exportSvgSectionTextBoxHoverEffectOptions.find((input) => input.value === normalized);
     if (matchingOption) matchingOption.checked = true;
   }
 
@@ -8690,8 +8771,13 @@ codePane.addEventListener("input", () => {
       exportSvgSectionTextBoxStroke,
       exportSvgSectionTextBoxStrokeWidth,
       exportSvgSectionTextBoxHoverEnabled,
+      ...exportSvgSectionTextBoxHoverEffectOptions,
       exportSvgSectionTextBoxInactiveOpacity,
       exportSvgSectionTextBoxHoverOpacity,
+      exportSvgSectionTextBoxInactiveSaturation,
+      exportSvgSectionTextBoxInactiveBrightness,
+      exportSvgSectionTextBoxHoverSaturation,
+      exportSvgSectionTextBoxHoverBrightness,
       exportSvgSectionTextFill,
       exportSvgSectionTextStroke,
       exportSvgSectionTextStrokeWidth,
@@ -8709,8 +8795,13 @@ codePane.addEventListener("input", () => {
     if (exportSvgSectionTextBoxStroke) exportSvgSectionTextBoxStroke.value = SVG_EXPORT_STYLE_DEFAULTS.sectionTextBoxStroke;
     if (exportSvgSectionTextBoxStrokeWidth) exportSvgSectionTextBoxStrokeWidth.value = String(SVG_EXPORT_STYLE_DEFAULTS.sectionTextBoxStrokeWidth);
     if (exportSvgSectionTextBoxHoverEnabled) exportSvgSectionTextBoxHoverEnabled.checked = SVG_EXPORT_STYLE_DEFAULTS.sectionTextBoxHoverEnabled;
+    setSelectedSvgSectionTextBoxHoverEffect(SVG_EXPORT_STYLE_DEFAULTS.sectionTextBoxHoverEffect);
     if (exportSvgSectionTextBoxInactiveOpacity) exportSvgSectionTextBoxInactiveOpacity.value = String(SVG_EXPORT_STYLE_DEFAULTS.sectionTextBoxInactiveOpacity);
     if (exportSvgSectionTextBoxHoverOpacity) exportSvgSectionTextBoxHoverOpacity.value = String(SVG_EXPORT_STYLE_DEFAULTS.sectionTextBoxHoverOpacity);
+    if (exportSvgSectionTextBoxInactiveSaturation) exportSvgSectionTextBoxInactiveSaturation.value = String(SVG_EXPORT_STYLE_DEFAULTS.sectionTextBoxInactiveSaturation);
+    if (exportSvgSectionTextBoxInactiveBrightness) exportSvgSectionTextBoxInactiveBrightness.value = String(SVG_EXPORT_STYLE_DEFAULTS.sectionTextBoxInactiveBrightness);
+    if (exportSvgSectionTextBoxHoverSaturation) exportSvgSectionTextBoxHoverSaturation.value = String(SVG_EXPORT_STYLE_DEFAULTS.sectionTextBoxHoverSaturation);
+    if (exportSvgSectionTextBoxHoverBrightness) exportSvgSectionTextBoxHoverBrightness.value = String(SVG_EXPORT_STYLE_DEFAULTS.sectionTextBoxHoverBrightness);
     if (exportSvgSectionTextFill) exportSvgSectionTextFill.value = SVG_EXPORT_STYLE_DEFAULTS.sectionTextFill;
     if (exportSvgSectionTextStroke) exportSvgSectionTextStroke.value = SVG_EXPORT_STYLE_DEFAULTS.sectionTextStroke;
     if (exportSvgSectionTextStrokeWidth) exportSvgSectionTextStrokeWidth.value = String(SVG_EXPORT_STYLE_DEFAULTS.sectionTextStrokeWidth);
@@ -8728,8 +8819,13 @@ codePane.addEventListener("input", () => {
       sectionTextBoxStroke: exportSvgSectionTextBoxStroke?.value,
       sectionTextBoxStrokeWidth: exportSvgSectionTextBoxStrokeWidth?.value,
       sectionTextBoxHoverEnabled: !!exportSvgSectionTextBoxHoverEnabled?.checked,
+      sectionTextBoxHoverEffect: getSelectedSvgSectionTextBoxHoverEffect(),
       sectionTextBoxInactiveOpacity: exportSvgSectionTextBoxInactiveOpacity?.value,
       sectionTextBoxHoverOpacity: exportSvgSectionTextBoxHoverOpacity?.value,
+      sectionTextBoxInactiveSaturation: exportSvgSectionTextBoxInactiveSaturation?.value,
+      sectionTextBoxInactiveBrightness: exportSvgSectionTextBoxInactiveBrightness?.value,
+      sectionTextBoxHoverSaturation: exportSvgSectionTextBoxHoverSaturation?.value,
+      sectionTextBoxHoverBrightness: exportSvgSectionTextBoxHoverBrightness?.value,
       sectionTextFill: exportSvgSectionTextFill?.value,
       sectionTextStroke: exportSvgSectionTextStroke?.value,
       sectionTextStrokeWidth: exportSvgSectionTextStrokeWidth?.value,
@@ -8792,6 +8888,7 @@ codePane.addEventListener("input", () => {
     applyChecked(exportSvgSectionTextBoxHoverEnabled, typeof preferences.sectionTextBoxHoverEnabled === "boolean"
       ? preferences.sectionTextBoxHoverEnabled
       : SVG_EXPORT_STYLE_DEFAULTS.sectionTextBoxHoverEnabled);
+    setSelectedSvgSectionTextBoxHoverEffect(preferences.sectionTextBoxHoverEffect);
     const savedInactiveOpacity = parseSvgOpacityValue(preferences.sectionTextBoxInactiveOpacity, SVG_EXPORT_STYLE_DEFAULTS.sectionTextBoxInactiveOpacity);
     const savedSvgExportStyleSettingsVersion = Number(preferences.svgExportStyleSettingsVersion);
     const usesLegacySectionTextBoxDefaults = !Number.isFinite(savedSvgExportStyleSettingsVersion)
@@ -8803,6 +8900,10 @@ codePane.addEventListener("input", () => {
         : savedInactiveOpacity
     );
     applyValue(exportSvgSectionTextBoxHoverOpacity, parseSvgOpacityValue(preferences.sectionTextBoxHoverOpacity, SVG_EXPORT_STYLE_DEFAULTS.sectionTextBoxHoverOpacity));
+    applyValue(exportSvgSectionTextBoxInactiveSaturation, parseSvgNonNegativeNumber(preferences.sectionTextBoxInactiveSaturation, SVG_EXPORT_STYLE_DEFAULTS.sectionTextBoxInactiveSaturation));
+    applyValue(exportSvgSectionTextBoxInactiveBrightness, parseSvgNonNegativeNumber(preferences.sectionTextBoxInactiveBrightness, SVG_EXPORT_STYLE_DEFAULTS.sectionTextBoxInactiveBrightness));
+    applyValue(exportSvgSectionTextBoxHoverSaturation, parseSvgNonNegativeNumber(preferences.sectionTextBoxHoverSaturation, SVG_EXPORT_STYLE_DEFAULTS.sectionTextBoxHoverSaturation));
+    applyValue(exportSvgSectionTextBoxHoverBrightness, parseSvgNonNegativeNumber(preferences.sectionTextBoxHoverBrightness, SVG_EXPORT_STYLE_DEFAULTS.sectionTextBoxHoverBrightness));
     applyColor(exportSvgSectionTextFill, preferences.sectionTextFill, SVG_EXPORT_STYLE_DEFAULTS.sectionTextFill);
     applyColor(exportSvgSectionTextStroke, preferences.sectionTextStroke, SVG_EXPORT_STYLE_DEFAULTS.sectionTextStroke);
     applyValue(exportSvgSectionTextStrokeWidth, parseSvgNonNegativeNumber(preferences.sectionTextStrokeWidth, SVG_EXPORT_STYLE_DEFAULTS.sectionTextStrokeWidth));
@@ -8887,15 +8988,41 @@ codePane.addEventListener("input", () => {
     const tooltip = onlyReplaceSections
       ? "Only the #sections group is updated in this mode. These settings apply to Full SVG exports."
       : svgEnabled
-      ? "Enable hover effect to change hover opacity."
+      ? "Enable hover effect to change the hover effect."
       : (exportSvg?.disabled
           ? (exportSvg.title || "Enable SVG export to change SVG export settings.")
           : "Enable SVG export to change SVG export settings.");
+    exportSvgSectionTextBoxHoverEffectOptions.forEach((control) => {
+      setSvgDependentExportControlState(control, hoverEnabled, tooltip);
+    });
+    const usesOpacity = getSelectedSvgSectionTextBoxHoverEffect() === "opacity";
+    if (exportSvgSectionTextBoxHoverSettings) {
+      exportSvgSectionTextBoxHoverSettings.hidden = !hoverEnabled;
+    }
+    if (exportSvgSectionTextBoxOpacitySettings) {
+      exportSvgSectionTextBoxOpacitySettings.hidden = !usesOpacity;
+    }
+    if (exportSvgSectionTextBoxSaturationBrightnessSettings) {
+      exportSvgSectionTextBoxSaturationBrightnessSettings.hidden = usesOpacity;
+    }
+    if (exportSvgSectionTextBoxHoverEffectHint) {
+      exportSvgSectionTextBoxHoverEffectHint.textContent = usesOpacity
+        ? "Hover keeps the current fill and stroke colors and only animates opacity."
+        : "Set saturation and brightness values for inactive and hover states.";
+    }
     [
       exportSvgSectionTextBoxInactiveOpacity,
       exportSvgSectionTextBoxHoverOpacity
     ].forEach((control) => {
-      setSvgDependentExportControlState(control, hoverEnabled, tooltip);
+      setSvgDependentExportControlState(control, hoverEnabled && usesOpacity, tooltip);
+    });
+    [
+      exportSvgSectionTextBoxInactiveSaturation,
+      exportSvgSectionTextBoxInactiveBrightness,
+      exportSvgSectionTextBoxHoverSaturation,
+      exportSvgSectionTextBoxHoverBrightness
+    ].forEach((control) => {
+      setSvgDependentExportControlState(control, hoverEnabled && !usesOpacity, tooltip);
     });
   }
 
@@ -10023,8 +10150,13 @@ codePane.addEventListener("input", () => {
       sectionTextBoxHoverEnabled: typeof options.sectionTextBoxHoverEnabled === "boolean"
         ? options.sectionTextBoxHoverEnabled
         : SVG_EXPORT_STYLE_DEFAULTS.sectionTextBoxHoverEnabled,
+      sectionTextBoxHoverEffect: normalizeSvgSectionTextBoxHoverEffect(options.sectionTextBoxHoverEffect),
       sectionTextBoxInactiveOpacity: parseSvgOpacityValue(options.sectionTextBoxInactiveOpacity, SVG_EXPORT_STYLE_DEFAULTS.sectionTextBoxInactiveOpacity),
       sectionTextBoxHoverOpacity: parseSvgOpacityValue(options.sectionTextBoxHoverOpacity, SVG_EXPORT_STYLE_DEFAULTS.sectionTextBoxHoverOpacity),
+      sectionTextBoxInactiveSaturation: parseSvgNonNegativeNumber(options.sectionTextBoxInactiveSaturation, SVG_EXPORT_STYLE_DEFAULTS.sectionTextBoxInactiveSaturation),
+      sectionTextBoxInactiveBrightness: parseSvgNonNegativeNumber(options.sectionTextBoxInactiveBrightness, SVG_EXPORT_STYLE_DEFAULTS.sectionTextBoxInactiveBrightness),
+      sectionTextBoxHoverSaturation: parseSvgNonNegativeNumber(options.sectionTextBoxHoverSaturation, SVG_EXPORT_STYLE_DEFAULTS.sectionTextBoxHoverSaturation),
+      sectionTextBoxHoverBrightness: parseSvgNonNegativeNumber(options.sectionTextBoxHoverBrightness, SVG_EXPORT_STYLE_DEFAULTS.sectionTextBoxHoverBrightness),
       sectionTextFill: sanitizeSvgCssValue(options.sectionTextFill, SVG_EXPORT_STYLE_DEFAULTS.sectionTextFill),
       sectionTextStroke: sanitizeSvgCssValue(options.sectionTextStroke, SVG_EXPORT_STYLE_DEFAULTS.sectionTextStroke),
       sectionTextStrokeWidth: parseSvgNonNegativeNumber(options.sectionTextStrokeWidth, SVG_EXPORT_STYLE_DEFAULTS.sectionTextStrokeWidth),
@@ -10058,7 +10190,12 @@ codePane.addEventListener("input", () => {
       ? "pointer-events: none;"
       : "/* pointer-events: none; */";
     const rowNumberDisplay = styles.rowNumberTextHide ? " display: none;" : "";
-    const sectionTextBoxOpacity = styles.sectionTextBoxHoverEnabled ? styles.sectionTextBoxInactiveOpacity : 1;
+    const usesSaturationBrightness = styles.sectionTextBoxHoverEnabled
+      && styles.sectionTextBoxHoverEffect === "saturation-brightness";
+    const sectionTextBoxEffect = usesSaturationBrightness
+      ? `filter: saturate(${formatSvgNumber(styles.sectionTextBoxInactiveSaturation)}%) brightness(${formatSvgNumber(styles.sectionTextBoxInactiveBrightness)}%);`
+      : `opacity: ${formatSvgNumber(styles.sectionTextBoxHoverEnabled ? styles.sectionTextBoxInactiveOpacity : 1)};`;
+    const sectionTextBoxEffectTransition = usesSaturationBrightness ? "filter 500ms ease" : "opacity 500ms ease";
     const lines = [
       ".always-visible-section-outline { fill: #d6f0ff; stroke: #0069a6; stroke-width: 10px; }",
       ".open .always-visible-section-outline { fill: rgba(243, 243, 243, 0.8); stroke: #a3aaaf; stroke-dasharray: 30px 20px; stroke-width: 10px; }",
@@ -10067,12 +10204,17 @@ codePane.addEventListener("input", () => {
       `.section-text { fill: ${styles.sectionTextFill}; stroke: ${styles.sectionTextStroke}; stroke-width: ${formatSvgNumber(styles.sectionTextStrokeWidth)}px; paint-order: stroke fill; font-family: Roboto; font-size: ${formatSvgNumber(sectionTextSize)}px; font-weight: 400; ${pointerEventsLine} }`,
       `.section-text.large { font-size: ${formatSvgNumber(sectionTextLargeSize)}px; }`,
       `.row-number-text { fill: ${styles.rowNumberTextFill}; font-family: Roboto; font-size: ${formatSvgNumber(styles.rowNumberTextSize)}px;${rowNumberDisplay} }`,
-      `.section-text-box { fill: ${styles.sectionTextBoxFill}; stroke: ${styles.sectionTextBoxStroke}; stroke-width: ${formatSvgNumber(styles.sectionTextBoxStrokeWidth)}px; opacity: ${formatSvgNumber(sectionTextBoxOpacity)}; transition: fill 500ms ease, stroke 500ms ease, stroke-width 500ms ease, opacity 500ms ease; }`,
+      `.section-text-box { fill: ${styles.sectionTextBoxFill}; stroke: ${styles.sectionTextBoxStroke}; stroke-width: ${formatSvgNumber(styles.sectionTextBoxStrokeWidth)}px; ${sectionTextBoxEffect} transition: fill 500ms ease, stroke 500ms ease, stroke-width 500ms ease, ${sectionTextBoxEffectTransition}; }`,
       ".unavailable .section-text-box { fill: #a3aaaf; opacity: 0.3; }"
     ];
     if (styles.sectionTextBoxHoverEnabled) {
-      lines.push(".unavailable .section-text-box:hover { opacity: 0.3; }");
-      lines.push(`.section-text-box:hover { opacity: ${formatSvgNumber(styles.sectionTextBoxHoverOpacity)}; }`);
+      if (usesSaturationBrightness) {
+        lines.push(`.unavailable .section-text-box:hover { filter: saturate(${formatSvgNumber(styles.sectionTextBoxInactiveSaturation)}%) brightness(${formatSvgNumber(styles.sectionTextBoxInactiveBrightness)}%); }`);
+        lines.push(`.section-text-box:hover { filter: saturate(${formatSvgNumber(styles.sectionTextBoxHoverSaturation)}%) brightness(${formatSvgNumber(styles.sectionTextBoxHoverBrightness)}%); }`);
+      } else {
+        lines.push(".unavailable .section-text-box:hover { opacity: 0.3; }");
+        lines.push(`.section-text-box:hover { opacity: ${formatSvgNumber(styles.sectionTextBoxHoverOpacity)}; }`);
+      }
     }
     const priceCss = buildSvgPriceRegionCss();
     if (priceCss) {
@@ -13973,6 +14115,7 @@ codePane.addEventListener("input", () => {
   exportSvg?.addEventListener("change", updateSvgExportSettingsAvailability);
   exportSvgModeOptions.forEach((option) => option.addEventListener("change", updateSvgExportSettingsAvailability));
   exportSvgSectionTextBoxHoverEnabled?.addEventListener("change", updateSvgHoverEffectAvailability);
+  exportSvgSectionTextBoxHoverEffectOptions.forEach((option) => option.addEventListener("change", updateSvgHoverEffectAvailability));
   exportName?.addEventListener("keydown", (e) => {
     if (e.key === "Enter") {
       e.preventDefault();
