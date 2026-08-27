@@ -9393,7 +9393,11 @@ codePane.addEventListener("input", () => {
           rows: [],
           seats: []
         };
-        if (name && name !== "-") region.name = name;
+        // The outline label is only a visual fallback. The authoritative price
+        // region name is supplied by RangeSetName and must not be overwritten.
+        if (name && name !== "-" && (!region.name || region.name === rangeId)) {
+          region.name = name;
+        }
         if (color) region.color = color;
         regionsById.set(rangeId, region);
       }
