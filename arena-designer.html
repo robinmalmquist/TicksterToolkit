@@ -10179,8 +10179,9 @@ codePane.addEventListener("input", () => {
       const strokeColor = getPriceRegionStrokeColor(region, fillColor);
       const rangeId = buildRangeId(region, idx);
       const exportClass = `pr${idx + 1}`;
+      const regionName = escapeXml(region.name);
       lines.push("");
-      lines.push(`/* Colors for price region ${region.name} */`);
+      lines.push(`/* Colors for price region ${regionName} */`);
       lines.push(`.pr-${rangeId}, .${exportClass} { stroke: ${strokeColor}; fill: ${fillColor}; background-color: ${fillColor}; }`);
     });
     return lines.join("\n").trim();
@@ -12663,6 +12664,13 @@ codePane.addEventListener("input", () => {
     }).join(lineEnding);
   }
 
+  function escapeInvalidSvgXmlAmpersands(svgText) {
+    return String(svgText || "").replace(
+      /&(?!(?:amp|lt|gt|quot|apos|#\d+|#x[\da-f]+);)/gi,
+      "&amp;"
+    );
+  }
+
   function assertSvgSectionsGroup(svgText, fileName) {
     const parser = new DOMParser();
     const documentSvg = parser.parseFromString(String(svgText || ""), "image/svg+xml");
@@ -12676,20 +12684,24 @@ codePane.addEventListener("input", () => {
   }
 
   function replaceSvgSectionsGroup(existingSvgText, generatedSvgText, fileName = "The selected SVG") {
-    assertSvgSectionsGroup(existingSvgText, fileName);
-    assertSvgSectionsGroup(generatedSvgText, "The generated SVG");
-    const existingRange = findSvgElementRangeById(existingSvgText, "sections");
-    const generatedRange = findSvgElementRangeById(generatedSvgText, "sections");
+    // Previous editor exports could contain raw ampersands in CSS comments.
+    // Normalize them so those SVGs remain usable for section-only replacement.
+    const safeExistingSvgText = escapeInvalidSvgXmlAmpersands(existingSvgText);
+    const safeGeneratedSvgText = escapeInvalidSvgXmlAmpersands(generatedSvgText);
+    assertSvgSectionsGroup(safeExistingSvgText, fileName);
+    assertSvgSectionsGroup(safeGeneratedSvgText, "The generated SVG");
+    const existingRange = findSvgElementRangeById(safeExistingSvgText, "sections");
+    const generatedRange = findSvgElementRangeById(safeGeneratedSvgText, "sections");
     if (!existingRange || !generatedRange) {
       throw new Error("Could not locate the #sections group in the SVG markup.");
     }
 
-    const generatedSectionsMarkup = String(generatedSvgText).slice(generatedRange.start, generatedRange.end);
-    const sourceIndent = getSvgLineIndent(generatedSvgText, generatedRange.start);
-    const targetIndent = getSvgLineIndent(existingSvgText, existingRange.start);
-    const lineEnding = String(existingSvgText).includes("\r\n") ? "\r\n" : "\n";
+    const generatedSectionsMarkup = safeGeneratedSvgText.slice(generatedRange.start, generatedRange.end);
+    const sourceIndent = getSvgLineIndent(safeGeneratedSvgText, generatedRange.start);
+    const targetIndent = getSvgLineIndent(safeExistingSvgText, existingRange.start);
+    const lineEnding = safeExistingSvgText.includes("\r\n") ? "\r\n" : "\n";
     const alignedSectionsMarkup = alignSvgElementMarkup(generatedSectionsMarkup, sourceIndent, targetIndent, lineEnding);
-    return `${String(existingSvgText).slice(0, existingRange.start)}${alignedSectionsMarkup}${String(existingSvgText).slice(existingRange.end)}`;
+    return `${safeExistingSvgText.slice(0, existingRange.start)}${alignedSectionsMarkup}${safeExistingSvgText.slice(existingRange.end)}`;
   }
 
   async function chooseExistingSvgFileForSectionReplacement() {
