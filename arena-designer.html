@@ -47,7 +47,7 @@
       --shadow-modal-lg: 0 20px 50px rgba(0,0,0,0.25);
       --radius-card: 4px;
       --radius-pill: 4px;
-      --icon-button-size: 50px;
+      --icon-button-size: 40px;
       --transition-fast: 0.15s ease-out;
       --font-main: "SUSE", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
       --font-mono: "SUSE Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Courier New", monospace;
@@ -75,7 +75,7 @@
     /* Layout-root */
     #app {
       display: grid;
-      grid-template-columns: 128px 1fr 300px;
+      grid-template-columns: 115px 1fr 300px;
       grid-template-rows: 1fr;
       gap: 0.5rem;
       height: 100vh;
@@ -1012,6 +1012,13 @@
       gap: 0.5rem;
       padding: 0.4rem 0;
     }
+    .export-options--primary {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
+    .export-options--secondary {
+      grid-template-columns: repeat(2, minmax(120px, 1fr));
+      padding-top: 0;
+    }
     .export-modal__body {
       display: grid;
       grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
@@ -1283,22 +1290,26 @@
     }
 
     #left-toolbar .c-card__title {
-      font-size: 0.84rem;
+      font-size: 0.8rem;
       letter-spacing: 0.07em;
     }
 
     #toolButtons {
       display: grid;
       grid-template-columns: repeat(2, var(--icon-button-size));
-      justify-content: start;
+      justify-content: center;
       gap: 0.35rem;
     }
 
     #selectionModeGroup .c-toolbar {
       display: grid;
       grid-template-columns: repeat(2, var(--icon-button-size));
-      justify-content: start;
+      justify-content: center;
       gap: 0.35rem;
+    }
+
+    #left-toolbar .bg-toggle-group {
+      justify-content: center;
     }
 
     #left-toolbar .left-panel-section {
@@ -2672,6 +2683,10 @@
       .export-svg-settings__grid--two-columns {
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }
+
+      .export-options--primary {
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      }
     }
 
     html[data-theme="dark"] .help-text {
@@ -2938,10 +2953,10 @@
 
     #alignBar > .icon-only-button,
     #alignBar .align-rotate > .icon-only-button {
-      width: var(--icon-button-size);
-      height: var(--icon-button-size);
-      min-width: var(--icon-button-size);
-      min-height: var(--icon-button-size);
+      width: calc(var(--icon-button-size) - 4px);
+      height: calc(var(--icon-button-size) - 4px);
+      min-width: calc(var(--icon-button-size) - 4px);
+      min-height: calc(var(--icon-button-size) - 4px);
       flex: 0 0 auto;
     }
 
@@ -3387,6 +3402,13 @@
               <option value="individual">Individual</option>
             </select>
           </div>
+          <div class="align-grouping">
+            <label for="alignBySelect" class="u-font--small">Align by</label>
+            <select id="alignBySelect">
+              <option value="first">First selected</option>
+              <option value="last">Last selected</option>
+            </select>
+          </div>
           <div class="align-divider" aria-hidden="true"></div>
           <div class="align-rotate">
             <button id="rotateCcwBtn" class="c-button c-button--ghost c-button--small icon-only-button icon-only-button--fixed" title="Rotate counter-clockwise" aria-label="Rotate counter-clockwise">
@@ -3519,6 +3541,7 @@
             <button id="loadPriceRegionCssBtn" class="c-button c-button--ghost c-button--small">Load CSS</button>
             <button id="removeAllPriceRegionsBtn" class="c-button c-button--ghost c-button--small">Remove all</button>
           </div>
+          <button id="validatePriceRegionMappingsBtn" class="c-button c-button--ghost c-button--small">Validate mappings</button>
           <button id="selectSeatsNoPriceRegionBtn" class="c-button c-button--ghost c-button--small">Select seats without price regions</button>
           <div class="price-region-color-tools u-font--small">
             <label for="priceRegionColorModeSelect">Auto colors</label>
@@ -3810,10 +3833,6 @@
         <label for="newProjectName">Project name</label>
         <input id="newProjectName" type="text" placeholder="e.g. ArenaLayout2026" />
       </div>
-      <div class="new-layout-field">
-        <label for="newVenueId">VenueId</label>
-        <input id="newVenueId" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="Enter VenueId" />
-      </div>
       <div class="new-layout-actions">
         <button id="newLayoutCancel" class="c-button c-button--ghost c-button--small">Cancel</button>
         <button id="newLayoutStart" class="c-button c-button--primary c-button--small">Create</button>
@@ -3925,7 +3944,7 @@
             <button id="exportSelectDesignTypesBtn" type="button" class="c-button c-button--ghost c-button--small">Only Design</button>
             <button id="exportClearAllTypesBtn" type="button" class="c-button c-button--ghost c-button--small">Deselect All</button>
           </div>
-          <div class="export-options">
+          <div class="export-options export-options--primary">
             <label class="export-option">
               <input type="checkbox" id="exportTlc" checked />
               TLC
@@ -3939,16 +3958,18 @@
               TPR
             </label>
             <label class="export-option">
-              <input type="checkbox" id="exportTlm" />
-              TLM
-            </label>
-            <label class="export-option">
               <input type="checkbox" id="exportCss" checked />
               CSS
             </label>
             <label class="export-option">
               <input type="checkbox" id="exportSvg" />
               SVG
+            </label>
+          </div>
+          <div class="export-options export-options--secondary">
+            <label class="export-option">
+              <input type="checkbox" id="exportTlm" />
+              TLM
             </label>
             <label class="export-option">
               <input type="checkbox" id="exportLayoutSummaryXlsx" />
@@ -4386,6 +4407,7 @@
   const flipVBtn = document.getElementById("flipVBtn");
   const flipHBtn = document.getElementById("flipHBtn");
   const alignGroupingSelect = document.getElementById("alignGroupingSelect");
+  const alignBySelect = document.getElementById("alignBySelect");
   const rotateCcwBtn = document.getElementById("rotateCcwBtn");
   const rotateCwBtn = document.getElementById("rotateCwBtn");
   const rotateDegreesInput = document.getElementById("rotateDegreesInput");
@@ -4517,7 +4539,6 @@
   const newLayoutStart = document.getElementById("newLayoutStart");
   const newLayoutCancel = document.getElementById("newLayoutCancel");
   const newProjectName = document.getElementById("newProjectName");
-  const newVenueId = document.getElementById("newVenueId");
   const duplicateSectionOverlay = document.getElementById("duplicateSectionOverlay");
   const duplicateSectionNames = document.getElementById("duplicateSectionNames");
   const duplicateSectionHint = document.getElementById("duplicateSectionHint");
@@ -4651,6 +4672,7 @@
   const loadPriceRegionBtn = document.getElementById("loadPriceRegionBtn");
   const loadPriceRegionCssBtn = document.getElementById("loadPriceRegionCssBtn");
   const removeAllPriceRegionsBtn = document.getElementById("removeAllPriceRegionsBtn");
+  const validatePriceRegionMappingsBtn = document.getElementById("validatePriceRegionMappingsBtn");
   const selectSeatsNoPriceRegionBtn = document.getElementById("selectSeatsNoPriceRegionBtn");
   const priceRegionFileInput = document.getElementById("priceRegionFileInput");
   const priceRegionCssFileInput = document.getElementById("priceRegionCssFileInput");
@@ -4933,6 +4955,13 @@
     }
     return null;
   }
+
+  async function getCurrentLayoutStartHandle() {
+    // The open layout itself is the authoritative reference. This prevents an
+    // older folder handle from taking precedence after another TLT is opened.
+    const rememberedHandle = currentFileHandle || lastDirectoryHandle;
+    return await tryGetDirectoryHandle(rememberedHandle) || rememberedHandle || null;
+  }
   let renderGrayscale = false;
   let showHoverInfo = true;
   let showSectionNames = false;
@@ -5024,6 +5053,7 @@
   let lastSelectedSeatId = null;
   let lastSelectionSource = "click"; // "click" | "box" | "program"
   let alignGroupingMode = "group";
+  let alignByMode = "first";
 
   // Smart rendering / prestanda
   let lastVisibleSeatCount = 0;
@@ -6681,27 +6711,57 @@
   }
 
   function prunePriceRegionsToExistingSeats() {
-    const existingSeatIds = new Set(seats.map(s => s.seatId));
-    const existingRowIds = new Set(seats.map(s => s.rowId).filter(Boolean));
-    const existingSectionIds = new Set(seats.map(s => s.sectionId).filter(Boolean));
-    let changed = false;
+    const toIdSet = (values) => new Set(
+      values.map((value) => String(value ?? "").trim()).filter(Boolean)
+    );
+    const existingSeatIds = toIdSet(seats.map((seat) => seat?.seatId));
+    const existingRowIds = toIdSet(seats.map((seat) => seat?.rowId));
+    const existingSectionIds = toIdSet(seats.map((seat) => seat?.sectionId));
+    const removed = { sections: 0, rows: 0, seats: 0 };
     priceRegions.forEach((region) => {
-      const nextSections = region.sections.filter(id => existingSectionIds.has(id));
-      const nextRows = region.rows.filter(id => existingRowIds.has(id));
-      const nextSeats = region.seats.filter(id => existingSeatIds.has(id));
-      if (nextSections.length !== region.sections.length) changed = true;
-      if (nextRows.length !== region.rows.length) changed = true;
-      if (nextSeats.length !== region.seats.length) changed = true;
+      if (!region) return;
+      const normalizeAndKeep = (values, existingIds, key) => {
+        const unique = new Set();
+        const next = [];
+        (Array.isArray(values) ? values : []).forEach((value) => {
+          const id = String(value ?? "").trim();
+          if (!id || !existingIds.has(id) || unique.has(id)) {
+            removed[key] += 1;
+            return;
+          }
+          unique.add(id);
+          next.push(id);
+        });
+        return next;
+      };
+      const nextSections = normalizeAndKeep(region.sections, existingSectionIds, "sections");
+      const nextRows = normalizeAndKeep(region.rows, existingRowIds, "rows");
+      const nextSeats = normalizeAndKeep(region.seats, existingSeatIds, "seats");
       region.sections = nextSections;
       region.rows = nextRows;
       region.seats = nextSeats;
     });
-    if (changed) {
+    const removedTotal = removed.sections + removed.rows + removed.seats;
+    if (removedTotal) {
       savePriceRegionsToStorage();
       renderPriceRegionList();
       updatePriceRegionUi();
       updatePriceRegionStatus();
     }
+    return { removed, removedTotal };
+  }
+
+  function validatePriceRegionMappings() {
+    const { removed, removedTotal } = prunePriceRegionsToExistingSeats();
+    if (!removedTotal) {
+      alert("Price region mappings are valid.");
+      return;
+    }
+    const parts = [];
+    if (removed.sections) parts.push(`${removed.sections} section link(s)`);
+    if (removed.rows) parts.push(`${removed.rows} row link(s)`);
+    if (removed.seats) parts.push(`${removed.seats} seat link(s)`);
+    alert(`Validation complete. Removed invalid ${parts.join(", ")}.`);
   }
 
 
@@ -7057,9 +7117,10 @@ async function tryRestoreSessionFromLocalStorage() {
     hasUnsavedChanges = true;
     updateSaveButton();
 
-    loadCurrentFileHandleFromDB().then((handle) => {
+    loadCurrentFileHandleFromDB().then(async (handle) => {
       if (handle) {
         currentFileHandle = handle;
+        lastDirectoryHandle = await tryGetDirectoryHandle(handle) || handle;
         // fileInfo-texten är redan satt utifrån currentFileName
       }
     });
@@ -7428,7 +7489,6 @@ codePane.addEventListener("input", () => {
       "newLayoutCancel",
       "newLayoutStart",
       "newProjectName",
-      "newVenueId",
       "helpBtn",
       "themeToggleBtn"
     ]);
@@ -8350,15 +8410,18 @@ codePane.addEventListener("input", () => {
   }
 
   function getPriceRegionMappingStatus() {
-    const existingSeatIds = new Set(seats.map(s => s.seatId));
-    const existingRowIds = new Set(seats.map(s => s.rowId).filter(Boolean));
-    const existingSectionIds = new Set(seats.map(s => s.sectionId).filter(Boolean));
+    const toIdSet = (values) => new Set(
+      values.map((value) => String(value ?? "").trim()).filter(Boolean)
+    );
+    const existingSeatIds = toIdSet(seats.map((seat) => seat?.seatId));
+    const existingRowIds = toIdSet(seats.map((seat) => seat?.rowId));
+    const existingSectionIds = toIdSet(seats.map((seat) => seat?.sectionId));
     let hasStaleMappings = false;
     priceRegions.forEach((region) => {
       if (!region) return;
-      if (region.sections?.some(id => !existingSectionIds.has(id))) hasStaleMappings = true;
-      if (region.rows?.some(id => !existingRowIds.has(id))) hasStaleMappings = true;
-      if (region.seats?.some(id => !existingSeatIds.has(id))) hasStaleMappings = true;
+      if (region.sections?.some(id => !existingSectionIds.has(String(id ?? "").trim()))) hasStaleMappings = true;
+      if (region.rows?.some(id => !existingRowIds.has(String(id ?? "").trim()))) hasStaleMappings = true;
+      if (region.seats?.some(id => !existingSeatIds.has(String(id ?? "").trim()))) hasStaleMappings = true;
     });
     const lookups = buildPriceRegionLookups();
     const allCovered = seats.length > 0 && seats.every(s => getSeatPriceRegionColor(s, lookups));
@@ -8399,6 +8462,16 @@ codePane.addEventListener("input", () => {
     ].filter(Boolean);
   }
 
+  function getPrimaryExportOptionCheckboxes() {
+    return [
+      exportTlc,
+      exportTlt,
+      exportTpr,
+      exportCss,
+      exportSvg
+    ].filter(Boolean);
+  }
+
   function setExportCheckboxState(input, checked) {
     if (!input) return;
     if (input.disabled) {
@@ -8419,7 +8492,7 @@ codePane.addEventListener("input", () => {
     }
 
     if (mode === "all") {
-      getExportOptionCheckboxes().forEach((input) => setExportCheckboxState(input, true));
+      getPrimaryExportOptionCheckboxes().forEach((input) => setExportCheckboxState(input, true));
       updateExportOptionsAvailability();
       return;
     }
@@ -8916,13 +8989,15 @@ codePane.addEventListener("input", () => {
   }
 
   async function getPreferredExportDirectoryHandleForCurrentLayout() {
+    const currentLayoutDir = await getCurrentLayoutStartHandle();
+    if (currentLayoutDir) return currentLayoutDir;
     const prefs = await loadCurrentLayoutExportPrefs();
     const layoutDir = await tryGetDirectoryHandle(prefs?.exportDirectoryHandle) || prefs?.exportDirectoryHandle || null;
     if (layoutDir) return layoutDir;
     if (!lastExportDirectoryHandle) {
       lastExportDirectoryHandle = await loadLastExportDirectoryHandleFromDB();
     }
-    return lastExportDirectoryHandle || lastDirectoryHandle || await tryGetDirectoryHandle(currentFileHandle);
+    return lastExportDirectoryHandle || null;
   }
 
   function setExportProgressState({ active = false, message = "", detail = "" } = {}) {
@@ -10119,6 +10194,7 @@ codePane.addEventListener("input", () => {
     originalLines = newLines;
     outlines = newOutlines;
     rebuildSeatLineIndex();
+    prunePriceRegionsToExistingSeats();
 
     const afterText = originalLines.join("\n");
     if (codePane.value !== afterText) codePane.value = afterText;
@@ -12714,6 +12790,8 @@ codePane.addEventListener("input", () => {
     };
     if (typeof window.showOpenFilePicker === "function") {
       try {
+        const startIn = await getCurrentLayoutStartHandle();
+        if (startIn) pickerOptions.startIn = startIn;
         const [fileHandle] = await window.showOpenFilePicker(pickerOptions);
         if (!fileHandle) return null;
         const file = await fileHandle.getFile();
@@ -13923,7 +14001,6 @@ codePane.addEventListener("input", () => {
       newProjectName.value = "";
       setTimeout(() => newProjectName.focus(), 50);
     }
-    if (newVenueId) newVenueId.value = "";
   }
 
   function closeNewLayoutModal() {
@@ -13982,16 +14059,10 @@ codePane.addEventListener("input", () => {
       alert("Enter a project name.");
       return;
     }
-    const venueIdVal = (newVenueId?.value || "").trim();
-    if (venueIdVal && !/^\d+$/.test(venueIdVal)) {
-      alert("VenueId får bara innehålla siffror.");
-      newVenueId?.focus();
-      return;
-    }
     const safeBase = rawName.replace(/[\\/:*?\"<>|]/g, "_");
     const defaultFileName = safeBase ? `${safeBase}.tlt` : "layout.tlt";
 
-    resetLayoutState(safeBase, venueIdVal);
+    resetLayoutState(safeBase, "0");
     updateCodeFromSeats(); // tom layout -> initline finns
     clearCurrentFileHandleInDB();
 
@@ -14142,6 +14213,7 @@ codePane.addEventListener("input", () => {
   helpClose?.addEventListener("click", closeHelpModal);
 
   createPriceRegionBtn?.addEventListener("click", openPriceRegionModal);
+  validatePriceRegionMappingsBtn?.addEventListener("click", validatePriceRegionMappings);
   removeAllPriceRegionsBtn?.addEventListener("click", () => {
     if (!priceRegions.length) return;
     if (!confirm(`Remove all ${priceRegions.length} price region(s)?`)) return;
@@ -14168,48 +14240,121 @@ codePane.addEventListener("input", () => {
     }
     closePriceRegionStaleModal();
   });
-  loadPriceRegionBtn?.addEventListener("click", () => {
+  async function importPriceRegionsFromTprFile(file) {
+    if (!file) return;
+    const text = await file.text();
+    const regions = parseTprText(text);
+    if (!regions.length) {
+      alert("No price regions found in file.");
+      return;
+    }
+    regions.forEach((region) => {
+      region.name = normalizePriceRegionName(region.name);
+    });
+    const importNames = regions.map(r => r.name).filter(Boolean);
+    const { duplicates, tooLong } = getPriceRegionNameIssues(importNames, new Set());
+    const issueMessage = buildPriceRegionIssueMessage(duplicates, tooLong);
+    if (issueMessage) {
+      alert(issueMessage);
+      return;
+    }
+    priceRegions.length = 0;
+    regions.forEach((region, idx) => {
+      const normalizedRegion = normalizePriceRegionRecord(region, idx);
+      if (normalizedRegion) priceRegions.push(normalizedRegion);
+    });
+    setExportLoadedSourcesState({ tpr: true });
+    savePriceRegionsToStorage();
+    renderPriceRegionList();
+    updatePriceRegionUi();
+    if (showPriceRegions) renderCanvas();
+  }
+
+  async function openPriceRegionTprPicker() {
+    if (typeof window.showOpenFilePicker === "function") {
+      try {
+        const pickerOpts = {
+          types: [{
+            description: "Tickster Price Regions (.tpr)",
+            accept: { "text/plain": [".tpr", ".txt"] }
+          }],
+          excludeAcceptAllOption: true,
+          multiple: false
+        };
+        const startIn = await getCurrentLayoutStartHandle();
+        if (startIn) pickerOpts.startIn = startIn;
+        const [handle] = await window.showOpenFilePicker(pickerOpts);
+        if (handle) await importPriceRegionsFromTprFile(await handle.getFile());
+        return;
+      } catch (err) {
+        if (err?.name === "AbortError") return;
+        console.warn("Could not open TPR with the file picker; using browser file selection instead:", err);
+      }
+    }
+    priceRegionFileInput?.click();
+  }
+
+  loadPriceRegionBtn?.addEventListener("click", async () => {
     if (!seats.length) {
       alert("Load a layout (TLT) before importing price regions.");
       return;
     }
-    priceRegionFileInput?.click();
+    await openPriceRegionTprPicker();
   });
   priceRegionFileInput?.addEventListener("change", async (e) => {
     const file = e.target.files && e.target.files[0];
     if (!file) return;
     try {
-      const text = await file.text();
-      const regions = parseTprText(text);
-      if (!regions.length) {
-        alert("No price regions found in file.");
-        return;
-      }
-      regions.forEach((region) => {
-        region.name = normalizePriceRegionName(region.name);
-      });
-      const importNames = regions.map(r => r.name).filter(Boolean);
-      const { duplicates, tooLong } = getPriceRegionNameIssues(importNames, new Set());
-      const issueMessage = buildPriceRegionIssueMessage(duplicates, tooLong);
-      if (issueMessage) {
-        alert(issueMessage);
-        return;
-      }
-      priceRegions.length = 0;
-      regions.forEach((region, idx) => {
-        const normalizedRegion = normalizePriceRegionRecord(region, idx);
-        if (normalizedRegion) priceRegions.push(normalizedRegion);
-      });
-      setExportLoadedSourcesState({ tpr: true });
-      savePriceRegionsToStorage();
-      renderPriceRegionList();
-      updatePriceRegionUi();
-      if (showPriceRegions) renderCanvas();
+      await importPriceRegionsFromTprFile(file);
     } finally {
       priceRegionFileInput.value = "";
     }
   });
-  loadPriceRegionCssBtn?.addEventListener("click", () => {
+  async function importPriceRegionColorsFromCssFile(file) {
+    if (!file) return;
+    const text = await file.text();
+    const { parsedCount, matchedCount, updatedCount } = importPriceRegionColorsFromCssText(text);
+    if (!parsedCount) {
+      alert("No price region styles found in CSS file.");
+      return;
+    }
+    if (!matchedCount) {
+      alert("No CSS price region styles matched current price regions.");
+      return;
+    }
+    savePriceRegionsToStorage();
+    renderPriceRegionList();
+    updatePriceRegionUi();
+    if (showPriceRegions) renderCanvas();
+    const unchangedCount = matchedCount - updatedCount;
+    alert(`Updated ${updatedCount} price region style(s). ${unchangedCount} already matched the CSS.`);
+  }
+
+  async function openPriceRegionCssPicker() {
+    if (typeof window.showOpenFilePicker === "function") {
+      try {
+        const pickerOpts = {
+          types: [{
+            description: "CSS files",
+            accept: { "text/css": [".css"], "text/plain": [".txt"] }
+          }],
+          excludeAcceptAllOption: true,
+          multiple: false
+        };
+        const startIn = await getCurrentLayoutStartHandle();
+        if (startIn) pickerOpts.startIn = startIn;
+        const [handle] = await window.showOpenFilePicker(pickerOpts);
+        if (handle) await importPriceRegionColorsFromCssFile(await handle.getFile());
+        return;
+      } catch (err) {
+        if (err?.name === "AbortError") return;
+        console.warn("Could not open CSS with the file picker; using browser file selection instead:", err);
+      }
+    }
+    priceRegionCssFileInput?.click();
+  }
+
+  loadPriceRegionCssBtn?.addEventListener("click", async () => {
     if (!seats.length) {
       alert("Load a layout (TLT) before importing CSS colors.");
       return;
@@ -14218,28 +14363,13 @@ codePane.addEventListener("input", () => {
       alert("Load or create price regions before importing CSS colors.");
       return;
     }
-    priceRegionCssFileInput?.click();
+    await openPriceRegionCssPicker();
   });
   priceRegionCssFileInput?.addEventListener("change", async (e) => {
     const file = e.target.files && e.target.files[0];
     if (!file) return;
     try {
-      const text = await file.text();
-      const { parsedCount, matchedCount, updatedCount } = importPriceRegionColorsFromCssText(text);
-      if (!parsedCount) {
-        alert("No price region styles found in CSS file.");
-        return;
-      }
-      if (!matchedCount) {
-        alert("No CSS price region styles matched current price regions.");
-        return;
-      }
-      savePriceRegionsToStorage();
-      renderPriceRegionList();
-      updatePriceRegionUi();
-      if (showPriceRegions) renderCanvas();
-      const unchangedCount = matchedCount - updatedCount;
-      alert(`Updated ${updatedCount} price region style(s). ${unchangedCount} already matched the CSS.`);
+      await importPriceRegionColorsFromCssFile(file);
     } finally {
       priceRegionCssFileInput.value = "";
     }
@@ -14341,32 +14471,61 @@ codePane.addEventListener("input", () => {
   createSeatBlockBtn?.addEventListener("click", () => {
     createSeatBlock();
   });
-  loadSeatBlockBtn?.addEventListener("click", () => {
+  async function importSeatBlocksFromTlmFile(file) {
+    if (!file) return;
+    const text = await file.text();
+    const importedBlocks = parseTlmText(text);
+    if (!importedBlocks.length) {
+      alert("No blocks found in file.");
+      return;
+    }
+    seatBlocks.length = 0;
+    importedBlocks.forEach((block) => seatBlocks.push(block));
+    activeSeatBlockId = seatBlocks[0]?.id || "";
+    pruneSeatBlocksToExistingSeats(false);
+    ensureSeatBlockRangeIds();
+    saveSeatBlocksToStorage();
+    renderSeatBlockList();
+    updateSeatBlockUi();
+    renderCanvas();
+  }
+
+  async function openSeatBlockTlmPicker() {
+    if (typeof window.showOpenFilePicker === "function") {
+      try {
+        const pickerOpts = {
+          types: [{
+            description: "Tickster Layout Modifications (.tlm)",
+            accept: { "text/plain": [".tlm", ".txt"] }
+          }],
+          excludeAcceptAllOption: true,
+          multiple: false
+        };
+        const startIn = await getCurrentLayoutStartHandle();
+        if (startIn) pickerOpts.startIn = startIn;
+        const [handle] = await window.showOpenFilePicker(pickerOpts);
+        if (handle) await importSeatBlocksFromTlmFile(await handle.getFile());
+        return;
+      } catch (err) {
+        if (err?.name === "AbortError") return;
+        console.warn("Could not open TLM with the file picker; using browser file selection instead:", err);
+      }
+    }
+    seatBlockFileInput?.click();
+  }
+
+  loadSeatBlockBtn?.addEventListener("click", async () => {
     if (!seats.length) {
       alert("Load a layout (TLT) before importing blocks.");
       return;
     }
-    seatBlockFileInput?.click();
+    await openSeatBlockTlmPicker();
   });
   seatBlockFileInput?.addEventListener("change", async (e) => {
     const file = e.target.files && e.target.files[0];
     if (!file) return;
     try {
-      const text = await file.text();
-      const importedBlocks = parseTlmText(text);
-      if (!importedBlocks.length) {
-        alert("No blocks found in file.");
-        return;
-      }
-      seatBlocks.length = 0;
-      importedBlocks.forEach((block) => seatBlocks.push(block));
-      activeSeatBlockId = seatBlocks[0]?.id || "";
-      pruneSeatBlocksToExistingSeats(false);
-      ensureSeatBlockRangeIds();
-      saveSeatBlocksToStorage();
-      renderSeatBlockList();
-      updateSeatBlockUi();
-      renderCanvas();
+      await importSeatBlocksFromTlmFile(file);
     } finally {
       seatBlockFileInput.value = "";
     }
@@ -14739,9 +14898,10 @@ codePane.addEventListener("input", () => {
   });
 
   // Försök återanvända senaste handle direkt vid start (utan att öppna filen automatiskt)
-  loadCurrentFileHandleFromDB().then((handle) => {
+  loadCurrentFileHandleFromDB().then(async (handle) => {
     if (handle) {
       currentFileHandle = handle;
+      lastDirectoryHandle = await tryGetDirectoryHandle(handle) || handle;
       currentFileName = handle.name || currentFileName;
     }
   });
@@ -15490,31 +15650,29 @@ codePane.addEventListener("input", () => {
 }
 
   function selectAllSeats() {
-  if (!seats || seats.length === 0) return;
+    if (!seats || seats.length === 0) return;
 
-  let changed = false;
-  let lastAdded = null;
-  for (const s of seats) {
-    if (!s.selected) {
-      s.selected = true;
-      s.selectedAt = selectionOrderCounter++;
-      changed = true;
-      lastAdded = s;
+    let changed = false;
+    let lastAdded = null;
+    for (const s of seats) {
+      if (!s.selected) {
+        s.selected = true;
+        s.selectedAt = selectionOrderCounter++;
+        changed = true;
+        lastAdded = s;
+      }
     }
-  }
-  if (!changed) return;
+    if (lastAdded) lastSelectedSeatId = lastAdded.seatId;
+    lastSelectionSource = "program";
+    updateMoveButtonState();
+    updatePriceRegionUi();
+    updateEntryPointUi();
+    updateSeatBlockUi();
 
-  if (lastAdded) lastSelectedSeatId = lastAdded.seatId;
-  lastSelectionSource = "program";
-
-  // Aktivera Move-verktyget (det är bara knappen som ska bli aktiverbar)
-  moveToolBtn.disabled = false;
-
-  // Lägg detta i historiken så att Ctrl+Z även ångrar "markera alla"
-  if (typeof pushHistorySnapshot === "function") {
-    pushHistorySnapshot();
-  }
-
+    // Lägg detta i historiken så att Ctrl+Z även ångrar "markera alla"
+    if (changed && typeof pushHistorySnapshot === "function") {
+      pushHistorySnapshot();
+    }
     renderCanvas();
   }
 
@@ -15626,24 +15784,6 @@ function selectSeatsWithoutEntryPoints() {
     }
     selectionOrderCounter = order;
     lastSelectedSeatId = anchor ? anchor.seatId : null;
-  }
-
-  function getSelectionAnchorSeat(selectedSeats) {
-    if (!selectedSeats || !selectedSeats.length) return null;
-    if (lastSelectedSeatId) {
-      const anchor = selectedSeats.find(s => s.seatId === lastSelectedSeatId);
-      if (anchor) return anchor;
-    }
-    let best = selectedSeats[0];
-    let bestOrder = typeof best.selectedAt === "number" ? best.selectedAt : 0;
-    for (const s of selectedSeats) {
-      const order = typeof s.selectedAt === "number" ? s.selectedAt : 0;
-      if (order >= bestOrder) {
-        best = s;
-        bestOrder = order;
-      }
-    }
-    return best;
   }
 
   function cleanupDanglingLayoutStructureLines() {
@@ -16500,12 +16640,28 @@ function selectSeatsWithoutEntryPoints() {
     const pushGroup = (seatsArr) => {
       const b = getSelectionBounds(seatsArr);
       if (!b) return;
-      let order = 0;
+      let firstOrder = Infinity;
+      let lastOrder = -Infinity;
+      let firstIndex = Infinity;
+      let lastIndex = -Infinity;
       for (const s of seatsArr) {
-        const value = typeof s.selectedAt === "number" ? s.selectedAt : 0;
-        if (value > order) order = value;
+        const value = typeof s.selectedAt === "number" ? s.selectedAt : null;
+        const index = seats.indexOf(s);
+        if (value != null) {
+          firstOrder = Math.min(firstOrder, value);
+          lastOrder = Math.max(lastOrder, value);
+        }
+        firstIndex = Math.min(firstIndex, index);
+        lastIndex = Math.max(lastIndex, index);
       }
-      groups.push({ seats: seatsArr, bounds: b, order });
+      groups.push({
+        seats: seatsArr,
+        bounds: b,
+        firstOrder,
+        lastOrder,
+        firstIndex,
+        lastIndex
+      });
     };
 
     if (selectionMode === "section") {
@@ -16533,78 +16689,41 @@ function selectSeatsWithoutEntryPoints() {
         groups.push({
           seats: [s],
           bounds: { minX: s.vx, maxX: s.vx, minY: s.vy, maxY: s.vy, centerX: s.vx, centerY: s.vy },
-          order: typeof s.selectedAt === "number" ? s.selectedAt : 0
+          firstOrder: typeof s.selectedAt === "number" ? s.selectedAt : Infinity,
+          lastOrder: typeof s.selectedAt === "number" ? s.selectedAt : -Infinity,
+          firstIndex: seats.indexOf(s),
+          lastIndex: seats.indexOf(s)
         });
       }
     }
     return groups;
   }
 
-  function getAlignAnchorGroupByMode(groups, mode, selectionBounds) {
+  function getAlignAnchorGroup(groups) {
     if (!groups.length) return null;
-    const pickValue = (group) => {
-      switch (mode) {
-        case "left":
-          return group.bounds.minX;
-        case "right":
-          return group.bounds.maxX;
-        case "top":
-          return group.bounds.minY;
-        case "bottom":
-          return group.bounds.maxY;
-        case "centerH":
-          return group.bounds.centerX;
-        case "centerV":
-          return group.bounds.centerY;
-        default:
-          return null;
+    const useLastSelected = alignByMode === "last";
+    return groups.reduce((anchor, group) => {
+      const anchorOrder = useLastSelected ? anchor.lastOrder : anchor.firstOrder;
+      const groupOrder = useLastSelected ? group.lastOrder : group.firstOrder;
+      const anchorIndex = useLastSelected ? anchor.lastIndex : anchor.firstIndex;
+      const groupIndex = useLastSelected ? group.lastIndex : group.firstIndex;
+
+      if (!Number.isFinite(anchorOrder) && !Number.isFinite(groupOrder)) {
+        return useLastSelected
+          ? (groupIndex > anchorIndex ? group : anchor)
+          : (groupIndex < anchorIndex ? group : anchor);
       }
-    };
-    const targetValue = (mode === "centerH" || mode === "centerV")
-      ? (selectionBounds ? (mode === "centerH" ? selectionBounds.centerX : selectionBounds.centerY) : null)
-      : null;
-    let best = groups[0];
-    let bestValue = pickValue(best);
-    let bestDistance = null;
-    if (targetValue != null && Number.isFinite(bestValue)) {
-      bestDistance = Math.abs(bestValue - targetValue);
-    }
-    for (let i = 1; i < groups.length; i++) {
-      const current = groups[i];
-      const value = pickValue(current);
-      if (!Number.isFinite(value) || !Number.isFinite(bestValue)) {
-        if (Number.isFinite(value) && !Number.isFinite(bestValue)) {
-          best = current;
-          bestValue = value;
-          if (targetValue != null) {
-            bestDistance = Math.abs(value - targetValue);
-          }
-        }
-        continue;
+      if (!Number.isFinite(anchorOrder)) return group;
+      if (!Number.isFinite(groupOrder)) return anchor;
+      if (useLastSelected) {
+        return groupOrder > anchorOrder || (groupOrder === anchorOrder && groupIndex > anchorIndex)
+          ? group
+          : anchor;
       }
-      if (mode === "centerH" || mode === "centerV") {
-        const distance = targetValue != null ? Math.abs(value - targetValue) : null;
-        if (
-          distance != null &&
-          (bestDistance == null || distance < bestDistance || (distance === bestDistance && current.order >= best.order))
-        ) {
-          best = current;
-          bestValue = value;
-          bestDistance = distance;
-        }
-      } else if (mode === "left" || mode === "top") {
-        if (value < bestValue || (value === bestValue && current.order >= best.order)) {
-          best = current;
-          bestValue = value;
-        }
-      } else {
-        if (value > bestValue || (value === bestValue && current.order >= best.order)) {
-          best = current;
-          bestValue = value;
-        }
-      }
-    }
-    return best;
+      return groupOrder < anchorOrder || (groupOrder === anchorOrder && groupIndex < anchorIndex)
+        ? group
+        : anchor;
+    }, groups[0]);
   }
 
   function alignSelectedSeats(mode) {
@@ -16614,20 +16733,7 @@ function selectSeatsWithoutEntryPoints() {
     const groups = getAlignGroups();
     if (groups.length < 2) return false;
 
-    let anchorGroup = null;
-    const isBoxMode = mode === "left" || mode === "right" || mode === "top" || mode === "bottom" || mode === "centerH" || mode === "centerV";
-    if (lastSelectionSource === "box" && isBoxMode) {
-      const selectionBounds = getSelectionBounds(selected);
-      anchorGroup = getAlignAnchorGroupByMode(groups, mode, selectionBounds);
-    } else {
-      const anchorSeat = getSelectionAnchorSeat(selected);
-      if (anchorSeat) {
-        anchorGroup = groups.find(g => g.seats.some(s => s.seatId === anchorSeat.seatId)) || null;
-      }
-      if (!anchorGroup) {
-        anchorGroup = groups.reduce((best, g) => (g.order >= best.order ? g : best), groups[0]);
-      }
-    }
+    const anchorGroup = getAlignAnchorGroup(groups);
     if (!anchorGroup) return false;
 
     const target = anchorGroup.bounds;
@@ -21431,6 +21537,7 @@ function nudgeSelection(dxScreen, dyScreen) {
     }
   }
   const ALIGN_GROUPING_KEY = "arenaDesignerAlignGrouping";
+  const ALIGN_BY_KEY = "arenaDesignerAlignBy";
 
   function readAlignGroupingMode() {
     try {
@@ -21452,11 +21559,35 @@ function nudgeSelection(dxScreen, dyScreen) {
     if (persist) writeAlignGroupingMode(alignGroupingMode);
   }
 
+  function readAlignByMode() {
+    try {
+      const stored = localStorage.getItem(ALIGN_BY_KEY);
+      if (stored === "first" || stored === "last") return stored;
+    } catch (_) {}
+    return "first";
+  }
+
+  function writeAlignByMode(mode) {
+    try {
+      localStorage.setItem(ALIGN_BY_KEY, mode);
+    } catch (_) {}
+  }
+
+  function setAlignByMode(mode, persist = true) {
+    alignByMode = mode === "last" ? "last" : "first";
+    if (alignBySelect) alignBySelect.value = alignByMode;
+    if (persist) writeAlignByMode(alignByMode);
+  }
+
   setAlignGroupingMode(readAlignGroupingMode(), false);
+  setAlignByMode(readAlignByMode(), false);
   setGoodnessRangeCount(DEFAULT_GOODNESS_RANGE_COUNT, false);
 
   alignGroupingSelect?.addEventListener("change", (e) => {
     setAlignGroupingMode(e.target.value);
+  });
+  alignBySelect?.addEventListener("change", (e) => {
+    setAlignByMode(e.target.value);
   });
   alignTopBtn.addEventListener("click", () => handleAlign("top"));
   alignBottomBtn.addEventListener("click", () => handleAlign("bottom"));
@@ -24203,6 +24334,7 @@ function nudgeSelection(dxScreen, dyScreen) {
       // Säkerställ att varje rad har en RowAdd-rad (om något fallit bort)
       // Ensure SectionAdd and RowAdd lines exist before seats in affected sections.
       ensureSectionAndRowLinesForSeats();
+      prunePriceRegionsToExistingSeats();
 
       rebuildSectionColors();
       const uniqueSections = new Set(seats.map(s => s.sectionId).filter(Boolean));
@@ -24336,16 +24468,48 @@ function nudgeSelection(dxScreen, dyScreen) {
   altSectionManagerClose?.addEventListener("click", () => {
     requestCloseAltSectionManager("Close without saving?");
   });
-  altSectionImportExcelBtn?.addEventListener("click", () => {
-    if (altSectionImportExcelInput) altSectionImportExcelInput.click();
+  async function importSectionsFromExcelAndRefresh(file) {
+    if (!file) return;
+    await importSectionsFromExcelFile(file);
+    renderAltSectionCards();
+    renderAltSectionDetail();
+  }
+
+  async function openSectionExcelPicker() {
+    if (typeof window.showOpenFilePicker === "function") {
+      try {
+        const pickerOpts = {
+          types: [{
+            description: "Excel files",
+            accept: {
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [".xlsx"],
+              "application/vnd.ms-excel": [".xls"]
+            }
+          }],
+          excludeAcceptAllOption: true,
+          multiple: false
+        };
+        const startIn = await getCurrentLayoutStartHandle();
+        if (startIn) pickerOpts.startIn = startIn;
+        const [handle] = await window.showOpenFilePicker(pickerOpts);
+        if (handle) await importSectionsFromExcelAndRefresh(await handle.getFile());
+        return;
+      } catch (err) {
+        if (err?.name === "AbortError") return;
+        console.warn("Could not open Excel with the file picker; using browser file selection instead:", err);
+      }
+    }
+    altSectionImportExcelInput?.click();
+  }
+
+  altSectionImportExcelBtn?.addEventListener("click", async () => {
+    await openSectionExcelPicker();
   });
   altSectionImportExcelInput?.addEventListener("change", async (e) => {
     const file = e.target.files && e.target.files[0];
     if (!file) return;
-    await importSectionsFromExcelFile(file);
+    await importSectionsFromExcelAndRefresh(file);
     altSectionImportExcelInput.value = "";
-    renderAltSectionCards();
-    renderAltSectionDetail();
   });
   altSectionCreateBtn?.addEventListener("click", () => {
     promptAndCreateAltDraft("");
