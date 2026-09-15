@@ -3476,11 +3476,11 @@
         <div class="c-card__body c-toolbar">
           <label class="bg-control u-font--small">
             <input type="checkbox" id="viewHoverToggle" checked />
-            Hover info for seats
+            Hover info for seats (J)
           </label>
           <label class="bg-control u-font--small">
             <input type="checkbox" id="viewSectionNamesToggle" />
-            Display section name
+            Display section name (K)
           </label>
           <label class="bg-control u-font--small">
             <input type="checkbox" id="viewForceSimplifiedToggle" />
@@ -3509,15 +3509,19 @@
             </label>
             <label class="bg-control">
               <input type="radio" name="seatLabelMode" id="viewSeatLabelRow" value="row" />
-              Display row number
+              Display row name
+            </label>
+            <label class="bg-control">
+              <input type="radio" name="seatLabelMode" id="viewSeatLabelRowId" value="rowId" />
+              Display RowId
             </label>
             <label class="bg-control">
               <input type="radio" name="seatLabelMode" id="viewSeatLabelSeat" value="seat" />
-              Display seat number
+              Display seat name
             </label>
             <label class="bg-control">
               <input type="radio" name="seatLabelMode" id="viewSeatLabelSeatId" value="seatId" />
-              Display seat ID
+              Display SeatId
             </label>
             <label class="bg-control">
               <input type="radio" name="seatLabelMode" id="viewSeatLabelEntry" value="entry" />
@@ -4526,6 +4530,7 @@
   const viewOverlayGoodness = document.getElementById("viewOverlayGoodness");
   const viewSeatLabelNone = document.getElementById("viewSeatLabelNone");
   const viewSeatLabelRow = document.getElementById("viewSeatLabelRow");
+  const viewSeatLabelRowId = document.getElementById("viewSeatLabelRowId");
   const viewSeatLabelSeat = document.getElementById("viewSeatLabelSeat");
   const viewSeatLabelSeatId = document.getElementById("viewSeatLabelSeatId");
   const viewSeatLabelEntry = document.getElementById("viewSeatLabelEntry");
@@ -4859,6 +4864,7 @@
     if (syncUI) {
       if (mode === "none" && viewSeatLabelNone) viewSeatLabelNone.checked = true;
       if (mode === "row" && viewSeatLabelRow) viewSeatLabelRow.checked = true;
+      if (mode === "rowId" && viewSeatLabelRowId) viewSeatLabelRowId.checked = true;
       if (mode === "seat" && viewSeatLabelSeat) viewSeatLabelSeat.checked = true;
       if (mode === "seatId" && viewSeatLabelSeatId) viewSeatLabelSeatId.checked = true;
       if (mode === "entry" && viewSeatLabelEntry) viewSeatLabelEntry.checked = true;
@@ -6769,6 +6775,7 @@ function saveSessionToLocalStorage() {
   try {
     const readSeatLabelMode = () => {
       if (viewSeatLabelRow?.checked) return "row";
+      if (viewSeatLabelRowId?.checked) return "rowId";
       if (viewSeatLabelSeat?.checked) return "seat";
       if (viewSeatLabelSeatId?.checked) return "seatId";
       if (viewSeatLabelEntry?.checked) return "entry";
@@ -15320,6 +15327,8 @@ codePane.addEventListener("input", () => {
           let label = "";
           if (seatLabelMode === "seat") {
             label = s.name || "";
+          } else if (seatLabelMode === "rowId") {
+            label = s.rowId || "";
           } else if (seatLabelMode === "seatId") {
             const seatId = s.seatId || "";
             const suffix = getSeatIdSuffix(seatId);
@@ -21230,10 +21239,21 @@ function nudgeSelection(dxScreen, dyScreen) {
       case "i":
         e.preventDefault();
         if (seatLabelMode === "none") setSeatLabelMode("row");
-        else if (seatLabelMode === "row") setSeatLabelMode("seat");
+        else if (seatLabelMode === "row") setSeatLabelMode("rowId");
+        else if (seatLabelMode === "rowId") setSeatLabelMode("seat");
         else if (seatLabelMode === "seat") setSeatLabelMode("seatId");
         else if (seatLabelMode === "seatId") setSeatLabelMode("entry");
         else setSeatLabelMode("none");
+        break;
+      case "j":
+        if (e.altKey || e.repeat) return;
+        e.preventDefault();
+        viewHoverToggle?.click();
+        break;
+      case "k":
+        if (e.altKey || e.repeat) return;
+        e.preventDefault();
+        viewSectionNamesToggle?.click();
         break;
       case "o":
         e.preventDefault();
@@ -21432,7 +21452,7 @@ function nudgeSelection(dxScreen, dyScreen) {
       setOverlayMode(e.target.value, false, true);
     });
   });
-  [viewSeatLabelNone, viewSeatLabelRow, viewSeatLabelSeat, viewSeatLabelSeatId, viewSeatLabelEntry].forEach((el) => {
+  [viewSeatLabelNone, viewSeatLabelRow, viewSeatLabelRowId, viewSeatLabelSeat, viewSeatLabelSeatId, viewSeatLabelEntry].forEach((el) => {
     el?.addEventListener("change", (e) => {
       if (!e.target.checked) return;
       setSeatLabelMode(e.target.value || "none", false);
@@ -24959,6 +24979,7 @@ function nudgeSelection(dxScreen, dyScreen) {
       showSectionNames = viewSectionNamesToggle?.checked ?? false;
       forceSimplifiedView = viewForceSimplifiedToggle?.checked ?? false;
       if (viewSeatLabelRow?.checked) seatLabelMode = "row";
+      else if (viewSeatLabelRowId?.checked) seatLabelMode = "rowId";
       else if (viewSeatLabelSeat?.checked) seatLabelMode = "seat";
       else if (viewSeatLabelSeatId?.checked) seatLabelMode = "seatId";
       else if (viewSeatLabelEntry?.checked) seatLabelMode = "entry";
