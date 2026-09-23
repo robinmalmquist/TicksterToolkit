@@ -3474,10 +3474,21 @@
             <input type="checkbox" id="viewSectionNamesToggle" />
             Display section name (K)
           </label>
-          <label class="bg-control u-font--small">
-            <input type="checkbox" id="viewForceSimplifiedToggle" />
-            Always use simplified view (2500+ mode)
-          </label>
+          <div class="u-font--small" style="display:flex; flex-direction:column; gap:0.35rem;">
+            <div>Seat display</div>
+            <label class="bg-control">
+              <input type="radio" name="seatViewMode" id="viewModeStandard" value="standard" checked />
+              Standard view
+            </label>
+            <label class="bg-control">
+              <input type="radio" name="seatViewMode" id="viewModeSimplified" value="simplified" />
+              Simplified view
+            </label>
+            <label class="bg-control">
+              <input type="radio" name="seatViewMode" id="viewModeFull" value="full" />
+              Full view
+            </label>
+          </div>
           <div class="u-font--small" style="display:flex; flex-direction:column; gap:0.35rem;">
             <div>Overlay (O)</div>
             <label class="bg-control">
@@ -4526,7 +4537,9 @@
   const bgScaleRange = document.getElementById("bgScaleRange");
   const viewHoverToggle = document.getElementById("viewHoverToggle");
   const viewSectionNamesToggle = document.getElementById("viewSectionNamesToggle");
-  const viewForceSimplifiedToggle = document.getElementById("viewForceSimplifiedToggle");
+  const viewModeStandard = document.getElementById("viewModeStandard");
+  const viewModeSimplified = document.getElementById("viewModeSimplified");
+  const viewModeFull = document.getElementById("viewModeFull");
   const highlightSeatsBtn = document.getElementById("highlightSeatsBtn");
   const viewOverlayNone = document.getElementById("viewOverlayNone");
   const viewOverlayPrice = document.getElementById("viewOverlayPrice");
@@ -4978,7 +4991,18 @@
   let renderGrayscale = false;
   let showHoverInfo = true;
   let showSectionNames = false;
-  let forceSimplifiedView = viewForceSimplifiedToggle?.checked ?? false;
+  let seatViewMode = "standard";
+
+  function normalizeSeatViewMode(mode, legacyForceSimplified = false) {
+    if (["standard", "simplified", "full"].includes(mode)) return mode;
+    return legacyForceSimplified ? "simplified" : "standard";
+  }
+
+  function syncSeatViewModeControls() {
+    if (viewModeStandard) viewModeStandard.checked = seatViewMode === "standard";
+    if (viewModeSimplified) viewModeSimplified.checked = seatViewMode === "simplified";
+    if (viewModeFull) viewModeFull.checked = seatViewMode === "full";
+  }
   let showPriceRegions = false;
   let showGoodnessHeatmap = false;
   let overlayMode = "none";
@@ -6819,7 +6843,7 @@ function saveSessionToLocalStorage() {
         grayscale: !!renderGrayscale,
         hoverInfo: !!showHoverInfo,
         sectionNames: !!showSectionNames,
-        forceSimplified: !!forceSimplifiedView,
+        seatViewMode,
         overlayMode: overlayMode || "none",
         priceRegions: !!showPriceRegions,
         seatLabelMode: seatLabelMode || "none"
@@ -7111,13 +7135,13 @@ async function tryRestoreSessionFromLocalStorage() {
       renderGrayscale = false;
       showHoverInfo = !!data.view.hoverInfo;
       showSectionNames = !!data.view.sectionNames;
-      forceSimplifiedView = !!data.view.forceSimplified;
+      seatViewMode = normalizeSeatViewMode(data.view.seatViewMode, data.view.forceSimplified);
       const overlay = data.view.overlayMode || (data.view.priceRegions ? "price" : "none");
       setOverlayMode(overlay, true, false);
       seatLabelMode = data.view.seatLabelMode || "none";
       if (viewHoverToggle) viewHoverToggle.checked = showHoverInfo;
       if (viewSectionNamesToggle) viewSectionNamesToggle.checked = showSectionNames;
-      if (viewForceSimplifiedToggle) viewForceSimplifiedToggle.checked = forceSimplifiedView;
+      syncSeatViewModeControls();
       setSeatLabelMode(seatLabelMode, true);
     }
 
@@ -15127,7 +15151,9 @@ codePane.addEventListener("input", () => {
     }
     lastVisibleSeatCount = visibleCount;
 
-    const useRectDots = !!forceSimplifiedView || (!renderSeatsAsSquares && visibleCount > RECT_DOT_THRESHOLD);
+    const useRectDots = seatViewMode === "simplified" || (
+      seatViewMode === "standard" && !renderSeatsAsSquares && visibleCount > RECT_DOT_THRESHOLD
+    );
     const rectScreenSize = 2;
     const rectSizeWorld = rectScreenSize / scale;
     const useFastSimplifiedSelection = useRectDots && visibleSelectedCount > SIMPLIFIED_SELECTION_BATCH_THRESHOLD;
@@ -21454,10 +21480,13 @@ function nudgeSelection(dxScreen, dyScreen) {
     renderCanvas();
     saveSessionToLocalStorage();
   });
-  viewForceSimplifiedToggle?.addEventListener("change", (e) => {
-    forceSimplifiedView = e.target.checked;
-    renderCanvas();
-    saveSessionToLocalStorage();
+  [viewModeStandard, viewModeSimplified, viewModeFull].forEach((el) => {
+    el?.addEventListener("change", (e) => {
+      if (!e.target.checked) return;
+      seatViewMode = normalizeSeatViewMode(e.target.value);
+      renderCanvas();
+      saveSessionToLocalStorage();
+    });
   });
   [viewOverlayNone, viewOverlayPrice, viewOverlayGoodness].forEach((el) => {
     el?.addEventListener("change", (e) => {
@@ -24990,7 +25019,9 @@ function nudgeSelection(dxScreen, dyScreen) {
       renderGrayscale = false;
       showHoverInfo = viewHoverToggle?.checked ?? true;
       showSectionNames = viewSectionNamesToggle?.checked ?? false;
-      forceSimplifiedView = viewForceSimplifiedToggle?.checked ?? false;
+      seatViewMode = viewModeSimplified?.checked
+        ? "simplified"
+        : (viewModeFull?.checked ? "full" : "standard");
       if (viewSeatLabelRow?.checked) seatLabelMode = "row";
       else if (viewSeatLabelRowId?.checked) seatLabelMode = "rowId";
       else if (viewSeatLabelSeat?.checked) seatLabelMode = "seat";
@@ -25016,7 +25047,7 @@ function nudgeSelection(dxScreen, dyScreen) {
     // se till att UI-speglas
     if (viewHoverToggle) viewHoverToggle.checked = showHoverInfo;
     if (viewSectionNamesToggle) viewSectionNamesToggle.checked = showSectionNames;
-    if (viewForceSimplifiedToggle) viewForceSimplifiedToggle.checked = forceSimplifiedView;
+    syncSeatViewModeControls();
     if (viewOverlayNone) viewOverlayNone.checked = overlayMode === "none";
     if (viewOverlayPrice) viewOverlayPrice.checked = overlayMode === "price";
     if (viewOverlayGoodness) viewOverlayGoodness.checked = overlayMode === "goodness";
