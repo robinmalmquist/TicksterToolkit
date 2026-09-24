@@ -74,15 +74,26 @@
 
     /* Layout-root */
     #app {
+      --left-panel-overlay-width: 115px;
+      --right-panel-overlay-width: 300px;
       display: grid;
-      grid-template-columns: 115px 1fr 300px;
+      grid-template-columns: 1fr;
       grid-template-rows: 1fr;
       gap: 0.5rem;
+      position: relative;
       height: 100vh;
       height: 100dvh;
       padding: 0.5rem;
       /* background: var(--app-bg); */
       background-image: linear-gradient(to top, #24374355, #eee);
+    }
+
+    #app.panel-left-collapsed {
+      --left-panel-overlay-width: 0px;
+    }
+
+    #app.panel-right-collapsed {
+      --right-panel-overlay-width: 0px;
     }
 
     #app > * {
@@ -1275,6 +1286,12 @@
     /* ---------- Vänster verktygspalett ---------- */
 
     #left-toolbar {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      z-index: 4;
+      width: var(--left-panel-overlay-width);
       border: none;
       background: transparent;
       padding: 0;
@@ -1282,6 +1299,8 @@
       flex-direction: column;
       overflow: auto;
       height: 100%;
+      min-width: 0;
+      transition: width 180ms ease-in-out, visibility 0s linear 0s;
     }
 
     #left-toolbar .c-card {
@@ -1451,9 +1470,28 @@
     /* ---------- Höger panel ---------- */
 
     #right-panels {
-      padding: 0;
-      border: none;
+      position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 4;
+      width: var(--right-panel-overlay-width);
+      height: 100%;
+      padding: .3rem;
+      border: 1px solid var(--card-border);
       overflow: auto;
+      min-width: 0;
+      /*background: rgba(121, 126, 138, 0.8);*/
+      background: white;
+      border-radius: var(--radius-card);
+      transition: width 180ms ease-in-out, visibility 0s linear 0s;
+    }
+
+    #app.panel-left-collapsed #left-toolbar,
+    #app.panel-right-collapsed #right-panels {
+      visibility: hidden;
+      pointer-events: none;
+      transition: width 180ms ease-in-out, visibility 0s linear 180ms;
     }
 
     #right-panels .c-card {
@@ -2431,6 +2469,68 @@
       min-width: 0;
       min-height: 0;
       gap: 0.5rem;
+      position: relative;
+    }
+
+    .panel-visibility-toggle {
+      position: absolute;
+      top: 50%;
+      z-index: 5;
+      width: 34px;
+      height: 34px;
+      min-width: 34px;
+      min-height: 34px;
+      padding: 0;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      color: var(--tick-blue-dark);
+      box-shadow: var(--card-shadow);
+      transform: translateY(-50%);
+      transition: left 180ms ease-in-out, right 180ms ease-in-out, transform var(--transition-fast);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      #left-toolbar,
+      #right-panels,
+      .panel-visibility-toggle,
+      .panel-visibility-toggle .material-symbols-outlined {
+        transition: none !important;
+      }
+    }
+
+    .panel-visibility-toggle--left {
+      left: calc(var(--left-panel-overlay-width) - 0.5rem - 17px);
+    }
+
+    .panel-visibility-toggle--right {
+      right: calc(var(--right-panel-overlay-width) - 0.5rem - 17px);
+    }
+
+    #app.panel-left-collapsed .panel-visibility-toggle--left {
+      left: -15px;
+    }
+
+    #app.panel-right-collapsed .panel-visibility-toggle--right {
+      right: -15px;
+    }
+
+    .panel-visibility-toggle .material-symbols-outlined {
+      font-size: 25px;
+      line-height: 1;
+      transition: transform var(--transition-fast);
+    }
+
+    #leftPanelVisibilityToggle .material-symbols-outlined,
+    #app.panel-right-collapsed #rightPanelVisibilityToggle .material-symbols-outlined {
+      transform: rotate(180deg);
+    }
+
+    #app.panel-left-collapsed #leftPanelVisibilityToggle .material-symbols-outlined,
+    #rightPanelVisibilityToggle .material-symbols-outlined {
+      transform: rotate(0deg);
     }
 
     #top-bar {
@@ -2554,10 +2654,13 @@
       color: var(--dark-card-title);
     }
 
-    html[data-theme="dark"] #app,
-    html[data-theme="dark"] #right-panels {
+    html[data-theme="dark"] #app {
       /* background: var(--dark-bg); */
       background-image: linear-gradient(to top, #243743, #111);
+    }
+
+    html[data-theme="dark"] #right-panels {
+      background: rgba(15,20,26,0.68);
     }
 
     html[data-theme="dark"] .c-card,
@@ -2593,6 +2696,12 @@
       background: var(--dark-canvas-bg);
       border-color: var(--dark-border);
       box-shadow: var(--dark-shadow-canvas);
+    }
+
+    html[data-theme="dark"] .panel-visibility-toggle {
+      background: var(--dark-surface);
+      border-color: var(--dark-border);
+      color: #7cd0ff;
     }
 
     html[data-theme="dark"] #layoutCanvas {
@@ -3372,6 +3481,12 @@
 
     <!-- Mitten: canvas + kod -->
     <section id="center-area">
+      <button id="leftPanelVisibilityToggle" class="panel-visibility-toggle panel-visibility-toggle--left c-button" type="button" aria-controls="left-toolbar" aria-expanded="true" aria-label="Hide left panel" title="Hide left panel">
+        <span class="material-symbols-outlined" aria-hidden="true">arrow_circle_right</span>
+      </button>
+      <button id="rightPanelVisibilityToggle" class="panel-visibility-toggle panel-visibility-toggle--right c-button" type="button" aria-controls="right-panels" aria-expanded="true" aria-label="Hide right panel" title="Hide right panel">
+        <span class="material-symbols-outlined" aria-hidden="true">arrow_circle_right</span>
+      </button>
       <div id="top-bar">
         <div id="alignBar" class="c-toolbar c-toolbar--horizontal">
           <button id="alignTopBtn" class="c-button c-button--ghost c-button--small icon-only-button icon-only-button--fixed" title="Align top" aria-label="Align top">
@@ -4408,8 +4523,11 @@
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script>
   // --- Globala variabler ---
+  const app = document.getElementById("app");
   const canvas = document.getElementById("layoutCanvas");
   const canvasContainer = document.getElementById("canvas-container");
+  const leftPanelVisibilityToggle = document.getElementById("leftPanelVisibilityToggle");
+  const rightPanelVisibilityToggle = document.getElementById("rightPanelVisibilityToggle");
   const emptyLayoutPrompt = document.getElementById("emptyLayoutPrompt");
   const emptyOpenLayoutBtn = document.getElementById("emptyOpenLayoutBtn");
   const emptyNewLayoutBtn = document.getElementById("emptyNewLayoutBtn");
@@ -7519,6 +7637,8 @@ codePane.addEventListener("input", () => {
     const controls = document.querySelectorAll("#app button, #app input, #app select, #app textarea");
     const alwaysEnabledIds = new Set([
       "appMenuToggleBtn",
+      "leftPanelVisibilityToggle",
+      "rightPanelVisibilityToggle",
       "newLayoutBtn",
       "openFileBtnTop",
       "emptyOpenLayoutBtn",
@@ -14974,7 +15094,7 @@ codePane.addEventListener("input", () => {
     const selectedRows = getSelectedRows();
     const selectedRowsCount = selectedRows.size;
     const allowTransform = anySelected;
-    const allowResize = anySelected && (selectionMode === "section" || selectionMode === "row");
+    const allowResize = anySelected;
     const allowBend = selectionMode === "row" && selectedRowsCount === 1;
     const allowReshape = selectionMode === "row" && selectedRowsCount >= 1;
     const allowResetRow = selectionMode === "row" && selectedRowsCount >= 1;
@@ -24961,6 +25081,55 @@ function nudgeSelection(dxScreen, dyScreen) {
   });
 
   const THEME_STORAGE_KEY = "arenaDesignerTheme";
+  const PANEL_VISIBILITY_STORAGE_KEY = "arenaDesignerPanelVisibility";
+
+  function readPanelVisibility() {
+    try {
+      const stored = JSON.parse(localStorage.getItem(PANEL_VISIBILITY_STORAGE_KEY) || "{}");
+      return {
+        leftCollapsed: !!stored.leftCollapsed,
+        rightCollapsed: !!stored.rightCollapsed
+      };
+    } catch {
+      return { leftCollapsed: false, rightCollapsed: false };
+    }
+  }
+
+  function writePanelVisibility() {
+    if (!app) return;
+    try {
+      localStorage.setItem(PANEL_VISIBILITY_STORAGE_KEY, JSON.stringify({
+        leftCollapsed: app.classList.contains("panel-left-collapsed"),
+        rightCollapsed: app.classList.contains("panel-right-collapsed")
+      }));
+    } catch {
+      // Ignore storage failures (e.g., private mode).
+    }
+  }
+
+  function setPanelCollapsed(side, collapsed, persist = true) {
+    if (!app) return;
+    const isLeft = side === "left";
+    const className = isLeft ? "panel-left-collapsed" : "panel-right-collapsed";
+    const toggle = isLeft ? leftPanelVisibilityToggle : rightPanelVisibilityToggle;
+    const panelName = isLeft ? "left" : "right";
+    app.classList.toggle(className, !!collapsed);
+    if (toggle) {
+      const action = collapsed ? "Show" : "Hide";
+      toggle.setAttribute("aria-expanded", collapsed ? "false" : "true");
+      toggle.setAttribute("aria-label", `${action} ${panelName} panel`);
+      toggle.title = `${action} ${panelName} panel`;
+    }
+    if (persist) writePanelVisibility();
+    requestAnimationFrame(resizeCanvas);
+  }
+
+  function initializePanelVisibility() {
+    const { leftCollapsed, rightCollapsed } = readPanelVisibility();
+    setPanelCollapsed("left", leftCollapsed, false);
+    setPanelCollapsed("right", rightCollapsed, false);
+  }
+
   function applyTheme(theme) {
     const root = document.documentElement;
     if (theme === "dark") root.setAttribute("data-theme", "dark");
@@ -25002,7 +25171,15 @@ function nudgeSelection(dxScreen, dyScreen) {
     writeStoredTheme(nextTheme);
   });
 
+  leftPanelVisibilityToggle?.addEventListener("click", () => {
+    setPanelCollapsed("left", !app?.classList.contains("panel-left-collapsed"));
+  });
+  rightPanelVisibilityToggle?.addEventListener("click", () => {
+    setPanelCollapsed("right", !app?.classList.contains("panel-right-collapsed"));
+  });
+
   applyTheme(getPreferredTheme());
+  initializePanelVisibility();
   updatePriceRegionColorModeUi();
 
 
