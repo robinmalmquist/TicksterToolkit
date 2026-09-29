@@ -55,7 +55,7 @@
 
     #app {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) 360px;
+      grid-template-columns: minmax(0, 1fr) 480px;
       gap: 16px;
       height: 100vh;
       padding: 16px;
@@ -69,35 +69,14 @@
     .canvas-shell {
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 0;
     }
 
-    .canvas-header,
     .card {
       background: var(--panel-bg);
       border: 1px solid var(--panel-border);
       border-radius: var(--radius);
       box-shadow: var(--panel-shadow);
-    }
-
-    .canvas-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-      padding: 14px 18px;
-    }
-
-    .canvas-header__title {
-      font-size: 1rem;
-      font-weight: 700;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
-    }
-
-    .canvas-header__meta {
-      color: var(--text-muted);
-      font-size: 0.92rem;
     }
 
     #canvas-container {
@@ -116,6 +95,10 @@
       cursor: grabbing;
     }
 
+    #canvas-container.is-blocking {
+      cursor: crosshair;
+    }
+
     #layoutCanvas {
       width: 100%;
       height: 100%;
@@ -131,6 +114,8 @@
       background: rgba(15, 23, 42, 0.72);
       color: #f8fafc;
       font-size: 0.84rem;
+      line-height: 1.35;
+      max-width: calc(100% - 32px);
       backdrop-filter: blur(8px);
       pointer-events: none;
     }
@@ -216,6 +201,12 @@
       font-size: 0.84rem;
       font-weight: 600;
       color: var(--text-muted);
+    }
+
+    .numbered-import-mode-hint {
+      font-size: 0.76rem;
+      color: var(--text-muted);
+      line-height: 1.35;
     }
 
     label.control {
@@ -368,7 +359,7 @@
     .numbered-import-item {
       display: flex;
       gap: 12px;
-      align-items: stretch;
+      align-items: start;
       padding: 12px;
       border-radius: 14px;
       border: 1px solid #dbe3eb;
@@ -750,9 +741,12 @@
       background: #f8fbff;
       border-radius: 8px;
       padding: 0.45rem 0.55rem;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+      grid-template-areas:
+        "header header actions"
+        "from-import new-placement actions";
+      align-items: start;
       gap: 0.5rem;
       cursor: grab;
       user-select: none;
@@ -770,12 +764,13 @@
       background: #edf9f1;
     }
 
-    .numbered-import-item__main {
+    .numbered-import-item__header {
+      grid-area: header;
       min-width: 0;
-      flex: 1 1 auto;
       display: flex;
-      flex-direction: column;
-      gap: 0.15rem;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 0.5rem;
       position: relative;
       z-index: 2;
     }
@@ -792,10 +787,31 @@
     .numbered-import-item__meta {
       font-size: 0.74rem;
       color: #5b6673;
+      white-space: nowrap;
+      text-align: right;
     }
 
-    .numbered-import-item__rows {
-      margin-top: 0.2rem;
+    .numbered-import-item__column {
+      min-width: 0;
+    }
+
+    .numbered-import-item__column--from-import {
+      grid-area: from-import;
+    }
+
+    .numbered-import-item__column--new-placement {
+      grid-area: new-placement;
+    }
+
+    .numbered-import-item__column-title {
+      margin-bottom: 0.15rem;
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: #334155;
+      letter-spacing: 0.03em;
+    }
+
+    .numbered-import-item__seat-list {
       display: flex;
       flex-direction: column;
       gap: 0.1rem;
@@ -804,16 +820,18 @@
       line-height: 1.25;
     }
 
-    .numbered-import-item__rowline {
+    .numbered-import-item__seat-line {
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
 
     .numbered-import-item__actions {
-      display: inline-flex;
+      grid-area: actions;
+      display: flex;
       flex-direction: column;
       align-items: stretch;
+      justify-content: center;
       gap: 0.35rem;
       position: relative;
       z-index: 2;
@@ -847,10 +865,6 @@
 <body>
   <div id="app">
     <section class="canvas-shell">
-      <div class="canvas-header">
-        <div class="canvas-header__title">Numbered Import Tool</div>
-        <div id="layoutMeta" class="canvas-header__meta">Ladda en TLT-fil för att börja.</div>
-      </div>
       <div id="canvas-container">
         <canvas id="layoutCanvas"></canvas>
         <div id="canvasStatus">Ingen layout laddad</div>
@@ -872,17 +886,22 @@
           </div>
 
           <div class="control-group">
+            <div class="control-group__title">Canvas mode</div>
+            <label class="control">
+              <input type="checkbox" id="numberedImportBlockSeatsMode" />
+              Block seats
+            </label>
+            <div class="numbered-import-mode-hint">Click a seat to block it. Click a blocked seat to unblock it.</div>
+          </div>
+
+          <div class="control-group">
             <div class="control-group__title">Overlay (O)</div>
             <label class="control">
-              <input type="radio" name="overlayMode" id="viewOverlayNone" value="none" />
+              <input type="radio" name="overlayMode" id="viewOverlayNone" value="none" checked />
               No overlay
             </label>
             <label class="control">
-              <input type="radio" name="overlayMode" id="viewOverlayPrice" value="price" />
-              Show price regions
-            </label>
-            <label class="control">
-              <input type="radio" name="overlayMode" id="viewOverlayGoodness" value="goodness" checked />
+              <input type="radio" name="overlayMode" id="viewOverlayGoodness" value="goodness" />
               Show goodness heatmap
             </label>
           </div>
@@ -936,6 +955,10 @@
                 <input type="radio" name="numberedImportPlacementMode" id="numberedImportModeSeat" value="seat" />
                 Place seat
               </label>
+              <label class="control">
+                <input type="checkbox" id="numberedImportTryFillGaps" checked />
+                Try to fill gaps
+              </label>
             </div>
           </details>
 
@@ -969,7 +992,7 @@
           </details>
 
           <div class="button-row">
-            <button id="numberedImportAutoPlaceAllBtn" class="button" type="button" disabled>Place all purchases</button>
+            <button id="numberedImportAutoPlaceAllBtn" class="button" type="button" disabled>Place remaining purchases</button>
             <button id="numberedImportClearBtn" class="button button--danger" type="button" disabled>Clear all</button>
           </div>
 
