@@ -964,7 +964,7 @@
 
           <details class="options numbered-import-options" open>
             <summary class="numbered-import-options__summary">
-              <span class="numbered-import-options__title">Sections</span>
+              <span class="numbered-import-options__title">Place in section</span>
             </summary>
             <div class="options__body numbered-import-options__content">
               <label class="control">
@@ -1009,6 +1009,19 @@
           <details id="numberedImportIssues" class="numbered-import-issues">
             <summary id="numberedImportIssuesSummary" class="numbered-import-issues__summary">Warnings (0)</summary>
             <pre id="numberedImportErrors" class="numbered-import-issues__content"></pre>
+          </details>
+
+          <details class="options numbered-import-options" open>
+            <summary class="numbered-import-options__summary">
+              <span class="numbered-import-options__title">Filter purchases from section</span>
+            </summary>
+            <div class="options__body numbered-import-options__content">
+              <label class="control">
+                <input type="checkbox" id="numberedImportPurchaseSectionsAll" checked />
+                All sections
+              </label>
+              <div id="numberedImportPurchaseSectionList" class="numbered-import-section-list"></div>
+            </div>
           </details>
 
           <div id="numberedImportPurchaseList" class="numbered-import-list"></div>
