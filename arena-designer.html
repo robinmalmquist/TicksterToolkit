@@ -16433,7 +16433,21 @@ function selectSeatsWithoutEntryPoints() {
       redistributeRowLinear(data);
       changed = true;
     }
+    // A reset must also discard the transient bend handle. Otherwise a row that
+    // kept its RowId after a split can inherit the old row's control point.
+    if (changed) clearBendState();
     return changed;
+  }
+
+  function clearBendState() {
+    isBendingSelection = false;
+    bendStartSnapshot = null;
+    bendControlPoint = null;
+    bendTension = 0;
+    bendRowsData = null;
+    hasBentDuringDrag = false;
+    bendDragTarget = null;
+    bendActiveRowId = null;
   }
 
   function getSelectedRowEntriesForReshape(rowsMap = null) {
@@ -17693,6 +17707,10 @@ function nudgeSelection(dxScreen, dyScreen) {
 
     if (!changed) return false;
 
+    // The original RowId is retained by one half of a split. Its bend handle is
+    // no longer meaningful once the row endpoints and seat membership change.
+    clearBendState();
+
     if (priceRegionChanged) {
       savePriceRegionsToStorage();
       renderPriceRegionList();
@@ -18895,7 +18913,9 @@ function nudgeSelection(dxScreen, dyScreen) {
 
   function buildSeatEditList() {
     if (!seatEditList) return;
-    const selected = getSelectedSeats();
+    const selected = getSelectedSeats().sort((first, second) =>
+      compareSeatIdsForExport(first.seatId, second.seatId)
+    );
     seatEditList.innerHTML = "";
     if (!selected.length) return;
 
@@ -21223,9 +21243,9 @@ function nudgeSelection(dxScreen, dyScreen) {
     const dist = Math.hypot(screenAnchor.x - canvasX, screenAnchor.y - canvasY);
     if (dist > hitRadius) return;
 
-    bendControlPoint = null;
     const rowData = computeRowEndpoints(rowSeats);
     redistributeRowLinear(rowData);
+    clearBendState();
 
     commitSelectionGeometryChange("Reset bent row");
     renderCanvas();
