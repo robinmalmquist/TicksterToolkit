@@ -6,9 +6,18 @@ const canvasStatusEl = document.getElementById("canvasStatus");
 const tooltipEl = document.getElementById("tooltip");
 
 const viewSectionNamesToggle = document.getElementById("viewSectionNamesToggle");
-const overlayModeInputs = Array.from(document.querySelectorAll("input[name='overlayMode']"));
-const seatLabelModeInputs = Array.from(document.querySelectorAll("input[name='seatLabelMode']"));
+const overlayModeSelect = document.getElementById("viewOverlaySelect");
+const seatLabelModeSelect = document.getElementById("viewSeatLabelSelect");
 const numberedImportBlockSeatsMode = document.getElementById("numberedImportBlockSeatsMode");
+const numberedImportInfoBtn = document.getElementById("numberedImportInfoBtn");
+const numberedImportInfoModal = document.getElementById("numberedImportInfoModal");
+const numberedImportInfoModalClose = document.getElementById("numberedImportInfoModalClose");
+const numberedImportIssuesBtn = document.getElementById("numberedImportIssuesBtn");
+const numberedImportWarningModal = document.getElementById("numberedImportWarningModal");
+const numberedImportWarningModalClose = document.getElementById("numberedImportWarningModalClose");
+const numberedImportWarningModalContent = document.getElementById("numberedImportWarningModalContent");
+const topImportMenuToggle = document.getElementById("topImportMenuToggle");
+const topImportMenu = document.getElementById("topImportMenu");
 
 const numberedImportCard = document.getElementById("numberedImportCard");
 const numberedImportLoadTltBtn = document.getElementById("numberedImportLoadTltBtn");
@@ -31,9 +40,6 @@ const numberedImportExportBtn = document.getElementById("numberedImportExportBtn
 const numberedImportLayoutState = document.getElementById("numberedImportLayoutState");
 const numberedImportExcelState = document.getElementById("numberedImportExcelState");
 const numberedImportValidationState = document.getElementById("numberedImportValidationState");
-const numberedImportIssues = document.getElementById("numberedImportIssues");
-const numberedImportIssuesSummary = document.getElementById("numberedImportIssuesSummary");
-const numberedImportErrors = document.getElementById("numberedImportErrors");
 const numberedImportPurchaseList = document.getElementById("numberedImportPurchaseList");
 const numberedImportPurchaseMenu = document.getElementById("numberedImportPurchaseMenu");
 const numberedImportMenuClearPurchase = document.getElementById("numberedImportMenuClearPurchase");
@@ -75,6 +81,8 @@ let showSectionNames = false;
 let overlayMode = "none";
 let seatLabelMode = "none";
 let numberedImportWorkbookName = "";
+let numberedImportWorkbookBuffer = null;
+let numberedImportSourceFileHandle = null;
 let numberedImportParsed = null;
 let numberedImportAssignmentsBySeatId = new Map();
 let numberedImportPurchases = [];
@@ -282,9 +290,7 @@ function mixHexColors(first, second, amount) {
 
 function setOverlayMode(mode, skipRender = false) {
   overlayMode = OVERLAY_MODES.includes(mode) ? mode : "none";
-  overlayModeInputs.forEach((input) => {
-    input.checked = input.value === overlayMode;
-  });
+  overlayModeSelect.value = overlayMode;
   if (!skipRender) renderCanvas();
 }
 
@@ -296,9 +302,7 @@ function cycleOverlayMode() {
 
 function setSeatLabelMode(mode, skipRender = false) {
   seatLabelMode = SEAT_LABEL_MODES.includes(mode) ? mode : "none";
-  seatLabelModeInputs.forEach((input) => {
-    input.checked = input.value === seatLabelMode;
-  });
+  seatLabelModeSelect.value = seatLabelMode;
   if (!skipRender) renderCanvas();
 }
 
@@ -314,6 +318,46 @@ function toggleRightPanel(button) {
   const collapsed = card.dataset.collapsed === "true";
   card.dataset.collapsed = collapsed ? "false" : "true";
   button.setAttribute("aria-expanded", collapsed ? "true" : "false");
+}
+
+function openNumberedImportWarningModal() {
+  numberedImportWarningModal.hidden = false;
+  numberedImportWarningModalClose.focus();
+}
+
+function closeNumberedImportWarningModal() {
+  if (numberedImportWarningModal.hidden) return;
+  numberedImportWarningModal.hidden = true;
+  numberedImportIssuesBtn.focus();
+}
+
+function openNumberedImportInfoModal() {
+  numberedImportInfoModal.hidden = false;
+  numberedImportInfoModalClose.focus();
+}
+
+function closeNumberedImportInfoModal() {
+  if (numberedImportInfoModal.hidden) return;
+  numberedImportInfoModal.hidden = true;
+  numberedImportInfoBtn.focus();
+}
+
+function closeTopImportMenu() {
+  if (topImportMenu.hidden) return;
+  topImportMenu.hidden = true;
+  topImportMenuToggle.setAttribute("aria-expanded", "false");
+}
+
+function toggleTopImportMenu() {
+  if (!topImportMenu.hidden) {
+    closeTopImportMenu();
+    return;
+  }
+  const buttonRect = topImportMenuToggle.getBoundingClientRect();
+  topImportMenu.style.top = `${Math.round(buttonRect.bottom + 8)}px`;
+  topImportMenu.style.right = `${Math.max(8, Math.round(window.innerWidth - buttonRect.right))}px`;
+  topImportMenu.hidden = false;
+  topImportMenuToggle.setAttribute("aria-expanded", "true");
 }
 
 window.toggleRightPanel = toggleRightPanel;
@@ -1436,7 +1480,14 @@ function parseNumberedImportWorkbook(workbook) {
   if (!existingRows.length) warnings.push('No rows with RefNo found in "Existing Purchases".');
 
   const templateRowsByIdentifier = [];
+  const templateHeaderRow = Array.isArray(templateRows[templateHeader.rowIndex]) ? templateRows[templateHeader.rowIndex] : [];
+  const templateHeaderColumns = getNumberedImportHeaderColumns(templateHeaderRow);
   const templateIdentifierCol = templateHeader.columns.seat;
+  const templatePurchaseGroupCol = pickLastNumberedImportHeaderColumn(templateHeaderColumns, "purchase group", "purchasegroup");
+  const templateRefNoCol = pickLastNumberedImportHeaderColumn(templateHeaderColumns, "refno", "ref no");
+  const templateFirstNameCol = pickLastNumberedImportHeaderColumn(templateHeaderColumns, "firstname", "first name", "fornamn");
+  const templateLastNameCol = pickLastNumberedImportHeaderColumn(templateHeaderColumns, "lastname", "last name", "surname", "efternamn");
+  const templateEmailCol = pickLastNumberedImportHeaderColumn(templateHeaderColumns, "email", "e-mail", "mail", "e-post", "epost");
   for (let rowIndex = templateHeader.rowIndex + 1; rowIndex < templateRows.length; rowIndex++) {
     const row = Array.isArray(templateRows[rowIndex]) ? templateRows[rowIndex] : [];
     const identifier = String(row[templateIdentifierCol] || "").trim();
@@ -1444,7 +1495,12 @@ function parseNumberedImportWorkbook(workbook) {
     templateRowsByIdentifier.push({
       rowIndex,
       identifier,
-      key: identifier.toLowerCase()
+      key: identifier.toLowerCase(),
+      purchaseGroup: templatePurchaseGroupCol != null ? String(row[templatePurchaseGroupCol] || "").trim() : "",
+      refNo: templateRefNoCol != null ? String(row[templateRefNoCol] || "").trim() : "",
+      firstName: templateFirstNameCol != null ? String(row[templateFirstNameCol] || "").trim() : "",
+      lastName: templateLastNameCol != null ? String(row[templateLastNameCol] || "").trim() : "",
+      email: templateEmailCol != null ? String(row[templateEmailCol] || "").trim() : ""
     });
     if (!seatsByIdentifier.has(identifier.toLowerCase())) {
       issues.push(`Import Template row ${rowIndex + 1}: seat "${identifier}" is missing in Seats sheet.`);
@@ -1463,8 +1519,11 @@ function parseNumberedImportWorkbook(workbook) {
       sheetName: templateSheetName,
       headerRowIndex: templateHeader.rowIndex,
       seatColIndex: templateHeader.columns.seat,
-      purchaseGroupColIndex: templateHeader.columns["purchase group"],
-      refNoColIndex: templateHeader.columns.refno,
+        purchaseGroupColIndex: templatePurchaseGroupCol,
+        refNoColIndex: templateRefNoCol,
+        firstNameColIndex: templateFirstNameCol,
+        lastNameColIndex: templateLastNameCol,
+        emailColIndex: templateEmailCol,
       rows: templateRowsByIdentifier
     }
   };
@@ -1498,35 +1557,24 @@ function setNumberedImportAllowAllLayoutSeatsOverride(enabled, options = {}) {
 }
 
 function setNumberedImportIssues(errors = [], warnings = []) {
-  const lines = [];
+  const allLines = [];
   if (errors.length) {
-    lines.push("Errors:");
-    errors.slice(0, 12).forEach((message) => lines.push(`- ${message}`));
-    if (errors.length > 12) lines.push(`- ... ${errors.length - 12} more`);
+    allLines.push("Errors:");
+    errors.forEach((message) => allLines.push(`- ${message}`));
   }
   if (warnings.length) {
-    if (lines.length) lines.push("");
-    lines.push("Warnings:");
-    warnings.slice(0, 8).forEach((message) => lines.push(`- ${message}`));
-    if (warnings.length > 8) lines.push(`- ... ${warnings.length - 8} more`);
+    if (allLines.length) allLines.push("");
+    allLines.push("Warnings:");
+    warnings.forEach((message) => allLines.push(`- ${message}`));
   }
 
-  if (!lines.length) {
-    numberedImportErrors.textContent = "";
-    numberedImportIssuesSummary.textContent = "Warnings (0)";
-    numberedImportIssues.open = false;
-    return;
-  }
-
-  if (warnings.length > 0) {
-    numberedImportIssuesSummary.textContent = errors.length > 0
-      ? `Warnings (${warnings.length}) • Errors (${errors.length})`
-      : `Warnings (${warnings.length})`;
-  } else {
-    numberedImportIssuesSummary.textContent = `Errors (${errors.length})`;
-  }
-  numberedImportErrors.textContent = lines.join("\n");
-  numberedImportIssues.open = false;
+  const hasIssues = errors.length > 0 || warnings.length > 0;
+  numberedImportIssuesBtn.classList.toggle("has-issues", hasIssues);
+  numberedImportIssuesBtn.classList.toggle("has-errors", errors.length > 0);
+  numberedImportIssuesBtn.title = hasIssues
+    ? `${warnings.length} warning(s), ${errors.length} error(s)`
+    : "No warnings or errors";
+  numberedImportWarningModalContent.textContent = allLines.length ? allLines.join("\n") : "No warnings or errors.";
 }
 
 function clearNumberedImportAssignments() {
@@ -1772,6 +1820,7 @@ function clearInvalidNumberedImportWholePurchaseAssignments() {
   numberedImportPurchases.forEach((purchase) => {
     const assignedSeatIds = Array.isArray(purchase.assignedSeatIds) ? purchase.assignedSeatIds : [];
     if (!assignedSeatIds.length) return;
+    if (Array.isArray(purchase.importedTemplateSeatIds) && purchase.importedTemplateSeatIds.length) return;
     const assignedSeats = assignedSeatIds.map((seatId) => seatsById.get(seatId)).filter(Boolean);
     const isValidWholePurchase = isNumberedImportPurchaseComplete(purchase)
       && assignedSeats.length === assignedSeatIds.length
@@ -2316,23 +2365,26 @@ function validateNumberedImportAgainstLayout(parsed) {
   }
 
   const grouped = new Map();
+  const createPurchase = (refNo) => ({
+    refNo,
+    rows: [],
+    ticketTypeCounts: new Map(),
+    reportedCounts: [],
+    ticketCount: 0,
+    reportedNoOfTickets: null,
+    oldestPurchaseAtMs: Number.POSITIVE_INFINITY,
+    purchaseListMode: parsed.purchaseListMode || "rows",
+    firstName: "",
+    lastName: "",
+    email: "",
+    assignedSeatIds: [],
+    importedTemplateSeatIds: [],
+    hasTemplateOnlyRows: false
+  });
   parsed.existingRows.forEach((row) => {
     const seat = row.numericId ? numericToSeat.get(row.numericId) : null;
     if (!grouped.has(row.refNo)) {
-      grouped.set(row.refNo, {
-        refNo: row.refNo,
-        rows: [],
-        ticketTypeCounts: new Map(),
-        reportedCounts: [],
-        ticketCount: 0,
-        reportedNoOfTickets: null,
-        oldestPurchaseAtMs: Number.POSITIVE_INFINITY,
-        purchaseListMode: parsed.purchaseListMode || "rows",
-        firstName: "",
-        lastName: "",
-        email: "",
-        assignedSeatIds: []
-      });
+      grouped.set(row.refNo, createPurchase(row.refNo));
     }
     const purchase = grouped.get(row.refNo);
     const seatId = seat?.seatId || "";
@@ -2349,6 +2401,53 @@ function validateNumberedImportAgainstLayout(parsed) {
       purchase.oldestPurchaseAtMs = purchasedAtMs;
     }
     if (Number.isFinite(row.noOfTickets)) purchase.reportedCounts.push(row.noOfTickets);
+  });
+
+  const templateAssignedRefNoBySeatId = new Map();
+  (parsed.template?.rows || []).forEach((templateRow) => {
+    const refNo = String(templateRow?.refNo || templateRow?.purchaseGroup || "").trim();
+    if (!refNo) return;
+    const identifier = String(templateRow?.identifier || "").trim();
+    const sourceSeat = parsed.seatsByIdentifier.get(identifier.toLowerCase())
+      || parsed.seatsByNumeric.get(normalizeNumericId(identifier));
+    const layoutSeat = sourceSeat?.numericId ? numericToSeat.get(sourceSeat.numericId) : null;
+    if (!layoutSeat?.seatId) {
+      warnings.push(`Import Template row ${Number(templateRow.rowIndex) + 1}: placed seat "${identifier}" is missing in TLT and was ignored.`);
+      return;
+    }
+    const existingRefNo = templateAssignedRefNoBySeatId.get(layoutSeat.seatId);
+    if (existingRefNo && existingRefNo !== refNo) {
+      warnings.push(`Import Template: seat "${identifier}" is assigned to both ${existingRefNo} and ${refNo}. The first assignment was kept.`);
+      return;
+    }
+    templateAssignedRefNoBySeatId.set(layoutSeat.seatId, refNo);
+
+    if (!grouped.has(refNo)) grouped.set(refNo, createPurchase(refNo));
+    const purchase = grouped.get(refNo);
+    if (!purchase.firstName && templateRow.firstName) purchase.firstName = String(templateRow.firstName || "").trim();
+    if (!purchase.lastName && templateRow.lastName) purchase.lastName = String(templateRow.lastName || "").trim();
+    if (!purchase.email && templateRow.email) purchase.email = String(templateRow.email || "").trim();
+
+    if (!purchase.rows.length || purchase.hasTemplateOnlyRows) {
+      purchase.hasTemplateOnlyRows = true;
+      purchase.rows.push({
+        numericId: sourceSeat.numericId,
+        identifier,
+        seatId: layoutSeat.seatId,
+        sectionName: String(layoutSeat.sectionName || layoutSeat.sectionId || "").trim(),
+        rowName: String(layoutSeat.rowName || layoutSeat.rowId || "").trim(),
+        seatName: String(layoutSeat.name || "").trim(),
+        noOfTickets: null,
+        firstName: String(templateRow.firstName || "").trim(),
+        lastName: String(templateRow.lastName || "").trim(),
+        email: String(templateRow.email || "").trim(),
+        isTemplateOnly: true
+      });
+    }
+    if (!purchase.assignedSeatIds.includes(layoutSeat.seatId)) {
+      purchase.assignedSeatIds.push(layoutSeat.seatId);
+      purchase.importedTemplateSeatIds.push(layoutSeat.seatId);
+    }
   });
 
   const purchases = Array.from(grouped.values()).map((purchase) => {
@@ -2695,6 +2794,14 @@ function handleNumberedImportLayoutChanged(options = {}) {
     numberedImportPurchaseByRefNo = new Map(numberedImportPurchases.map((purchase) => [purchase.refNo, purchase]));
     numberedImportReady = numberedImportValidationErrors.length === 0 && numberedImportPurchases.length > 0;
 
+    numberedImportPurchases.forEach((purchase) => {
+      (purchase.assignedSeatIds || []).forEach((seatId) => {
+        if (seats.some((seat) => seat.seatId === seatId)) {
+          numberedImportAssignmentsBySeatId.set(seatId, purchase.refNo);
+        }
+      });
+    });
+
     if (preserveAssignments && previousAssignmentsBySeatId.size && numberedImportReady) {
       previousAssignmentsBySeatId.forEach((refNo, seatId) => {
         const purchase = numberedImportPurchaseByRefNo.get(refNo);
@@ -2740,12 +2847,14 @@ async function loadNumberedImportXlsx(file) {
     const buffer = await file.arrayBuffer();
     const workbook = XLSX.read(buffer, { type: "array", cellDates: false });
     numberedImportWorkbookName = file.name || "workbook.xlsx";
+    numberedImportWorkbookBuffer = buffer.slice(0);
     numberedImportParsed = parseNumberedImportWorkbook(workbook);
     handleNumberedImportLayoutChanged();
     await cacheNumberedImportXlsx(numberedImportWorkbookName, buffer);
   } catch (error) {
     console.warn("Failed to parse import workbook:", error);
     numberedImportWorkbookName = "";
+    numberedImportWorkbookBuffer = null;
     numberedImportParsed = null;
     numberedImportValidationErrors = ["Could not read the XLSX file."];
     numberedImportValidationWarnings = [];
@@ -2893,11 +3002,129 @@ function handleNumberedImportCanvasPlacement(worldX, worldY, explicitRefNo = "")
   return assignNumberedImportPurchaseAtSeat(refNo, hit.seatId);
 }
 
+function getNumberedImportTemplateAssignments() {
+  const refNoBySeatKey = new Map();
+  numberedImportPurchases.forEach((purchase) => {
+    const refNo = String(purchase.refNo || "").trim();
+    if (!refNo) return;
+    (purchase.assignedSeatIds || []).forEach((seatId) => {
+      const numericId = normalizeNumericId(seatIdToSvgCode(seatId));
+      if (!numericId) return;
+      const seatRecord = numberedImportParsed?.seatsByNumeric?.get(numericId);
+      [numericId, String(seatRecord?.identifier || "").trim()]
+        .filter(Boolean)
+        .forEach((key) => refNoBySeatKey.set(String(key).toLowerCase(), refNo));
+    });
+  });
+  return refNoBySeatKey;
+}
+
+function getNumberedImportXmlElements(parent, localName) {
+  return Array.from(parent.getElementsByTagNameNS("*", localName));
+}
+
+function parseNumberedImportXml(xml, description) {
+  const document = new DOMParser().parseFromString(xml, "application/xml");
+  if (getNumberedImportXmlElements(document, "parsererror").length) {
+    throw new Error(`Could not parse ${description}.`);
+  }
+  return document;
+}
+
+function resolveNumberedImportZipPath(basePath, targetPath) {
+  const sourcePath = String(targetPath || "").startsWith("/")
+    ? String(targetPath).slice(1)
+    : `${basePath}${String(targetPath || "")}`;
+  const parts = [];
+  sourcePath.split("/").forEach((part) => {
+    if (!part || part === ".") return;
+    if (part === "..") {
+      parts.pop();
+      return;
+    }
+    parts.push(part);
+  });
+  return parts.join("/");
+}
+
+async function getNumberedImportXlsxWorksheetPath(zip, sheetName) {
+  const workbookEntry = zip.file("xl/workbook.xml");
+  const relationshipsEntry = zip.file("xl/_rels/workbook.xml.rels");
+  if (!workbookEntry || !relationshipsEntry) {
+    throw new Error("The workbook structure is incomplete.");
+  }
+
+  const workbookDocument = parseNumberedImportXml(await workbookEntry.async("string"), "workbook.xml");
+  const relationshipsDocument = parseNumberedImportXml(await relationshipsEntry.async("string"), "workbook relationships");
+  const sheet = getNumberedImportXmlElements(workbookDocument, "sheet")
+    .find((entry) => entry.getAttribute("name") === sheetName);
+  const relationshipId = sheet?.getAttributeNS("http://schemas.openxmlformats.org/officeDocument/2006/relationships", "id")
+    || sheet?.getAttribute("r:id");
+  if (!relationshipId) throw new Error(`Could not find the worksheet relationship for ${sheetName}.`);
+
+  const relationship = getNumberedImportXmlElements(relationshipsDocument, "Relationship")
+    .find((entry) => entry.getAttribute("Id") === relationshipId);
+  const target = relationship?.getAttribute("Target");
+  if (!target) throw new Error(`Could not find the worksheet file for ${sheetName}.`);
+  return resolveNumberedImportZipPath("xl/", target);
+}
+
+function setNumberedImportXlsxCellValue(document, rowIndex, columnIndex, value) {
+  const rowNumber = rowIndex + 1;
+  const cellAddress = XLSX.utils.encode_cell({ r: rowIndex, c: columnIndex });
+  const row = getNumberedImportXmlElements(document, "row")
+    .find((entry) => Number(entry.getAttribute("r")) === rowNumber);
+  if (!row) throw new Error(`Could not find row ${rowNumber} in Import Template.`);
+
+  const namespace = document.documentElement.namespaceURI || "http://schemas.openxmlformats.org/spreadsheetml/2006/main";
+  let cell = getNumberedImportXmlElements(row, "c")
+    .find((entry) => entry.getAttribute("r") === cellAddress);
+  if (!cell) {
+    cell = document.createElementNS(namespace, "c");
+    cell.setAttribute("r", cellAddress);
+    const targetColumn = XLSX.utils.decode_cell(cellAddress).c;
+    const nextCell = getNumberedImportXmlElements(row, "c").find((entry) => {
+      const address = entry.getAttribute("r");
+      return address && XLSX.utils.decode_cell(address).c > targetColumn;
+    });
+    row.insertBefore(cell, nextCell || null);
+  }
+
+  while (cell.firstChild) cell.removeChild(cell.firstChild);
+  cell.setAttribute("t", "inlineStr");
+  const inlineString = document.createElementNS(namespace, "is");
+  const textNode = document.createElementNS(namespace, "t");
+  const text = String(value || "");
+  if (/^\s|\s$/.test(text)) {
+    textNode.setAttributeNS("http://www.w3.org/XML/1998/namespace", "xml:space", "preserve");
+  }
+  textNode.textContent = text;
+  inlineString.appendChild(textNode);
+  cell.appendChild(inlineString);
+}
+
+async function updateNumberedImportXlsxTemplate(buffer, sheetName, cellUpdates) {
+  if (typeof JSZip === "undefined") {
+    throw new Error("The ZIP library is unavailable.");
+  }
+  const zip = await JSZip.loadAsync(buffer.slice(0));
+  const worksheetPath = await getNumberedImportXlsxWorksheetPath(zip, sheetName);
+  const worksheetEntry = zip.file(worksheetPath);
+  if (!worksheetEntry) throw new Error(`Could not find ${sheetName} in the workbook.`);
+
+  const worksheetDocument = parseNumberedImportXml(await worksheetEntry.async("string"), `${sheetName} worksheet`);
+  cellUpdates.forEach((update) => {
+    setNumberedImportXlsxCellValue(worksheetDocument, update.rowIndex, update.columnIndex, update.value);
+  });
+  zip.file(worksheetPath, new XMLSerializer().serializeToString(worksheetDocument));
+  return zip.generateAsync({ type: "arraybuffer", compression: "DEFLATE", compressionOptions: { level: 6 } });
+}
+
 async function exportNumberedImportWorkbook() {
-  if (!numberedImportReady || !numberedImportParsed) return;
+  if (!numberedImportReady || !numberedImportParsed || !numberedImportWorkbookBuffer) return;
   const allPlaced = numberedImportPurchases.every((purchase) => isNumberedImportPurchaseComplete(purchase));
   if (!allPlaced) {
-    alert("Place all purchases before export.");
+    alert("Place all purchases before saving the workbook.");
     return;
   }
   if (typeof XLSX === "undefined") {
@@ -2905,73 +3132,120 @@ async function exportNumberedImportWorkbook() {
     return;
   }
 
-  const allowsAllLayoutSeats = numberedImportAllowsAllLayoutSeats(numberedImportParsed);
-  let templateRows = Array.isArray(numberedImportParsed.template?.rows) ? numberedImportParsed.template.rows : [];
-  if (allowsAllLayoutSeats) {
-    templateRows = buildNumberedImportTemplateRowsFromLayout();
-  }
-  if (!templateRows.length) {
+  const template = numberedImportParsed.template;
+  if (!template?.sheetName || !Array.isArray(template.rows) || !template.rows.length) {
     alert('Could not read seat rows from "Import Template".');
     return;
   }
 
-  const refNoBySeatKey = new Map();
-  numberedImportPurchases.forEach((purchase) => {
-    const refNo = String(purchase.refNo || "").trim();
-    (purchase.assignedSeatIds || []).forEach((seatId) => {
-      const numericId = normalizeNumericId(seatIdToSvgCode(seatId));
-      if (!numericId) return;
-      const seatRecord = numberedImportParsed.seatsByNumeric.get(numericId);
-      const keys = [
-        numericId.toLowerCase(),
-        String(seatRecord?.identifier || "").trim().toLowerCase()
-      ].filter(Boolean);
-      if (!keys.length && allowsAllLayoutSeats) keys.push(numericId.toLowerCase());
-      keys.forEach((key) => refNoBySeatKey.set(key, refNo));
-    });
-  });
-
-  const rows = [["Seat", "Purchase Group", "RefNo", "FirstName", "LastName", "Email"]];
-  templateRows.forEach((templateRow) => {
-    const identifier = String(templateRow?.identifier || "").trim();
-    if (!identifier) return;
-    const key = String(templateRow?.key || "").trim().toLowerCase() || identifier.toLowerCase();
-    const refNo = refNoBySeatKey.get(key) || refNoBySeatKey.get(identifier.toLowerCase()) || "";
-    const purchase = refNo ? numberedImportPurchaseByRefNo.get(refNo) : null;
-    rows.push([
-      identifier,
-      refNo,
-      refNo,
-      String(purchase?.firstName || "").trim(),
-      String(purchase?.lastName || "").trim(),
-      String(purchase?.email || "").trim()
-    ]);
-  });
-
-  if (rows.length <= 1) {
-    alert('No seat rows were found in "Import Template".');
+  const workbook = XLSX.read(numberedImportWorkbookBuffer.slice(0), { type: "array", cellDates: false });
+  const sheet = workbook.Sheets[template.sheetName];
+  if (!sheet) {
+    alert('Could not find the "Import Template" sheet in the loaded workbook.');
     return;
   }
+  const headerRows = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: true, defval: "" });
+  const headerRow = Array.isArray(headerRows[template.headerRowIndex]) ? headerRows[template.headerRowIndex] : [];
+  const headerColumns = getNumberedImportHeaderColumns(headerRow);
+  const purchaseGroupCol = pickLastNumberedImportHeaderColumn(headerColumns, "purchase group", "purchasegroup");
+  const refNoCol = pickLastNumberedImportHeaderColumn(headerColumns, "refno", "ref no");
+  const firstNameCol = pickLastNumberedImportHeaderColumn(headerColumns, "firstname", "first name", "fornamn");
+  const lastNameCol = pickLastNumberedImportHeaderColumn(headerColumns, "lastname", "last name", "surname", "efternamn");
+  const emailCol = pickLastNumberedImportHeaderColumn(headerColumns, "email", "e-mail", "mail", "e-post", "epost");
+  if ([purchaseGroupCol, refNoCol, firstNameCol, lastNameCol, emailCol].some((column) => column == null)) {
+    alert('Import Template is missing one or more writable columns: Purchase Group, RefNo, FirstName, LastName, Email.');
+    return;
+  }
+
+  const refNoBySeatKey = getNumberedImportTemplateAssignments();
+  let updatedAssignedSeats = 0;
+  const cellUpdates = [];
+  template.rows.forEach((templateRow) => {
+    const identifier = String(templateRow?.identifier || "").trim();
+    if (!identifier) return;
+    const key = String(templateRow?.key || identifier).trim().toLowerCase();
+    const refNo = refNoBySeatKey.get(key) || refNoBySeatKey.get(identifier.toLowerCase()) || "";
+    const purchase = refNo ? numberedImportPurchaseByRefNo.get(refNo) : null;
+    if (refNo) updatedAssignedSeats += 1;
+    cellUpdates.push(
+      { rowIndex: templateRow.rowIndex, columnIndex: purchaseGroupCol, value: refNo },
+      { rowIndex: templateRow.rowIndex, columnIndex: refNoCol, value: refNo },
+      { rowIndex: templateRow.rowIndex, columnIndex: firstNameCol, value: purchase?.firstName || "" },
+      { rowIndex: templateRow.rowIndex, columnIndex: lastNameCol, value: purchase?.lastName || "" },
+      { rowIndex: templateRow.rowIndex, columnIndex: emailCol, value: purchase?.email || "" }
+    );
+  });
 
   const expectedAssignedSeats = numberedImportPurchases.reduce(
     (count, purchase) => count + (Array.isArray(purchase.assignedSeatIds) ? purchase.assignedSeatIds.length : 0),
     0
   );
-  const exportedAssignedSeats = rows.slice(1).filter((row) => String(row[2] || "").trim()).length;
-  if (exportedAssignedSeats < expectedAssignedSeats) {
-    alert(`Could not match all placed seats to the export template (${exportedAssignedSeats}/${expectedAssignedSeats}). No file was created.`);
+  if (updatedAssignedSeats < expectedAssignedSeats) {
+    alert(`Could not match all placed seats to Import Template (${updatedAssignedSeats}/${expectedAssignedSeats}). No file was saved.`);
     return;
   }
 
-  const workbook = XLSX.utils.book_new();
-  const sheet = XLSX.utils.aoa_to_sheet(rows);
-  sheet["!cols"] = [{ wch: 42 }, { wch: 20 }, { wch: 20 }, { wch: 22 }, { wch: 22 }, { wch: 32 }];
-  XLSX.utils.book_append_sheet(workbook, sheet, "Import Template");
+  const isLegacyXls = /\.xls$/i.test(numberedImportWorkbookName) && !/\.xlsx$/i.test(numberedImportWorkbookName);
+  if (isLegacyXls) {
+    alert("Saving legacy .xls files cannot preserve all workbook relationships. Save the source workbook as .xlsx and load it again before using this feature.");
+    return;
+  }
+
+  let saveHandle = null;
+  if (typeof window.showSaveFilePicker === "function") {
+    try {
+      saveHandle = await window.showSaveFilePicker({
+        suggestedName: numberedImportWorkbookName || "numbered-import.xlsx",
+        ...(numberedImportSourceFileHandle ? { startIn: numberedImportSourceFileHandle } : {}),
+        types: [{
+          description: "Excel workbook",
+          accept: { "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [".xlsx"] }
+        }]
+      });
+    } catch (error) {
+      if (error?.name === "AbortError") return;
+      console.warn("Could not open the save dialog:", error);
+      alert("Could not open the save dialog.");
+      return;
+    }
+  }
+
+  let outputBuffer;
+  try {
+    outputBuffer = await updateNumberedImportXlsxTemplate(
+      numberedImportWorkbookBuffer,
+      template.sheetName,
+      cellUpdates
+    );
+  } catch (error) {
+    console.warn("Could not update the workbook while preserving its structure:", error);
+    alert("Could not update the workbook without changing its structure. No file was saved.");
+    return;
+  }
+  numberedImportWorkbookBuffer = outputBuffer.slice(0);
+
+  if (saveHandle) {
+    try {
+      const writable = await saveHandle.createWritable();
+      await writable.write(outputBuffer);
+      await writable.close();
+      alert("Updated workbook saved.");
+      return;
+    } catch (error) {
+      console.warn("Could not save directly to the selected workbook:", error);
+    }
+  }
 
   const exportBase = numberedImportWorkbookName
     ? numberedImportWorkbookName.replace(/\.(xlsx|xls)$/i, "")
     : "numbered-import";
-  XLSX.writeFile(workbook, `${exportBase}-import-template.xlsx`, { compression: true });
+  const blob = new Blob([outputBuffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `${exportBase}-updated.xlsx`;
+  link.click();
+  URL.revokeObjectURL(url);
 }
 
 function setNumberedImportPlacementMode(mode) {
@@ -3058,6 +3332,7 @@ function handleCanvasClick(clientX, clientY) {
 }
 
 numberedImportLoadTltBtn.addEventListener("click", () => {
+  closeTopImportMenu();
   numberedImportTltInput.click();
 });
 
@@ -3067,12 +3342,38 @@ numberedImportTltInput.addEventListener("change", async (event) => {
   numberedImportTltInput.value = "";
 });
 
-numberedImportLoadXlsxBtn.addEventListener("click", () => {
+numberedImportLoadXlsxBtn.addEventListener("click", async () => {
+  closeTopImportMenu();
+  if (typeof window.showOpenFilePicker === "function") {
+    try {
+      const [handle] = await window.showOpenFilePicker({
+        multiple: false,
+        types: [{
+          description: "Excel workbook",
+          accept: {
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [".xlsx"],
+            "application/vnd.ms-excel": [".xls"]
+          }
+        }]
+      });
+      if (!handle) return;
+      const file = await handle.getFile();
+      numberedImportSourceFileHandle = handle;
+      await loadNumberedImportXlsx(file);
+      return;
+    } catch (error) {
+      if (error?.name === "AbortError") return;
+      console.warn("Could not open the workbook picker:", error);
+      alert("Could not open the Excel file picker.");
+      return;
+    }
+  }
   numberedImportXlsxInput.click();
 });
 
 numberedImportXlsxInput.addEventListener("change", async (event) => {
   const file = event.target.files?.[0];
+  numberedImportSourceFileHandle = null;
   await loadNumberedImportXlsx(file);
   numberedImportXlsxInput.value = "";
 });
@@ -3182,16 +3483,40 @@ numberedImportBlockSeatsMode.addEventListener("change", () => {
   setNumberedImportBlockSeatsMode(!!numberedImportBlockSeatsMode.checked);
 });
 
-overlayModeInputs.forEach((input) => {
-  input.addEventListener("change", () => {
-    if (input.checked) setOverlayMode(input.value);
-  });
+overlayModeSelect.addEventListener("change", () => {
+  setOverlayMode(overlayModeSelect.value);
 });
 
-seatLabelModeInputs.forEach((input) => {
-  input.addEventListener("change", () => {
-    if (input.checked) setSeatLabelMode(input.value);
-  });
+seatLabelModeSelect.addEventListener("change", () => {
+  setSeatLabelMode(seatLabelModeSelect.value);
+});
+
+numberedImportIssuesBtn.addEventListener("click", () => {
+  openNumberedImportWarningModal();
+});
+
+numberedImportInfoBtn.addEventListener("click", () => {
+  openNumberedImportInfoModal();
+});
+
+numberedImportWarningModalClose.addEventListener("click", () => {
+  closeNumberedImportWarningModal();
+});
+
+numberedImportWarningModal.addEventListener("click", (event) => {
+  if (event.target === numberedImportWarningModal) closeNumberedImportWarningModal();
+});
+
+numberedImportInfoModalClose.addEventListener("click", () => {
+  closeNumberedImportInfoModal();
+});
+
+numberedImportInfoModal.addEventListener("click", (event) => {
+  if (event.target === numberedImportInfoModal) closeNumberedImportInfoModal();
+});
+
+topImportMenuToggle.addEventListener("click", () => {
+  toggleTopImportMenu();
 });
 
 canvas.addEventListener("wheel", (event) => {
@@ -3305,6 +3630,13 @@ document.addEventListener("click", (event) => {
   ) {
     closeNumberedImportPurchaseMenu();
   }
+  if (
+    !topImportMenu.hidden &&
+    !topImportMenu.contains(event.target) &&
+    !topImportMenuToggle.contains(event.target)
+  ) {
+    closeTopImportMenu();
+  }
 });
 
 window.addEventListener("keydown", (event) => {
@@ -3322,6 +3654,9 @@ window.addEventListener("keydown", (event) => {
   }
 
   if (event.key === "Escape") {
+    closeNumberedImportWarningModal();
+    closeNumberedImportInfoModal();
+    closeTopImportMenu();
     closeNumberedImportPurchaseMenu();
     if (clearNumberedImportHoverPreview()) renderCanvas();
     return;
@@ -3373,41 +3708,6 @@ function updateCanvasStatus() {
   const percent = Math.round(scale * 100);
   const sectionCount = new Set(seats.map((seat) => seat.sectionId).filter(Boolean)).size;
   canvasStatusEl.textContent = `${getNumberedImportCurrentFileName()} | ${sectionCount} sektioner | ${seats.length} platser | zoom ${percent}% | dra för att panorera | scrolla för att zooma`;
-}
-
-function setNumberedImportIssues(errors = [], warnings = []) {
-  const lines = [];
-  if (errors.length) {
-    lines.push("Errors:");
-    errors.slice(0, 12).forEach((message) => lines.push(`- ${message}`));
-    if (errors.length > 12) lines.push(`- ... ${errors.length - 12} more`);
-  }
-  if (warnings.length) {
-    if (lines.length) lines.push("");
-    lines.push("Warnings:");
-    warnings.slice(0, 8).forEach((message) => lines.push(`- ${message}`));
-    if (warnings.length > 8) lines.push(`- ... ${warnings.length - 8} more`);
-  }
-
-  if (!lines.length) {
-    numberedImportErrors.textContent = "";
-    numberedImportIssuesSummary.textContent = "Warnings (0)";
-    numberedImportIssues.classList.remove("is-visible");
-    numberedImportIssues.open = false;
-    return;
-  }
-
-  if (warnings.length > 0) {
-    numberedImportIssuesSummary.textContent = errors.length > 0
-      ? `Warnings (${warnings.length}) | Errors (${errors.length})`
-      : `Warnings (${warnings.length})`;
-  } else {
-    numberedImportIssuesSummary.textContent = `Errors (${errors.length})`;
-  }
-
-  numberedImportErrors.textContent = lines.join("\n");
-  numberedImportIssues.classList.add("is-visible");
-  numberedImportIssues.open = false;
 }
 
 function syncRightPanelCards() {
