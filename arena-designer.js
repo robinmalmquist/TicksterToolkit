@@ -705,7 +705,7 @@
   let rectEndCanvasY = 0;
 
   // Verktyg & markeringsläge
-  let currentTool = "select";   // "select" | "move" | "rotate" | "resize" | "bend" | "reshape"
+  let currentTool = null;   // null | "select" | "move" | "rotate" | "resize" | "bend" | "reshape"
   let selectionMode = "section";   // "section" | "row" | "seat"
   let selectionOrderCounter = 1;
   let lastSelectedSeatId = null;
@@ -3188,6 +3188,7 @@ codePane.addEventListener("input", () => {
 
   function setLayoutActive(active) {
     layoutActive = !!active;
+    setTool(layoutActive ? "select" : null);
     if (emptyLayoutPrompt) emptyLayoutPrompt.hidden = layoutActive;
     applyControlAvailability();
   }
@@ -13025,6 +13026,10 @@ function nudgeSelection(dxScreen, dyScreen) {
       return a.rowId.localeCompare(b.rowId);
     });
 
+    if (rowInfos.length >= 3 && !confirm(`You're about to merge ${rowInfos.length} RowIds into one. Continue?`)) {
+      return false;
+    }
+
     const keepInfo = rowInfos[0];
     if (!keepInfo) return false;
     const keepRowId = keepInfo.rowId;
@@ -20948,7 +20953,7 @@ function nudgeSelection(dxScreen, dyScreen) {
       setOverlayMode(initialOverlay, true, false);
     }
 
-    setTool("select");
+    setTool(restoredSession ? "select" : null);
     setSelectionMode("seat");
     updateMoveButtonState();
     updateSaveButton();
