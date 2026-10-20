@@ -3851,7 +3851,7 @@
     }
 
     .c-button--color-white {
-      --c-button-fill: #fff;
+      --c-button-fill: #eee;
       --c-button-text: #000;
     }
 
