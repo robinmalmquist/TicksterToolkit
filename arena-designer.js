@@ -20281,6 +20281,12 @@ function nudgeSelection(dxScreen, dyScreen) {
     setRightPanelCollapsedState(card, true);
   }
 
+  function syncRightPanelTitleState(card, collapsed) {
+    if (!card || card === displayCard || card === validationCard) return;
+    const title = card.querySelector(".c-card__title");
+    if (title) title.setAttribute("aria-expanded", collapsed ? "false" : "true");
+  }
+
   function setRightPanelCollapsedState(card, collapsed) {
     if (!card) return;
     const body = card.querySelector(".c-card__body");
@@ -20295,12 +20301,14 @@ function nudgeSelection(dxScreen, dyScreen) {
           const otherToggle = otherCard.querySelector(".c-card__toggle");
           if (otherBody) otherBody.hidden = true;
           if (otherToggle) otherToggle.setAttribute("aria-expanded", "false");
+          syncRightPanelTitleState(otherCard, true);
         }
       });
     }
     card.classList.toggle("c-card--collapsed", collapsed);
     body.hidden = !!collapsed;
     toggle.setAttribute("aria-expanded", collapsed ? "false" : "true");
+    syncRightPanelTitleState(card, collapsed);
   }
 
 
@@ -20313,6 +20321,19 @@ function nudgeSelection(dxScreen, dyScreen) {
     card.classList.toggle("c-card--collapsed", startCollapsed);
     body.hidden = startCollapsed;
     toggle.setAttribute("aria-expanded", startCollapsed ? "false" : "true");
+    if (card === displayCard || card === validationCard) return;
+    const title = card.querySelector(".c-card__title");
+    if (!title) return;
+    title.classList.add("c-card__title--toggle");
+    title.tabIndex = 0;
+    title.setAttribute("role", "button");
+    syncRightPanelTitleState(card, startCollapsed);
+    title.addEventListener("click", () => toggleRightPanel(title));
+    title.addEventListener("keydown", (event) => {
+      if (event.key !== "Enter" && event.key !== " ") return;
+      event.preventDefault();
+      toggleRightPanel(title);
+    });
   });
 
   let topbarUtilityTrigger = null;

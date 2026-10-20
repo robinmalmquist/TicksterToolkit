@@ -115,6 +115,17 @@
       gap: 0.35rem;
     }
 
+    #right-panels .c-card__title--toggle {
+      flex: 1 1 auto;
+      min-width: 0;
+      cursor: pointer;
+    }
+
+    #right-panels .c-card__title--toggle:focus-visible {
+      outline: 2px solid var(--tick-blue);
+      outline-offset: 2px;
+    }
+
     .c-card__subtitle {
       font-size: 0.8rem;
       color: var(--tick-grey);
@@ -248,7 +259,7 @@
 
     .c-select--small {
       padding: 0.25rem 0.6rem;
-      font-size: 0.75rem;
+      font-size: 0.95rem;
     }
 
     .c-button--active {
@@ -278,8 +289,8 @@
       font-size: 0.72rem;
     }
 
-    .u-font--small   { font-size: 0.8rem; }
-    .u-font--smaller { font-size: 0.75rem; }
+    .u-font--small   { font-size: 1rem; }
+    .u-font--smaller { font-size: 0.85rem; }
     .u-font--mono    { font-family: var(--font-mono); }
 
     .section-manager {
