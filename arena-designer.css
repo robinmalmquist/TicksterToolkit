@@ -137,7 +137,7 @@
       border-radius: var(--radius-pill);
       border: 1px solid transparent;
       background: #f7f9fc;
-      padding: 0.4rem 0.9rem;
+      padding: 0.5rem 0.9rem;
       font-size: 0.95rem;
       font-family: "SUSE", -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, SUSE, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
       font-weight: 500;
@@ -172,7 +172,7 @@
     }
 
     .c-button--small {
-      padding: 0.35rem 0.75rem;
+      padding: 0.5rem 0.75rem;
       font-size: 0.88rem;
     }
 
@@ -256,81 +256,6 @@
       border-color: var(--tick-blue);
       background: rgba(124,208,255,0.15);
       color: var(--tick-blue-dark);
-    }
-
-    #newLayoutBtn:not(:disabled),
-    #emptyNewLayoutBtn:not(:disabled),
-    #openSectionManagerBtn:not(:disabled),
-    #altSectionCreateBtn:not(:disabled) {
-      background: #00804f;
-      border-color: #00804f;
-      color: #fff;
-    }
-
-    #newLayoutBtn:hover:not(:disabled),
-    #emptyNewLayoutBtn:hover:not(:disabled),
-    #openSectionManagerBtn:hover:not(:disabled),
-    #altSectionCreateBtn:hover:not(:disabled) {
-      background: #006a41;
-      border-color: #006a41;
-    }
-
-    #newLayoutBtn:disabled,
-    #emptyNewLayoutBtn:disabled,
-    #openSectionManagerBtn:disabled,
-    #altSectionCreateBtn:disabled {
-      background: #768680;
-      border-color: #768680;
-      color: #fff;
-      opacity: 1;
-    }
-
-    #closeLayoutBtn:not(:disabled) {
-      background: #ab293d;
-      border-color: #ab293d;
-      color: #fff;
-    }
-
-    #closeLayoutBtn:hover:not(:disabled) {
-      background: #8f2435;
-      border-color: #8f2435;
-    }
-
-    #closeLayoutBtn:disabled {
-      background: #947e81;
-      border-color: #947e81;
-      color: #fff;
-      opacity: 1;
-    }
-
-    #openFileBtnTop:not(:disabled),
-    #emptyOpenLayoutBtn:not(:disabled),
-    #saveBtn:not(:disabled),
-    #saveAsBtn:not(:disabled),
-    #exportBtn:not(:disabled) {
-      background: #273641;
-      border-color: #273641;
-      color: #fff;
-    }
-
-    #openFileBtnTop:hover:not(:disabled),
-    #emptyOpenLayoutBtn:hover:not(:disabled),
-    #saveBtn:hover:not(:disabled),
-    #saveAsBtn:hover:not(:disabled),
-    #exportBtn:hover:not(:disabled) {
-      background: #084b73;
-      border-color: #084b73;
-    }
-
-    #openFileBtnTop:disabled,
-    #emptyOpenLayoutBtn:disabled,
-    #saveBtn:disabled,
-    #saveAsBtn:disabled,
-    #exportBtn:disabled {
-      background: #7b878f;
-      border-color: #7b878f;
-      color: #fff;
-      opacity: 1;
     }
 
     .c-pill {
@@ -1586,7 +1511,7 @@
       margin-bottom: 0;
     }
 
-    #openSectionManagerBtn {
+    .section-manager-launch {
       align-self: center;
       display: inline-flex;
       align-items: center;
@@ -1595,7 +1520,7 @@
       font-size: 0.84rem;
     }
 
-    #openSectionManagerBtn .material-symbols-outlined {
+    .section-manager-launch .material-symbols-outlined {
       font-size: 1rem;
     }
 
@@ -1649,12 +1574,6 @@
         linear-gradient(currentColor 0 0) 0 0 / 100% 2px no-repeat,
         linear-gradient(currentColor 0 0) 0 50% / 100% 2px no-repeat,
         linear-gradient(currentColor 0 0) 0 100% / 100% 2px no-repeat;
-    }
-
-    #helpBtn {
-      background: var(--tick-turq-dark);
-      border-color: var(--tick-turq-dark);
-      color: #fff;
     }
 
     .tool-button {
@@ -1865,7 +1784,7 @@
     .price-region-toolbar-grid {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 0.35rem;
+      gap: 0.5rem;
       width: 100%;
     }
 
@@ -2894,20 +2813,6 @@
       color: var(--tick-green);
     }
 
-    #openFileBtnTop {
-      /* primär handling */
-      color: #fff;
-    }
-
-    #saveBtn {
-      /* Sekundär handling i verktygsraden. */
-      color: #fff;
-    }
-
-    #saveAsBtn {
-      color: #fff;
-    }
-
     #top-bar input[type="file"] {
       display: none;
     }
@@ -3851,12 +3756,12 @@
     }
 
     .c-button--color-white {
-      --c-button-fill: #eee;
+      --c-button-fill: #dcedff;
       --c-button-text: #000;
     }
 
     .c-button--color-red {
-      --c-button-fill: #c43c3c;
+      --c-button-fill: #0c0606;
       --c-button-text: #fff;
     }
 
