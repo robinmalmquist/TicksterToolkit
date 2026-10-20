@@ -308,8 +308,8 @@
     #saveBtn:not(:disabled),
     #saveAsBtn:not(:disabled),
     #exportBtn:not(:disabled) {
-      background: #0a5888;
-      border-color: #0a5888;
+      background: #273641;
+      border-color: #273641;
       color: #fff;
     }
 
@@ -730,8 +730,8 @@
     .alt-draw-mode__option:has(input:checked) {
       position: relative;
       z-index: 2;
-      border-color: #247fa5;
-      background: #247fa5;
+      border-color: #273641;
+      background: #273641;
       color: #fff;
       font-weight: 700;
     }
@@ -857,8 +857,8 @@
     .alt-row-settings__broken-option:has(input:checked) {
       position: relative;
       z-index: 2;
-      border-color: #247fa5;
-      background: #247fa5;
+      border-color: #273641;
+      background: #273641;
       color: #fff;
       font-weight: 700;
     }
@@ -2822,7 +2822,7 @@
       border: 1px solid transparent;
       border-radius: 8px;
       background: transparent;
-      color: var(--tick-blue-dark);
+      color: var(--tick-grey-darker);
       cursor: pointer;
     }
 
@@ -3471,7 +3471,7 @@
     }
 
     .align-toggle-button.is-active {
-      background: #247fa5;
+      background: #273641;
       color: #fff;
       font-weight: 700;
     }
