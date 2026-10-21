@@ -94,6 +94,7 @@
       --radix-slate-12: #1c2024;
       --radix-sky-3: #e1f6fd;
       --radix-sky-4: #d1f0fa;
+      --radix-sky-7: #8dcae3;
       --radix-sky-8: #60b3d7;
       --radix-sky-9: #7ce2fe;
       --radix-sky-10: #74daf8;
@@ -3105,6 +3106,7 @@
       --radix-sky-3: #112840;
       --radix-sky-4: #113555;
       --radix-sky-5: #154467;
+      --radix-sky-7: #1f6692;
       --radix-sky-8: #197cae;
       --radix-sky-9: #7ce2fe;
       --radix-sky-10: #a8eeff;
@@ -3141,8 +3143,8 @@
       --color-border-subtle: var(--radix-slate-6);
       --color-divider: var(--radix-slate-6);
       --color-divider-strong: var(--radix-slate-7);
-      --color-action: var(--radix-sky-9);
-      --color-action-contrast: var(--radix-slate-12);
+      --color-action: var(--radix-sky-7);
+      --color-action-contrast: #fff;
       --color-focus: var(--radix-sky-10);
       --color-selection: var(--radix-sky-3);
       --color-selection-hover: var(--radix-sky-4);
