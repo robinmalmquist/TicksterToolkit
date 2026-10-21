@@ -132,8 +132,12 @@
       --color-border-subtle: var(--radix-slate-5);
       --color-divider: var(--radix-slate-6);
       --color-divider-strong: var(--radix-slate-7);
-      --color-action: var(--radix-sky-11);
+      --color-action: #3d6b86;
       --color-action-contrast: #fff;
+      --button-fill-success: #527c69;
+      --button-fill-danger: #955c61;
+      --button-fill-warning: #806437;
+      --button-fill-neutral: #eef0f2;
       --color-focus: var(--radix-sky-8);
       --color-selection: var(--radix-sky-3);
       --color-selection-hover: var(--radix-sky-4);
@@ -3148,8 +3152,12 @@
       --color-border-subtle: var(--radix-slate-6);
       --color-divider: var(--radix-slate-6);
       --color-divider-strong: var(--radix-slate-7);
-      --color-action: var(--radix-sky-7);
+      --color-action: #315d7e;
       --color-action-contrast: #fff;
+      --button-fill-success: #3f6754;
+      --button-fill-danger: #8f565b;
+      --button-fill-warning: #735c34;
+      --button-fill-neutral: var(--color-surface-raised);
       --color-focus: var(--radix-sky-10);
       --color-selection: var(--radix-sky-3);
       --color-selection-hover: var(--radix-sky-4);
@@ -4140,25 +4148,25 @@
 
     .c-button--success,
     .c-button--color-green {
-      --button-fill: #187b55;
+      --button-fill: var(--button-fill-success);
       --button-text: #fff;
     }
 
     .c-button--danger,
     .c-button--color-red {
-      --button-fill: var(--color-danger);
+      --button-fill: var(--button-fill-danger);
       --button-text: #fff;
     }
 
     .c-button--warning,
     .c-button--color-yellow {
-      --button-fill: #d89b16;
-      --button-text: #222;
+      --button-fill: var(--button-fill-warning);
+      --button-text: #fff;
     }
 
     .c-button--neutral,
     .c-button--color-white {
-      --button-fill: #dcedff;
+      --button-fill: var(--button-fill-neutral);
       --button-text: #222;
     }
 
