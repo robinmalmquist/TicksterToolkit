@@ -4146,13 +4146,13 @@
     .c-button--warning,
     .c-button--color-yellow {
       --button-fill: #d89b16;
-      --button-text: #000;
+      --button-text: #222;
     }
 
     .c-button--neutral,
     .c-button--color-white {
       --button-fill: #dcedff;
-      --button-text: #000;
+      --button-text: #222;
     }
 
     .c-button--color-black {
