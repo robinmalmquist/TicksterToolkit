@@ -760,7 +760,7 @@
   // --- Canvas-storlek ---
   function resizeCanvas() {
     const rect = canvasContainer.getBoundingClientRect();
-    const padding = 12;
+    const padding = 0;
     canvas.width = Math.max(100, rect.width - padding * 2);
     canvas.height = Math.max(100, rect.height - padding * 2);
     renderCanvas();
