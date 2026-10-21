@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <title>Arena Designer</title>
-  <link rel="icon" href="https://tickster.github.io/styleguide/logos/logo_t_circle_blue.png" type="image/png" />
+  <link rel="icon" href="assets/branding/tickster-favicon.png" type="image/png" />
   <link rel="stylesheet" href="arena-designer.css" />
 </head>
 <body>
@@ -37,7 +37,7 @@
         </button>
         <div class="align-grouping" role="group" aria-label="Align as">
           <span class="align-grouping__label">As</span>
-          <div class="align-toggle-control">
+          <div class="align-toggle-control c-toggle-group">
             <button class="align-toggle-button is-active" type="button" data-align-grouping="group" aria-pressed="true">Group</button>
             <button class="align-toggle-button" type="button" data-align-grouping="individual" aria-pressed="false">Individual</button>
           </div>
@@ -45,7 +45,7 @@
         <div class="align-divider align-divider--compact" aria-hidden="true"></div>
         <div class="align-grouping" role="group" aria-label="Align by">
           <span class="align-grouping__label">By</span>
-          <div class="align-toggle-control">
+          <div class="align-toggle-control c-toggle-group">
             <button class="align-toggle-button is-active" type="button" data-align-by="first" aria-pressed="true">First</button>
             <button class="align-toggle-button" type="button" data-align-by="last" aria-pressed="false">Last</button>
           </div>
@@ -430,7 +430,7 @@
   </div>
 
     <div id="tooltip"></div>
-    <div id="seatContextMenu" class="context-menu" aria-hidden="true">
+    <div id="seatContextMenu" class="context-menu c-menu-surface" aria-hidden="true">
       <div class="context-menu__list">
         <button id="editSeatsMenuItem" class="context-menu__item" type="button">Edit seat(s)</button>
         <button id="editRowsMenuItem" class="context-menu__item" type="button">Edit row(s)</button>
@@ -463,7 +463,7 @@
     </div>
   <input type="file" id="bgFileInput" accept="image/*" style="display:none" />
   <div id="altSectionManagerOverlay">
-    <div class="section-manager section-manager--alt">
+    <div class="section-manager section-manager--alt c-modal">
       <header class="section-manager__header">
         <div class="section-manager__header-actions">
           <button id="altSectionImportExcelBtn" class="c-button c-button--color-blue section-list__action" title="Import from Excel">
@@ -1138,7 +1138,7 @@
   </div>
 
   <div id="attributeModalOverlay">
-    <div id="attributeModal">
+  <div id="attributeModal" class="c-modal">
       <header>
         <h3>Attributes</h3>
         <button id="attributeModalClose" class="c-button c-button--color-white c-button--small">Close</button>
@@ -1176,7 +1176,7 @@
   </div>
 
   <div id="codeModalOverlay">
-    <div id="codeModal">
+  <div id="codeModal" class="c-modal">
       <header>
         <h3>Source (.tlt)</h3>
         <button id="codeModalClose" class="c-button c-button--color-white c-button--small">Close</button>
@@ -1194,7 +1194,7 @@
     </div>
   </div>
 
-<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="assets/vendor/xlsx.full.min.js"></script>
 <script src="arena-designer.js"></script>
 
   </body>

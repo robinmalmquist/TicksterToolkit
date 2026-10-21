@@ -9704,14 +9704,19 @@ codePane.addEventListener("input", () => {
     appMenuOverlay.classList.add("open");
     appMenuOverlay.setAttribute("aria-hidden", "false");
     appMenuToggleBtn.setAttribute("aria-expanded", "true");
-    window.requestAnimationFrame(positionAppMenuPanel);
+    window.requestAnimationFrame(() => {
+      positionAppMenuPanel();
+      appMenuPanel?.querySelector("button:not(:disabled)")?.focus();
+    });
   }
 
-  function closeAppMenu() {
+  function closeAppMenu(restoreFocus = false) {
     if (!appMenuOverlay || !appMenuToggleBtn) return;
+    const wasOpen = appMenuOverlay.classList.contains("open");
     appMenuOverlay.classList.remove("open");
     appMenuOverlay.setAttribute("aria-hidden", "true");
     appMenuToggleBtn.setAttribute("aria-expanded", "false");
+    if (restoreFocus && wasOpen) appMenuToggleBtn.focus();
   }
 
   function toggleAppMenu() {
@@ -9743,7 +9748,7 @@ codePane.addEventListener("input", () => {
   function closeAllModals(options = {}) {
     const confirmAltSectionManager = !!options.confirmAltSectionManager;
     const altSectionConfirmMessage = options.altSectionConfirmMessage || "You have unsaved changes. Close anyway?";
-    closeAppMenu();
+    closeAppMenu(!!options.restoreAppMenuFocus);
     closeSeatContextMenu();
     closeExportModal();
     closeHelpModal();
@@ -11068,7 +11073,7 @@ codePane.addEventListener("input", () => {
             ctx.fillStyle = textColor;
             ctx.strokeStyle = "rgba(0,0,0,0.0)";
             ctx.lineWidth = 0 / Math.max(scale, 0.001);
-            ctx.font = `${effectiveFontPx}px "SUSE Mono", "Segoe UI", system-ui, sans-serif`;
+            ctx.font = `${effectiveFontPx}px "SUSE Mono Local", "Roboto Mono Local", "Segoe UI", system-ui, sans-serif`;
             ctx.textAlign = "center";
             ctx.textBaseline = "middle";
             drawLines.forEach((line, idx) => {
@@ -11151,7 +11156,7 @@ codePane.addEventListener("input", () => {
         if (!name) continue;
         const fontSize = 20 / Math.max(scale, 0.001);
         ctx.lineWidth = 3 / Math.max(scale, 0.001);
-        ctx.font = `${fontSize}px "SUSE", system-ui, sans-serif`;
+        ctx.font = `${fontSize}px "SUSE Local", "Roboto Local", system-ui, sans-serif`;
         ctx.strokeText(name, cx, cy);
         ctx.fillText(name, cx, cy);
       }
@@ -11249,7 +11254,7 @@ codePane.addEventListener("input", () => {
           const handleSize = 10 / scale;
           const handles = getResizeHandles(bounds);
           ctx.fillStyle = "#ffffff";
-          ctx.strokeStyle = "#14a0f4";
+          ctx.strokeStyle = "#60b3d7";
           for (const h of handles) {
             ctx.beginPath();
             ctx.rect(h.x - handleSize / 2, h.y - handleSize / 2, handleSize, handleSize);
@@ -11278,7 +11283,7 @@ codePane.addEventListener("input", () => {
           ctx.translate(translateX, translateY);
           ctx.scale(scale, scale);
 
-          ctx.strokeStyle = "#c12e44";
+          ctx.strokeStyle = "#e5484d";
           ctx.lineWidth = 2 / scale;
           ctx.setLineDash([6 / scale, 4 / scale]);
           ctx.beginPath();
@@ -11317,7 +11322,7 @@ codePane.addEventListener("input", () => {
           ctx.stroke();
 
           ctx.setLineDash([]);
-          ctx.fillStyle = "#c12e44";
+          ctx.fillStyle = "#e5484d";
           ctx.strokeStyle = "#fff";
           const r = 6 / scale;
 
@@ -16311,7 +16316,8 @@ function nudgeSelection(dxScreen, dyScreen) {
       }
       closeAllModals({
         confirmAltSectionManager: true,
-        altSectionConfirmMessage: "You have unsaved changes. Close anyway?"
+        altSectionConfirmMessage: "You have unsaved changes. Close anyway?",
+        restoreAppMenuFocus: true
       });
     }
   });
@@ -17709,7 +17715,7 @@ function nudgeSelection(dxScreen, dyScreen) {
       drafts.push({
         sectionId,
         sectionName: sectionSheetName,
-        color: "#14a0f4",
+        color: "#60b3d7",
         rows: parsed.rows,
         rawRowText: res.text,
         continuousStartSeat: 1,
@@ -17763,7 +17769,7 @@ function nudgeSelection(dxScreen, dyScreen) {
     sectionDirty = isDirty;
     if (altSectionDirtyFlag) {
       altSectionDirtyFlag.textContent = isDirty ? "Unsaved changes" : "Saved";
-      altSectionDirtyFlag.style.color = isDirty ? "#c12e44" : "#5b6673";
+      altSectionDirtyFlag.style.color = isDirty ? "#e5484d" : "#60646c";
     }
     const hasDraft = !!getActiveDraft();
     [altSeatNumberingModeRow, altSeatNumberingModeContinuous, altSeatNumberingModeZigzag, altSeatNumberingModeCenterOddEven]
@@ -18894,7 +18900,7 @@ function nudgeSelection(dxScreen, dyScreen) {
 
       const colorDot = document.createElement("div");
       colorDot.className = "section-card__color";
-      colorDot.style.background = draft.color || "#14a0f4";
+      colorDot.style.background = draft.color || "#60b3d7";
 
       const body = document.createElement("div");
       body.className = "section-card__body";
@@ -18981,7 +18987,7 @@ function nudgeSelection(dxScreen, dyScreen) {
 
     const xRulerY = Math.max(9 * altGridZoom, metrics.gridTopY - 8 * altGridZoom);
     ctx.fillStyle = "#76859a";
-    ctx.font = `${Math.max(8, Math.round(9 * altGridZoom))}px 'SUSE', sans-serif`;
+    ctx.font = `${Math.max(8, Math.round(9 * altGridZoom))}px 'SUSE Local', 'Roboto Local', sans-serif`;
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     for (let idx = 0; idx < maxSlots; idx++) {
@@ -19009,13 +19015,13 @@ function nudgeSelection(dxScreen, dyScreen) {
       }
 
       ctx.fillStyle = "#76859a";
-      ctx.font = `${Math.max(8, Math.round(10 * altGridZoom))}px 'SUSE', sans-serif`;
+      ctx.font = `${Math.max(8, Math.round(10 * altGridZoom))}px 'SUSE Local', 'Roboto Local', sans-serif`;
       ctx.textAlign = "right";
       ctx.textBaseline = "middle";
       ctx.fillText(String(i + 1), metrics.gridStartX - 26 * altGridZoom, top + rowHeight / 2);
 
       ctx.fillStyle = "#2e3c47";
-      ctx.font = `${Math.max(8, Math.round(11 * altGridZoom))}px 'SUSE', sans-serif`;
+      ctx.font = `${Math.max(8, Math.round(11 * altGridZoom))}px 'SUSE Local', 'Roboto Local', sans-serif`;
       ctx.textAlign = "right";
       ctx.textBaseline = "middle";
       if (lineHasSeat) {
@@ -19039,9 +19045,9 @@ function nudgeSelection(dxScreen, dyScreen) {
 
         const isSelected = altSelectedSeatKeys.has(getAltSeatKey(i, idx));
         const isHovered = !!altHoverCell && altHoverCell.lineIndex === i && altHoverCell.slotIndex === idx;
-        ctx.fillStyle = isSeat ? "#14a0f4" : "#ffffff";
+        ctx.fillStyle = isSeat ? "#60b3d7" : "#ffffff";
         if (inDrag && altDrawMode === "erase") {
-          ctx.fillStyle = isSeat ? "#c12e44" : "#ffe7ec";
+          ctx.fillStyle = isSeat ? "#e5484d" : "#feebec";
         } else if (inDrag && altDrawMode === "draw") {
           ctx.fillStyle = isSeat ? "#0d87d1" : "#d7efff";
         } else if (isSelected && altSectionTool === "select") {
@@ -19070,7 +19076,7 @@ function nudgeSelection(dxScreen, dyScreen) {
 
         if (isSeat && slot.name) {
           ctx.fillStyle = "#ffffff";
-          ctx.font = `${Math.max(8, Math.round(9 * altGridZoom))}px 'SUSE', sans-serif`;
+          ctx.font = `${Math.max(8, Math.round(9 * altGridZoom))}px 'SUSE Local', 'Roboto Local', sans-serif`;
           ctx.textAlign = "center";
           ctx.textBaseline = "middle";
           ctx.fillText(slot.name, cellX + metrics.seatSpacing / 2, top + rowHeight / 2 + 0.5);
@@ -19251,7 +19257,7 @@ function nudgeSelection(dxScreen, dyScreen) {
     const newDraft = {
       sectionId: computeNextSectionId(),
       sectionName: name,
-      color: "#14a0f4",
+      color: "#60b3d7",
       rows: [],
       rawRowText: "",
       continuousStartSeat: normalizeAltContinuousStartSeat(altContinuousStartSeat),
@@ -20199,7 +20205,7 @@ function nudgeSelection(dxScreen, dyScreen) {
         addedNew = true;
         anyChanged = true;
       }
-      sectionColors.set(draft.sectionId, draft.color || "#14a0f4");
+      sectionColors.set(draft.sectionId, draft.color || "#60b3d7");
     });
 
     if (anyChanged) {
@@ -20982,6 +20988,12 @@ function nudgeSelection(dxScreen, dyScreen) {
     loadEntryPointsFromStorage();
     loadSeatBlocksFromStorage();
     renderCanvas();
+
+    // Canvas text is not repainted automatically when locally bundled fonts finish loading.
+    document.fonts?.ready.then(() => {
+      renderCanvas();
+      renderAltSectionCanvas();
+    });
 
     // Om det finns sparad vyinfo i localStorage som ännu inte applicerats (t.ex. ingen session vald)
     // se till att UI-speglas
