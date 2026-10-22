@@ -250,6 +250,7 @@
       --shadow-2: 0 10px 30px var(--alpha-black-12);
       --shadow-3: 0 20px 50px var(--alpha-black-25);
       --shadow-surface: var(--shadow-1);
+      --shadow-panel-raised: 0 var(--space-1) var(--space-3-5) var(--alpha-black-12);
       --shadow-popover: var(--shadow-2);
       --shadow-modal: var(--shadow-3);
       --duration-fast: 150ms;
@@ -332,8 +333,8 @@
     .c-card {
       background: var(--color-surface);
       border-radius: var(--radius-card);
-      border: 1px solid var(--color-border);
-      box-shadow: var(--shadow-surface);
+      border: 0;
+      box-shadow: var(--shadow-none);
       padding: var(--panel-padding);
       display: flex;
       flex-direction: column;
@@ -1984,6 +1985,11 @@
       gap: 0;
     }
 
+    /* An open panel is raised just enough to stand apart from its siblings. */
+    #right-panels .c-card[data-collapsible="true"]:not(.c-card--collapsed):not(.utility-card--modal-open):not(.utility-card--popover-open) {
+      box-shadow: var(--shadow-panel-raised);
+    }
+
     #right-panels #displayCard,
     #right-panels #validationCard {
       display: none;
@@ -2017,6 +2023,7 @@
       margin: 0;
       transform: translate(-50%, -50%);
       overflow: hidden;
+      box-shadow: var(--shadow-modal);
     }
 
     #right-panels #displayCard.utility-card--popover-open {
@@ -2026,6 +2033,7 @@
       width: min(420px, calc(100vw - 1rem));
       margin: 0;
       overflow: hidden;
+      box-shadow: var(--shadow-popover);
     }
 
     .utility-card--modal-open .c-card__body,
@@ -3369,7 +3377,6 @@
       background: transparent;
     }
 
-    html[data-theme="dark"] .c-card,
     html[data-theme="dark"] #top-bar,
     html[data-theme="dark"] #codeModal,
     html[data-theme="dark"] #newLayoutModal,
