@@ -249,7 +249,7 @@
             <input type="checkbox" id="viewSectionNamesToggle" />
             Display section name (K)
           </label>
-          <div class="u-font--small" style="display:flex; flex-direction:column; gap:0.35rem;">
+          <div class="u-font--small u-stack u-gap-compact">
             <div>Seat display</div>
             <label class="bg-control">
               <input type="radio" name="seatViewMode" id="viewModeStandard" value="standard" checked />
@@ -264,7 +264,7 @@
               Full view
             </label>
           </div>
-          <div class="u-font--small" style="display:flex; flex-direction:column; gap:0.35rem;">
+          <div class="u-font--small u-stack u-gap-compact">
             <div>Overlay (O)</div>
             <label class="bg-control">
               <input type="radio" name="overlayMode" id="viewOverlayNone" value="none" checked />
@@ -279,7 +279,7 @@
               Show goodness heatmap
             </label>
           </div>
-          <div class="u-font--small" style="display:flex; flex-direction:column; gap:0.35rem;">
+          <div class="u-font--small u-stack u-gap-compact">
             <div>Seat Information (I)</div>
             <label class="bg-control">
               <input type="radio" name="seatLabelMode" id="viewSeatLabelNone" value="none" checked />
@@ -338,8 +338,8 @@
             <input id="priceRegionBaseColorInput" class="price-region-color-tools__base" type="color" value="#2f80ed" />
             <button id="applyPriceRegionColorModeBtn" class="c-button c-button--color-blue c-button--small price-region-color-tools__apply">Apply</button>
           </div>
-          <input type="file" id="priceRegionFileInput" accept=".tpr,.txt" style="display:none" />
-          <input type="file" id="priceRegionCssFileInput" accept=".css,.txt" style="display:none" />
+          <input type="file" id="priceRegionFileInput" accept=".tpr,.txt" class="u-hidden" />
+          <input type="file" id="priceRegionCssFileInput" accept=".css,.txt" class="u-hidden" />
           <div id="priceRegionList" class="price-region-list"></div>
         </div>
       </div>
@@ -362,11 +362,11 @@
           <button class="c-card__toggle" type="button" aria-expanded="true" aria-label="Toggle panel" onclick="toggleRightPanel(this)"></button>
         </div>
         <div class="c-card__body c-toolbar">
-          <div class="c-toolbar c-toolbar--horizontal" style="gap:0.35rem;">
+          <div class="c-toolbar c-toolbar--horizontal u-gap-compact">
             <button id="createSeatBlockBtn" class="c-button c-button--color-green c-button--small">Create block</button>
             <button id="loadSeatBlockBtn" class="c-button c-button--color-white c-button--small">Load blocks from file</button>
           </div>
-          <input type="file" id="seatBlockFileInput" accept=".tlm,.txt" style="display:none" />
+          <input type="file" id="seatBlockFileInput" accept=".tlm,.txt" class="u-hidden" />
           <div id="seatBlockList" class="price-region-list"></div>
         </div>
       </div>
@@ -461,7 +461,7 @@
         <button id="toggleSeatShapeMenuItem" class="context-menu__item" type="button">Show as squares</button>
       </div>
     </div>
-  <input type="file" id="bgFileInput" accept="image/*" style="display:none" />
+  <input type="file" id="bgFileInput" accept="image/*" class="u-hidden" />
   <div id="altSectionManagerOverlay">
     <div class="section-manager section-manager--alt c-modal">
       <header class="section-manager__header">
@@ -470,7 +470,7 @@
             <span class="material-symbols-outlined" aria-hidden="true">upload</span>
             <span>Import</span>
           </button>
-          <input type="file" id="altSectionImportExcelInput" accept=".xlsx,.xls" style="display:none" />
+          <input type="file" id="altSectionImportExcelInput" accept=".xlsx,.xls" class="u-hidden" />
           <button id="altSectionCreateBtn" class="c-button c-button--color-green section-list__action" title="New section">
             <span class="material-symbols-outlined" aria-hidden="true">add_circle</span>
             <span>Add</span>
@@ -683,7 +683,7 @@
         <button id="priceRegionStaleClose" type="button" class="c-button c-button--color-white c-button--small">Close</button>
       </header>
       <main>
-        <div id="priceRegionStaleHint" class="u-font--small" style="margin-bottom:0.5rem;">
+        <div id="priceRegionStaleHint" class="u-font--small u-mb-control">
           These seats are saved in the price region data but do not exist in the current layout.
         </div>
         <div id="priceRegionStaleList" class="edit-list"></div>
@@ -1058,7 +1058,7 @@
         <button id="seatEditClose" type="button" class="c-button c-button--color-white c-button--small">Close</button>
       </header>
       <main>
-        <div class="u-font--small" style="margin-bottom:0.5rem;">
+        <div class="u-font--small u-mb-control">
           Update seat name, attributes, price region and entry point.
         </div>
         <div class="edit-bulk-actions">
@@ -1082,7 +1082,7 @@
         <button id="seatNameEditClose" type="button" class="c-button c-button--color-white c-button--small">Close</button>
       </header>
       <main>
-        <div class="u-font--small" style="margin-bottom:0.5rem;">
+        <div class="u-font--small u-mb-control">
           Enter one seat name per seat, separated by commas. Each row must contain exactly the same number of names as seats.
         </div>
         <div id="seatNameEditList" class="edit-list"></div>
@@ -1101,7 +1101,7 @@
         <button id="rowEditClose" type="button" class="c-button c-button--color-white c-button--small">Close</button>
       </header>
       <main>
-        <div class="u-font--small" style="margin-bottom:0.5rem;">
+        <div class="u-font--small u-mb-control">
           Rename rows, renumber seats and add seats.
         </div>
         <div class="edit-bulk-actions">
@@ -1125,7 +1125,7 @@
         <button id="sectionEditClose" class="c-button c-button--color-white c-button--small">Close</button>
       </header>
       <main>
-        <div id="sectionEditDescription" class="u-font--small" style="margin-bottom:0.5rem;">
+        <div id="sectionEditDescription" class="u-font--small u-mb-control">
           Update section name and add rows.
         </div>
         <div id="sectionEditList" class="edit-list"></div>
@@ -1144,7 +1144,7 @@
         <button id="attributeModalClose" class="c-button c-button--color-white c-button--small">Close</button>
       </header>
       <main>
-        <div class="u-font--small" style="margin-bottom:0.5rem;">
+        <div class="u-font--small u-mb-control">
           Choose attributes for the selected seats.
         </div>
         <div id="attributeModalList" class="attribute-modal__list"></div>
@@ -1163,7 +1163,7 @@
         <button id="highlightSeatsClose" class="c-button c-button--color-white c-button--small">Close</button>
       </header>
       <main>
-        <div class="u-font--small" style="margin-bottom:0.5rem;">
+        <div class="u-font--small u-mb-control">
           Enter SeatId values separated by comma or one per line.
         </div>
         <textarea id="highlightSeatIdsInput" rows="10" placeholder="1.1.4.12&#10;1.1.4.13, 1.1.4.14"></textarea>

@@ -223,10 +223,86 @@
   const exportProgress = document.getElementById("exportProgress");
   const exportProgressMessage = document.getElementById("exportProgressMessage");
   const exportProgressDetail = document.getElementById("exportProgressDetail");
+  /*
+   * Rendering palettes are deliberately separate from CSS UI tokens. Canvas
+   * contexts and generated SVG cannot resolve CSS custom properties, and an
+   * exported layout should remain stable regardless of the editor theme.
+   */
+  const CANVAS_PALETTE = Object.freeze({
+    layout: Object.freeze({
+      labelFallback: "#e7ebf0",
+      labelOnLight: "#0f1d2a",
+      labelOnDark: "#dddddd",
+      transparent: "transparent",
+      sectionFallback: "#4a90e2",
+      grayscaleSeat: "#9ca8b7",
+      selectionOuter: "#ffffff",
+      selectionOuterCritical: "#ff3b30",
+      selectionInner: "#111111",
+      blockedSeat: "rgba(220, 38, 38, 0.98)",
+      highlightedSeat: "rgba(255, 214, 10, 0.98)",
+      highlightOutline: "rgba(17, 24, 39, 0.95)",
+      seatOutline: "rgba(0, 0, 0, 0.25)",
+      markerFill: "rgba(0, 0, 0, 0.15)",
+      markerFillDense: "rgba(0, 0, 0, 0.35)",
+      markerStroke: "rgba(255, 255, 255, 0.7)",
+      markerStrokeDense: "rgba(255, 255, 255, 0.8)",
+      sectionNameFill: "rgba(0, 0, 0, 0.75)",
+      sectionNameStroke: "rgba(255, 255, 255, 0.8)",
+      reshapeStroke: "#e67e22",
+      reshapeFill: "rgba(230, 126, 34, 0.2)",
+      marqueeStroke: "rgba(47, 128, 237, 0.9)",
+      marqueeFill: "rgba(47, 128, 237, 0.15)",
+      resizeOutline: "rgba(0, 0, 0, 0.6)",
+      resizeHandleFill: "#ffffff",
+      resizeHandleStroke: "#60b3d7",
+      bendStroke: "#e5484d",
+      bendFill: "#e5484d",
+      bendHandleStroke: "#fff"
+    }),
+    sectionEditor: Object.freeze({
+      surface: "#f6f9ff",
+      rulerText: "#76859a",
+      gridLine: "#d9e2ee",
+      rowLabel: "#2e3c47",
+      activeRow: "rgba(20, 160, 244, 0.08)",
+      emptyCell: "#ffffff",
+      seatCell: "#60b3d7",
+      eraseCell: "#feebec",
+      eraseSeat: "#e5484d",
+      drawCell: "#d7efff",
+      drawSeat: "#0d87d1",
+      selectedCell: "#e6f0ff",
+      selectedSeat: "#0c6ba5",
+      emptyCellStroke: "#d7dee9",
+      seatCellStroke: "#0c6ba5",
+      hoverStroke: "#5aa9e6",
+      selectionStroke: "#f59e0b",
+      seatText: "#ffffff"
+    })
+  });
+  const SVG_EXPORT_PALETTE = Object.freeze({
+    sectionTextBox: "#09517c",
+    sectionText: "#ffffff",
+    rowNumberText: "#202020",
+    seatDefault: "#c9cbcd",
+    seatReserved: "#00804f",
+    seatInteractionFill: "#dff4ff",
+    seatInteractionStroke: "#0069a6",
+    seatBlocked: "#d6334c",
+    sectionOutlineFill: "#d6f0ff",
+    sectionOutlineStroke: "#0069a6",
+    sectionOutlineOpenFill: "rgba(243, 243, 243, 0.8)",
+    sectionOutlineUnavailableFill: "#ececec",
+    sectionOutlineUnavailableStroke: "#485c6a",
+    sectionOutlineMuted: "#a3aaaf",
+    emptyLayoutSurface: "#f3f6f9",
+    emptyLayoutText: "#7b8794"
+  });
   const SVG_EXPORT_STYLE_DEFAULTS = Object.freeze({
     sectionTextBoxCornerRadius: 75,
-    sectionTextBoxFill: "#09517c",
-    sectionTextBoxStroke: "#09517c",
+    sectionTextBoxFill: SVG_EXPORT_PALETTE.sectionTextBox,
+    sectionTextBoxStroke: SVG_EXPORT_PALETTE.sectionTextBox,
     sectionTextBoxStrokeWidth: 0,
     sectionTextBoxHoverEnabled: true,
     sectionTextBoxHoverEffect: "opacity",
@@ -236,12 +312,12 @@
     sectionTextBoxInactiveBrightness: 90,
     sectionTextBoxHoverSaturation: 100,
     sectionTextBoxHoverBrightness: 100,
-    sectionTextFill: "#ffffff",
-    sectionTextStroke: "#ffffff",
+    sectionTextFill: SVG_EXPORT_PALETTE.sectionText,
+    sectionTextStroke: SVG_EXPORT_PALETTE.sectionText,
     sectionTextStrokeWidth: 0,
     sectionTextSize: 250,
     sectionTextDisablePointerEvents: false,
-    rowNumberTextFill: "#202020",
+    rowNumberTextFill: SVG_EXPORT_PALETTE.rowNumberText,
     rowNumberTextSize: 75,
     rowNumberTextHide: false
   });
@@ -5441,18 +5517,18 @@ codePane.addEventListener("input", () => {
   function buildCssText() {
     const lines = [
       "<style type=\"text/css\">",
-      "circle.seat { fill: #c9cbcd; stroke: #c9cbcd; fill-opacity: 1; }",
+      `circle.seat { fill: ${SVG_EXPORT_PALETTE.seatDefault}; stroke: ${SVG_EXPORT_PALETTE.seatDefault}; fill-opacity: 1; }`,
       "circle.seat.available { stroke-width: 16px; fill-opacity: 1; }",
-      "circle.seat.available.reserved { stroke-width: 25px; fill-opacity: 0; stroke: #00804f; }",
-      "circle.seat.available.hovered { stroke-width: 16px; fill-opacity: 1; fill: #dff4ff; stroke: #0069a6; }",
-      "circle.seat.available.tapped  { stroke-width: 16px; fill-opacity: 1; fill: #dff4ff; stroke: #0069a6; }",
-      "circle.seat.available.pending { stroke-width: 25px; fill-opacity: 1; fill: #dff4ff; stroke: #0069a6; }",
-      "circle.seat.available.not-allowed { stroke-width: 16px; stroke: #d6334c; fill: #d6334c; cursor: not-allowed !important; }",
-      "circle.seat.available.not-enough-seats { stroke-width: 16px; stroke: #d6334c; fill: #d6334c; cursor: not-allowed !important; }",
-      ".unavailable circle.seat { fill: #c9cbcd; stroke: none; fill-opacity: 0.25; }"
+      `circle.seat.available.reserved { stroke-width: 25px; fill-opacity: 0; stroke: ${SVG_EXPORT_PALETTE.seatReserved}; }`,
+      `circle.seat.available.hovered { stroke-width: 16px; fill-opacity: 1; fill: ${SVG_EXPORT_PALETTE.seatInteractionFill}; stroke: ${SVG_EXPORT_PALETTE.seatInteractionStroke}; }`,
+      `circle.seat.available.tapped  { stroke-width: 16px; fill-opacity: 1; fill: ${SVG_EXPORT_PALETTE.seatInteractionFill}; stroke: ${SVG_EXPORT_PALETTE.seatInteractionStroke}; }`,
+      `circle.seat.available.pending { stroke-width: 25px; fill-opacity: 1; fill: ${SVG_EXPORT_PALETTE.seatInteractionFill}; stroke: ${SVG_EXPORT_PALETTE.seatInteractionStroke}; }`,
+      `circle.seat.available.not-allowed { stroke-width: 16px; stroke: ${SVG_EXPORT_PALETTE.seatBlocked}; fill: ${SVG_EXPORT_PALETTE.seatBlocked}; cursor: not-allowed !important; }`,
+      `circle.seat.available.not-enough-seats { stroke-width: 16px; stroke: ${SVG_EXPORT_PALETTE.seatBlocked}; fill: ${SVG_EXPORT_PALETTE.seatBlocked}; cursor: not-allowed !important; }`,
+      `.unavailable circle.seat { fill: ${SVG_EXPORT_PALETTE.seatDefault}; stroke: none; fill-opacity: 0.25; }`
     ];
     priceRegions.forEach((region, idx) => {
-      const fillColor = getPriceRegionFillColor(region, "#c9cbcd");
+      const fillColor = getPriceRegionFillColor(region, SVG_EXPORT_PALETTE.seatDefault);
       const strokeColor = getPriceRegionStrokeColor(region, fillColor);
       const rangeId = buildRangeId(region, idx);
       lines.push(`/* Colors for price region ${region.name} */`);
@@ -5975,7 +6051,7 @@ codePane.addEventListener("input", () => {
   function buildSvgPriceRegionCss() {
     const lines = [];
     priceRegions.forEach((region, idx) => {
-      const fillColor = getPriceRegionFillColor(region, "#c9cbcd");
+      const fillColor = getPriceRegionFillColor(region, SVG_EXPORT_PALETTE.seatDefault);
       const strokeColor = getPriceRegionStrokeColor(region, fillColor);
       const rangeId = buildRangeId(region, idx);
       const exportClass = `pr${idx + 1}`;
@@ -6002,15 +6078,15 @@ codePane.addEventListener("input", () => {
       : `opacity: ${formatSvgNumber(styles.sectionTextBoxHoverEnabled ? styles.sectionTextBoxInactiveOpacity : 1)};`;
     const sectionTextBoxEffectTransition = usesSaturationBrightness ? "filter 500ms ease" : "opacity 500ms ease";
     const lines = [
-      ".always-visible-section-outline { fill: #d6f0ff; stroke: #0069a6; stroke-width: 10px; }",
-      ".open .always-visible-section-outline { fill: rgba(243, 243, 243, 0.8); stroke: #a3aaaf; stroke-dasharray: 30px 20px; stroke-width: 10px; }",
-      ".unavailable .always-visible-section-outline { fill: #ececec; stroke: #485c6a; stroke-width: 10px; }",
-      ".unavailable.open .always-visible-section-outline { fill: #ececec; stroke: #a3aaaf; stroke-width: 10px; }",
+      `.always-visible-section-outline { fill: ${SVG_EXPORT_PALETTE.sectionOutlineFill}; stroke: ${SVG_EXPORT_PALETTE.sectionOutlineStroke}; stroke-width: 10px; }`,
+      `.open .always-visible-section-outline { fill: ${SVG_EXPORT_PALETTE.sectionOutlineOpenFill}; stroke: ${SVG_EXPORT_PALETTE.sectionOutlineMuted}; stroke-dasharray: 30px 20px; stroke-width: 10px; }`,
+      `.unavailable .always-visible-section-outline { fill: ${SVG_EXPORT_PALETTE.sectionOutlineUnavailableFill}; stroke: ${SVG_EXPORT_PALETTE.sectionOutlineUnavailableStroke}; stroke-width: 10px; }`,
+      `.unavailable.open .always-visible-section-outline { fill: ${SVG_EXPORT_PALETTE.sectionOutlineUnavailableFill}; stroke: ${SVG_EXPORT_PALETTE.sectionOutlineMuted}; stroke-width: 10px; }`,
       `.section-text { fill: ${styles.sectionTextFill}; stroke: ${styles.sectionTextStroke}; stroke-width: ${formatSvgNumber(styles.sectionTextStrokeWidth)}px; paint-order: stroke fill; font-family: Roboto; font-size: ${formatSvgNumber(sectionTextSize)}px; font-weight: 400; ${pointerEventsLine} }`,
       `.section-text.large { font-size: ${formatSvgNumber(sectionTextLargeSize)}px; }`,
       `.row-number-text { fill: ${styles.rowNumberTextFill}; font-family: Roboto; font-size: ${formatSvgNumber(styles.rowNumberTextSize)}px;${rowNumberDisplay} }`,
       `.section-text-box { fill: ${styles.sectionTextBoxFill}; stroke: ${styles.sectionTextBoxStroke}; stroke-width: ${formatSvgNumber(styles.sectionTextBoxStrokeWidth)}px; ${sectionTextBoxEffect} transition: fill 500ms ease, stroke 500ms ease, stroke-width 500ms ease, ${sectionTextBoxEffectTransition}; }`,
-      ".unavailable .section-text-box { fill: #a3aaaf; opacity: 0.3; }"
+      `.unavailable .section-text-box { fill: ${SVG_EXPORT_PALETTE.sectionOutlineMuted}; opacity: 0.3; }`
     ];
     if (styles.sectionTextBoxHoverEnabled) {
       if (usesSaturationBrightness) {
@@ -8277,8 +8353,8 @@ codePane.addEventListener("input", () => {
       return [
         "<?xml version=\"1.0\" encoding=\"utf-8\"?>",
         "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1200\" height=\"800\">",
-        "  <rect width=\"100%\" height=\"100%\" fill=\"#f3f6f9\" />",
-        "  <text x=\"50%\" y=\"50%\" text-anchor=\"middle\" fill=\"#7b8794\" font-size=\"20\" font-family=\"Arial, sans-serif\">",
+        `  <rect width="100%" height="100%" fill="${SVG_EXPORT_PALETTE.emptyLayoutSurface}" />`,
+        `  <text x="50%" y="50%" text-anchor="middle" fill="${SVG_EXPORT_PALETTE.emptyLayoutText}" font-size="20" font-family="Arial, sans-serif">`,
         "    SVG-export kräver en layout",
         "  </text>",
         "</svg>"
@@ -10745,11 +10821,11 @@ codePane.addEventListener("input", () => {
     });
   }
   function getLabelTextColor(color) {
-    if (!color) return "#e7ebf0";
+    if (!color) return CANVAS_PALETTE.layout.labelFallback;
     if (labelColorCache.has(color)) return labelColorCache.get(color);
     const { r, g, b } = hexToRgb(color);
     const lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-    const txt = lum > 0.55 ? "#0f1d2a" : "#dddddd";
+    const txt = lum > 0.55 ? CANVAS_PALETTE.layout.labelOnLight : CANVAS_PALETTE.layout.labelOnDark;
     labelColorCache.set(color, txt);
     return txt;
   }
@@ -10797,8 +10873,8 @@ codePane.addEventListener("input", () => {
   function getSelectionStrokePalette() {
     const useRed = overlayMode === "none";
     return {
-      outerColor: useRed ? "#ff3b30" : "#ffffff",
-      innerColor: "#111111",
+      outerColor: useRed ? CANVAS_PALETTE.layout.selectionOuterCritical : CANVAS_PALETTE.layout.selectionOuter,
+      innerColor: CANVAS_PALETTE.layout.selectionInner,
       outerWidth: 4,
       innerWidth: 2
     };
@@ -10862,7 +10938,7 @@ codePane.addEventListener("input", () => {
         s.vy < worldMinY || s.vy > worldMaxY
       ) continue;
 
-      let baseColor = sectionColors.get(s.sectionId) || "#4a90e2";
+      let baseColor = sectionColors.get(s.sectionId) || CANVAS_PALETTE.layout.sectionFallback;
       if (showGoodnessHeatmap && goodnessStats) {
         const heatColor = getGoodnessHeatColor(Number(s.goodness), goodnessStats);
         if (heatColor) baseColor = heatColor;
@@ -10871,7 +10947,7 @@ codePane.addEventListener("input", () => {
         if (prColor) baseColor = prColor;
       }
       if (renderGrayscale) {
-        baseColor = "#9ca8b7";
+        baseColor = CANVAS_PALETTE.layout.grayscaleSeat;
       }
       const isSeatBlocked = blockedSeatIds.has(s.seatId);
       const isHighlightedSeat = highlightedSeatIds.has(s.seatId);
@@ -10910,7 +10986,7 @@ codePane.addEventListener("input", () => {
         }
         if (isSeatBlocked) {
           ctx.lineWidth = 2 / scale;
-          ctx.strokeStyle = "rgba(220, 38, 38, 0.98)";
+          ctx.strokeStyle = CANVAS_PALETTE.layout.blockedSeat;
           ctx.beginPath();
           ctx.moveTo(s.vx - rectSizeWorld * 1.15, s.vy - rectSizeWorld * 1.15);
           ctx.lineTo(s.vx + rectSizeWorld * 1.15, s.vy + rectSizeWorld * 1.15);
@@ -10920,7 +10996,7 @@ codePane.addEventListener("input", () => {
         }
         if (isHighlightedSeat) {
           ctx.lineWidth = 2.4 / scale;
-          ctx.strokeStyle = "rgba(255, 214, 10, 0.98)";
+          ctx.strokeStyle = CANVAS_PALETTE.layout.highlightedSeat;
           ctx.strokeRect(
             s.vx - rectSizeWorld * 2.1,
             s.vy - rectSizeWorld * 2.1,
@@ -10928,7 +11004,7 @@ codePane.addEventListener("input", () => {
             rectSizeWorld * 4.2
           );
           ctx.lineWidth = 1.2 / scale;
-          ctx.strokeStyle = "rgba(17,24,39,0.95)";
+          ctx.strokeStyle = CANVAS_PALETTE.layout.highlightOutline;
           ctx.strokeRect(
             s.vx - rectSizeWorld * 2.1,
             s.vy - rectSizeWorld * 2.1,
@@ -10938,8 +11014,8 @@ codePane.addEventListener("input", () => {
         }
         if (s.attributes && s.attributes.length) {
           ctx.save();
-          ctx.fillStyle = "rgba(0,0,0,0.35)";
-          ctx.strokeStyle = "rgba(255,255,255,0.8)";
+          ctx.fillStyle = CANVAS_PALETTE.layout.markerFillDense;
+          ctx.strokeStyle = CANVAS_PALETTE.layout.markerStrokeDense;
           drawHexMarker(ctx, s.vx, s.vy, rectSizeWorld * 0.7, 1.6 / scale);
           ctx.restore();
         }
@@ -11007,11 +11083,11 @@ codePane.addEventListener("input", () => {
           strokeSeatShape(selectionStroke.outerWidth / scale, selectionStroke.outerColor);
           strokeSeatShape(selectionStroke.innerWidth / scale, selectionStroke.innerColor);
         } else if (!isTinySeatRender) {
-          strokeSeatShape(1.2 / scale, "rgba(0,0,0,0.25)");
+          strokeSeatShape(1.2 / scale, CANVAS_PALETTE.layout.seatOutline);
         }
         if (isHighlightedSeat) {
-          strokeSeatShape(3.2 / scale, "rgba(255,214,10,0.98)");
-          strokeSeatShape(1.4 / scale, "rgba(17,24,39,0.95)");
+          strokeSeatShape(3.2 / scale, CANVAS_PALETTE.layout.highlightedSeat);
+          strokeSeatShape(1.4 / scale, CANVAS_PALETTE.layout.highlightOutline);
         }
         if (isSeatBlocked) {
           const useLocalSquareCoords = drawAsSquare && hasSeatRotation;
@@ -11021,7 +11097,7 @@ codePane.addEventListener("input", () => {
             ctx.rotate(seatRotationRad);
           }
           ctx.lineWidth = 2.2 / scale;
-          ctx.strokeStyle = "rgba(220,38,38,0.98)";
+          ctx.strokeStyle = CANVAS_PALETTE.layout.blockedSeat;
           ctx.beginPath();
           if (useLocalSquareCoords) {
             ctx.moveTo(-worldRadius * 0.88, -worldRadius * 0.88);
@@ -11071,7 +11147,7 @@ codePane.addEventListener("input", () => {
             const startY = s.vy - ((drawLines.length - 1) * lineHeight) / 2;
             ctx.save();
             ctx.fillStyle = textColor;
-            ctx.strokeStyle = "rgba(0,0,0,0.0)";
+            ctx.strokeStyle = CANVAS_PALETTE.layout.transparent;
             ctx.lineWidth = 0 / Math.max(scale, 0.001);
             ctx.font = `${effectiveFontPx}px "SUSE Mono Local", "Roboto Mono Local", "Segoe UI", system-ui, sans-serif`;
             ctx.textAlign = "center";
@@ -11087,8 +11163,8 @@ codePane.addEventListener("input", () => {
 
         if (!isTinySeatRender && s.attributes && s.attributes.length) {
           ctx.save();
-          ctx.fillStyle = "rgba(0,0,0,0.15)";
-          ctx.strokeStyle = "rgba(255,255,255,0.7)";
+          ctx.fillStyle = CANVAS_PALETTE.layout.markerFill;
+          ctx.strokeStyle = CANVAS_PALETTE.layout.markerStroke;
           drawHexMarker(ctx, s.vx, s.vy, worldRadius * 0.6, 1.6 / scale);
           ctx.restore();
         }
@@ -11100,7 +11176,7 @@ codePane.addEventListener("input", () => {
         const batchRectCount = Math.max(100, SIMPLIFIED_SELECTION_STROKE_BATCH_RECTS);
         const hasInnerStroke = selectedCount <= SIMPLIFIED_SELECTION_INNER_STROKE_LIMIT;
         const outerStrokeColor = !hasInnerStroke && overlayMode !== "none"
-          ? "#ff3b30"
+          ? CANVAS_PALETTE.layout.selectionOuterCritical
           : selectionStroke.outerColor;
         const strokeSelectionRects = (lineWidth, strokeStyle) => {
           const coordsLength = simplifiedSelectedRectCoords.length;
@@ -11144,8 +11220,8 @@ codePane.addEventListener("input", () => {
         }
       }
       ctx.save();
-      ctx.fillStyle = "rgba(0,0,0,0.75)";
-      ctx.strokeStyle = "rgba(255,255,255,0.8)";
+      ctx.fillStyle = CANVAS_PALETTE.layout.sectionNameFill;
+      ctx.strokeStyle = CANVAS_PALETTE.layout.sectionNameStroke;
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
       for (const [sectionId, b] of boundsBySection.entries()) {
@@ -11184,12 +11260,12 @@ codePane.addEventListener("input", () => {
         ctx.save();
         ctx.beginPath();
         ctx.arc(pivotSeat.vx, pivotSeat.vy, r, 0, Math.PI * 2);
-        ctx.strokeStyle = "#e67e22";
+        ctx.strokeStyle = CANVAS_PALETTE.layout.reshapeStroke;
         ctx.lineWidth = 2 / scale;
         ctx.setLineDash([4 / scale, 3 / scale]);
         ctx.stroke();
         ctx.setLineDash([]);
-        ctx.fillStyle = "rgba(230,126,34,0.2)";
+        ctx.fillStyle = CANVAS_PALETTE.layout.reshapeFill;
         ctx.fill();
         ctx.restore();
       });
@@ -11217,11 +11293,11 @@ codePane.addEventListener("input", () => {
       ctx.setTransform(1, 0, 0, 1, 0, 0);
       ctx.beginPath();
       ctx.rect(x1, y1, x2 - x1, y2 - y1);
-      ctx.strokeStyle = "rgba(47,128,237,0.9)";
+      ctx.strokeStyle = CANVAS_PALETTE.layout.marqueeStroke;
       ctx.lineWidth = 1;
       ctx.setLineDash([4, 3]);
       ctx.stroke();
-      ctx.fillStyle = "rgba(47,128,237,0.15)";
+      ctx.fillStyle = CANVAS_PALETTE.layout.marqueeFill;
       ctx.fill();
       ctx.restore();
     }
@@ -11246,15 +11322,15 @@ codePane.addEventListener("input", () => {
           ctx.scale(scale, scale);
 
           ctx.lineWidth = 1.5 / scale;
-          ctx.strokeStyle = "rgba(0,0,0,0.6)";
+          ctx.strokeStyle = CANVAS_PALETTE.layout.resizeOutline;
           ctx.setLineDash([6 / scale, 4 / scale]);
           ctx.strokeRect(bounds.minX, bounds.minY, bounds.maxX - bounds.minX, bounds.maxY - bounds.minY);
 
           ctx.setLineDash([]);
           const handleSize = 10 / scale;
           const handles = getResizeHandles(bounds);
-          ctx.fillStyle = "#ffffff";
-          ctx.strokeStyle = "#60b3d7";
+          ctx.fillStyle = CANVAS_PALETTE.layout.resizeHandleFill;
+          ctx.strokeStyle = CANVAS_PALETTE.layout.resizeHandleStroke;
           for (const h of handles) {
             ctx.beginPath();
             ctx.rect(h.x - handleSize / 2, h.y - handleSize / 2, handleSize, handleSize);
@@ -11283,7 +11359,7 @@ codePane.addEventListener("input", () => {
           ctx.translate(translateX, translateY);
           ctx.scale(scale, scale);
 
-          ctx.strokeStyle = "#e5484d";
+          ctx.strokeStyle = CANVAS_PALETTE.layout.bendStroke;
           ctx.lineWidth = 2 / scale;
           ctx.setLineDash([6 / scale, 4 / scale]);
           ctx.beginPath();
@@ -11322,8 +11398,8 @@ codePane.addEventListener("input", () => {
           ctx.stroke();
 
           ctx.setLineDash([]);
-          ctx.fillStyle = "#e5484d";
-          ctx.strokeStyle = "#fff";
+          ctx.fillStyle = CANVAS_PALETTE.layout.bendFill;
+          ctx.strokeStyle = CANVAS_PALETTE.layout.bendHandleStroke;
           const r = 6 / scale;
 
           if (anchor) {
@@ -18900,7 +18976,7 @@ function nudgeSelection(dxScreen, dyScreen) {
 
       const colorDot = document.createElement("div");
       colorDot.className = "section-card__color";
-      colorDot.style.background = draft.color || "#60b3d7";
+      colorDot.style.background = draft.color || CANVAS_PALETTE.sectionEditor.seatCell;
 
       const body = document.createElement("div");
       body.className = "section-card__body";
@@ -18965,7 +19041,7 @@ function nudgeSelection(dxScreen, dyScreen) {
     if (!metrics) return;
     const { ctx, width, height, rowHeight, rowBlock } = metrics;
     ctx.clearRect(0, 0, width, height);
-    ctx.fillStyle = "#f6f9ff";
+    ctx.fillStyle = CANVAS_PALETTE.sectionEditor.surface;
     ctx.fillRect(0, 0, width, height);
 
     const lineCount = metrics.gridRows;
@@ -18986,7 +19062,7 @@ function nudgeSelection(dxScreen, dyScreen) {
     }
 
     const xRulerY = Math.max(9 * altGridZoom, metrics.gridTopY - 8 * altGridZoom);
-    ctx.fillStyle = "#76859a";
+    ctx.fillStyle = CANVAS_PALETTE.sectionEditor.rulerText;
     ctx.font = `${Math.max(8, Math.round(9 * altGridZoom))}px 'SUSE Local', 'Roboto Local', sans-serif`;
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
@@ -18994,14 +19070,14 @@ function nudgeSelection(dxScreen, dyScreen) {
       const cellX = metrics.gridStartX + idx * metrics.seatSpacing;
       ctx.fillText(String(idx + 1), cellX + metrics.seatSpacing / 2, xRulerY);
     }
-    ctx.strokeStyle = "#d9e2ee";
+    ctx.strokeStyle = CANVAS_PALETTE.sectionEditor.gridLine;
     ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.moveTo(metrics.gridStartX + 0.5, metrics.gridTopY - 0.5);
     ctx.lineTo(metrics.gridEndX + 0.5, metrics.gridTopY - 0.5);
     ctx.stroke();
 
-    ctx.strokeStyle = "#d9e2ee";
+    ctx.strokeStyle = CANVAS_PALETTE.sectionEditor.gridLine;
     ctx.lineWidth = 1;
     for (let i = 0; i < lineCount; i++) {
       const top = metrics.gridTopY + i * rowBlock;
@@ -19010,17 +19086,17 @@ function nudgeSelection(dxScreen, dyScreen) {
       const isRowSelected = altSelectedRowIndexes.has(i);
       const isActive = altActiveLineIndex === i || isRowSelected || (dragRange && i >= dragRange.lineStart && i <= dragRange.lineEnd);
       if (isActive) {
-        ctx.fillStyle = "rgba(20,160,244,0.08)";
+        ctx.fillStyle = CANVAS_PALETTE.sectionEditor.activeRow;
         ctx.fillRect(metrics.gridStartX, top, maxSlots * metrics.seatSpacing, rowHeight);
       }
 
-      ctx.fillStyle = "#76859a";
+      ctx.fillStyle = CANVAS_PALETTE.sectionEditor.rulerText;
       ctx.font = `${Math.max(8, Math.round(10 * altGridZoom))}px 'SUSE Local', 'Roboto Local', sans-serif`;
       ctx.textAlign = "right";
       ctx.textBaseline = "middle";
       ctx.fillText(String(i + 1), metrics.gridStartX - 26 * altGridZoom, top + rowHeight / 2);
 
-      ctx.fillStyle = "#2e3c47";
+      ctx.fillStyle = CANVAS_PALETTE.sectionEditor.rowLabel;
       ctx.font = `${Math.max(8, Math.round(11 * altGridZoom))}px 'SUSE Local', 'Roboto Local', sans-serif`;
       ctx.textAlign = "right";
       ctx.textBaseline = "middle";
@@ -19045,21 +19121,21 @@ function nudgeSelection(dxScreen, dyScreen) {
 
         const isSelected = altSelectedSeatKeys.has(getAltSeatKey(i, idx));
         const isHovered = !!altHoverCell && altHoverCell.lineIndex === i && altHoverCell.slotIndex === idx;
-        ctx.fillStyle = isSeat ? "#60b3d7" : "#ffffff";
+        ctx.fillStyle = isSeat ? CANVAS_PALETTE.sectionEditor.seatCell : CANVAS_PALETTE.sectionEditor.emptyCell;
         if (inDrag && altDrawMode === "erase") {
-          ctx.fillStyle = isSeat ? "#e5484d" : "#feebec";
+          ctx.fillStyle = isSeat ? CANVAS_PALETTE.sectionEditor.eraseSeat : CANVAS_PALETTE.sectionEditor.eraseCell;
         } else if (inDrag && altDrawMode === "draw") {
-          ctx.fillStyle = isSeat ? "#0d87d1" : "#d7efff";
+          ctx.fillStyle = isSeat ? CANVAS_PALETTE.sectionEditor.drawSeat : CANVAS_PALETTE.sectionEditor.drawCell;
         } else if (isSelected && altSectionTool === "select") {
-          ctx.fillStyle = isSeat ? "#0c6ba5" : "#e6f0ff";
+          ctx.fillStyle = isSeat ? CANVAS_PALETTE.sectionEditor.selectedSeat : CANVAS_PALETTE.sectionEditor.selectedCell;
         }
 
         traceAltRoundedRect(ctx, cellX + 0.5, top + 0.5, metrics.seatSpacing - 1, rowHeight - 1, metrics.cellRadius);
         ctx.fill();
-        ctx.strokeStyle = isSeat ? "#0c6ba5" : "#d7dee9";
+        ctx.strokeStyle = isSeat ? CANVAS_PALETTE.sectionEditor.seatCellStroke : CANVAS_PALETTE.sectionEditor.emptyCellStroke;
         ctx.stroke();
         if (isHovered) {
-          ctx.strokeStyle = "#5aa9e6";
+          ctx.strokeStyle = CANVAS_PALETTE.sectionEditor.hoverStroke;
           ctx.lineWidth = 1.25;
           traceAltRoundedRect(ctx, cellX + 1, top + 1, metrics.seatSpacing - 2, rowHeight - 2, Math.max(1, metrics.cellRadius - 1));
           ctx.stroke();
@@ -19067,7 +19143,7 @@ function nudgeSelection(dxScreen, dyScreen) {
         }
 
         if (isSelected) {
-          ctx.strokeStyle = "#f59e0b";
+          ctx.strokeStyle = CANVAS_PALETTE.sectionEditor.selectionStroke;
           ctx.lineWidth = 1.5;
           traceAltRoundedRect(ctx, cellX + 1.5, top + 1.5, metrics.seatSpacing - 3, rowHeight - 3, Math.max(1, metrics.cellRadius - 1));
           ctx.stroke();
@@ -19075,7 +19151,7 @@ function nudgeSelection(dxScreen, dyScreen) {
         }
 
         if (isSeat && slot.name) {
-          ctx.fillStyle = "#ffffff";
+          ctx.fillStyle = CANVAS_PALETTE.sectionEditor.seatText;
           ctx.font = `${Math.max(8, Math.round(9 * altGridZoom))}px 'SUSE Local', 'Roboto Local', sans-serif`;
           ctx.textAlign = "center";
           ctx.textBaseline = "middle";
