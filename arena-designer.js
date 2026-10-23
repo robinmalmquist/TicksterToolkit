@@ -90,6 +90,7 @@
   const equalizeSeatsMenuItem = document.getElementById("equalizeSeatsMenuItem");
   const reverseSeatNamesMenuItem = document.getElementById("reverseSeatNamesMenuItem");
   const reverseSeatIdsMenuItem = document.getElementById("reverseSeatIdsMenuItem");
+  const resetRowSeatIdsMenuItem = document.getElementById("resetRowSeatIdsMenuItem");
   const mimicRowShapeMenuItem = document.getElementById("mimicRowShapeMenuItem");
   const editSectionsMenuItem = document.getElementById("editSectionsMenuItem");
   const toggleSeatShapeMenuItem = document.getElementById("toggleSeatShapeMenuItem");
@@ -707,6 +708,7 @@
   let priceRegionBaseColor = DEFAULT_PRICE_REGION_BASE_COLOR;
   let goodnessRangeCount = DEFAULT_GOODNESS_RANGE_COUNT;
   let goodnessAnchorPoint = null;
+  let contextMenuSeatId = "";
   let restoredSession = false;
   let sectionColors = new Map();
   let sectionDrafts = [];
@@ -4389,6 +4391,40 @@ codePane.addEventListener("input", () => {
     return duplicates;
   }
 
+  function collectSeatIdOrderIssuesForValidation() {
+    const rows = new Map();
+    seats.forEach((seat) => {
+      const rowId = String(seat?.rowId || "").trim();
+      if (!rowId) return;
+      if (!rows.has(rowId)) rows.set(rowId, []);
+      rows.get(rowId).push(seat);
+    });
+
+    const issues = [];
+    rows.forEach((rowSeats, rowId) => {
+      if (rowSeats.length < 2) return;
+      const orderedSeats = sortSeatsByPhysicalRowOrder(rowSeats);
+      const firstSeat = orderedSeats[0];
+      const lastSeat = orderedSeats[orderedSeats.length - 1];
+      if (getSeatIdSuffix(firstSeat?.seatId) === 1 || getSeatIdSuffix(lastSeat?.seatId) === 1) return;
+      issues.push({
+        rowId,
+        firstSeatId: firstSeat?.seatId || "-",
+        lastSeatId: lastSeat?.seatId || "-"
+      });
+    });
+    return issues.sort((first, second) => compareRowIdsForSort(first.rowId, second.rowId));
+  }
+
+  function selectRowsWithSeatIdOrderIssues() {
+    const rowIds = new Set(collectSeatIdOrderIssuesForValidation().map((issue) => issue.rowId));
+    if (!rowIds.size) return false;
+    const changed = selectSeatsByPredicate((seat) => rowIds.has(seat.rowId));
+    setSelectionMode("row");
+    renderCanvas();
+    return changed;
+  }
+
   function collectValidationItems() {
     const items = [];
     if (!Array.isArray(seats) || !seats.length) {
@@ -4439,6 +4475,20 @@ codePane.addEventListener("input", () => {
         level: "warning",
         text: `Duplicate section names: ${preview}${suffix}`,
         action: null
+      });
+    }
+
+    const seatIdOrderIssues = collectSeatIdOrderIssuesForValidation();
+    if (seatIdOrderIssues.length) {
+      const preview = seatIdOrderIssues
+        .slice(0, 4)
+        .map((issue) => `${issue.rowId} (${issue.firstSeatId} → ${issue.lastSeatId})`)
+        .join(", ");
+      const suffix = seatIdOrderIssues.length > 4 ? `, +${seatIdOrderIssues.length - 4} more` : "";
+      items.push({
+        level: "warning",
+        text: `SeatId 1 is not at either end of ${seatIdOrderIssues.length} row(s): ${preview}${suffix}.`,
+        action: { id: "select-seat-id-order-issues", label: "Select" }
       });
     }
 
@@ -4543,6 +4593,10 @@ codePane.addEventListener("input", () => {
     }
     if (actionId === "select-no-entry") {
       selectSeatsWithoutEntryPoints();
+      return;
+    }
+    if (actionId === "select-seat-id-order-issues") {
+      selectRowsWithSeatIdOrderIssues();
       return;
     }
     if (actionId === "open-price-regions") {
@@ -11806,6 +11860,155 @@ function selectSeatsWithoutEntryPoints() {
     });
   }
 
+  function sortSeatsByPhysicalRowOrder(rowSeats) {
+    if (!Array.isArray(rowSeats) || rowSeats.length < 2) return Array.isArray(rowSeats) ? [...rowSeats] : [];
+
+    const points = rowSeats.map((seat) => ({
+      seat,
+      x: Number.isFinite(seat?.centerX) ? seat.centerX : seat?.vx,
+      y: Number.isFinite(seat?.centerY) ? seat.centerY : seat?.vy
+    }));
+    if (points.some((point) => !Number.isFinite(point.x) || !Number.isFinite(point.y))) {
+      return sortSeatsInRow(rowSeats);
+    }
+
+    let firstPoint = points[0];
+    let lastPoint = points[1];
+    let longestDistanceSquared = -1;
+    for (let firstIndex = 0; firstIndex < points.length - 1; firstIndex++) {
+      for (let secondIndex = firstIndex + 1; secondIndex < points.length; secondIndex++) {
+        const dx = points[secondIndex].x - points[firstIndex].x;
+        const dy = points[secondIndex].y - points[firstIndex].y;
+        const distanceSquared = dx * dx + dy * dy;
+        if (distanceSquared > longestDistanceSquared) {
+          longestDistanceSquared = distanceSquared;
+          firstPoint = points[firstIndex];
+          lastPoint = points[secondIndex];
+        }
+      }
+    }
+
+    let axisX = lastPoint.x - firstPoint.x;
+    let axisY = lastPoint.y - firstPoint.y;
+    const length = Math.hypot(axisX, axisY);
+    if (length < 1e-6) return sortSeatsInRow(rowSeats);
+    axisX /= length;
+    axisY /= length;
+
+    // Keep the order predictable: left-to-right for mostly horizontal rows,
+    // otherwise top-to-bottom for mostly vertical rows.
+    if ((Math.abs(axisX) >= Math.abs(axisY) && axisX < 0) || (Math.abs(axisY) > Math.abs(axisX) && axisY < 0)) {
+      axisX *= -1;
+      axisY *= -1;
+    }
+
+    return points
+      .map((point) => ({
+        ...point,
+        along: point.x * axisX + point.y * axisY,
+        across: point.x * -axisY + point.y * axisX
+      }))
+      .sort((first, second) => {
+        if (Math.abs(first.along - second.along) > 1e-6) return first.along - second.along;
+        if (Math.abs(first.across - second.across) > 1e-6) return first.across - second.across;
+        return String(first.seat.seatId || "").localeCompare(String(second.seat.seatId || ""), "sv", { numeric: true });
+      })
+      .map((point) => point.seat);
+  }
+
+  function getRowSeatIdResetInfo(anchorSeatId) {
+    const normalizedAnchorSeatId = String(anchorSeatId || "").trim();
+    const anchorSeat = seats.find((seat) => seat.seatId === normalizedAnchorSeatId);
+    if (!anchorSeat?.rowId) return { canReset: false, reason: "Right-click a seat in a row first." };
+
+    const rowSeats = seats.filter((seat) => seat.rowId === anchorSeat.rowId);
+    if (rowSeats.length < 2) return { canReset: false, reason: "The row needs at least two seats." };
+    if (new Set(rowSeats.map((seat) => String(seat.seatId || "").trim())).size !== rowSeats.length) {
+      return { canReset: false, reason: "The row has duplicate SeatIds and must be repaired first." };
+    }
+
+    const orderedSeats = sortSeatsByPhysicalRowOrder(rowSeats);
+    const isFirst = orderedSeats[0]?.seatId === normalizedAnchorSeatId;
+    const isLast = orderedSeats[orderedSeats.length - 1]?.seatId === normalizedAnchorSeatId;
+    if (!isFirst && !isLast) {
+      return { canReset: false, reason: "SeatId 1 must be placed at either physical end of the row." };
+    }
+    return {
+      canReset: true,
+      rowId: anchorSeat.rowId,
+      orderedSeats: isFirst ? orderedSeats : [...orderedSeats].reverse()
+    };
+  }
+
+  function resetRowSeatIdsFromEndpoint(anchorSeatId) {
+    const resetInfo = getRowSeatIdResetInfo(anchorSeatId);
+    if (!resetInfo.canReset) return { changed: false, reason: resetInfo.reason };
+
+    const seatIdMap = new Map();
+    resetInfo.orderedSeats.forEach((seat, index) => {
+      const nextSeatId = `${resetInfo.rowId}.${index + 1}`;
+      if (seat.seatId !== nextSeatId) seatIdMap.set(seat.seatId, nextSeatId);
+    });
+    if (!seatIdMap.size) return { changed: false, reason: "SeatIds are already ordered from this end." };
+
+    seats.forEach((seat) => {
+      const nextSeatId = seatIdMap.get(seat.seatId);
+      if (nextSeatId) seat.seatId = nextSeatId;
+    });
+
+    if (lastSelectedSeatId && seatIdMap.has(lastSelectedSeatId)) {
+      lastSelectedSeatId = seatIdMap.get(lastSelectedSeatId);
+    }
+    remapReshapePivots(seatIdMap);
+
+    if (highlightedSeatIds.size) {
+      highlightedSeatIds = new Set(
+        Array.from(highlightedSeatIds).map((seatId) => seatIdMap.get(seatId) || seatId)
+      );
+      updateHighlightSeatsButtonLabel();
+    }
+
+    let priceRegionChanged = false;
+    priceRegions.forEach((region) => {
+      const seatRes = remapValueArray(region.seats, seatIdMap);
+      if (seatRes.changed) {
+        region.seats = seatRes.next;
+        priceRegionChanged = true;
+      }
+    });
+    if (priceRegionChanged) {
+      savePriceRegionsToStorage();
+      renderPriceRegionList();
+      updatePriceRegionUi();
+    }
+
+    let seatBlockChanged = false;
+    seatBlocks.forEach((block) => {
+      const seatRes = remapValueArray(block.seats, seatIdMap);
+      if (seatRes.changed) {
+        block.seats = seatRes.next;
+        seatBlockChanged = true;
+      }
+    });
+    if (seatBlockChanged) {
+      saveSeatBlocksToStorage();
+      renderSeatBlockList();
+    }
+
+    updateCodeFromSeats();
+    rebuildSeatLineIndex();
+    updatePriceRegionStatus();
+    updateEntryPointUi();
+    updateSeatBlockUi();
+    renderCanvas();
+    hasUnsavedChanges = true;
+    updateSaveButton();
+    saveSessionToLocalStorage();
+    pushHistorySnapshot();
+    scheduleValidationPanelRefresh();
+    return { changed: true };
+  }
+
   function computeRotationFromVector(dx, dy) {
     if (!Number.isFinite(dx) || !Number.isFinite(dy)) return null;
     if (Math.abs(dx) < 1e-6 && Math.abs(dy) < 1e-6) return null;
@@ -14385,6 +14588,7 @@ function nudgeSelection(dxScreen, dyScreen) {
       equalizeSeatsMenuItem,
       reverseSeatNamesMenuItem,
       reverseSeatIdsMenuItem,
+      resetRowSeatIdsMenuItem,
       mimicRowShapeMenuItem,
       editSectionsMenuItem,
       attributeMenuItem,
@@ -14407,6 +14611,18 @@ function nudgeSelection(dxScreen, dyScreen) {
     const mode = options.mode === "shape-toggle" ? "shape-toggle" : "selection";
     const selectedSeats = getSelectedSeats();
     setSeatContextMenuMode(mode);
+    const seatIdResetInfo = contextMenuSeatId ? getRowSeatIdResetInfo(contextMenuSeatId) : null;
+    if (resetRowSeatIdsMenuItem) {
+      const hasContextSeat = !!contextMenuSeatId;
+      resetRowSeatIdsMenuItem.style.display = hasContextSeat ? "" : "none";
+      resetRowSeatIdsMenuItem.disabled = !seatIdResetInfo?.canReset;
+      resetRowSeatIdsMenuItem.title = seatIdResetInfo?.canReset
+        ? "Renumber this row from SeatId 1 without moving seats or changing seat names."
+        : (seatIdResetInfo?.reason || "Right-click a seat to choose the start of the row.");
+      if (mode === "shape-toggle" && hasContextSeat && toggleSeatShapeMenuItem) {
+        toggleSeatShapeMenuItem.style.display = "none";
+      }
+    }
     seatContextMenu.style.left = `${x}px`;
     seatContextMenu.style.top = `${y}px`;
     seatContextMenu.classList.add("open");
@@ -16025,6 +16241,12 @@ function nudgeSelection(dxScreen, dyScreen) {
       renderCanvas();
     }
   });
+  resetRowSeatIdsMenuItem?.addEventListener("click", () => {
+    const anchorSeatId = contextMenuSeatId;
+    closeSeatContextMenu();
+    const result = resetRowSeatIdsFromEndpoint(anchorSeatId);
+    if (!result.changed && result.reason) alert(result.reason);
+  });
   mimicRowShapeMenuItem?.addEventListener("click", () => {
     closeSeatContextMenu();
     const changed = mimicShapeOfFirstSelectedRow();
@@ -16433,6 +16655,8 @@ function nudgeSelection(dxScreen, dyScreen) {
       }
     }
 
+    const hit = hitTestSeat(worldX, worldY);
+    contextMenuSeatId = hit?.seatId || "";
     const selected = getSelectedSeats();
     e.preventDefault();
     if (!selected.length) {
