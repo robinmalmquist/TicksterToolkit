@@ -15900,7 +15900,7 @@ function nudgeSelection(dxScreen, dyScreen) {
     });
   }
 
-  function addSeatsToRow(rowId, rowSeats, addCount, rowNameOverride) {
+  function addSeatsToRow(rowId, rowSeats, addCount, rowNameOverride, seatNameOverride) {
     if (!addCount || addCount <= 0) return false;
     const sorted = sortSeatsInRow(rowSeats);
     const base = sorted[sorted.length - 1];
@@ -15927,7 +15927,9 @@ function nudgeSelection(dxScreen, dyScreen) {
       const nameNums = rowSeats
         .map(s => parseInt(s.name, 10))
         .filter(n => Number.isFinite(n));
-      const nextName = nameNums.length ? String(Math.max(...nameNums) + 1) : String(rowSeats.length + 1);
+      const nextName = seatNameOverride != null
+        ? String(seatNameOverride)
+        : (nameNums.length ? String(Math.max(...nameNums) + 1) : String(rowSeats.length + 1));
       const offset = spacing * (i + 1);
       const x = base.vx + dirX * offset;
       const y = base.vy + dirY * offset;
@@ -16076,6 +16078,96 @@ function nudgeSelection(dxScreen, dyScreen) {
     seats.push(...newSeats);
     rebuildSeatLineIndex();
     return true;
+  }
+
+  function getStrictNumericName(value) {
+    const normalized = String(value ?? "").trim();
+    if (!/^-?\d+$/.test(normalized)) return null;
+    const number = Number(normalized);
+    return Number.isSafeInteger(number) ? number : null;
+  }
+
+  function getNextNumericName(items) {
+    if (!items?.length) return null;
+    const values = items.map((item) => getStrictNumericName(item?.name ?? item?.rowName));
+    if (values.some((value) => value == null)) return null;
+    return String(Math.max(...values) + 1);
+  }
+
+  function promptForQuickAddName(itemLabel) {
+    const response = prompt(`Cannot calculate the next ${itemLabel} name. Enter a name:`, "");
+    if (response == null) return null;
+    const name = String(response).trim();
+    if (!name) {
+      alert(`${itemLabel[0].toUpperCase()}${itemLabel.slice(1)} name is required.`);
+      return null;
+    }
+    return name;
+  }
+
+  function finishQuickAdd() {
+    updateCountsAfterSeatChange();
+    updatePriceRegionStatus();
+    updateEntryPointUi();
+    updateCodeFromSeats();
+    const newText = originalLines.join("\n");
+    if (codePane.value !== newText) codePane.value = newText;
+    renderCanvas();
+    hasUnsavedChanges = true;
+    updateSaveButton();
+    saveSessionToLocalStorage();
+    pushHistorySnapshot();
+  }
+
+  function quickAddToSelectedSection() {
+    if (selectionMode !== "section") return false;
+    const selectedSections = getSelectedSectionsForEdit();
+    if (selectedSections.length !== 1) return false;
+
+    const sectionId = selectedSections[0].sectionId;
+    const layout = getSectionRowLayout(sectionId);
+    if (!layout?.lastEntry?.seats?.length) return false;
+
+    let rowName = getNextNumericName(layout.entries.map((entry) => ({ name: entry.seats[0]?.rowName })));
+    if (rowName == null) {
+      rowName = promptForQuickAddName("row");
+      if (rowName == null) return false;
+    }
+
+    const defaults = getSectionRowDefaults(sectionId);
+    const added = addRowsToSection(sectionId, [{
+      name: rowName,
+      seatCount: defaults.seatCount,
+      startNumber: defaults.startNumber,
+      direction: defaults.direction
+    }]);
+    if (added) finishQuickAdd();
+    return added;
+  }
+
+  function quickAddToSelectedRow() {
+    if (selectionMode !== "row") return false;
+    const selectedRows = getSelectedRows();
+    if (selectedRows.size !== 1) return false;
+
+    const [rowId, rowSeats] = selectedRows.entries().next().value || [];
+    if (!rowId || !rowSeats?.length) return false;
+
+    let seatName = getNextNumericName(rowSeats);
+    if (seatName == null) {
+      seatName = promptForQuickAddName("seat");
+      if (seatName == null) return false;
+    }
+
+    const added = addSeatsToRow(rowId, rowSeats, 1, undefined, seatName);
+    if (added) finishQuickAdd();
+    return added;
+  }
+
+  function quickAddFromSelection() {
+    if (selectionMode === "section") return quickAddToSelectedSection();
+    if (selectionMode === "row") return quickAddToSelectedRow();
+    return false;
   }
 
   function buildAttributeModalList() {
@@ -17202,6 +17294,12 @@ function nudgeSelection(dxScreen, dyScreen) {
 
     // Om man skriver i textfält: inga fler genvägar
     if (isTextInput) return;
+
+    if ((e.key === "+" || e.code === "NumpadAdd") && !e.repeat) {
+      e.preventDefault();
+      quickAddFromSelection();
+      return;
+    }
 
     if (key === "delete") {
       if (!getSelectedSeats().length) return;
