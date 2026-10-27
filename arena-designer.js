@@ -4404,13 +4404,15 @@ codePane.addEventListener("input", () => {
     rows.forEach((rowSeats, rowId) => {
       if (rowSeats.length < 2) return;
       const orderedSeats = sortSeatsByPhysicalRowOrder(rowSeats);
-      const firstSeat = orderedSeats[0];
-      const lastSeat = orderedSeats[orderedSeats.length - 1];
-      if (getSeatIdSuffix(firstSeat?.seatId) === 1 || getSeatIdSuffix(lastSeat?.seatId) === 1) return;
+      const seatIdSequence = orderedSeats.map((seat) => getSeatIdSuffix(seat?.seatId));
+      const step = seatIdSequence[1] - seatIdSequence[0];
+      const isConsecutive = (step === 1 || step === -1) && seatIdSequence.every((seatId, index) => {
+        return Number.isFinite(seatId) && (index === 0 || seatId === seatIdSequence[index - 1] + step);
+      });
+      if (isConsecutive) return;
       issues.push({
         rowId,
-        firstSeatId: firstSeat?.seatId || "-",
-        lastSeatId: lastSeat?.seatId || "-"
+        seatIdSequence
       });
     });
     return issues.sort((first, second) => compareRowIdsForSort(first.rowId, second.rowId));
@@ -4482,12 +4484,16 @@ codePane.addEventListener("input", () => {
     if (seatIdOrderIssues.length) {
       const preview = seatIdOrderIssues
         .slice(0, 4)
-        .map((issue) => `${issue.rowId} (${issue.firstSeatId} → ${issue.lastSeatId})`)
+        .map((issue) => {
+          const sequence = issue.seatIdSequence.slice(0, 8).join(" → ");
+          const suffix = issue.seatIdSequence.length > 8 ? " → ..." : "";
+          return `${issue.rowId} (${sequence}${suffix})`;
+        })
         .join(", ");
       const suffix = seatIdOrderIssues.length > 4 ? `, +${seatIdOrderIssues.length - 4} more` : "";
       items.push({
         level: "warning",
-        text: `SeatId 1 is not at either end of ${seatIdOrderIssues.length} row(s): ${preview}${suffix}.`,
+        text: `SeatIds are not consecutive in ${seatIdOrderIssues.length} row(s): ${preview}${suffix}.`,
         action: { id: "select-seat-id-order-issues", label: "Select" }
       });
     }
