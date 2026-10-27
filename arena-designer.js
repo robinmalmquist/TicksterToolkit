@@ -9558,6 +9558,10 @@ codePane.addEventListener("input", () => {
     return ids;
   }
 
+  function getEntryPointSeatCount(entryPoint) {
+    return getEntryPointSeatIds(entryPoint).size;
+  }
+
   function renderEntryPointList() {
     if (!entryPointList) return;
     entryPointList.innerHTML = "";
@@ -9593,7 +9597,14 @@ codePane.addEventListener("input", () => {
       nameInput.dataset.entryPointId = entryPoint.id;
       nameInput.dataset.prevName = entryPoint.name || "";
 
+      const countBadge = document.createElement("span");
+      countBadge.className = "price-region-item__count";
+      countBadge.dataset.role = "entry-point-count";
+      countBadge.dataset.entryPointId = entryPoint.id;
+      countBadge.textContent = String(getEntryPointSeatCount(entryPoint));
+
       headerLeft.appendChild(nameInput);
+      headerLeft.appendChild(countBadge);
       header.appendChild(headerLeft);
 
       const actions = document.createElement("div");
@@ -9630,19 +9641,23 @@ codePane.addEventListener("input", () => {
   function updateEntryPointUi() {
     if (!entryPointList) return;
     const hasSelection = getSelectedSeats().length > 0;
+    entryPointList.querySelectorAll("[data-role='entry-point-count']").forEach((badge) => {
+      const entryPoint = entryPoints.find((ep) => ep.id === badge.dataset.entryPointId);
+      badge.textContent = String(entryPoint ? getEntryPointSeatCount(entryPoint) : 0);
+    });
     entryPointList.querySelectorAll("[data-role='entry-point-add']").forEach((btn) => {
       btn.disabled = !hasSelection;
     });
     entryPointList.querySelectorAll("[data-role='entry-point-mark']").forEach((btn) => {
       const entryPointId = btn.dataset.entryPointId;
       const entryPoint = entryPoints.find(ep => ep.id === entryPointId);
-      const hasItems = entryPoint ? getEntryPointSeatIds(entryPoint).size > 0 : false;
+      const hasItems = entryPoint ? getEntryPointSeatCount(entryPoint) > 0 : false;
       btn.disabled = !hasItems;
     });
     entryPointList.querySelectorAll("[data-role='entry-point-clear']").forEach((btn) => {
       const entryPointId = btn.dataset.entryPointId;
       const entryPoint = entryPoints.find(ep => ep.id === entryPointId);
-      const hasItems = entryPoint ? getEntryPointSeatIds(entryPoint).size > 0 : false;
+      const hasItems = entryPoint ? getEntryPointSeatCount(entryPoint) > 0 : false;
       btn.disabled = !hasItems;
     });
     scheduleValidationPanelRefresh();
