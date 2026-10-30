@@ -35,8 +35,11 @@
   const appMenuToggleBtn = document.getElementById("appMenuToggleBtn");
   const appMenuOverlay = document.getElementById("appMenuOverlay");
   const appMenuPanel = document.getElementById("appMenuPanel");
-  const recentProjectsSection = document.getElementById("recentProjectsSection");
+  const recentProjectsToggleBtn = document.getElementById("recentProjectsToggleBtn");
+  const recentProjectsOverlay = document.getElementById("recentProjectsOverlay");
+  const recentProjectsClose = document.getElementById("recentProjectsClose");
   const recentProjectsList = document.getElementById("recentProjectsList");
+  const clearRecentProjectsBtn = document.getElementById("clearRecentProjectsBtn");
   const displaySettingsBtn = document.getElementById("displaySettingsBtn");
   const displaySettingsClose = document.getElementById("displaySettingsClose");
   const displaySettingsOverlay = document.getElementById("displaySettingsOverlay");
@@ -578,6 +581,7 @@
   let activeSeatBlockId = "";
   let lastDirectoryHandle = null;
   let lastExportDirectoryHandle = null;
+  let recentLayoutRecords = [];
 
   function setSeatLabelMode(mode, syncUI = true) {
     seatLabelMode = mode || "none";
@@ -833,7 +837,7 @@
   const DB_RECENT_LAYOUTS_STORE = "recentLayouts";
   const DB_HANDLE_KEY_CURRENT = "current";
   const DB_HANDLE_KEY_LAST_EXPORT_DIRECTORY = "lastExportDirectory";
-  const MAX_RECENT_LAYOUTS = 20;
+  const MAX_RECENT_LAYOUTS = 30;
 
   const supportsOpenPicker = typeof window.showOpenFilePicker === "function";
   const supportsSavePicker = typeof window.showSaveFilePicker === "function";
@@ -3191,6 +3195,7 @@ codePane.addEventListener("input", () => {
   }
 
   async function openFile() {
+    if (!confirmLayoutChange()) return;
     if (supportsOpenPicker) {
       await handleOpenViaPicker();
     } else {
@@ -9980,16 +9985,27 @@ codePane.addEventListener("input", () => {
   }
 
   async function renderRecentProjects() {
-    if (!recentProjectsSection || !recentProjectsList) return;
+    if (!recentProjectsList || !recentProjectsToggleBtn) return;
     if (!supportsOpenPicker) {
-      recentProjectsSection.hidden = true;
-      recentProjectsList.innerHTML = "";
+      recentProjectsToggleBtn.disabled = true;
+      if (clearRecentProjectsBtn) clearRecentProjectsBtn.disabled = true;
+      recentLayoutRecords = [];
+      recentProjectsList.textContent = "Recent projects are unavailable in this browser.";
       return;
     }
 
     const records = (await loadRecentLayoutRecordsFromDB()).slice(0, MAX_RECENT_LAYOUTS);
+    recentLayoutRecords = records;
     recentProjectsList.innerHTML = "";
-    recentProjectsSection.hidden = !records.length;
+    recentProjectsToggleBtn.disabled = false;
+    if (clearRecentProjectsBtn) clearRecentProjectsBtn.disabled = !records.length;
+    if (!records.length) {
+      const empty = document.createElement("div");
+      empty.className = "u-font--small";
+      empty.textContent = "No recent projects yet.";
+      recentProjectsList.appendChild(empty);
+      return;
+    }
     records.forEach((record) => {
       const button = document.createElement("button");
       button.type = "button";
@@ -10018,9 +10034,6 @@ codePane.addEventListener("input", () => {
       recentProjectsList.appendChild(button);
     });
 
-    if (appMenuOverlay?.classList.contains("open")) {
-      window.requestAnimationFrame(positionAppMenuPanel);
-    }
   }
 
   async function requestRecentLayoutReadPermission(handle) {
@@ -10040,9 +10053,14 @@ codePane.addEventListener("input", () => {
   }
 
   async function openRecentProject(recordId) {
-    const records = await loadRecentLayoutRecordsFromDB();
-    const record = records.find((item) => item?.id === recordId);
+    let record = recentLayoutRecords.find((item) => item?.id === recordId);
+    if (!record) {
+      const records = await loadRecentLayoutRecordsFromDB();
+      record = records.find((item) => item?.id === recordId);
+    }
     if (!record?.fileHandle) return false;
+    if (!confirmLayoutChange()) return false;
+    closeRecentProjectsModal();
 
     const hasPermission = await requestRecentLayoutReadPermission(record.fileHandle);
     if (!hasPermission) {
@@ -10068,7 +10086,27 @@ codePane.addEventListener("input", () => {
 
   async function clearRecentProjects() {
     await clearRecentLayoutRecordsFromDB();
+    recentLayoutRecords = [];
     await renderRecentProjects();
+  }
+
+  async function openRecentProjectsModal() {
+    if (!recentProjectsOverlay || !supportsOpenPicker) return;
+    await renderRecentProjects();
+    recentProjectsOverlay.style.display = "flex";
+    window.setTimeout(() => {
+      recentProjectsList?.querySelector("[data-role='recent-project-open']")?.focus()
+        || recentProjectsClose?.focus();
+    }, 0);
+  }
+
+  function closeRecentProjectsModal() {
+    if (recentProjectsOverlay) recentProjectsOverlay.style.display = "none";
+  }
+
+  function confirmLayoutChange() {
+    if (!hasUnsavedChanges) return true;
+    return confirm("You have unsaved changes. Open another layout without saving?");
   }
 
   function openAppMenu() {
@@ -10136,6 +10174,7 @@ codePane.addEventListener("input", () => {
     closeEntryPointModal();
     closeGoodnessModal();
     closeHighlightSeatsModal();
+    closeRecentProjectsModal();
     closeCodeModal();
     if (confirmAltSectionManager) {
       requestCloseAltSectionManager(altSectionConfirmMessage);
@@ -10279,20 +10318,25 @@ codePane.addEventListener("input", () => {
     if (e.target === appMenuOverlay) closeAppMenu();
   });
   appMenuPanel?.addEventListener("click", async (e) => {
-    const recentProjectButton = e.target.closest("[data-role='recent-project-open']");
-    if (recentProjectButton) {
-      await openRecentProject(recentProjectButton.dataset.recentProjectId || "");
+    if (e.target.closest("#recentProjectsToggleBtn")) {
       closeAppMenu();
-      return;
-    }
-    if (e.target.closest("#clearRecentProjectsBtn")) {
-      await clearRecentProjects();
+      await openRecentProjectsModal();
       return;
     }
     const clickedButton = e.target.closest("button");
     if (!clickedButton || clickedButton.disabled) return;
     window.setTimeout(closeAppMenu, 0);
   });
+  recentProjectsClose?.addEventListener("click", closeRecentProjectsModal);
+  recentProjectsOverlay?.addEventListener("click", (e) => {
+    if (e.target === recentProjectsOverlay) closeRecentProjectsModal();
+  });
+  recentProjectsList?.addEventListener("click", async (e) => {
+    const recentProjectButton = e.target.closest("[data-role='recent-project-open']");
+    if (!recentProjectButton) return;
+    await openRecentProject(recentProjectButton.dataset.recentProjectId || "");
+  });
+  clearRecentProjectsBtn?.addEventListener("click", clearRecentProjects);
 
   exportBtn?.addEventListener("click", openExportModal);
   exportCancel?.addEventListener("click", closeExportModal);

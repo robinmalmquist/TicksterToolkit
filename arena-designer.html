@@ -411,13 +411,9 @@
         <button id="openFileBtnTop" class="c-button c-button--color-blue c-button--icon-left" data-icon="">
           Open layout
         </button>
-        <section id="recentProjectsSection" class="app-menu__recent-projects" aria-labelledby="recentProjectsTitle" hidden>
-          <div class="app-menu__recent-projects-header">
-            <span id="recentProjectsTitle">Recent projects</span>
-            <button id="clearRecentProjectsBtn" class="c-button c-button--color-white c-button--small" type="button">Clear</button>
-          </div>
-          <div id="recentProjectsList" class="app-menu__recent-projects-list"></div>
-        </section>
+        <button id="recentProjectsToggleBtn" class="c-button c-button--color-blue c-button--icon-left" type="button" data-icon="" aria-haspopup="dialog" aria-controls="recentProjectsOverlay" disabled>
+          Recent projects
+        </button>
         <button id="saveBtn" class="c-button c-button--color-blue c-button--icon-left" data-icon="" disabled>
           Save layout
         </button>
@@ -641,6 +637,21 @@
         <button id="newLayoutCancel" class="c-button c-button--color-white c-button--small">Cancel</button>
         <button id="newLayoutStart" class="c-button c-button--color-blue c-button--small">Create</button>
       </div>
+    </div>
+  </div>
+
+  <div id="recentProjectsOverlay">
+    <div id="recentProjectsModal" role="dialog" aria-modal="true" aria-labelledby="recentProjectsTitle">
+      <header>
+        <h3 id="recentProjectsTitle">Recent projects</h3>
+        <button id="recentProjectsClose" type="button" class="c-button c-button--color-white c-button--small">Close</button>
+      </header>
+      <main>
+        <div id="recentProjectsList" class="recent-projects-modal__list" aria-live="polite"></div>
+      </main>
+      <footer>
+        <button id="clearRecentProjectsBtn" class="c-button c-button--color-red c-button--small" type="button">Clear recent projects</button>
+      </footer>
     </div>
   </div>
 

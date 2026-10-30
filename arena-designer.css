@@ -1294,6 +1294,7 @@
     #priceRegionOrderOverlay,
     #entryPointOverlay,
     #goodnessOverlay,
+    #recentProjectsOverlay,
     #exportOverlay,
     #helpOverlay,
     #seatEditOverlay,
@@ -1317,7 +1318,8 @@
     #priceRegionModal,
     #priceRegionOrderModal,
     #entryPointModal,
-    #goodnessModal {
+    #goodnessModal,
+    #recentProjectsModal {
       background: var(--card-bg);
       border-radius: 12px;
       padding: 1rem;
@@ -1348,6 +1350,29 @@
     #entryPointModal,
     #goodnessModal {
       width: min(420px, 92vw);
+    }
+
+    #recentProjectsModal {
+      width: min(640px, 92vw);
+      max-height: min(76vh, 720px);
+      overflow: hidden;
+    }
+
+    #recentProjectsModal header,
+    #recentProjectsModal footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--size-2);
+    }
+
+    #recentProjectsModal header h3 {
+      margin: 0;
+    }
+
+    #recentProjectsModal main {
+      min-height: 0;
+      overflow-y: auto;
     }
 
     #helpModal {
@@ -1919,42 +1944,15 @@
       padding-inline: 0.75rem;
     }
 
-    .app-menu__recent-projects {
-      display: grid;
-      gap: var(--size-1);
-      padding-block: var(--size-1);
-      border-block: 1px solid var(--color-border);
-    }
-
-    .app-menu__recent-projects-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: var(--size-2);
-      color: var(--color-text-muted);
-      font-family: var(--font-mono);
-      font-size: var(--font-size-0);
-      font-weight: var(--font-weight-7);
-      letter-spacing: var(--font-letterspacing-2);
-      text-transform: uppercase;
-    }
-
-    #appMenuPanel .app-menu__recent-projects-header .c-button {
-      width: auto;
-      padding-inline: var(--size-2);
-      font-family: var(--font-sans);
-      font-size: var(--font-size-0);
-      letter-spacing: normal;
-      text-transform: none;
-    }
-
-    .app-menu__recent-projects-list {
+    .recent-projects-modal__list {
       display: grid;
       gap: var(--size-1);
     }
 
-    #appMenuPanel .app-menu__recent-project {
+    #recentProjectsModal .app-menu__recent-project {
+      width: 100%;
       min-width: 0;
+      justify-content: flex-start;
       gap: var(--size-2);
     }
 
@@ -3446,6 +3444,7 @@
     html[data-theme="dark"] #duplicateSectionModal,
     html[data-theme="dark"] #exportModal,
     html[data-theme="dark"] #helpModal,
+    html[data-theme="dark"] #recentProjectsModal,
     html[data-theme="dark"] #goodnessModal,
     html[data-theme="dark"] #seatEditModal,
     html[data-theme="dark"] #seatNameEditModal,
@@ -3600,6 +3599,7 @@
     html[data-theme="dark"] #altSectionManagerOverlay,
     html[data-theme="dark"] #exportOverlay,
     html[data-theme="dark"] #helpOverlay,
+    html[data-theme="dark"] #recentProjectsOverlay,
     html[data-theme="dark"] #goodnessOverlay,
     html[data-theme="dark"] #seatEditOverlay,
     html[data-theme="dark"] #seatNameEditOverlay,
@@ -3614,6 +3614,7 @@
     html[data-theme="dark"] #exportModal h3,
     html[data-theme="dark"] #duplicateSectionModal h3,
     html[data-theme="dark"] #helpModal h3,
+    html[data-theme="dark"] #recentProjectsModal h3,
     html[data-theme="dark"] #goodnessModal h3,
     html[data-theme="dark"] #seatEditModal h3,
     html[data-theme="dark"] #seatNameEditModal h3,
