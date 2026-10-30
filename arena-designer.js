@@ -35,6 +35,8 @@
   const appMenuToggleBtn = document.getElementById("appMenuToggleBtn");
   const appMenuOverlay = document.getElementById("appMenuOverlay");
   const appMenuPanel = document.getElementById("appMenuPanel");
+  const recentProjectsSection = document.getElementById("recentProjectsSection");
+  const recentProjectsList = document.getElementById("recentProjectsList");
   const displaySettingsBtn = document.getElementById("displaySettingsBtn");
   const displaySettingsClose = document.getElementById("displaySettingsClose");
   const displaySettingsOverlay = document.getElementById("displaySettingsOverlay");
@@ -825,11 +827,13 @@
   const SESSION_STORAGE_KEY = "arenaEditorSessionV1";
 
   const DB_NAME = "arenaEditorFileHandles";
-  const DB_VERSION = 2;
+  const DB_VERSION = 3;
   const DB_STORE = "handles";
   const DB_EXPORT_PREFS_STORE = "layoutExportPrefs";
+  const DB_RECENT_LAYOUTS_STORE = "recentLayouts";
   const DB_HANDLE_KEY_CURRENT = "current";
   const DB_HANDLE_KEY_LAST_EXPORT_DIRECTORY = "lastExportDirectory";
+  const MAX_RECENT_LAYOUTS = 20;
 
   const supportsOpenPicker = typeof window.showOpenFilePicker === "function";
   const supportsSavePicker = typeof window.showSaveFilePicker === "function";
@@ -2607,6 +2611,9 @@ function openHandleDB() {
       if (!db.objectStoreNames.contains(DB_EXPORT_PREFS_STORE)) {
         db.createObjectStore(DB_EXPORT_PREFS_STORE, { keyPath: "id" });
       }
+      if (!db.objectStoreNames.contains(DB_RECENT_LAYOUTS_STORE)) {
+        db.createObjectStore(DB_RECENT_LAYOUTS_STORE, { keyPath: "id" });
+      }
     };
     req.onsuccess = (e) => {
       resolve(e.target.result);
@@ -2683,6 +2690,120 @@ async function clearCurrentFileHandleInDB() {
   } catch (err) {
     console.warn("Kunde inte rensa fileHandle i IndexedDB:", err);
   }
+}
+
+function buildRecentLayoutRecordId() {
+  return `recent-layout-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+}
+
+function sortRecentLayoutRecords(records) {
+  return [...records].sort((first, second) => Number(second?.openedAt || 0) - Number(first?.openedAt || 0));
+}
+
+async function loadRecentLayoutRecordsFromDB() {
+  if (!("indexedDB" in window)) return [];
+  try {
+    const db = await openHandleDB();
+    return await new Promise((resolve, reject) => {
+      const tx = db.transaction(DB_RECENT_LAYOUTS_STORE, "readonly");
+      const req = tx.objectStore(DB_RECENT_LAYOUTS_STORE).getAll();
+      req.onsuccess = () => {
+        const records = Array.isArray(req.result) ? req.result.filter((record) => record?.fileHandle) : [];
+        db.close();
+        resolve(sortRecentLayoutRecords(records));
+      };
+      req.onerror = (e) => {
+        db.close();
+        reject(e.target.error || new Error("getAll recent layouts failed"));
+      };
+    });
+  } catch (err) {
+    console.warn("Kunde inte läsa senaste projekt från IndexedDB:", err);
+    return [];
+  }
+}
+
+async function saveRecentLayoutRecordToDB(record) {
+  if (!record?.fileHandle || !("indexedDB" in window)) return;
+  try {
+    const db = await openHandleDB();
+    await new Promise((resolve, reject) => {
+      const tx = db.transaction(DB_RECENT_LAYOUTS_STORE, "readwrite");
+      tx.objectStore(DB_RECENT_LAYOUTS_STORE).put(record);
+      tx.oncomplete = resolve;
+      tx.onerror = (e) => reject(e.target.error || new Error("save recent layout failed"));
+      tx.onabort = () => reject(tx.error || new Error("save recent layout aborted"));
+    });
+    db.close();
+  } catch (err) {
+    console.warn("Kunde inte spara senaste projekt i IndexedDB:", err);
+  }
+}
+
+async function deleteRecentLayoutRecordsFromDB(recordIds) {
+  const ids = Array.from(new Set(recordIds || [])).filter(Boolean);
+  if (!ids.length || !("indexedDB" in window)) return;
+  try {
+    const db = await openHandleDB();
+    await new Promise((resolve, reject) => {
+      const tx = db.transaction(DB_RECENT_LAYOUTS_STORE, "readwrite");
+      const store = tx.objectStore(DB_RECENT_LAYOUTS_STORE);
+      ids.forEach((id) => store.delete(id));
+      tx.oncomplete = resolve;
+      tx.onerror = (e) => reject(e.target.error || new Error("delete recent layouts failed"));
+      tx.onabort = () => reject(tx.error || new Error("delete recent layouts aborted"));
+    });
+    db.close();
+  } catch (err) {
+    console.warn("Kunde inte rensa senaste projekt från IndexedDB:", err);
+  }
+}
+
+async function clearRecentLayoutRecordsFromDB() {
+  if (!("indexedDB" in window)) return;
+  try {
+    const db = await openHandleDB();
+    await new Promise((resolve, reject) => {
+      const tx = db.transaction(DB_RECENT_LAYOUTS_STORE, "readwrite");
+      tx.objectStore(DB_RECENT_LAYOUTS_STORE).clear();
+      tx.oncomplete = resolve;
+      tx.onerror = (e) => reject(e.target.error || new Error("clear recent layouts failed"));
+      tx.onabort = () => reject(tx.error || new Error("clear recent layouts aborted"));
+    });
+    db.close();
+  } catch (err) {
+    console.warn("Kunde inte rensa alla senaste projekt från IndexedDB:", err);
+  }
+}
+
+async function findMatchingRecentLayoutRecord(records, handle) {
+  if (!handle || typeof handle.isSameEntry !== "function") return null;
+  for (const record of records) {
+    const savedHandle = record?.fileHandle;
+    if (!savedHandle) continue;
+    try {
+      if (await handle.isSameEntry(savedHandle)) return record;
+    } catch (_) {}
+  }
+  return null;
+}
+
+async function rememberRecentLayout(handle, fileName = "") {
+  if (!supportsOpenPicker || !handle) return;
+  const records = await loadRecentLayoutRecordsFromDB();
+  const matchingRecord = await findMatchingRecentLayoutRecord(records, handle);
+  const record = {
+    id: matchingRecord?.id || buildRecentLayoutRecordId(),
+    fileHandle: handle,
+    fileName: String(fileName || handle.name || "Untitled layout").trim() || "Untitled layout",
+    openedAt: Date.now()
+  };
+  await saveRecentLayoutRecordToDB(record);
+
+  const retainedRecords = sortRecentLayoutRecords(await loadRecentLayoutRecordsFromDB());
+  const excessIds = retainedRecords.slice(MAX_RECENT_LAYOUTS).map((item) => item.id);
+  if (excessIds.length) await deleteRecentLayoutRecordsFromDB(excessIds);
+  if (appMenuOverlay?.classList.contains("open")) void renderRecentProjects();
 }
 
 async function loadAllExportPrefsRecordsFromDB() {
@@ -2942,6 +3063,7 @@ codePane.addEventListener("input", () => {
     loadSeatBlocksFromStorage();
     loadGoodnessSettingsFromStorage();
     saveCurrentFileHandleToDB(handle);
+    void rememberRecentLayout(handle, currentFileName);
   }
 
   async function handleOpenViaPicker() {
@@ -3007,6 +3129,7 @@ codePane.addEventListener("input", () => {
       hasUnsavedChanges = false;
       updateSaveButton();
       saveCurrentFileHandleToDB(handle);
+      void rememberRecentLayout(handle, currentFileName);
       saveSessionToLocalStorage();
       return true;
     } catch (err) {
@@ -9850,11 +9973,110 @@ codePane.addEventListener("input", () => {
     appMenuPanel.style.top = `${top}px`;
   }
 
+  function formatRecentLayoutDate(value) {
+    const date = new Date(Number(value));
+    if (Number.isNaN(date.getTime())) return "Opened previously";
+    return `Opened ${date.toLocaleString("sv-SE", { dateStyle: "short", timeStyle: "short" })}`;
+  }
+
+  async function renderRecentProjects() {
+    if (!recentProjectsSection || !recentProjectsList) return;
+    if (!supportsOpenPicker) {
+      recentProjectsSection.hidden = true;
+      recentProjectsList.innerHTML = "";
+      return;
+    }
+
+    const records = (await loadRecentLayoutRecordsFromDB()).slice(0, MAX_RECENT_LAYOUTS);
+    recentProjectsList.innerHTML = "";
+    recentProjectsSection.hidden = !records.length;
+    records.forEach((record) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "c-button c-button--color-white c-button--small app-menu__recent-project";
+      button.dataset.role = "recent-project-open";
+      button.dataset.recentProjectId = record.id;
+      button.title = `Open ${record.fileName || "layout"}`;
+
+      const icon = document.createElement("span");
+      icon.className = "material-symbols-outlined app-menu__recent-project-icon";
+      icon.setAttribute("aria-hidden", "true");
+      icon.textContent = "history";
+
+      const copy = document.createElement("span");
+      copy.className = "app-menu__recent-project-copy";
+      const name = document.createElement("span");
+      name.className = "app-menu__recent-project-name";
+      name.textContent = record.fileName || "Untitled layout";
+      const meta = document.createElement("span");
+      meta.className = "app-menu__recent-project-meta";
+      meta.textContent = formatRecentLayoutDate(record.openedAt);
+      copy.appendChild(name);
+      copy.appendChild(meta);
+      button.appendChild(icon);
+      button.appendChild(copy);
+      recentProjectsList.appendChild(button);
+    });
+
+    if (appMenuOverlay?.classList.contains("open")) {
+      window.requestAnimationFrame(positionAppMenuPanel);
+    }
+  }
+
+  async function requestRecentLayoutReadPermission(handle) {
+    if (!handle) return false;
+    const options = { mode: "read" };
+    try {
+      if (typeof handle.queryPermission === "function") {
+        const state = await handle.queryPermission(options);
+        if (state === "granted") return true;
+      }
+      if (typeof handle.requestPermission !== "function") return false;
+      return await handle.requestPermission(options) === "granted";
+    } catch (err) {
+      console.warn("Kunde inte verifiera läsbehörighet för senaste projekt:", err);
+      return false;
+    }
+  }
+
+  async function openRecentProject(recordId) {
+    const records = await loadRecentLayoutRecordsFromDB();
+    const record = records.find((item) => item?.id === recordId);
+    if (!record?.fileHandle) return false;
+
+    const hasPermission = await requestRecentLayoutReadPermission(record.fileHandle);
+    if (!hasPermission) {
+      fileInfo.textContent = `Permission needed to open ${record.fileName || "layout"}.`;
+      return false;
+    }
+
+    try {
+      await loadTltFromHandle(record.fileHandle);
+      return true;
+    } catch (err) {
+      if (err?.name === "NotFoundError") {
+        await deleteRecentLayoutRecordsFromDB([record.id]);
+        await renderRecentProjects();
+        fileInfo.textContent = `${record.fileName || "Layout"} is no longer available.`;
+        return false;
+      }
+      console.warn("Kunde inte öppna senaste projekt:", err);
+      fileInfo.textContent = `Could not open ${record.fileName || "layout"}.`;
+      return false;
+    }
+  }
+
+  async function clearRecentProjects() {
+    await clearRecentLayoutRecordsFromDB();
+    await renderRecentProjects();
+  }
+
   function openAppMenu() {
     if (!appMenuOverlay || !appMenuToggleBtn) return;
     appMenuOverlay.classList.add("open");
     appMenuOverlay.setAttribute("aria-hidden", "false");
     appMenuToggleBtn.setAttribute("aria-expanded", "true");
+    void renderRecentProjects();
     window.requestAnimationFrame(() => {
       positionAppMenuPanel();
       appMenuPanel?.querySelector("button:not(:disabled)")?.focus();
@@ -9975,6 +10197,7 @@ codePane.addEventListener("input", () => {
             hasUnsavedChanges = false;
             updateSaveButton();
             saveCurrentFileHandleToDB(handle);
+            void rememberRecentLayout(handle, currentFileName);
             createdFile = true;
           }
         }
@@ -10055,7 +10278,17 @@ codePane.addEventListener("input", () => {
   appMenuOverlay?.addEventListener("click", (e) => {
     if (e.target === appMenuOverlay) closeAppMenu();
   });
-  appMenuPanel?.addEventListener("click", (e) => {
+  appMenuPanel?.addEventListener("click", async (e) => {
+    const recentProjectButton = e.target.closest("[data-role='recent-project-open']");
+    if (recentProjectButton) {
+      await openRecentProject(recentProjectButton.dataset.recentProjectId || "");
+      closeAppMenu();
+      return;
+    }
+    if (e.target.closest("#clearRecentProjectsBtn")) {
+      await clearRecentProjects();
+      return;
+    }
     const clickedButton = e.target.closest("button");
     if (!clickedButton || clickedButton.disabled) return;
     window.setTimeout(closeAppMenu, 0);

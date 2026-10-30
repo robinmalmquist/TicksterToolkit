@@ -1919,6 +1919,69 @@
       padding-inline: 0.75rem;
     }
 
+    .app-menu__recent-projects {
+      display: grid;
+      gap: var(--size-1);
+      padding-block: var(--size-1);
+      border-block: 1px solid var(--color-border);
+    }
+
+    .app-menu__recent-projects-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--size-2);
+      color: var(--color-text-muted);
+      font-family: var(--font-mono);
+      font-size: var(--font-size-0);
+      font-weight: var(--font-weight-7);
+      letter-spacing: var(--font-letterspacing-2);
+      text-transform: uppercase;
+    }
+
+    #appMenuPanel .app-menu__recent-projects-header .c-button {
+      width: auto;
+      padding-inline: var(--size-2);
+      font-family: var(--font-sans);
+      font-size: var(--font-size-0);
+      letter-spacing: normal;
+      text-transform: none;
+    }
+
+    .app-menu__recent-projects-list {
+      display: grid;
+      gap: var(--size-1);
+    }
+
+    #appMenuPanel .app-menu__recent-project {
+      min-width: 0;
+      gap: var(--size-2);
+    }
+
+    .app-menu__recent-project-icon {
+      color: var(--color-text-muted);
+      font-size: var(--font-size-3);
+    }
+
+    .app-menu__recent-project-copy {
+      display: grid;
+      min-width: 0;
+      gap: var(--size-0);
+      text-align: left;
+    }
+
+    .app-menu__recent-project-name,
+    .app-menu__recent-project-meta {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .app-menu__recent-project-meta {
+      color: var(--color-text-muted);
+      font-size: var(--font-size-0);
+    }
+
     #appMenuToggleBtn .menu-toggle__icon {
       width: 0.95rem;
       height: 0.75rem;
