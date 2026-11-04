@@ -475,6 +475,11 @@
             <span>Import</span>
           </button>
           <input type="file" id="altSectionImportExcelInput" accept=".xlsx,.xls" class="u-hidden" />
+          <button id="altSectionImportTltBtn" class="c-button c-button--color-blue section-list__action" title="Import sections from TLT">
+            <span class="material-symbols-outlined" aria-hidden="true">upload_file</span>
+            <span>Import sections from TLT</span>
+          </button>
+          <input type="file" id="altSectionImportTltInput" accept=".tlt" class="u-hidden" />
           <button id="altSectionCreateBtn" class="c-button c-button--color-green section-list__action" title="New section">
             <span class="material-symbols-outlined" aria-hidden="true">add_circle</span>
             <span>Add</span>
@@ -526,6 +531,13 @@
           <div id="altSectionCards" class="section-cards"></div>
         </aside>
         <div class="section-editor section-editor--alt">
+          <div id="altImportedSectionNotice" class="alt-imported-section-notice" hidden>
+            <span class="material-symbols-outlined" aria-hidden="true">lock</span>
+            <div>
+              <strong>Imported TLT section</strong>
+              <p>This section keeps its original layout and cannot be edited in the grid. You can still rename it in the section list.</p>
+            </div>
+          </div>
           <div class="alt-section-workarea">
             <div class="alt-section-canvas-wrap" id="altSectionCanvasWrap">
               <canvas id="altSectionCanvas" class="alt-section-canvas"></canvas>
@@ -622,6 +634,23 @@
           </fieldset>
         </div>
       </div>
+    </div>
+  </div>
+  <div id="tltSectionImportOverlay" aria-hidden="true">
+    <div id="tltSectionImportModal" class="c-modal" role="dialog" aria-modal="true" aria-labelledby="tltSectionImportTitle">
+      <header>
+        <div>
+          <h3 id="tltSectionImportTitle">Import sections from TLT</h3>
+          <p id="tltSectionImportHint" class="tlt-section-import__hint"></p>
+        </div>
+      </header>
+      <main>
+        <div id="tltSectionImportList" class="tlt-section-import__list" role="group" aria-label="Sections available to import"></div>
+      </main>
+      <footer>
+        <button id="tltSectionImportCancel" class="c-button c-button--color-white c-button--small" type="button">Cancel</button>
+        <button id="tltSectionImportAdd" class="c-button c-button--color-green c-button--small" type="button">Add</button>
+      </footer>
     </div>
   </div>
   <div id="altSeatTooltip" class="alt-seat-tooltip">Sista plats: 1</div>

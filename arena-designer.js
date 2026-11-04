@@ -437,8 +437,17 @@
   const altSectionCardsEl = document.getElementById("altSectionCards");
   const altSectionImportExcelBtn = document.getElementById("altSectionImportExcelBtn");
   const altSectionImportExcelInput = document.getElementById("altSectionImportExcelInput");
+  const altSectionImportTltBtn = document.getElementById("altSectionImportTltBtn");
+  const altSectionImportTltInput = document.getElementById("altSectionImportTltInput");
+  const tltSectionImportOverlay = document.getElementById("tltSectionImportOverlay");
+  const tltSectionImportHint = document.getElementById("tltSectionImportHint");
+  const tltSectionImportList = document.getElementById("tltSectionImportList");
+  const tltSectionImportCancel = document.getElementById("tltSectionImportCancel");
+  const tltSectionImportAdd = document.getElementById("tltSectionImportAdd");
   const altSectionCreateBtn = document.getElementById("altSectionCreateBtn");
   const altSectionDirtyFlag = document.getElementById("altSectionDirtyFlag");
+  const altSectionEditor = document.querySelector(".section-editor--alt");
+  const altImportedSectionNotice = document.getElementById("altImportedSectionNotice");
   const altSectionCanvasWrap = document.getElementById("altSectionCanvasWrap");
   const altSectionCanvas = document.getElementById("altSectionCanvas");
   const altSeatTooltip = document.getElementById("altSeatTooltip");
@@ -720,6 +729,7 @@
   let sectionDrafts = [];
   let activeSectionDraftId = null;
   let sectionDirty = false;
+  let pendingTltSectionImports = [];
   let activePriceRegionStaleRegionId = "";
   let duplicateSectionSourceIds = [];
   let priceRegionOrderDraggingRegionId = "";
@@ -5283,6 +5293,7 @@ codePane.addEventListener("input", () => {
       isOverlayOpen(rowEditOverlay) ||
       isOverlayOpen(sectionEditOverlay) ||
       isOverlayOpen(highlightSeatsOverlay) ||
+      isOverlayOpen(tltSectionImportOverlay) ||
       isOverlayOpen(codeModalOverlay)
     );
   }
@@ -10176,6 +10187,7 @@ codePane.addEventListener("input", () => {
     closeHighlightSeatsModal();
     closeRecentProjectsModal();
     closeCodeModal();
+    closeTltSectionImportModal();
     if (confirmAltSectionManager) {
       requestCloseAltSectionManager(altSectionConfirmMessage);
     } else {
@@ -16998,6 +17010,10 @@ function nudgeSelection(dxScreen, dyScreen) {
 
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") {
+      if (tltSectionImportOverlay?.style.display === "flex") {
+        closeTltSectionImportModal();
+        return;
+      }
       if (!altSectionSettingsMenu?.hidden) {
         setAltSectionSettingsOpen(false);
         return;
@@ -18153,6 +18169,9 @@ function nudgeSelection(dxScreen, dyScreen) {
     seats.forEach((s) => {
       if (s.sectionId) ids.add(s.sectionId);
     });
+    sectionDrafts.forEach((draft) => {
+      if (draft?.sectionId) ids.add(draft.sectionId);
+    });
     return ids;
   }
 
@@ -18165,6 +18184,415 @@ function nudgeSelection(dxScreen, dyScreen) {
     });
     const nextMajor = maxMajor > 0 ? maxMajor + 1 : 1;
     return `${nextMajor}.1`;
+  }
+
+  function getTltLineField(line, fieldName) {
+    const safeName = String(fieldName || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const match = String(line || "").match(new RegExp(`(?:^|\\|)${safeName}=([^|]*)`));
+    return match ? match[1] : "";
+  }
+
+  function getSectionIdFromTltEntityId(entityId) {
+    const parts = String(entityId || "").split(".");
+    return parts.length >= 2 ? `${parts[0]}.${parts[1]}` : "";
+  }
+
+  function parseTltImportOutlineLine(rawLine) {
+    const line = String(rawLine || "");
+    const outlineStart = line.indexOf("<Outline|");
+    const polyIndex = line.indexOf("[Poly|");
+    if (outlineStart < 0 || polyIndex < 0 || outlineStart >= polyIndex) return null;
+    const prefixPart = line.slice(outlineStart + "<Outline|".length, polyIndex);
+    const prefixTokens = prefixPart.split("|").filter(Boolean);
+    if (prefixTokens[2] && prefixTokens[2] !== "1") return null;
+    const sectionId = outlineCodeToSectionId(prefixTokens[0]) || "";
+    if (!sectionId) return null;
+
+    const polyPart = line.slice(polyIndex + 6).replace(/[\]>]/g, "");
+    const tokens = polyPart.split("|");
+    const coords = [];
+    for (let i = 3; i < tokens.length; i++) {
+      const [rawX, rawY] = String(tokens[i] || "").split(",");
+      const x = Number.parseFloat(rawX);
+      const y = Number.parseFloat(rawY);
+      if (Number.isFinite(x) && Number.isFinite(y)) coords.push({ x, y });
+    }
+    if (coords.length < 2) return null;
+
+    return {
+      sectionId,
+      sectionName: prefixTokens[1] || "",
+      coords,
+      beforePoly: line.slice(0, polyIndex),
+      suffix: line.includes("|]>") ? "|]>" : (line.includes("]>") ? "]>" : "]"),
+      headerTokens: tokens.slice(0, 3),
+      prefixTokens
+    };
+  }
+
+  function parseTltSeatForImport(line, sectionName, rowName) {
+    const seatId = getTltLineField(line, "SeatId");
+    const parts = seatId.split(".");
+    if (parts.length < 4) return null;
+    const sectionId = `${parts[0]}.${parts[1]}`;
+    const rowId = `${parts[0]}.${parts[1]}.${parts[2]}`;
+    const centerX = Number.parseFloat(getTltLineField(line, "CenterX"));
+    const centerY = Number.parseFloat(getTltLineField(line, "CenterY"));
+    if (!Number.isFinite(centerX) || !Number.isFinite(centerY)) return null;
+
+    const attributes = [];
+    String(line || "").split("|").forEach((segment) => {
+      if (segment.startsWith("Attribute=")) attributes.push(segment.slice("Attribute=".length));
+    });
+    const goodnessValue = Number.parseFloat(getTltLineField(line, "Goodness") || "0");
+    const rotationValue = Number.parseFloat(getTltLineField(line, "Rotation") || "0");
+    const widthValue = Number.parseFloat(getTltLineField(line, "Width") || "100");
+    const pipeIndex = String(line || "").indexOf("|");
+
+    return {
+      seatId,
+      name: getTltLineField(line, "Name"),
+      sectionId,
+      rowId,
+      sectionName: sectionName || sectionId,
+      rowName: rowName || rowId,
+      centerX,
+      centerY,
+      vx: centerX,
+      vy: centerY,
+      radius: 10,
+      rotation: Number.isFinite(rotationValue) ? rotationValue : 0,
+      width: Number.isFinite(widthValue) ? widthValue : 100,
+      entryVia: getTltLineField(line, "EntryVia") || "-",
+      goodness: Number.isFinite(goodnessValue) ? goodnessValue : 0,
+      attributes,
+      timestamp: pipeIndex >= 0 ? String(line).slice(0, pipeIndex) : buildTimestamp(),
+      selected: false,
+      selectedAt: null
+    };
+  }
+
+  function parseTltSectionsForImport(text) {
+    const lines = String(text || "").split(/\r?\n/);
+    const sectionsById = new Map();
+    const rowNames = new Map();
+    const invalidSectionIds = new Set();
+
+    const ensureSection = (sectionId) => {
+      const normalizedId = String(sectionId || "").trim();
+      if (!normalizedId) return null;
+      if (!/^\d+\.1$/.test(normalizedId)) {
+        invalidSectionIds.add(normalizedId);
+        return null;
+      }
+      if (!sectionsById.has(normalizedId)) {
+        sectionsById.set(normalizedId, {
+          sourceSectionId: normalizedId,
+          sectionName: normalizedId,
+          entries: [],
+          rowIds: [],
+          seatCount: 0
+        });
+      }
+      return sectionsById.get(normalizedId);
+    };
+
+    lines.forEach((rawLine) => {
+      const line = String(rawLine || "").trim();
+      if (!line) return;
+      if (line.includes("|SectionAdd|")) {
+        const sectionId = getTltLineField(line, "SectionId");
+        const section = ensureSection(sectionId);
+        if (section) section.sectionName = getTltLineField(line, "Name") || sectionId;
+        return;
+      }
+      if (line.includes("|RowAdd|")) {
+        const rowId = getTltLineField(line, "RowId");
+        if (rowId) rowNames.set(rowId, getTltLineField(line, "Name") || rowId);
+        ensureSection(getSectionIdFromTltEntityId(rowId));
+        return;
+      }
+      if (line.includes("|SeatAdd|")) {
+        ensureSection(getSectionIdFromTltEntityId(getTltLineField(line, "SeatId")));
+        return;
+      }
+      const outline = parseTltImportOutlineLine(line);
+      if (outline) ensureSection(outline.sectionId);
+    });
+
+    lines.forEach((rawLine) => {
+      const line = String(rawLine || "").trim();
+      if (!line) return;
+      if (line.includes("|SectionAdd|")) {
+        const sectionId = getTltLineField(line, "SectionId");
+        const section = sectionsById.get(sectionId);
+        if (section) section.entries.push({ type: "section", line });
+        return;
+      }
+      if (line.includes("|RowAdd|")) {
+        const rowId = getTltLineField(line, "RowId");
+        const section = sectionsById.get(getSectionIdFromTltEntityId(rowId));
+        if (!section) return;
+        section.entries.push({ type: "row", line, sourceRowId: rowId });
+        if (!section.rowIds.includes(rowId)) section.rowIds.push(rowId);
+        return;
+      }
+      if (line.includes("|SeatAdd|")) {
+        const seatId = getTltLineField(line, "SeatId");
+        const sectionId = getSectionIdFromTltEntityId(seatId);
+        const section = sectionsById.get(sectionId);
+        if (!section) return;
+        const rowId = seatId.split(".").slice(0, 3).join(".");
+        const seat = parseTltSeatForImport(line, section.sectionName, rowNames.get(rowId));
+        if (!seat) return;
+        section.entries.push({ type: "seat", line, seat });
+        section.seatCount += 1;
+        if (!section.rowIds.includes(rowId)) section.rowIds.push(rowId);
+        return;
+      }
+      const outline = parseTltImportOutlineLine(line);
+      if (!outline) return;
+      const section = sectionsById.get(outline.sectionId);
+      if (section) section.entries.push({ type: "outline", line, outline });
+    });
+
+    const sections = Array.from(sectionsById.values())
+      .filter((section) => section.entries.length > 0)
+      .sort((first, second) => compareSectionIdsForSort(first.sourceSectionId, second.sourceSectionId));
+    return { sections, invalidSectionIds: Array.from(invalidSectionIds) };
+  }
+
+  function remapImportedTltEntityId(value, sourceSectionId, targetSectionId) {
+    const id = String(value || "");
+    if (id === sourceSectionId) return targetSectionId;
+    if (id.startsWith(`${sourceSectionId}.`)) return `${targetSectionId}${id.slice(sourceSectionId.length)}`;
+    return id;
+  }
+
+  function replaceTltLineField(line, fieldName, transformValue) {
+    const safeName = String(fieldName || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    return String(line || "").replace(new RegExp(`(^|\\|)(${safeName}=)([^|]*)`), (match, boundary, prefix, value) => {
+      return `${boundary}${prefix}${transformValue(value)}`;
+    });
+  }
+
+  function remapImportedTltLine(line, sourceSectionId, targetSectionId, targetSectionName) {
+    let remapped = String(line || "");
+    ["SectionId", "RowId", "SeatId"].forEach((fieldName) => {
+      remapped = replaceTltLineField(remapped, fieldName, (value) => {
+        return remapImportedTltEntityId(value, sourceSectionId, targetSectionId);
+      });
+    });
+    if (remapped.includes("|SectionAdd|")) {
+      remapped = replaceTltLineField(remapped, "Name", () => targetSectionName);
+    }
+    return remapped;
+  }
+
+  function remapImportedOutlineLine(line, targetSectionId, targetSectionName) {
+    const rawLine = String(line || "");
+    const outlineStart = rawLine.indexOf("<Outline|");
+    const polyIndex = rawLine.indexOf("[Poly|");
+    if (outlineStart < 0 || polyIndex < 0 || outlineStart >= polyIndex) return rawLine;
+    const prefixTokens = rawLine
+      .slice(outlineStart + "<Outline|".length, polyIndex)
+      .split("|")
+      .filter(Boolean);
+    const typeToken = prefixTokens[2] || "1";
+    const timePrefix = rawLine.slice(0, outlineStart);
+    return `${timePrefix}<Outline|${sectionIdToOutlineCode(targetSectionId)}|${targetSectionName}|${typeToken}|${rawLine.slice(polyIndex)}`;
+  }
+
+  function materializeImportedTltSection(draft) {
+    const sourceSectionId = String(draft?.sourceSectionId || "").trim();
+    const targetSectionId = String(draft?.sectionId || "").trim();
+    const targetSectionName = String(draft?.sectionName || targetSectionId).trim();
+    const entries = Array.isArray(draft?.importEntries) ? draft.importEntries : [];
+    if (!sourceSectionId || !targetSectionId || !entries.length) return false;
+
+    sectionNames.set(targetSectionId, targetSectionName);
+    sectionRawText.set(targetSectionId, "");
+    const hasSectionEntry = entries.some((entry) => entry?.type === "section");
+    if (!hasSectionEntry) {
+      originalLines.push(`${buildTimestamp()}|SectionAdd|SectionId=${targetSectionId}|Name=${targetSectionName}`);
+    }
+
+    entries.forEach((entry) => {
+      if (!entry || !entry.type) return;
+      if (entry.type === "outline") {
+        const outlineLine = remapImportedOutlineLine(entry.line, targetSectionId, targetSectionName);
+        const lineIndex = originalLines.length;
+        originalLines.push(outlineLine);
+        const parsedOutline = parseTltImportOutlineLine(outlineLine);
+        if (parsedOutline) {
+          outlines.push({
+            ...parsedOutline,
+            sectionId: targetSectionId,
+            sectionName: targetSectionName,
+            lineIndex
+          });
+        }
+        return;
+      }
+
+      const remappedLine = remapImportedTltLine(
+        entry.line,
+        sourceSectionId,
+        targetSectionId,
+        targetSectionName
+      );
+      const lineIndex = originalLines.length;
+      originalLines.push(remappedLine);
+      if (entry.type !== "seat" || !entry.seat) return;
+
+      const nextSeatId = remapImportedTltEntityId(entry.seat.seatId, sourceSectionId, targetSectionId);
+      const nextRowId = remapImportedTltEntityId(entry.seat.rowId, sourceSectionId, targetSectionId);
+      const nextSeat = {
+        ...entry.seat,
+        attributes: Array.isArray(entry.seat.attributes) ? [...entry.seat.attributes] : [],
+        seatId: nextSeatId,
+        rowId: nextRowId,
+        sectionId: targetSectionId,
+        sectionName: targetSectionName,
+        selected: false,
+        selectedAt: null,
+        lineIndex
+      };
+      seats.push(nextSeat);
+      seatIdToLineIndex.set(nextSeatId, lineIndex);
+    });
+
+    return true;
+  }
+
+  function isImportedTltDraft(draft) {
+    return draft?.sourceType === "tlt";
+  }
+
+  function updateTltSectionImportAddState() {
+    if (!tltSectionImportAdd || !tltSectionImportList) return;
+    const selectedCount = tltSectionImportList.querySelectorAll('input[type="checkbox"]:checked').length;
+    tltSectionImportAdd.disabled = selectedCount === 0;
+    tltSectionImportAdd.textContent = selectedCount > 0 ? `Add (${selectedCount})` : "Add";
+  }
+
+  function closeTltSectionImportModal() {
+    const wasOpen = tltSectionImportOverlay?.style.display === "flex";
+    if (tltSectionImportOverlay) {
+      tltSectionImportOverlay.style.display = "none";
+      tltSectionImportOverlay.setAttribute("aria-hidden", "true");
+    }
+    pendingTltSectionImports = [];
+    if (tltSectionImportList) tltSectionImportList.innerHTML = "";
+    if (tltSectionImportHint) tltSectionImportHint.textContent = "";
+    if (tltSectionImportAdd) {
+      tltSectionImportAdd.disabled = true;
+      tltSectionImportAdd.textContent = "Add";
+    }
+    if (wasOpen) altSectionImportTltBtn?.focus();
+  }
+
+  function openTltSectionImportModal(sections, fileName) {
+    if (!tltSectionImportOverlay || !tltSectionImportList) return;
+    pendingTltSectionImports = Array.isArray(sections) ? sections : [];
+    tltSectionImportList.innerHTML = "";
+    if (tltSectionImportHint) {
+      tltSectionImportHint.textContent = `${fileName || "TLT file"} · Select the sections to add.`;
+    }
+
+    pendingTltSectionImports.forEach((section, index) => {
+      const option = document.createElement("label");
+      option.className = "tlt-section-import__item";
+
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.checked = true;
+      checkbox.dataset.tltSectionIndex = String(index);
+
+      const copy = document.createElement("span");
+      copy.className = "tlt-section-import__copy";
+      const name = document.createElement("span");
+      name.className = "tlt-section-import__name";
+      name.textContent = `${section.sectionName || section.sourceSectionId} (${section.sourceSectionId})`;
+      const meta = document.createElement("span");
+      meta.className = "tlt-section-import__meta";
+      const rowCount = Array.isArray(section.rowIds) ? section.rowIds.length : 0;
+      meta.textContent = `${rowCount} rows · ${section.seatCount || 0} seats`;
+      copy.appendChild(name);
+      copy.appendChild(meta);
+      option.appendChild(checkbox);
+      option.appendChild(copy);
+      tltSectionImportList.appendChild(option);
+    });
+
+    tltSectionImportOverlay.style.display = "flex";
+    tltSectionImportOverlay.setAttribute("aria-hidden", "false");
+    updateTltSectionImportAddState();
+    setTimeout(() => tltSectionImportList.querySelector('input[type="checkbox"]')?.focus(), 0);
+  }
+
+  async function prepareTltSectionImport(file) {
+    if (!file) return;
+    let textValue = "";
+    try {
+      textValue = await file.text();
+    } catch (err) {
+      console.warn("Could not read TLT file for section import:", err);
+      alert("Could not read the selected TLT file.");
+      return;
+    }
+
+    const result = parseTltSectionsForImport(textValue);
+    if (result.invalidSectionIds.length) {
+      alert(`The file contains unsupported SectionId values: ${result.invalidSectionIds.join(", ")}. SectionId must use the X.1 format.`);
+      return;
+    }
+    if (!result.sections.length) {
+      alert("No sections were found in the selected TLT file.");
+      return;
+    }
+    openTltSectionImportModal(result.sections, file.name || "TLT file");
+  }
+
+  function addSelectedTltSectionsToDrafts() {
+    if (!tltSectionImportList) return false;
+    const selectedIndexes = Array.from(
+      tltSectionImportList.querySelectorAll('input[type="checkbox"]:checked')
+    )
+      .map((checkbox) => Number.parseInt(checkbox.dataset.tltSectionIndex || "", 10))
+      .filter((index) => Number.isFinite(index));
+    if (!selectedIndexes.length) return false;
+
+    const usedSectionIds = getExistingSectionIdsForImport();
+    const addedDrafts = [];
+    selectedIndexes.forEach((index) => {
+      const source = pendingTltSectionImports[index];
+      if (!source) return;
+      const sectionId = computeNextSectionIdFromIds(usedSectionIds);
+      usedSectionIds.add(sectionId);
+      addedDrafts.push({
+        sectionId,
+        sectionName: String(source.sectionName || sectionId).trim() || sectionId,
+        color: CANVAS_PALETTE.sectionEditor.seatCell,
+        rows: [],
+        rawRowText: "",
+        sourceType: "tlt",
+        sourceSectionId: source.sourceSectionId,
+        importEntries: cloneAltHistoryValue(source.entries || []),
+        importedRowCount: Array.isArray(source.rowIds) ? source.rowIds.length : 0,
+        importedSeatCount: Number(source.seatCount) || 0
+      });
+    });
+    if (!addedDrafts.length) return false;
+
+    sectionDrafts.push(...addedDrafts);
+    activeSectionDraftId = addedDrafts[0].sectionId;
+    setSectionDirty(true);
+    renderAltSectionCards();
+    renderAltSectionDetail();
+    pushAltHistorySnapshot();
+    closeTltSectionImportModal();
+    return true;
   }
 
   function buildRowDefinitionFromExcelCells(rowName, seatCells, sheetName, rowIndex) {
@@ -18448,6 +18876,7 @@ function nudgeSelection(dxScreen, dyScreen) {
   function resetSectionDrafts() {
     sectionDrafts = [];
     activeSectionDraftId = null;
+    pendingTltSectionImports = [];
     sectionRawText.clear();
     sectionDirty = false;
     altRowLines = [];
@@ -18467,10 +18896,11 @@ function nudgeSelection(dxScreen, dyScreen) {
       altSectionDirtyFlag.textContent = isDirty ? "Unsaved changes" : "Saved";
       altSectionDirtyFlag.style.color = isDirty ? "#e5484d" : "#60646c";
     }
-    const hasDraft = !!getActiveDraft();
+    const activeDraft = getActiveDraft();
+    const canEditDraft = !!activeDraft && !isImportedTltDraft(activeDraft);
     [altSeatNumberingModeRow, altSeatNumberingModeContinuous, altSeatNumberingModeZigzag, altSeatNumberingModeCenterOddEven]
       .forEach((radio) => {
-        if (radio) radio.disabled = !hasDraft;
+        if (radio) radio.disabled = !canEditDraft;
       });
   }
 
@@ -19513,7 +19943,7 @@ function nudgeSelection(dxScreen, dyScreen) {
   }
 
   function syncAltDraftFromLines(draft) {
-    if (!draft || !draft.altRowLines) return;
+    if (!draft || isImportedTltDraft(draft) || !draft.altRowLines) return;
     const rows = [];
     draft.altRowLines.forEach((line, lineIndex) => {
       const rowName = String((line?.name || "").trim() || (lineIndex + 1));
@@ -19624,9 +20054,21 @@ function nudgeSelection(dxScreen, dyScreen) {
 
       const meta = document.createElement("div");
       meta.className = "section-card__meta";
-      const rowCount = draft.rows.length;
-      const seatCount = draft.rows.reduce((sum, r) => sum + (r.seats?.length || 0), 0);
+      const importedTlt = isImportedTltDraft(draft);
+      const rowCount = importedTlt
+        ? (Number(draft.importedRowCount) || 0)
+        : draft.rows.length;
+      const seatCount = importedTlt
+        ? (Number(draft.importedSeatCount) || 0)
+        : draft.rows.reduce((sum, r) => sum + (r.seats?.length || 0), 0);
       meta.innerHTML = `<span>${rowCount} rows</span><span>${seatCount} seats</span>`;
+      if (importedTlt) {
+        const sourceBadge = document.createElement("span");
+        sourceBadge.className = "section-card__source";
+        sourceBadge.textContent = "TLT";
+        sourceBadge.title = `Imported from SectionId ${draft.sourceSectionId || ""}`;
+        meta.appendChild(sourceBadge);
+      }
 
       header.appendChild(title);
       header.appendChild(renameBtn);
@@ -19787,10 +20229,29 @@ function nudgeSelection(dxScreen, dyScreen) {
     updateAltControls();
   }
 
+  function setImportedTltEditorState(draft) {
+    const isImported = isImportedTltDraft(draft);
+    altSectionEditor?.classList.toggle("section-editor--imported", isImported);
+    if (altImportedSectionNotice) altImportedSectionNotice.hidden = !isImported;
+    if (isImported) {
+      setAltSectionSettingsOpen(false);
+      if (altRowSettingsPanel) altRowSettingsPanel.hidden = true;
+    }
+  }
+
   function renderAltSectionDetail() {
     const draft = getActiveDraft();
+    setImportedTltEditorState(draft);
     if (!draft) {
       clearAltSectionDetail();
+      updateAltControls();
+      return;
+    }
+    if (isImportedTltDraft(draft)) {
+      clearAltSectionDetail();
+      if (altGridStatus) {
+        altGridStatus.textContent = `${Number(draft.importedRowCount) || 0} rows · ${Number(draft.importedSeatCount) || 0} seats · imported from ${draft.sourceSectionId || "TLT"}`;
+      }
       updateAltControls();
       return;
     }
@@ -19912,6 +20373,7 @@ function nudgeSelection(dxScreen, dyScreen) {
   }
 
   function closeAltSectionManager() {
+    if (tltSectionImportOverlay?.style.display === "flex") closeTltSectionImportModal();
     setAltSectionSettingsOpen(false);
     if (altSectionManagerOverlay) altSectionManagerOverlay.style.display = "none";
     setAltTooltip("", 0, 0, false);
@@ -19989,34 +20451,37 @@ function nudgeSelection(dxScreen, dyScreen) {
   }
 
   function updateAltControls() {
-    const hasDraft = !!getActiveDraft();
-    if (altToolSelectBtn) altToolSelectBtn.disabled = !hasDraft;
-    if (altToolDrawBtn) altToolDrawBtn.disabled = !hasDraft;
-    if (altToolEraseBtn) altToolEraseBtn.disabled = !hasDraft;
-    if (altDrawConstraintFree) altDrawConstraintFree.disabled = !hasDraft;
-    if (altDrawConstraintRows) altDrawConstraintRows.disabled = !hasDraft;
+    const activeDraft = getActiveDraft();
+    const hasDraft = !!activeDraft;
+    const canEditDraft = hasDraft && !isImportedTltDraft(activeDraft);
+    if (altToolSelectBtn) altToolSelectBtn.disabled = !canEditDraft;
+    if (altToolDrawBtn) altToolDrawBtn.disabled = !canEditDraft;
+    if (altToolEraseBtn) altToolEraseBtn.disabled = !canEditDraft;
+    if (altDrawConstraintFree) altDrawConstraintFree.disabled = !canEditDraft;
+    if (altDrawConstraintRows) altDrawConstraintRows.disabled = !canEditDraft;
     if (altUndoBtn) altUndoBtn.disabled = altHistoryIndex <= 0;
-    if (altReverseRowOrderBtn) altReverseRowOrderBtn.disabled = !hasDraft;
-    if (altSetRowsManualBtn) altSetRowsManualBtn.disabled = !hasDraft;
-    if (altClearAllRowsBtn) altClearAllRowsBtn.disabled = !hasDraft;
+    if (altReverseRowOrderBtn) altReverseRowOrderBtn.disabled = !canEditDraft;
+    if (altSetRowsManualBtn) altSetRowsManualBtn.disabled = !canEditDraft;
+    if (altClearAllRowsBtn) altClearAllRowsBtn.disabled = !canEditDraft;
+    if (altSectionSettingsToggleBtn) altSectionSettingsToggleBtn.disabled = !canEditDraft;
     const zoomPercent = Math.round(altGridZoom * 100);
     if (altGridZoomOutBtn) {
-      altGridZoomOutBtn.disabled = !hasDraft || altGridZoom <= ALT_GRID_ZOOM_MIN;
+      altGridZoomOutBtn.disabled = !canEditDraft || altGridZoom <= ALT_GRID_ZOOM_MIN;
       altGridZoomOutBtn.title = `Zoom out grid (currently ${zoomPercent}%)`;
       altGridZoomOutBtn.setAttribute("aria-label", altGridZoomOutBtn.title);
     }
     if (altGridZoomInBtn) {
-      altGridZoomInBtn.disabled = !hasDraft || altGridZoom >= ALT_GRID_ZOOM_MAX;
+      altGridZoomInBtn.disabled = !canEditDraft || altGridZoom >= ALT_GRID_ZOOM_MAX;
       altGridZoomInBtn.title = `Zoom in grid (currently ${zoomPercent}%)`;
       altGridZoomInBtn.setAttribute("aria-label", altGridZoomInBtn.title);
     }
-    if (altSeatDeleteNumberingCompact) altSeatDeleteNumberingCompact.disabled = !hasDraft;
-    if (altSeatDeleteNumberingPreserve) altSeatDeleteNumberingPreserve.disabled = !hasDraft;
-    if (altBrokenRowSameRowId) altBrokenRowSameRowId.disabled = !hasDraft;
-    if (altBrokenRowNewRowId) altBrokenRowNewRowId.disabled = !hasDraft;
+    if (altSeatDeleteNumberingCompact) altSeatDeleteNumberingCompact.disabled = !canEditDraft;
+    if (altSeatDeleteNumberingPreserve) altSeatDeleteNumberingPreserve.disabled = !canEditDraft;
+    if (altBrokenRowSameRowId) altBrokenRowSameRowId.disabled = !canEditDraft;
+    if (altBrokenRowNewRowId) altBrokenRowNewRowId.disabled = !canEditDraft;
     [altSeatNumberingModeRow, altSeatNumberingModeContinuous, altSeatNumberingModeZigzag, altSeatNumberingModeCenterOddEven]
       .forEach((radio) => {
-        if (radio) radio.disabled = !hasDraft;
+        if (radio) radio.disabled = !canEditDraft;
       });
     if (altSectionSaveBtn) altSectionSaveBtn.disabled = !hasDraft;
     if (altSectionSaveCloseBtn) altSectionSaveCloseBtn.disabled = !hasDraft;
@@ -20892,6 +21357,15 @@ function nudgeSelection(dxScreen, dyScreen) {
     sectionDrafts.forEach((draft) => {
       if (!draft.sectionId) return;
       const exists = seats.some((s) => s.sectionId === draft.sectionId);
+      if (isImportedTltDraft(draft)) {
+        if (exists) removeSectionData(draft.sectionId);
+        if (materializeImportedTltSection(draft)) {
+          addedNew = addedNew || !exists;
+          anyChanged = true;
+          sectionColors.set(draft.sectionId, draft.color || CANVAS_PALETTE.sectionEditor.seatCell);
+        }
+        return;
+      }
       if (exists) {
         removeSectionData(draft.sectionId);
         materializeNewSection(draft);
@@ -20914,6 +21388,10 @@ function nudgeSelection(dxScreen, dyScreen) {
       const uniqueSections = new Set(seats.map(s => s.sectionId).filter(Boolean));
       seatCountEl.textContent = seats.length.toString();
       sectionCountEl.textContent = uniqueSections.size.toString();
+      syncEntryPointsFromSeats();
+      renderEntryPointList();
+      updateEntryPointUi();
+      updatePriceRegionStatus();
 
       updateCodeFromSeats();
       hasUnsavedChanges = true;
@@ -21198,6 +21676,30 @@ function nudgeSelection(dxScreen, dyScreen) {
     altSectionImportExcelInput?.click();
   }
 
+  async function openSectionTltPicker() {
+    if (typeof window.showOpenFilePicker === "function") {
+      try {
+        const pickerOpts = {
+          types: [{
+            description: "Tickster layout files",
+            accept: { "text/plain": [".tlt"] }
+          }],
+          excludeAcceptAllOption: true,
+          multiple: false
+        };
+        const startIn = await getCurrentLayoutStartHandle();
+        if (startIn) pickerOpts.startIn = startIn;
+        const [handle] = await window.showOpenFilePicker(pickerOpts);
+        if (handle) await prepareTltSectionImport(await handle.getFile());
+        return;
+      } catch (err) {
+        if (err?.name === "AbortError") return;
+        console.warn("Could not open TLT with the file picker; using browser file selection instead:", err);
+      }
+    }
+    altSectionImportTltInput?.click();
+  }
+
   altSectionImportExcelBtn?.addEventListener("click", async () => {
     await openSectionExcelPicker();
   });
@@ -21206,6 +21708,21 @@ function nudgeSelection(dxScreen, dyScreen) {
     if (!file) return;
     await importSectionsFromExcelAndRefresh(file);
     altSectionImportExcelInput.value = "";
+  });
+  altSectionImportTltBtn?.addEventListener("click", async () => {
+    await openSectionTltPicker();
+  });
+  altSectionImportTltInput?.addEventListener("change", async (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    await prepareTltSectionImport(file);
+    altSectionImportTltInput.value = "";
+  });
+  tltSectionImportList?.addEventListener("change", updateTltSectionImportAddState);
+  tltSectionImportCancel?.addEventListener("click", closeTltSectionImportModal);
+  tltSectionImportAdd?.addEventListener("click", addSelectedTltSectionsToDrafts);
+  tltSectionImportOverlay?.addEventListener("click", (e) => {
+    if (e.target === tltSectionImportOverlay) closeTltSectionImportModal();
   });
   altSectionCreateBtn?.addEventListener("click", () => {
     promptAndCreateAltDraft("");
