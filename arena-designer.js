@@ -127,6 +127,8 @@
   const rowEditAddPrefixBtn = document.getElementById("rowEditAddPrefixBtn");
   const rowEditAddSuffixBtn = document.getElementById("rowEditAddSuffixBtn");
   const rowEditRenameAllBtn = document.getElementById("rowEditRenameAllBtn");
+  const rowEditSeatStartAllBtn = document.getElementById("rowEditSeatStartAllBtn");
+  const rowEditAddSeatsAllBtn = document.getElementById("rowEditAddSeatsAllBtn");
   const rowEditClose = document.getElementById("rowEditClose");
   const rowEditCancel = document.getElementById("rowEditCancel");
   const rowEditSave = document.getElementById("rowEditSave");
@@ -15415,6 +15417,22 @@ function nudgeSelection(dxScreen, dyScreen) {
     });
   }
 
+  function promptForBulkRowNumber(promptMessage, defaultValue = 0) {
+    const raw = prompt(promptMessage, String(defaultValue));
+    if (raw == null) return null;
+    const normalized = String(raw).trim();
+    if (!/^\d+$/.test(normalized)) {
+      alert("Enter a whole number of 0 or greater.");
+      return null;
+    }
+    const value = Number(normalized);
+    if (!Number.isSafeInteger(value)) {
+      alert("Enter a smaller whole number.");
+      return null;
+    }
+    return value;
+  }
+
   function getRowNumberingDefaults(rowSeats) {
     const sorted = sortSeatsInRow(rowSeats);
     const nums = sorted.map((s) => parseInt(s.name, 10)).filter((n) => Number.isFinite(n));
@@ -15494,9 +15512,7 @@ function nudgeSelection(dxScreen, dyScreen) {
       const addField = document.createElement("div");
       addField.className = "edit-field edit-field--row-add";
       const addLabel = document.createElement("span");
-      addLabel.className = "edit-item__meta";
-      addLabel.dataset.role = "row-add-meta";
-      addLabel.textContent = "Add seat (0)";
+      addLabel.textContent = "Add seat";
       const controls = document.createElement("div");
       controls.className = "edit-field__inline-controls";
       const decBtn = document.createElement("button");
@@ -15505,14 +15521,26 @@ function nudgeSelection(dxScreen, dyScreen) {
       decBtn.textContent = "-";
       decBtn.dataset.role = "row-add-seat-dec";
       decBtn.title = "Decrease pending added seats";
+      decBtn.setAttribute("aria-label", `Decrease seats added to row ${rowName}`);
       decBtn.disabled = true;
+      const addCountInput = document.createElement("input");
+      addCountInput.type = "number";
+      addCountInput.min = "0";
+      addCountInput.step = "1";
+      addCountInput.inputMode = "numeric";
+      addCountInput.value = "0";
+      addCountInput.className = "edit-field__count-input";
+      addCountInput.dataset.role = "row-add-seat-count";
+      addCountInput.setAttribute("aria-label", `Seats to add to row ${rowName}`);
       const incBtn = document.createElement("button");
       incBtn.type = "button";
       incBtn.className = "c-button c-button--color-white c-button--small";
       incBtn.textContent = "+";
       incBtn.dataset.role = "row-add-seat-inc";
       incBtn.title = "Increase pending added seats";
+      incBtn.setAttribute("aria-label", `Increase seats added to row ${rowName}`);
       controls.appendChild(decBtn);
+      controls.appendChild(addCountInput);
       controls.appendChild(incBtn);
       addField.appendChild(addLabel);
       addField.appendChild(controls);
@@ -16834,6 +16862,27 @@ function nudgeSelection(dxScreen, dyScreen) {
       "Enter new row name for all selected rows:"
     );
   });
+  rowEditSeatStartAllBtn?.addEventListener("click", () => {
+    if (!rowEditList) return;
+    const inputs = Array.from(rowEditList.querySelectorAll("input[data-role='row-start']"));
+    if (!inputs.length) return;
+    const defaultValue = normalizeRowAddSeatCount(inputs[0].value);
+    const value = promptForBulkRowNumber("Seat start number for all selected rows:", defaultValue);
+    if (value == null) return;
+    inputs.forEach((input) => {
+      input.value = String(value);
+    });
+  });
+  rowEditAddSeatsAllBtn?.addEventListener("click", () => {
+    if (!rowEditList) return;
+    const rowItems = Array.from(rowEditList.querySelectorAll(".edit-item"));
+    if (!rowItems.length) return;
+    const firstInput = rowItems[0].querySelector("[data-role='row-add-seat-count']");
+    const defaultValue = normalizeRowAddSeatCount(firstInput?.value);
+    const value = promptForBulkRowNumber("Number of seats to add to all selected rows:", defaultValue);
+    if (value == null) return;
+    rowItems.forEach((rowEl) => setRowAddSeatCount(rowEl, value, true));
+  });
   sectionEditClose?.addEventListener("click", closeSectionEditModal);
   sectionEditCancel?.addEventListener("click", closeSectionEditModal);
   sectionEditList?.addEventListener("click", (e) => {
@@ -16921,25 +16970,44 @@ function nudgeSelection(dxScreen, dyScreen) {
     }
     closeSectionEditModal();
   });
+  function normalizeRowAddSeatCount(value) {
+    const parsed = Number.parseInt(String(value ?? ""), 10);
+    return Number.isFinite(parsed) ? Math.max(0, parsed) : 0;
+  }
+
+  function setRowAddSeatCount(rowEl, value, updateInput = true) {
+    const rowId = rowEl?.dataset?.rowId;
+    if (!rowId) return 0;
+    const state = rowEditState.get(rowId);
+    if (!state) return 0;
+    const nextCount = normalizeRowAddSeatCount(value);
+    state.addCount = nextCount;
+    const countInput = rowEl.querySelector("[data-role='row-add-seat-count']");
+    if (updateInput && countInput) countInput.value = String(nextCount);
+    const decBtn = rowEl.querySelector("[data-role='row-add-seat-dec']");
+    if (decBtn) decBtn.disabled = nextCount <= 0;
+    return nextCount;
+  }
+
   rowEditList?.addEventListener("click", (e) => {
     const incBtn = e.target.closest("[data-role='row-add-seat-inc']");
     const decBtn = e.target.closest("[data-role='row-add-seat-dec']");
     if (!incBtn && !decBtn) return;
     const sourceBtn = incBtn || decBtn;
     const rowEl = sourceBtn?.closest(".edit-item");
-    const rowId = rowEl?.dataset?.rowId;
-    if (!rowId) return;
-    const state = rowEditState.get(rowId);
+    const state = rowEditState.get(rowEl?.dataset?.rowId || "");
     if (!state) return;
-    if (incBtn) {
-      state.addCount += 1;
-    } else {
-      state.addCount = Math.max(0, state.addCount - 1);
-    }
-    const meta = rowEl.querySelector("[data-role='row-add-meta']");
-    if (meta) meta.textContent = `Add seat (${state.addCount})`;
-    const pairedDecBtn = rowEl.querySelector("[data-role='row-add-seat-dec']");
-    if (pairedDecBtn) pairedDecBtn.disabled = state.addCount <= 0;
+    setRowAddSeatCount(rowEl, state.addCount + (incBtn ? 1 : -1));
+  });
+  rowEditList?.addEventListener("input", (e) => {
+    const countInput = e.target.closest("[data-role='row-add-seat-count']");
+    if (!countInput) return;
+    setRowAddSeatCount(countInput.closest(".edit-item"), countInput.value, false);
+  });
+  rowEditList?.addEventListener("change", (e) => {
+    const countInput = e.target.closest("[data-role='row-add-seat-count']");
+    if (!countInput) return;
+    setRowAddSeatCount(countInput.closest(".edit-item"), countInput.value, true);
   });
   rowEditSave?.addEventListener("click", () => {
     if (!rowEditList) return;
@@ -16967,6 +17035,8 @@ function nudgeSelection(dxScreen, dyScreen) {
 
       const startValue = parseInt(startInput?.value, 10);
       const state = rowEditState.get(rowId);
+      const addCountInput = rowEl.querySelector("[data-role='row-add-seat-count']");
+      if (state) setRowAddSeatCount(rowEl, addCountInput?.value, true);
       if (state && state.addCount > 0) {
         const added = addSeatsToRow(rowId, rowSeats, state.addCount, nextName);
         changed = added || changed;

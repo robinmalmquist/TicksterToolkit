@@ -3194,7 +3194,7 @@
     }
 
     .edit-item__grid--row {
-      grid-template-columns: minmax(130px, 1.45fr) minmax(95px, 0.75fr) minmax(120px, 0.95fr) auto;
+      grid-template-columns: minmax(112px, 1.2fr) minmax(76px, 0.62fr) minmax(112px, 0.9fr) minmax(132px, auto);
       align-items: end;
     }
 
@@ -3215,7 +3215,7 @@
     }
 
     .edit-field--row-add {
-      min-width: 124px;
+      min-width: 132px;
     }
 
     .edit-field--section-editor {
@@ -3246,6 +3246,20 @@
     .edit-field__inline-controls .c-button {
       min-width: 2rem;
       padding-inline: 0.5rem;
+    }
+
+    .edit-field__count-input {
+      width: 3.25rem;
+      min-width: 0;
+      padding-inline: var(--space-1);
+      text-align: center;
+      appearance: textfield;
+    }
+
+    .edit-field__count-input::-webkit-inner-spin-button,
+    .edit-field__count-input::-webkit-outer-spin-button {
+      margin: 0;
+      appearance: none;
     }
 
     .edit-item__actions {
