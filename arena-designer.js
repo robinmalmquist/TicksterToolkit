@@ -16426,6 +16426,16 @@ function nudgeSelection(dxScreen, dyScreen) {
     return String(Math.max(...values) + 1);
   }
 
+  function getNextRowSeatName(rowSeats) {
+    const sorted = sortSeatsInRow(rowSeats);
+    if (!sorted.length) return null;
+    const values = sorted.map((seat) => getStrictNumericName(seat?.name));
+    if (values.some((value) => value == null)) return null;
+    const lastIndex = values.length - 1;
+    const direction = lastIndex > 0 && values[lastIndex] < values[0] ? -1 : 1;
+    return String(values[lastIndex] + direction);
+  }
+
   function promptForQuickAddName(itemLabel) {
     const response = prompt(`Cannot calculate the next ${itemLabel} name. Enter a name:`, "");
     if (response == null) return null;
@@ -16485,7 +16495,7 @@ function nudgeSelection(dxScreen, dyScreen) {
     const [rowId, rowSeats] = selectedRows.entries().next().value || [];
     if (!rowId || !rowSeats?.length) return false;
 
-    let seatName = getNextNumericName(rowSeats);
+    let seatName = getNextRowSeatName(rowSeats);
     if (seatName == null) {
       seatName = promptForQuickAddName("seat");
       if (seatName == null) return false;
