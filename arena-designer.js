@@ -12074,29 +12074,10 @@ function selectSeatsWithoutEntryPoints() {
   function deleteSelectionByMode() {
     const selected = getSelectedSeats();
     if (!selected.length) return;
-    let removed = false;
-
-    if (selectionMode === "section") {
-      const sectionIds = new Set(selected.map(s => s.sectionId).filter(Boolean));
-      if (!sectionIds.size) return;
-      if (!confirm(`Delete ${sectionIds.size} section(s)?`)) return;
-      sectionIds.forEach((sectionId) => {
-        removeSectionData(sectionId);
-        sectionNames.delete(sectionId);
-        sectionColors.delete(sectionId);
-      });
-      removed = true;
-    } else if (selectionMode === "row") {
-      const rowIds = new Set(selected.map(s => s.rowId).filter(Boolean));
-      if (!rowIds.size) return;
-      if (!confirm(`Delete ${rowIds.size} row(s)?`)) return;
-      removed = removeRowsById(rowIds);
-    } else {
-      const seatIds = new Set(selected.map(s => s.seatId));
-      if (!seatIds.size) return;
-      if (!confirm(`Delete ${seatIds.size} seat(s)?`)) return;
-      removed = removeSeatsById(seatIds);
-    }
+    const seatIds = new Set(selected.map(s => s.seatId));
+    if (!seatIds.size) return;
+    if (!confirm(`Delete ${seatIds.size} seat(s)?`)) return;
+    const removed = removeSeatsById(seatIds);
 
     if (!removed) return;
     clearSelectionSeats(seats);
@@ -14941,9 +14922,7 @@ function nudgeSelection(dxScreen, dyScreen) {
     seatContextMenu.setAttribute("aria-hidden", "false");
     if (mode === "selection") {
       if (deleteSelectionMenuItem) {
-        if (selectionMode === "section") deleteSelectionMenuItem.textContent = "Delete selected section(s)";
-        else if (selectionMode === "row") deleteSelectionMenuItem.textContent = "Delete selected row(s)";
-        else deleteSelectionMenuItem.textContent = "Delete selected seat(s)";
+        deleteSelectionMenuItem.textContent = "Delete selected seat(s)";
         deleteSelectionMenuItem.disabled = selectedSeats.length === 0;
       }
       if (editSeatsMenuItem) {
